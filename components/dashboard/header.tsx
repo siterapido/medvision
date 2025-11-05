@@ -1,6 +1,19 @@
 "use client"
 
-export function DashboardHeader() {
+import type { User } from "@supabase/supabase-js"
+
+export function DashboardHeader({ user }: { user: User }) {
+  const getInitials = () => {
+    const name = user.user_metadata?.nome_completo
+    if (name) {
+      const parts = name.split(" ")
+      return parts.length > 1
+        ? `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase()
+        : parts[0].substring(0, 2).toUpperCase()
+    }
+    return user.email?.substring(0, 2).toUpperCase() || "U"
+  }
+
   return (
     <header className="h-16 border-b border-border bg-card px-6 flex items-center justify-between">
       <div className="flex items-center gap-4">
@@ -26,7 +39,7 @@ export function DashboardHeader() {
 
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm">
-            DS
+            {getInitials()}
           </div>
         </div>
       </div>

@@ -1,8 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { createClient } from "@/lib/supabase/client"
+import type { User } from "@supabase/supabase-js"
 
 const navigation = [
   {
@@ -77,8 +79,16 @@ const navigation = [
   },
 ]
 
-export function DashboardSidebar() {
+export function DashboardSidebar({ user }: { user: User }) {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleLogout = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push("/login")
+    router.refresh()
+  }
 
   return (
     <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
@@ -123,9 +133,12 @@ export function DashboardSidebar() {
       </nav>
 
       <div className="p-4 border-t border-sidebar-border">
-        <Link
-          href="/login"
-          className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+        <div className="px-4 py-2 mb-2">
+          <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+        </div>
+        <button
+          onClick={handleLogout}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path
@@ -136,7 +149,7 @@ export function DashboardSidebar() {
             />
           </svg>
           Sair
-        </Link>
+        </button>
       </div>
     </aside>
   )
