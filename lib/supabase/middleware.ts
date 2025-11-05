@@ -2,8 +2,6 @@ import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 
 export async function updateSession(request: NextRequest) {
-  console.log("[v0] Middleware running for:", request.nextUrl.pathname)
-
   let supabaseResponse = NextResponse.next({
     request,
   })
@@ -12,7 +10,6 @@ export async function updateSession(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    console.log("[v0] Missing Supabase environment variables, allowing request to continue")
     return supabaseResponse
   }
 
@@ -36,28 +33,20 @@ export async function updateSession(request: NextRequest) {
       data: { user },
     } = await supabase.auth.getUser()
 
-    console.log("[v0] User authenticated:", !!user)
-
-    // Redirect to login if not authenticated and trying to access protected routes
-    if (!user && request.nextUrl.pathname.startsWith("/dashboard")) {
-      console.log("[v0] Redirecting to login - no user and accessing dashboard")
+    if (!user && request.nextUrl.pathname.startsWith("/chat")) {
       const url = request.nextUrl.clone()
       url.pathname = "/login"
       return NextResponse.redirect(url)
     }
 
-    // Redirect to dashboard if authenticated and trying to access auth pages
     if (user && (request.nextUrl.pathname === "/login" || request.nextUrl.pathname === "/register")) {
-      console.log("[v0] Redirecting to dashboard - user authenticated and accessing auth page")
       const url = request.nextUrl.clone()
-      url.pathname = "/dashboard"
+      url.pathname = "/chat"
       return NextResponse.redirect(url)
     }
   } catch (error) {
-    console.error("[v0] Error in middleware, allowing request to continue:", error)
-    // If there's an error, allow the request to continue
+    console.error("[v0] Error in middleware:", error)
   }
 
-  console.log("[v0] Middleware complete, continuing request")
   return supabaseResponse
 }

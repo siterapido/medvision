@@ -1,11 +1,8 @@
-import { type NextRequest, NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+import { updateSession } from "@/lib/supabase/middleware"
 
 export async function middleware(request: NextRequest) {
-  console.log("[v0] Middleware: Processing request for", request.nextUrl.pathname)
-
-  // For now, just allow all requests through to debug the preview issue
-  // We'll add back authentication checks once the app is loading
-  return NextResponse.next()
+  return await updateSession(request)
 }
 
 export const config = {
