@@ -1,35 +1,11 @@
 import { Card } from "@/components/ui/card"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
 
-export default async function DashboardPage() {
-  const supabase = await createClient()
-
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    redirect("/login")
-  }
-
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle()
-
-  const { data: subscription } = await supabase
-    .from("subscriptions")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("status", "active")
-    .maybeSingle()
-
-  const userName = profile?.nome_completo || user.user_metadata?.nome_completo || user.email?.split("@")[0] || "Usuário"
-
+export default function DashboardPage() {
   return (
     <div className="p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">Bem-vindo, {userName.split(" ")[0]}</h1>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Bem-vindo ao Odonto GPT</h1>
         <p className="text-muted-foreground">Sua plataforma completa de IA e educação odontológica</p>
       </div>
 
@@ -105,22 +81,22 @@ export default async function DashboardPage() {
             <div className="flex items-center gap-3 pb-3 border-b border-border">
               <div className="w-2 h-2 rounded-full bg-primary"></div>
               <div className="flex-1">
-                <p className="text-sm font-medium">Conta criada com sucesso</p>
-                <p className="text-xs text-muted-foreground">Bem-vindo ao Odonto GPT!</p>
+                <p className="text-sm font-medium">Nova conversa no chat</p>
+                <p className="text-xs text-muted-foreground">Há 2 horas</p>
               </div>
             </div>
             <div className="flex items-center gap-3 pb-3 border-b border-border">
               <div className="w-2 h-2 rounded-full bg-accent"></div>
               <div className="flex-1">
-                <p className="text-sm font-medium">Explore os cursos disponíveis</p>
-                <p className="text-xs text-muted-foreground">Comece sua jornada de aprendizado</p>
+                <p className="text-sm font-medium">Aula concluída: Implantodontia Básica</p>
+                <p className="text-xs text-muted-foreground">Há 1 dia</p>
               </div>
             </div>
             <div className="flex items-center gap-3">
               <div className="w-2 h-2 rounded-full bg-secondary"></div>
               <div className="flex-1">
-                <p className="text-sm font-medium">Converse com a IA</p>
-                <p className="text-xs text-muted-foreground">Tire suas dúvidas odontológicas</p>
+                <p className="text-sm font-medium">Certificado gerado</p>
+                <p className="text-xs text-muted-foreground">Há 3 dias</p>
               </div>
             </div>
           </div>
@@ -129,37 +105,22 @@ export default async function DashboardPage() {
         <Card className="p-6">
           <h3 className="font-semibold text-lg mb-4">Seu Progresso</h3>
           <div className="space-y-4">
-            <div className="p-4 bg-muted rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Plano Atual</span>
-                <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
-                  {subscription?.plan_type === "anual"
-                    ? "Anual"
-                    : subscription?.plan_type === "mensal"
-                      ? "Mensal"
-                      : "Free"}
-                </span>
-              </div>
-              {!subscription && (
-                <p className="text-xs text-muted-foreground">Faça upgrade para acessar recursos premium</p>
-              )}
-            </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="font-medium">Cursos Concluídos</span>
-                <span className="text-muted-foreground">0 de 10</span>
+                <span className="text-muted-foreground">3 de 10</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2">
-                <div className="bg-primary h-2 rounded-full" style={{ width: "0%" }}></div>
+                <div className="bg-primary h-2 rounded-full" style={{ width: "30%" }}></div>
               </div>
             </div>
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span className="font-medium">Conversas no Chat</span>
-                <span className="text-muted-foreground">0 mensagens</span>
+                <span className="text-muted-foreground">47 mensagens</span>
               </div>
               <div className="w-full bg-muted rounded-full h-2">
-                <div className="bg-accent h-2 rounded-full" style={{ width: "0%" }}></div>
+                <div className="bg-accent h-2 rounded-full" style={{ width: "65%" }}></div>
               </div>
             </div>
           </div>

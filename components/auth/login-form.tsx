@@ -7,36 +7,22 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { createClient } from "@/lib/supabase/client"
 
 export function LoginForm() {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    setError(null)
 
-    try {
-      const supabase = createClient()
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      })
+    // Simulate API call
+    await new Promise((resolve) => setTimeout(resolve, 1000))
 
-      if (error) throw error
-
-      router.push("/chat")
-      router.refresh()
-    } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "Erro ao fazer login")
-    } finally {
-      setIsLoading(false)
-    }
+    // For demo purposes, redirect to dashboard
+    router.push("/dashboard")
   }
 
   return (
@@ -66,8 +52,6 @@ export function LoginForm() {
           className="h-11"
         />
       </div>
-
-      {error && <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">{error}</div>}
 
       <Button
         type="submit"

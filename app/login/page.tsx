@@ -2,8 +2,6 @@ import Link from "next/link"
 import { LoginForm } from "@/components/auth/login-form"
 
 export default function LoginPage() {
-  console.log("[v0] Login page rendering")
-
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 via-white to-teal-50 p-4">
       <div className="w-full max-w-md">
@@ -28,7 +26,7 @@ export default function LoginPage() {
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
               Não tem uma conta?{" "}
-              <Link href="/register" className="text-primary hover:text-primary/80 font-medium transition-colors">
+              <Link href="/register" className="text-primary hover:text-primary-hover font-medium transition-colors">
                 Criar conta
               </Link>
             </p>
