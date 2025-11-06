@@ -55,9 +55,21 @@ Este documento descreve como configurar a autenticação via Supabase no projeto
      - `http://localhost:3000/auth/callback`
      - Seu domínio de produção + `/auth/callback`
 
-### 5. Configurar Políticas de Segurança (RLS)
+### 5. Configurar Banco de Dados
 
-Por padrão, o Supabase cria a tabela `auth.users` automaticamente. Se você precisar de tabelas customizadas:
+#### Opção A: Via SQL Editor (Recomendado)
+
+1. No painel do Supabase, vá em **SQL Editor**
+2. Clique em **+ New query**
+3. Abra o arquivo `supabase/migrations/001_initial_schema.sql` do projeto
+4. Copie todo o conteúdo
+5. Cole no SQL Editor do Supabase
+6. Clique em **Run** ou pressione `Ctrl/Cmd + Enter`
+7. Aguarde a execução (~5 segundos)
+
+#### Opção B: SQL Mínimo (Quick Start)
+
+Se preferir começar apenas com o essencial para teste:
 
 1. Vá em **SQL Editor**
 2. Execute:
@@ -133,6 +145,28 @@ Por padrão, o Supabase cria a tabela `auth.users` automaticamente. Se você pre
 - Acessibilidade (ARIA labels)
 
 ## 🧪 Testando a Integração
+
+### 0. Testar Conexão com Banco de Dados (NOVO!)
+
+**Página de teste criada:** `http://localhost:3000/notes`
+
+1. Certifique-se que executou o SQL migration (passo 5 acima)
+2. Inicie o servidor:
+   ```bash
+   npm run dev
+   ```
+3. Acesse: http://localhost:3000/notes
+4. Você deve ver:
+   - ✅ Lista das 3 notas de exemplo
+   - ✅ Status de conexão (verde)
+   - ✅ Dados em formato JSON
+   - ✅ Confirmação que SELECT, RLS e Conexão funcionam
+
+**Se aparecer erro:**
+- Verifique se `.env.local` está configurado
+- Verifique se a tabela `notes` foi criada no Supabase
+- Reinicie o servidor (`npm run dev`)
+- Veja troubleshooting em `supabase/README.md`
 
 ### 1. Testar Cadastro
 
