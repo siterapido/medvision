@@ -853,6 +853,14 @@ html {
   display: block !important;
 }
 
+/* Force white logo in Login page left side */
+.login-logo-white img:first-child {
+  display: none !important;
+}
+.login-logo-white img:last-child {
+  display: block !important;
+}
+
 /* Override badge colors in dark sections - FORCE WHITE */
 .bg-hero-section .inline-flex,
 .bg-dentista-section .inline-flex,
@@ -1218,6 +1226,30 @@ html {
   pointer-events: none;
   opacity: 0.5;
   z-index: 1;
+}
+
+/* === LOGIN PAGE STYLES === */
+
+.bg-login-page {
+  background: linear-gradient(135deg, #0F192F 0%, #131D37 50%, #1A2847 100%);
+}
+
+/* Grid pattern for login left side */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(90deg, rgba(35, 153, 180, 0.03) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(35, 153, 180, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: gridFloat 20s ease-in-out infinite;
+}
+
+@keyframes gridFloat {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(10px, 10px);
+  }
 }
 
 /* Dark mode variations */
