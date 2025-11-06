@@ -506,72 +506,139 @@ html {
 /* Backgrounds para todas as seções da landing page */
 .bg-hero-section {
   @apply relative overflow-hidden;
-  /* Subtle gradient anchored on #131D37 */
-  background: linear-gradient(135deg, #131D37 0%, #152241 50%, #0F192F 100%);
+  /* Enhanced gradient with more depth and variation */
+  background:
+    radial-gradient(ellipse at top, #1A2847 0%, transparent 60%),
+    linear-gradient(135deg, #0F192F 0%, #131D37 35%, #1A2847 65%, #131D37 100%);
 }
 
 .bg-hero-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  /* Soft radial glow using the base color (#131D37) with low opacity */
-  background: radial-gradient(ellipse 75% 50% at 50% -15%, rgba(19, 29, 55, 0.12) 0%, transparent 70%);
+  /* Intensified glow with cyan accent */
+  background:
+    radial-gradient(ellipse 80% 55% at 50% -15%, rgba(8, 145, 178, 0.08) 0%, transparent 65%),
+    radial-gradient(circle at 20% 80%, rgba(6, 182, 212, 0.06) 0%, transparent 50%);
   pointer-events: none;
 }
 .bg-how-it-works-section {
   @apply relative overflow-hidden;
-  background: linear-gradient(135deg, #101A34 0%, #131F38 50%, #0F192F 100%);
-  /* Card palette scoped to section for coherence with #131F38 */
-  --card: #16243F; /* slightly lighter than #131F38 for elevation */
-  --card-foreground: #E6EDF7; /* high contrast text */
-  --border: #24324F; /* subtle border aligned to palette */
+  /* Light theme with subtle gradients */
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%);
+  /* Card palette for light sections */
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --border: #e2e8f0;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
 }
 
 .bg-how-it-works-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(19, 31, 56, 0.12) 0%, transparent 70%);
+  /* Mesh gradient with cyan tones */
+  background:
+    radial-gradient(circle at 20% 10%, rgba(8, 145, 178, 0.08) 0%, transparent 60%),
+    radial-gradient(circle at 80% 90%, rgba(6, 182, 212, 0.06) 0%, transparent 60%);
   pointer-events: none;
+}
+
+.bg-how-it-works-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Subtle grid pattern */
+  background-image:
+    repeating-linear-gradient(0deg, rgba(8, 145, 178, 0.02) 0px, rgba(8, 145, 178, 0.02) 1px, transparent 1px, transparent 60px),
+    repeating-linear-gradient(90deg, rgba(8, 145, 178, 0.02) 0px, rgba(8, 145, 178, 0.02) 1px, transparent 1px, transparent 60px);
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, black 0%, transparent 90%);
+  pointer-events: none;
+  opacity: 0.5;
 }
 
 .bg-benefits-section {
   @apply relative overflow-hidden;
-  background: linear-gradient(135deg, #101A34 0%, #131F38 50%, #0F192F 100%);
-  /* Card palette scoped to section for coherence with #131F38 */
-  --card: #16243F;
-  --card-foreground: #E6EDF7;
-  --border: #24324F;
+  /* Light theme with wave pattern feeling */
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 35%, #f8fafc 65%, #ffffff 100%);
+  /* Card palette for light sections */
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --border: #e2e8f0;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
 }
 
 .bg-benefits-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 60% 40% at 50% 30%, rgba(19, 31, 56, 0.1) 0%, transparent 70%);
+  /* Floating glows with animation */
+  background:
+    radial-gradient(circle at 30% 40%, rgba(8, 145, 178, 0.06) 0%, transparent 50%),
+    radial-gradient(circle at 70% 60%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 50% 10%, rgba(35, 153, 180, 0.04) 0%, transparent 40%);
+  pointer-events: none;
+  animation: float 16s ease-in-out infinite;
+}
+
+.bg-benefits-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Dot pattern texture */
+  background-image: radial-gradient(circle, rgba(8, 145, 178, 0.03) 1px, transparent 1px);
+  background-size: 30px 30px;
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 0%, transparent 85%);
   pointer-events: none;
 }
 
 .bg-testimonials-section {
   @apply relative overflow-hidden;
-  background: linear-gradient(135deg, #101A34 0%, #131F38 50%, #0F192F 100%);
-  /* Card palette scoped to section for coherence with #131F38 */
-  --card: #16243F;
-  --card-foreground: #E6EDF7;
-  --border: #24324F;
+  /* Light theme for social proof - clean and trustworthy */
+  background: linear-gradient(135deg, #ffffff 0%, #fafcfd 50%, #ffffff 100%);
+  /* Card palette for light sections */
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --border: #e2e8f0;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
 }
 
 .bg-testimonials-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 70% 50% at 50% 20%, rgba(19, 31, 56, 0.1) 0%, transparent 70%);
+  /* Subtle spotlight effect from top */
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(8, 145, 178, 0.05) 0%, transparent 60%),
+    radial-gradient(circle at 20% 80%, rgba(6, 182, 212, 0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.bg-testimonials-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Diagonal lines pattern */
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 40px,
+    rgba(8, 145, 178, 0.015) 40px,
+    rgba(8, 145, 178, 0.015) 41px
+  );
   pointer-events: none;
 }
 
 .bg-pricing-section {
   @apply relative overflow-hidden;
-  background: linear-gradient(135deg, #101A34 0%, #131F38 50%, #0F192F 100%);
+  /* Rich gradient for premium feel */
+  background:
+    radial-gradient(ellipse at top right, #1A2847 0%, transparent 60%),
+    radial-gradient(ellipse at bottom left, #16243F 0%, transparent 65%),
+    linear-gradient(135deg, #0F192F 0%, #131F38 50%, #0F192F 100%);
   /* Card palette scoped to section for coherence with #131F38 */
   --card: #16243F;
   --card-foreground: #E6EDF7;
@@ -582,13 +649,20 @@ html {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(19, 31, 56, 0.12) 0%, transparent 70%);
+  /* Spotlight effect on pricing card */
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 50%, rgba(8, 145, 178, 0.12) 0%, transparent 70%),
+    radial-gradient(circle at 50% -10%, rgba(6, 182, 212, 0.08) 0%, transparent 60%);
   pointer-events: none;
+  animation: float 18s ease-in-out infinite;
 }
 
 .bg-final-cta-section {
   @apply relative overflow-hidden;
-  background: linear-gradient(135deg, #101A34 0%, #131F38 50%, #0F192F 100%);
+  /* Energetic gradient for final CTA */
+  background:
+    radial-gradient(ellipse at center, #1A2847 0%, transparent 55%),
+    linear-gradient(135deg, #131D37 0%, #152241 45%, #1A2847 55%, #131F38 100%);
   /* Card palette scoped to section for coherence with #131F38 */
   --card: #16243F;
   --card-foreground: #E6EDF7;
@@ -599,30 +673,59 @@ html {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 70% 50% at 50% 30%, rgba(19, 31, 56, 0.12) 0%, transparent 70%);
+  /* Pulsing glow for urgency */
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 30%, rgba(8, 145, 178, 0.14) 0%, transparent 70%),
+    radial-gradient(circle at 50% 70%, rgba(6, 182, 212, 0.10) 0%, transparent 60%);
   pointer-events: none;
+  animation: pulseScale 6s ease-in-out infinite;
 }
 
 .bg-faq-section {
   @apply relative overflow-hidden;
-  background: linear-gradient(135deg, #101A34 0%, #131F38 50%, #0F192F 100%);
-  /* Card palette scoped to section for coherence with #131F38 */
-  --card: #16243F;
-  --card-foreground: #E6EDF7;
-  --border: #24324F;
+  /* Light theme for readability */
+  background: linear-gradient(135deg, #fafbfc 0%, #ffffff 50%, #f8fafc 100%);
+  /* Card palette for light sections */
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --border: #e2e8f0;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
 }
 
 .bg-faq-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 60% 40% at 50% 20%, rgba(19, 31, 56, 0.1) 0%, transparent 70%);
+  /* Concentric circles pattern */
+  background:
+    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(8, 145, 178, 0.04) 0%, transparent 55%),
+    radial-gradient(circle at 85% 15%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+  pointer-events: none;
+}
+
+.bg-faq-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Wave pattern */
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 80px,
+      rgba(8, 145, 178, 0.01) 80px,
+      rgba(8, 145, 178, 0.01) 160px
+    );
   pointer-events: none;
 }
 
 .bg-dentista-section {
   @apply relative overflow-hidden;
-  background: linear-gradient(135deg, #101A34 0%, #131F38 50%, #0F192F 100%);
+  /* Enhanced comparison section with depth */
+  background:
+    radial-gradient(ellipse at center, #16243F 0%, transparent 70%),
+    linear-gradient(135deg, #0F192F 0%, #131F38 40%, #1A2847 60%, #131F38 100%);
   /* Card palette scoped to section for coherence with #131F38 */
   --card: #16243F;
   --card-foreground: #E6EDF7;
@@ -633,7 +736,10 @@ html {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(19, 31, 56, 0.16) 0%, transparent 70%);
+  /* Stronger glow for emphasis */
+  background:
+    radial-gradient(ellipse 85% 60% at 50% -20%, rgba(8, 145, 178, 0.10) 0%, transparent 70%),
+    radial-gradient(circle at 50% 100%, rgba(6, 182, 212, 0.06) 0%, transparent 60%);
   pointer-events: none;
 }
 
@@ -641,26 +747,48 @@ html {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 80% 20%, rgba(25, 199, 190, 0.06) 0%, transparent 50%),
-              radial-gradient(circle at 20% 80%, rgba(239, 68, 68, 0.04) 0%, transparent 50%);
+  /* Contrasting glows for success/failure cards */
+  background:
+    radial-gradient(circle at 75% 25%, rgba(8, 145, 178, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 25% 75%, rgba(239, 68, 68, 0.05) 0%, transparent 50%);
   pointer-events: none;
 }
 
-/* Seção de responsabilidade técnica - seguindo o padrão das demais seções */
+/* Seção de responsabilidade técnica - light theme for professionalism */
 .bg-expert-section {
   @apply relative overflow-hidden;
-  background: linear-gradient(135deg, #101A34 0%, #131F38 50%, #0F192F 100%);
-  /* Card palette scoped to section for coherence with #131F38 */
-  --card: #16243F;
-  --card-foreground: #E6EDF7;
-  --border: #24324F;
+  /* Premium light background for credibility */
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 40%, #f8fafc 70%, #ffffff 100%);
+  /* Card palette for light sections */
+  --card: #ffffff;
+  --card-foreground: #1a1a1a;
+  --border: #e2e8f0;
+  --muted: #f8fafc;
+  --muted-foreground: #64748b;
 }
 
 .bg-expert-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 60% 40% at 50% 40%, rgba(19, 31, 56, 0.12) 0%, transparent 70%);
+  /* Sophisticated mesh gradient */
+  background:
+    radial-gradient(ellipse 60% 50% at 40% 50%, rgba(8, 145, 178, 0.06) 0%, transparent 60%),
+    radial-gradient(circle at 80% 30%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 20% 80%, rgba(35, 153, 180, 0.04) 0%, transparent 45%);
+  pointer-events: none;
+}
+
+.bg-expert-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  /* Subtle hexagon pattern */
+  background-image:
+    radial-gradient(circle, rgba(8, 145, 178, 0.025) 1.5px, transparent 1.5px);
+  background-size: 40px 40px;
+  background-position: 0 0, 20px 20px;
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 0%, transparent 80%);
   pointer-events: none;
 }
 
@@ -676,6 +804,60 @@ html {
   inset: 0;
   background: radial-gradient(ellipse 70% 45% at 50% -10%, rgba(19, 31, 56, 0.16) 0%, transparent 70%);
   pointer-events: none;
+}
+
+/* === SECTION DIVIDERS === */
+/* Gradient divider between sections for smooth transitions */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(8, 145, 178, 0.3) 50%,
+    transparent 100%
+  );
+  width: 100%;
+}
+
+/* Subtle divider for light to light transitions */
+.section-divider-light {
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(8, 145, 178, 0.15) 50%,
+    transparent 100%
+  );
+  width: 100%;
+}
+
+/* Stronger divider for dark to light transitions */
+.section-divider-contrast {
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    rgba(8, 145, 178, 0.4) 30%,
+    rgba(6, 182, 212, 0.4) 70%,
+    transparent 100%
+  );
+  width: 100%;
+  box-shadow: 0 0 20px rgba(8, 145, 178, 0.2);
+}
+
+/* === DARK SECTION OVERRIDES === */
+/* Override badge colors in dark sections */
+.bg-hero-section .inline-flex,
+.bg-dentista-section .inline-flex,
+.bg-pricing-section .inline-flex,
+.bg-final-cta-section .inline-flex,
+.bg-footer .inline-flex {
+  color: #ffffff !important;
+}
+
+/* Override card borders in dark sections for better visibility */
+.bg-hero-section .border-2,
+.bg-dentista-section .border-2,
+.bg-pricing-section .border-2,
+.bg-final-cta-section .border-2 {
+  border-color: rgba(8, 145, 178, 0.3);
 }
 
 /* Dark mode variations */

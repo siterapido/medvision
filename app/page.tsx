@@ -238,6 +238,9 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Divider: Dark to Light transition */}
+      <div className="section-divider-contrast" />
+
       {/* Video Testimonials Section */}
       <section className="w-full py-20 md:py-32 bg-testimonials-section">
         <div className="container mx-auto max-w-6xl space-y-16">
@@ -327,6 +330,9 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Divider: Light to Light transition */}
+      <div className="section-divider-light" />
+
       {/* What is Odonto GPT */}
       <section className="w-full py-20 md:py-32 bg-how-it-works-section">
         <div className="mx-auto max-w-5xl space-y-12">
@@ -377,6 +383,9 @@ export default function LandingPage() {
             </div>
         </div>
       </section>
+
+      {/* Divider: Light to Light transition */}
+      <div className="section-divider-light" />
 
       {/* How it Works */}
       <section id="como-funciona" className="w-full py-20 md:py-32 bg-how-it-works-section">
@@ -446,6 +455,9 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Divider: Light to Light transition */}
+      <div className="section-divider-light" />
+
       {/* Benefits */}
       <section id="beneficios" className="w-full py-20 md:py-32 bg-benefits-section">
         <div className="mx-auto max-w-6xl space-y-12">
@@ -508,6 +520,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Divider: Light to Light transition */}
+      <div className="section-divider-light" />
 
       {/* Expert Section - Roniery Costa */}
       <section id="especialista" className="w-full py-20 md:py-32 bg-expert-section">
@@ -577,6 +592,9 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
+      {/* Divider: Light to Dark transition */}
+      <div className="section-divider-contrast" />
 
       {/* Pricing - substituted with redesigned pricing section using current values */}
       <section id="planos" className="w-full py-20 md:py-32 bg-pricing-section">
@@ -740,6 +758,9 @@ export default function LandingPage() {
         </div>
       </section>
 
+      {/* Divider: Dark to Light transition */}
+      <div className="section-divider-contrast" />
+
       {/* FAQ */}
       <section id="faq" className="w-full py-20 md:py-32 bg-faq-section">
         <div className="mx-auto max-w-3xl space-y-12">
@@ -805,6 +826,9 @@ export default function LandingPage() {
           </Accordion>
         </div>
       </section>
+
+      {/* Divider: Light to Dark transition */}
+      <div className="section-divider-contrast" />
 
       {/* Footer */}
       <footer className="border-t bg-footer">
