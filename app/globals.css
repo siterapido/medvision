@@ -872,7 +872,72 @@ html {
   border-color: rgba(8, 145, 178, 0.3);
 }
 
-/* === ALL SECTIONS NOW DARK - Enhanced with #2399B4 === */
+/* === ALL SECTIONS NOW DARK - White text and #2399B4 accents === */
+
+/* Force white text in all dark sections */
+.bg-hero-section h1,
+.bg-hero-section h2,
+.bg-hero-section h3,
+.bg-hero-section h4,
+.bg-dentista-section h1,
+.bg-dentista-section h2,
+.bg-dentista-section h3,
+.bg-dentista-section h4,
+.bg-testimonials-section h1,
+.bg-testimonials-section h2,
+.bg-testimonials-section h3,
+.bg-testimonials-section h4,
+.bg-how-it-works-section h1,
+.bg-how-it-works-section h2,
+.bg-how-it-works-section h3,
+.bg-how-it-works-section h4,
+.bg-benefits-section h1,
+.bg-benefits-section h2,
+.bg-benefits-section h3,
+.bg-benefits-section h4,
+.bg-expert-section h1,
+.bg-expert-section h2,
+.bg-expert-section h3,
+.bg-expert-section h4,
+.bg-pricing-section h1,
+.bg-pricing-section h2,
+.bg-pricing-section h3,
+.bg-pricing-section h4,
+.bg-final-cta-section h1,
+.bg-final-cta-section h2,
+.bg-final-cta-section h3,
+.bg-final-cta-section h4,
+.bg-faq-section h1,
+.bg-faq-section h2,
+.bg-faq-section h3,
+.bg-faq-section h4 {
+  color: #ffffff !important;
+}
+
+/* Ensure all paragraphs and descriptions are light colored */
+.bg-hero-section p,
+.bg-dentista-section p,
+.bg-testimonials-section p,
+.bg-how-it-works-section p,
+.bg-benefits-section p,
+.bg-expert-section p,
+.bg-pricing-section p,
+.bg-final-cta-section p,
+.bg-faq-section p {
+  color: #e2e8f0;
+}
+
+.bg-hero-section .text-muted-foreground,
+.bg-dentista-section .text-muted-foreground,
+.bg-testimonials-section .text-muted-foreground,
+.bg-how-it-works-section .text-muted-foreground,
+.bg-benefits-section .text-muted-foreground,
+.bg-expert-section .text-muted-foreground,
+.bg-pricing-section .text-muted-foreground,
+.bg-final-cta-section .text-muted-foreground,
+.bg-faq-section .text-muted-foreground {
+  color: #cbd5e1;
+}
 
 /* Enhanced text colors for dark sections with #2399B4 accents */
 .bg-testimonials-section .text-primary,
@@ -900,6 +965,145 @@ html {
 .bg-expert-section .border-primary,
 .bg-faq-section .border-primary {
   border-color: #2399B4;
+}
+
+/* === TECH/AI TEXTURES === */
+
+/* Circuit board pattern for Hero section */
+.bg-hero-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(35, 153, 180, 0.03) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(35, 153, 180, 0.03) 1px, transparent 1px),
+    radial-gradient(circle at 20% 30%, rgba(35, 153, 180, 0.08) 2px, transparent 2px),
+    radial-gradient(circle at 80% 70%, rgba(35, 153, 180, 0.08) 2px, transparent 2px),
+    radial-gradient(circle at 40% 80%, rgba(35, 153, 180, 0.08) 2px, transparent 2px);
+  background-size: 80px 80px, 80px 80px, 200px 200px, 200px 200px, 200px 200px;
+  mask-image: radial-gradient(ellipse 90% 75% at 50% 50%, black 0%, transparent 80%);
+  pointer-events: none;
+  opacity: 0.4;
+  z-index: 1;
+}
+
+/* Neural network pattern for "What is Odonto GPT" section */
+.bg-how-it-works-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 15% 20%, rgba(35, 153, 180, 0.15) 3px, transparent 3px),
+    radial-gradient(circle at 45% 35%, rgba(35, 153, 180, 0.12) 2.5px, transparent 2.5px),
+    radial-gradient(circle at 75% 25%, rgba(35, 153, 180, 0.15) 3px, transparent 3px),
+    radial-gradient(circle at 25% 60%, rgba(35, 153, 180, 0.12) 2.5px, transparent 2.5px),
+    radial-gradient(circle at 55% 70%, rgba(35, 153, 180, 0.15) 3px, transparent 3px),
+    radial-gradient(circle at 85% 65%, rgba(35, 153, 180, 0.12) 2.5px, transparent 2.5px),
+    linear-gradient(135deg, transparent 0%, transparent 48%, rgba(35, 153, 180, 0.04) 49%, rgba(35, 153, 180, 0.04) 51%, transparent 52%, transparent 100%),
+    linear-gradient(45deg, transparent 0%, transparent 48%, rgba(35, 153, 180, 0.04) 49%, rgba(35, 153, 180, 0.04) 51%, transparent 52%, transparent 100%);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 400px 400px, 400px 400px;
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 0%, transparent 75%);
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+/* Data matrix pattern for Benefits section */
+.bg-benefits-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      -45deg,
+      transparent,
+      transparent 50px,
+      rgba(35, 153, 180, 0.025) 50px,
+      rgba(35, 153, 180, 0.025) 52px
+    ),
+    radial-gradient(circle at 20% 30%, rgba(35, 153, 180, 0.06) 2px, transparent 2px),
+    radial-gradient(circle at 60% 50%, rgba(35, 153, 180, 0.06) 2px, transparent 2px),
+    radial-gradient(circle at 80% 80%, rgba(35, 153, 180, 0.06) 2px, transparent 2px);
+  background-size: 100% 100%, 150px 150px, 150px 150px, 150px 150px;
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, black 0%, transparent 85%);
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+/* AI Brain pattern for Expert section */
+.bg-expert-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 50% 50%, rgba(35, 153, 180, 0.12) 4px, transparent 4px),
+    radial-gradient(circle at 30% 40%, rgba(35, 153, 180, 0.08) 3px, transparent 3px),
+    radial-gradient(circle at 70% 40%, rgba(35, 153, 180, 0.08) 3px, transparent 3px),
+    radial-gradient(circle at 40% 70%, rgba(35, 153, 180, 0.08) 3px, transparent 3px),
+    radial-gradient(circle at 60% 70%, rgba(35, 153, 180, 0.08) 3px, transparent 3px),
+    repeating-radial-gradient(
+      circle at 50% 50%,
+      transparent 0px,
+      transparent 40px,
+      rgba(35, 153, 180, 0.03) 40px,
+      rgba(35, 153, 180, 0.03) 42px
+    );
+  background-size: 100% 100%;
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 0%, transparent 70%);
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 1;
+}
+
+/* Data flow pattern for Testimonials */
+.bg-testimonials-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 100px,
+      rgba(35, 153, 180, 0.04) 100px,
+      rgba(35, 153, 180, 0.04) 102px
+    ),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 100px,
+      rgba(35, 153, 180, 0.04) 100px,
+      rgba(35, 153, 180, 0.04) 102px
+    ),
+    radial-gradient(circle at 25% 25%, rgba(35, 153, 180, 0.06) 2px, transparent 2px),
+    radial-gradient(circle at 75% 25%, rgba(35, 153, 180, 0.06) 2px, transparent 2px),
+    radial-gradient(circle at 25% 75%, rgba(35, 153, 180, 0.06) 2px, transparent 2px),
+    radial-gradient(circle at 75% 75%, rgba(35, 153, 180, 0.06) 2px, transparent 2px);
+  background-size: 100% 100%, 100% 100%, 200px 200px, 200px 200px, 200px 200px, 200px 200px;
+  mask-image: radial-gradient(ellipse 90% 75% at 50% 50%, black 0%, transparent 80%);
+  pointer-events: none;
+  opacity: 0.4;
+  z-index: 1;
+}
+
+/* Tech grid for FAQ section */
+.bg-faq-section::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(90deg, rgba(35, 153, 180, 0.025) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(35, 153, 180, 0.025) 1px, transparent 1px),
+    radial-gradient(circle at 50% 0%, rgba(35, 153, 180, 0.08) 3px, transparent 3px),
+    radial-gradient(circle at 0% 50%, rgba(35, 153, 180, 0.08) 3px, transparent 3px),
+    radial-gradient(circle at 100% 50%, rgba(35, 153, 180, 0.08) 3px, transparent 3px),
+    radial-gradient(circle at 50% 100%, rgba(35, 153, 180, 0.08) 3px, transparent 3px);
+  background-size: 60px 60px, 60px 60px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
+  mask-image: radial-gradient(ellipse 95% 85% at 50% 50%, black 0%, transparent 85%);
+  pointer-events: none;
+  opacity: 0.5;
+  z-index: 1;
 }
 
 /* Dark mode variations */
