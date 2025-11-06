@@ -59,10 +59,15 @@ export default function LandingPage() {
           />
         </div>
         <div className="container mx-auto">
+          {/* Logo - First on Mobile, moved to text section on Desktop */}
+          <div className="flex justify-start md:hidden mb-6">
+            <Logo width={140} height={30} className="hero-logo-white" />
+          </div>
+
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center max-w-6xl mx-auto">
 
-          {/* VSL - First on Mobile, Right on Desktop */}
-          <div className="relative space-y-4 md:space-y-6 order-1 md:order-2">
+          {/* VSL - Second on Mobile, Right on Desktop */}
+          <div className="relative order-2 md:order-2">
             <YouTubePlayer
               videoId="loPD53clzR4"
               title="VSL Odonto GPT"
@@ -72,28 +77,12 @@ export default function LandingPage() {
               hideOverlayControls
               className="w-full rounded-2xl border-2 border-[#21839B]/30 shadow-lg"
             />
-
-            {/* Features abaixo do vídeo com ícones contextuais */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 pt-2">
-              <div className="flex items-center gap-2 text-sm">
-                <Brain className="h-5 w-5 text-primary" />
-                <span className="font-medium">IA Odontológica</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <BookOpen className="h-5 w-5 text-primary" />
-                <span className="font-medium">Base científica</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <MessageSquare className="h-5 w-5 text-primary" />
-                <span className="font-medium">WhatsApp 24/7</span>
-              </div>
-            </div>
           </div>
 
-          {/* Text Content - Second on Mobile, Left on Desktop */}
-          <div className="space-y-6 md:space-y-8 text-left order-2 md:order-1">
-            {/* Logo acima do título */}
-            <div className="flex justify-center md:justify-start mb-4 md:mb-6">
+          {/* Text Content - Third on Mobile, Left on Desktop */}
+          <div className="space-y-6 md:space-y-8 text-left order-3 md:order-1">
+            {/* Logo - Hidden on mobile, shown on desktop */}
+            <div className="hidden md:flex justify-start mb-4 md:mb-6">
               <Logo width={140} height={30} className="hero-logo-white" />
             </div>
 
@@ -128,6 +117,24 @@ export default function LandingPage() {
             </div>
 
             {/* Social Proof Metrics removidos conforme solicitado */}
+          </div>
+
+          {/* Features - After buttons on Mobile (fourth), below video on Desktop */}
+          <div className="order-4 md:order-3 md:col-span-2">
+            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 pt-4">
+              <div className="flex items-center gap-2 text-sm">
+                <Brain className="h-5 w-5 text-primary" />
+                <span className="font-medium">IA Odontológica</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <BookOpen className="h-5 w-5 text-primary" />
+                <span className="font-medium">Base científica</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <MessageSquare className="h-5 w-5 text-primary" />
+                <span className="font-medium">WhatsApp 24/7</span>
+              </div>
+            </div>
           </div>
 
         </div>
@@ -543,8 +550,8 @@ export default function LandingPage() {
               </div>
 
               <div className="space-y-4">
-                <p className="text-lg font-semibold text-primary leading-relaxed border-l-4 border-primary pl-4 py-2 bg-primary/5">
-                  "Criei o Odonto GPT para ser o consultor que eu gostaria de ter tido durante minha formação - 
+                <p className="text-lg font-semibold text-white leading-relaxed border-l-4 border-primary pl-4 py-2 bg-primary/5">
+                  "Criei o Odonto GPT para ser o consultor que eu gostaria de ter tido durante minha formação -
                   acessível 24/7, sem julgamentos, e com respostas fundamentadas na literatura que realmente importa."
                 </p>
               </div>
