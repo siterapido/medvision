@@ -20,6 +20,9 @@ export const metadata: Metadata = {
   title: "Odonto GPT - AI para Profissionais de Odontologia",
   description: "Plataforma SaaS com IA e cursos para profissionais de odontologia",
   generator: "v0.app",
+  icons: {
+    icon: '/favicon.ico',
+  },
 }
 
 export default function RootLayout({
@@ -29,6 +32,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" suppressHydrationWarning>
+      <head>
+        {/* Preconnect para YouTube para melhorar performance de vídeos */}
+        <link rel="preconnect" href="https://www.youtube.com" />
+        <link rel="preconnect" href="https://i.ytimg.com" />
+        <link rel="dns-prefetch" href="https://www.youtube.com" />
+        <link rel="dns-prefetch" href="https://i.ytimg.com" />
+      </head>
       <body className={`${inter.className} font-sans antialiased`}>
         <ThemeProvider
           attribute="class"

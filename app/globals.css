@@ -352,13 +352,13 @@
     contain: layout style paint;
   }
 
-  /* Soft moving aurora beams - blur reduzido de 80px para 60px para melhor performance */
+  /* Soft moving aurora beams - blur reduzido para 40px para melhor performance */
   .hero-ai-beam {
     position: absolute;
     width: min(48vw, 720px);
     height: min(48vh, 520px);
-    opacity: 0.35;
-    filter: blur(60px);
+    opacity: 0.3;
+    filter: blur(40px);
     will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
@@ -366,6 +366,13 @@
       radial-gradient(circle at 50% 50%, var(--beam-color, color-mix(in oklab, var(--primary) 40%, transparent)) 0%, transparent 60%);
     animation: beamFloat 18s ease-in-out infinite;
     contain: layout style paint;
+  }
+
+  /* Desabilita beams em dispositivos mais fracos */
+  @media (max-width: 768px) {
+    .hero-ai-beam {
+      display: none;
+    }
   }
 }
 
@@ -379,16 +386,30 @@ html {
   html {
     scroll-behavior: auto;
   }
+
+  .animate-scale-pulse,
+  .hero-ai-grid,
+  .hero-ai-beam,
+  .bg-animated-gradient,
+  .animate-float,
+  .animate-wobble {
+    animation: none !important;
+  }
+
+  .interactive-card {
+    transition: none !important;
+  }
 }
 
-@media (prefers-reduced-motion: reduce) {
-  .animate-scale-pulse {
+/* Otimização para dispositivos menos potentes - desabilita animações pesadas */
+@media (max-width: 768px) or (prefers-reduced-motion: reduce) {
+  .bg-session-landing::before {
     animation: none;
+    opacity: 0.5;
   }
+
   .hero-ai-grid {
-    animation: none;
-  }
-  .hero-ai-beam {
+    opacity: 0.15;
     animation: none;
   }
 }
