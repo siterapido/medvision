@@ -524,10 +524,10 @@ html {
 }
 .bg-how-it-works-section {
   @apply relative overflow-hidden;
-  /* Dark theme with diagonal #2399B4 accent */
+  /* Dark theme with diagonal depth */
   background:
     radial-gradient(ellipse at center, #16243F 0%, transparent 60%),
-    linear-gradient(145deg, #131D37 0%, #0F192F 25%, #2399B4 0.3%, #1A2847 55%, #131F38 100%);
+    linear-gradient(145deg, #131D37 0%, #0F192F 25%, #1A2847 55%, #131F38 80%, #0F192F 100%);
   /* Card palette for dark sections */
   --card: #16243F;
   --card-foreground: #E6EDF7;
@@ -560,10 +560,10 @@ html {
 
 .bg-benefits-section {
   @apply relative overflow-hidden;
-  /* Dark theme with wave-like #2399B4 gradient */
+  /* Dark theme with wave-like gradient */
   background:
     radial-gradient(ellipse at top right, #1A2847 0%, transparent 68%),
-    linear-gradient(125deg, #0F192F 0%, #131F38 40%, #2399B4 0.4%, #16243F 65%, #131D37 100%);
+    linear-gradient(125deg, #0F192F 0%, #131F38 40%, #16243F 65%, #131D37 85%, #0F192F 100%);
   /* Card palette for dark sections */
   --card: #16243F;
   --card-foreground: #E6EDF7;
@@ -602,11 +602,11 @@ html {
 
 .bg-testimonials-section {
   @apply relative overflow-hidden;
-  /* Dark theme with #2399B4 accent gradient */
+  /* Dark theme with layered radial depth */
   background:
     radial-gradient(ellipse at top left, #1A2847 0%, transparent 65%),
     radial-gradient(ellipse at bottom right, #16243F 0%, transparent 70%),
-    linear-gradient(135deg, #0F192F 0%, #131D37 30%, #2399B4 0.5%, #131F38 50%, #0F192F 100%);
+    linear-gradient(135deg, #0F192F 0%, #131D37 30%, #1A2847 50%, #131F38 70%, #0F192F 100%);
   /* Card palette for dark sections */
   --card: #16243F;
   --card-foreground: #E6EDF7;
@@ -690,10 +690,10 @@ html {
 
 .bg-faq-section {
   @apply relative overflow-hidden;
-  /* Dark theme with subtle #2399B4 waves */
+  /* Dark theme with subtle waves */
   background:
     radial-gradient(ellipse at bottom center, #16243F 0%, transparent 65%),
-    linear-gradient(165deg, #0F192F 0%, #131D37 45%, #2399B4 0.3%, #131F38 70%, #0F192F 100%);
+    linear-gradient(165deg, #0F192F 0%, #131D37 45%, #1A2847 60%, #131F38 75%, #0F192F 100%);
   /* Card palette for dark sections */
   --card: #16243F;
   --card-foreground: #E6EDF7;
@@ -764,13 +764,13 @@ html {
   pointer-events: none;
 }
 
-/* Seção de responsabilidade técnica - dark theme with #2399B4 professional accent */
+/* Seção de responsabilidade técnica - dark theme with professional depth */
 .bg-expert-section {
   @apply relative overflow-hidden;
-  /* Premium dark gradient with centered #2399B4 glow */
+  /* Premium dark gradient with centered spotlight */
   background:
     radial-gradient(ellipse at center, #1A2847 0%, transparent 55%),
-    linear-gradient(155deg, #131D37 0%, #0F192F 35%, #2399B4 0.2%, #16243F 60%, #131F38 100%);
+    linear-gradient(155deg, #131D37 0%, #0F192F 35%, #16243F 60%, #131F38 85%, #0F192F 100%);
   /* Card palette for dark sections */
   --card: #16243F;
   --card-foreground: #E6EDF7;
