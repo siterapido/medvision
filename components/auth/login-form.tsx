@@ -7,8 +7,10 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react"
 import Link from "next/link"
+import { createClient } from "@/lib/supabase/client"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export function LoginForm() {
   const router = useRouter()
@@ -16,20 +18,57 @@ export function LoginForm() {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setError(null)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const supabase = createClient()
 
-    // For demo purposes, redirect to dashboard
-    router.push("/dashboard")
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+
+      if (signInError) {
+        console.error("Login error:", signInError)
+
+        // Mensagens de erro em português
+        if (signInError.message.includes("Invalid login credentials")) {
+          setError("Email ou senha incorretos. Por favor, tente novamente.")
+        } else if (signInError.message.includes("Email not confirmed")) {
+          setError("Por favor, confirme seu email antes de fazer login.")
+        } else {
+          setError("Erro ao fazer login. Por favor, tente novamente.")
+        }
+        setIsLoading(false)
+        return
+      }
+
+      if (data.user) {
+        // Login bem-sucedido, redirecionar para dashboard
+        router.push("/dashboard")
+        router.refresh()
+      }
+    } catch (err) {
+      console.error("Unexpected error:", err)
+      setError("Erro inesperado. Por favor, tente novamente.")
+      setIsLoading(false)
+    }
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
       <div className="space-y-2">
         <Label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-300">
           Email
@@ -41,6 +80,7 @@ export function LoginForm() {
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           required
+          disabled={isLoading}
           className="h-12 px-4 bg-slate-50 dark:bg-slate-900/50 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-primary rounded-xl transition-all"
         />
       </div>
@@ -65,12 +105,14 @@ export function LoginForm() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            disabled={isLoading}
             className="h-12 px-4 pr-12 bg-slate-50 dark:bg-slate-900/50 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-primary rounded-xl transition-all"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors"
+            disabled={isLoading}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors disabled:opacity-50"
             aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
