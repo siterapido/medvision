@@ -524,24 +524,25 @@ html {
 }
 .bg-how-it-works-section {
   @apply relative overflow-hidden;
-  /* Light theme with subtle gradients */
-  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 50%, #ffffff 100%);
-  /* Card palette for light sections */
-  --card: #ffffff;
-  --card-foreground: #1a1a1a;
-  --border: #e2e8f0;
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
+  /* Dark theme with diagonal #2399B4 accent */
+  background:
+    radial-gradient(ellipse at center, #16243F 0%, transparent 60%),
+    linear-gradient(145deg, #131D37 0%, #0F192F 25%, #2399B4 0.3%, #1A2847 55%, #131F38 100%);
+  /* Card palette for dark sections */
+  --card: #16243F;
+  --card-foreground: #E6EDF7;
+  --border: #24324F;
 }
 
 .bg-how-it-works-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  /* Mesh gradient with cyan tones */
+  /* Layered #2399B4 glows */
   background:
-    radial-gradient(circle at 20% 10%, rgba(8, 145, 178, 0.08) 0%, transparent 60%),
-    radial-gradient(circle at 80% 90%, rgba(6, 182, 212, 0.06) 0%, transparent 60%);
+    radial-gradient(circle at 30% 20%, rgba(35, 153, 180, 0.12) 0%, transparent 65%),
+    radial-gradient(ellipse 75% 60% at 70% 80%, rgba(35, 153, 180, 0.10) 0%, transparent 70%),
+    radial-gradient(circle at 50% 50%, rgba(35, 153, 180, 0.06) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -549,87 +550,93 @@ html {
   content: '';
   position: absolute;
   inset: 0;
-  /* Subtle grid pattern */
-  background-image:
-    repeating-linear-gradient(0deg, rgba(8, 145, 178, 0.02) 0px, rgba(8, 145, 178, 0.02) 1px, transparent 1px, transparent 60px),
-    repeating-linear-gradient(90deg, rgba(8, 145, 178, 0.02) 0px, rgba(8, 145, 178, 0.02) 1px, transparent 1px, transparent 60px);
-  mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, black 0%, transparent 90%);
+  /* Tech dots pattern with #2399B4 */
+  background-image: radial-gradient(circle, rgba(35, 153, 180, 0.08) 1.5px, transparent 1.5px);
+  background-size: 40px 40px;
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 0%, transparent 80%);
   pointer-events: none;
-  opacity: 0.5;
+  opacity: 0.3;
 }
 
 .bg-benefits-section {
   @apply relative overflow-hidden;
-  /* Light theme with wave pattern feeling */
-  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 35%, #f8fafc 65%, #ffffff 100%);
-  /* Card palette for light sections */
-  --card: #ffffff;
-  --card-foreground: #1a1a1a;
-  --border: #e2e8f0;
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
+  /* Dark theme with wave-like #2399B4 gradient */
+  background:
+    radial-gradient(ellipse at top right, #1A2847 0%, transparent 68%),
+    linear-gradient(125deg, #0F192F 0%, #131F38 40%, #2399B4 0.4%, #16243F 65%, #131D37 100%);
+  /* Card palette for dark sections */
+  --card: #16243F;
+  --card-foreground: #E6EDF7;
+  --border: #24324F;
 }
 
 .bg-benefits-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  /* Floating glows with animation */
+  /* Multiple floating #2399B4 glows */
   background:
-    radial-gradient(circle at 30% 40%, rgba(8, 145, 178, 0.06) 0%, transparent 50%),
-    radial-gradient(circle at 70% 60%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 50% 10%, rgba(35, 153, 180, 0.04) 0%, transparent 40%);
+    radial-gradient(circle at 15% 30%, rgba(35, 153, 180, 0.11) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 60% at 85% 70%, rgba(35, 153, 180, 0.09) 0%, transparent 65%),
+    radial-gradient(circle at 50% 90%, rgba(35, 153, 180, 0.07) 0%, transparent 50%);
   pointer-events: none;
-  animation: float 16s ease-in-out infinite;
+  animation: float 22s ease-in-out infinite;
 }
 
 .bg-benefits-section::after {
   content: '';
   position: absolute;
   inset: 0;
-  /* Dot pattern texture */
-  background-image: radial-gradient(circle, rgba(8, 145, 178, 0.03) 1px, transparent 1px);
-  background-size: 30px 30px;
-  mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 0%, transparent 85%);
+  /* Diagonal lines with #2399B4 */
+  background-image: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 50px,
+    rgba(35, 153, 180, 0.03) 50px,
+    rgba(35, 153, 180, 0.03) 51px
+  );
+  mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, black 0%, transparent 85%);
   pointer-events: none;
+  opacity: 0.5;
 }
 
 .bg-testimonials-section {
   @apply relative overflow-hidden;
-  /* Light theme for social proof - clean and trustworthy */
-  background: linear-gradient(135deg, #ffffff 0%, #fafcfd 50%, #ffffff 100%);
-  /* Card palette for light sections */
-  --card: #ffffff;
-  --card-foreground: #1a1a1a;
-  --border: #e2e8f0;
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
+  /* Dark theme with #2399B4 accent gradient */
+  background:
+    radial-gradient(ellipse at top left, #1A2847 0%, transparent 65%),
+    radial-gradient(ellipse at bottom right, #16243F 0%, transparent 70%),
+    linear-gradient(135deg, #0F192F 0%, #131D37 30%, #2399B4 0.5%, #131F38 50%, #0F192F 100%);
+  /* Card palette for dark sections */
+  --card: #16243F;
+  --card-foreground: #E6EDF7;
+  --border: #24324F;
 }
 
 .bg-testimonials-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  /* Subtle spotlight effect from top */
+  /* Strong #2399B4 glows for testimonials */
   background:
-    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(8, 145, 178, 0.05) 0%, transparent 60%),
-    radial-gradient(circle at 20% 80%, rgba(6, 182, 212, 0.04) 0%, transparent 50%);
+    radial-gradient(ellipse 85% 65% at 50% 10%, rgba(35, 153, 180, 0.14) 0%, transparent 70%),
+    radial-gradient(circle at 20% 80%, rgba(35, 153, 180, 0.10) 0%, transparent 55%),
+    radial-gradient(circle at 80% 50%, rgba(35, 153, 180, 0.08) 0%, transparent 50%);
   pointer-events: none;
+  animation: float 20s ease-in-out infinite;
 }
 
 .bg-testimonials-section::after {
   content: '';
   position: absolute;
   inset: 0;
-  /* Diagonal lines pattern */
-  background-image: repeating-linear-gradient(
-    45deg,
-    transparent,
-    transparent 40px,
-    rgba(8, 145, 178, 0.015) 40px,
-    rgba(8, 145, 178, 0.015) 41px
-  );
+  /* Subtle grid with #2399B4 tint */
+  background-image:
+    repeating-linear-gradient(0deg, rgba(35, 153, 180, 0.04) 0px, rgba(35, 153, 180, 0.04) 1px, transparent 1px, transparent 50px),
+    repeating-linear-gradient(90deg, rgba(35, 153, 180, 0.04) 0px, rgba(35, 153, 180, 0.04) 1px, transparent 1px, transparent 50px);
+  mask-image: radial-gradient(ellipse 90% 75% at 50% 50%, black 0%, transparent 85%);
   pointer-events: none;
+  opacity: 0.4;
 }
 
 .bg-pricing-section {
@@ -683,24 +690,25 @@ html {
 
 .bg-faq-section {
   @apply relative overflow-hidden;
-  /* Light theme for readability */
-  background: linear-gradient(135deg, #fafbfc 0%, #ffffff 50%, #f8fafc 100%);
-  /* Card palette for light sections */
-  --card: #ffffff;
-  --card-foreground: #1a1a1a;
-  --border: #e2e8f0;
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
+  /* Dark theme with subtle #2399B4 waves */
+  background:
+    radial-gradient(ellipse at bottom center, #16243F 0%, transparent 65%),
+    linear-gradient(165deg, #0F192F 0%, #131D37 45%, #2399B4 0.3%, #131F38 70%, #0F192F 100%);
+  /* Card palette for dark sections */
+  --card: #16243F;
+  --card-foreground: #E6EDF7;
+  --border: #24324F;
 }
 
 .bg-faq-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  /* Concentric circles pattern */
+  /* Concentric #2399B4 glows for FAQ */
   background:
-    radial-gradient(ellipse 70% 50% at 50% 50%, rgba(8, 145, 178, 0.04) 0%, transparent 55%),
-    radial-gradient(circle at 85% 15%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+    radial-gradient(ellipse 75% 60% at 50% 40%, rgba(35, 153, 180, 0.10) 0%, transparent 70%),
+    radial-gradient(circle at 90% 15%, rgba(35, 153, 180, 0.08) 0%, transparent 55%),
+    radial-gradient(circle at 10% 85%, rgba(35, 153, 180, 0.06) 0%, transparent 50%);
   pointer-events: none;
 }
 
@@ -708,16 +716,18 @@ html {
   content: '';
   position: absolute;
   inset: 0;
-  /* Wave pattern */
+  /* Wave pattern with #2399B4 */
   background-image:
     repeating-linear-gradient(
       90deg,
       transparent,
-      transparent 80px,
-      rgba(8, 145, 178, 0.01) 80px,
-      rgba(8, 145, 178, 0.01) 160px
+      transparent 70px,
+      rgba(35, 153, 180, 0.025) 70px,
+      rgba(35, 153, 180, 0.025) 72px
     );
+  mask-image: radial-gradient(ellipse 95% 85% at 50% 50%, black 0%, transparent 90%);
   pointer-events: none;
+  opacity: 0.6;
 }
 
 .bg-dentista-section {
@@ -754,42 +764,44 @@ html {
   pointer-events: none;
 }
 
-/* Seção de responsabilidade técnica - light theme for professionalism */
+/* Seção de responsabilidade técnica - dark theme with #2399B4 professional accent */
 .bg-expert-section {
   @apply relative overflow-hidden;
-  /* Premium light background for credibility */
-  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 40%, #f8fafc 70%, #ffffff 100%);
-  /* Card palette for light sections */
-  --card: #ffffff;
-  --card-foreground: #1a1a1a;
-  --border: #e2e8f0;
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
+  /* Premium dark gradient with centered #2399B4 glow */
+  background:
+    radial-gradient(ellipse at center, #1A2847 0%, transparent 55%),
+    linear-gradient(155deg, #131D37 0%, #0F192F 35%, #2399B4 0.2%, #16243F 60%, #131F38 100%);
+  /* Card palette for dark sections */
+  --card: #16243F;
+  --card-foreground: #E6EDF7;
+  --border: #24324F;
 }
 
 .bg-expert-section::before {
   content: '';
   position: absolute;
   inset: 0;
-  /* Sophisticated mesh gradient */
+  /* Sophisticated #2399B4 spotlight on center */
   background:
-    radial-gradient(ellipse 60% 50% at 40% 50%, rgba(8, 145, 178, 0.06) 0%, transparent 60%),
-    radial-gradient(circle at 80% 30%, rgba(6, 182, 212, 0.05) 0%, transparent 50%),
-    radial-gradient(circle at 20% 80%, rgba(35, 153, 180, 0.04) 0%, transparent 45%);
+    radial-gradient(ellipse 80% 70% at 50% 50%, rgba(35, 153, 180, 0.15) 0%, transparent 75%),
+    radial-gradient(circle at 25% 20%, rgba(35, 153, 180, 0.08) 0%, transparent 55%),
+    radial-gradient(circle at 75% 80%, rgba(35, 153, 180, 0.06) 0%, transparent 50%);
   pointer-events: none;
+  animation: pulseScale 8s ease-in-out infinite;
 }
 
 .bg-expert-section::after {
   content: '';
   position: absolute;
   inset: 0;
-  /* Subtle hexagon pattern */
+  /* Hexagonal pattern with #2399B4 */
   background-image:
-    radial-gradient(circle, rgba(8, 145, 178, 0.025) 1.5px, transparent 1.5px);
-  background-size: 40px 40px;
-  background-position: 0 0, 20px 20px;
-  mask-image: radial-gradient(ellipse 80% 70% at 50% 50%, black 0%, transparent 80%);
+    radial-gradient(circle, rgba(35, 153, 180, 0.06) 2px, transparent 2px);
+  background-size: 50px 50px;
+  background-position: 0 0, 25px 25px;
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 0%, transparent 80%);
   pointer-events: none;
+  opacity: 0.35;
 }
 
 /* Footer background – darker tone based on #131F38 */
@@ -860,365 +872,34 @@ html {
   border-color: rgba(8, 145, 178, 0.3);
 }
 
-/* === LIGHT SECTION TEXT OVERRIDES FOR BETTER CONTRAST === */
+/* === ALL SECTIONS NOW DARK - Enhanced with #2399B4 === */
 
-/* Testimonials Section - Light background */
-.bg-testimonials-section {
-  /* Strong text colors for light backgrounds */
-  --foreground: #0f172a;
-  --muted-foreground: #475569;
-}
-
-.bg-testimonials-section h1,
-.bg-testimonials-section h2,
-.bg-testimonials-section h3,
-.bg-testimonials-section h4 {
-  color: #0f172a;
-  font-weight: 700;
-}
-
-.bg-testimonials-section p,
-.bg-testimonials-section .text-muted-foreground {
-  color: #475569;
-}
-
-.bg-testimonials-section .text-primary {
-  color: #0891b2;
-}
-
-/* How It Works Section - Light background */
-.bg-how-it-works-section {
-  --foreground: #0f172a;
-  --muted-foreground: #475569;
-}
-
-.bg-how-it-works-section h1,
-.bg-how-it-works-section h2,
-.bg-how-it-works-section h3,
-.bg-how-it-works-section h4 {
-  color: #0f172a;
-  font-weight: 700;
-}
-
-.bg-how-it-works-section p,
-.bg-how-it-works-section .text-muted-foreground {
-  color: #475569;
-}
-
-.bg-how-it-works-section .text-primary {
-  color: #0891b2;
-}
-
-/* Benefits Section - Light background */
-.bg-benefits-section {
-  --foreground: #0f172a;
-  --muted-foreground: #475569;
-}
-
-.bg-benefits-section h1,
-.bg-benefits-section h2,
-.bg-benefits-section h3,
-.bg-benefits-section h4 {
-  color: #0f172a;
-  font-weight: 700;
-}
-
-.bg-benefits-section p,
-.bg-benefits-section .text-muted-foreground {
-  color: #475569;
-}
-
-.bg-benefits-section .text-primary {
-  color: #0891b2;
-}
-
-/* Expert Section - Light background */
-.bg-expert-section {
-  --foreground: #0f172a;
-  --muted-foreground: #475569;
-}
-
-.bg-expert-section h1,
-.bg-expert-section h2,
-.bg-expert-section h3,
-.bg-expert-section h4 {
-  color: #0f172a;
-  font-weight: 700;
-}
-
-.bg-expert-section p,
-.bg-expert-section .text-muted-foreground {
-  color: #475569;
-}
-
-.bg-expert-section .text-primary {
-  color: #0891b2;
-}
-
-.bg-expert-section .border-l-4 {
-  background-color: rgba(8, 145, 178, 0.08);
-}
-
-/* FAQ Section - Light background */
-.bg-faq-section {
-  --foreground: #0f172a;
-  --muted-foreground: #475569;
-}
-
-.bg-faq-section h1,
-.bg-faq-section h2,
-.bg-faq-section h3,
-.bg-faq-section h4 {
-  color: #0f172a;
-  font-weight: 700;
-}
-
-.bg-faq-section p,
-.bg-faq-section .text-muted-foreground {
-  color: #475569;
-}
-
+/* Enhanced text colors for dark sections with #2399B4 accents */
+.bg-testimonials-section .text-primary,
+.bg-how-it-works-section .text-primary,
+.bg-benefits-section .text-primary,
+.bg-expert-section .text-primary,
 .bg-faq-section .text-primary {
-  color: #0891b2;
+  color: #2399B4;
 }
 
-/* Card text in light sections */
-.bg-testimonials-section .card-foreground,
-.bg-how-it-works-section .card-foreground,
-.bg-benefits-section .card-foreground,
-.bg-expert-section .card-foreground,
-.bg-faq-section .card-foreground {
-  color: #0f172a;
-}
-
-/* Ensure icons have good contrast in light sections */
-.bg-testimonials-section svg,
-.bg-how-it-works-section svg,
-.bg-benefits-section svg,
-.bg-expert-section svg,
-.bg-faq-section svg {
-  /* Icons with text-primary class will use the overridden color */
-}
-
-/* Button text contrast in light sections */
-.bg-testimonials-section button,
-.bg-how-it-works-section button,
-.bg-benefits-section button,
-.bg-expert-section button,
-.bg-faq-section button {
-  /* Buttons maintain their own color schemes */
-}
-
-/* Accordion specific styling for FAQ section */
-.bg-faq-section [data-state="open"],
-.bg-faq-section [data-state="closed"] {
-  color: #0f172a;
-}
-
-.bg-faq-section .AccordionTrigger,
-.bg-faq-section button[role="button"] {
-  color: #0f172a;
-  font-weight: 700;
-}
-
-.bg-faq-section .AccordionContent {
-  color: #475569;
-}
-
-/* All text elements in light sections */
-.bg-testimonials-section span,
-.bg-how-it-works-section span,
-.bg-benefits-section span,
-.bg-expert-section span,
-.bg-faq-section span,
-.bg-testimonials-section li,
-.bg-how-it-works-section li,
-.bg-benefits-section li,
-.bg-expert-section li,
-.bg-faq-section li {
-  color: #0f172a;
-}
-
-/* Expert section specific - quote text */
-.bg-expert-section .text-lg.font-semibold {
-  color: #0891b2;
-}
-
-/* Expert section - credentials list */
-.bg-expert-section .grid span {
-  color: #1f2937;
-  font-weight: 500;
-}
-
-/* Light sections - ensure cards have proper background */
-.bg-testimonials-section .interactive-card,
-.bg-how-it-works-section .interactive-card,
-.bg-benefits-section .interactive-card,
-.bg-expert-section .interactive-card,
-.bg-faq-section .interactive-card {
-  background-color: #ffffff;
-  border-color: #e2e8f0;
-}
-
+/* Interactive cards in all dark sections */
 .bg-testimonials-section .interactive-card:hover,
 .bg-how-it-works-section .interactive-card:hover,
 .bg-benefits-section .interactive-card:hover,
 .bg-expert-section .interactive-card:hover,
 .bg-faq-section .interactive-card:hover {
-  border-color: rgba(8, 145, 178, 0.5);
-  box-shadow: 0 10px 40px rgba(8, 145, 178, 0.12);
+  border-color: rgba(35, 153, 180, 0.6);
+  box-shadow: 0 10px 40px rgba(35, 153, 180, 0.15);
 }
 
-/* Light sections - border enhancements */
-.bg-testimonials-section .border-2,
-.bg-how-it-works-section .border-2,
-.bg-benefits-section .border-2,
-.bg-expert-section .border-2,
-.bg-faq-section .border-2 {
-  border-color: #e2e8f0;
-}
-
-.bg-expert-section .border-2.border-white\/20 {
-  border-color: rgba(8, 145, 178, 0.2) !important;
-}
-
-/* Ensure proper contrast for small text */
-.bg-testimonials-section .text-xs,
-.bg-how-it-works-section .text-xs,
-.bg-benefits-section .text-xs,
-.bg-expert-section .text-xs,
-.bg-faq-section .text-xs,
-.bg-testimonials-section .text-sm,
-.bg-how-it-works-section .text-sm,
-.bg-benefits-section .text-sm,
-.bg-expert-section .text-sm,
-.bg-faq-section .text-sm {
-  color: #475569;
-}
-
-/* Quote/highlight box in expert section */
-.bg-expert-section .bg-primary\/5 {
-  background-color: rgba(8, 145, 178, 0.06);
-}
-
-/* === WCAG CONTRAST COMPLIANCE === */
-/*
-Contrast Ratios for Light Sections (#ffffff background):
-- Headings (#0f172a): 16.04:1 (AAA Large, AAA Normal)
-- Body text (#475569): 8.59:1 (AAA Large, AAA Normal)
-- Primary links (#0891b2): 4.54:1 (AA Large, AA Normal)
-- Secondary text (#64748b): 7.07:1 (AAA Large, AA Normal)
-All values exceed WCAG AA standards.
-*/
-
-/* Links in light sections */
-.bg-testimonials-section a:not(.button),
-.bg-how-it-works-section a:not(.button),
-.bg-benefits-section a:not(.button),
-.bg-expert-section a:not(.button),
-.bg-faq-section a:not(.button) {
-  color: #0891b2;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.bg-testimonials-section a:not(.button):hover,
-.bg-how-it-works-section a:not(.button):hover,
-.bg-benefits-section a:not(.button):hover,
-.bg-expert-section a:not(.button):hover,
-.bg-faq-section a:not(.button):hover {
-  color: #0e7490;
-  text-decoration: underline;
-}
-
-/* Strong/bold text in light sections */
-.bg-testimonials-section strong,
-.bg-how-it-works-section strong,
-.bg-benefits-section strong,
-.bg-expert-section strong,
-.bg-faq-section strong,
-.bg-testimonials-section b,
-.bg-how-it-works-section b,
-.bg-benefits-section b,
-.bg-expert-section b,
-.bg-faq-section b {
-  color: #0f172a;
-  font-weight: 700;
-}
-
-/* Italic/emphasis text */
-.bg-testimonials-section em,
-.bg-how-it-works-section em,
-.bg-benefits-section em,
-.bg-expert-section em,
-.bg-faq-section em,
-.bg-testimonials-section i,
-.bg-how-it-works-section i,
-.bg-benefits-section i,
-.bg-expert-section i,
-.bg-faq-section i {
-  color: #475569;
-}
-
-/* Ensure code/pre blocks have good contrast */
-.bg-testimonials-section code,
-.bg-how-it-works-section code,
-.bg-benefits-section code,
-.bg-expert-section code,
-.bg-faq-section code,
-.bg-testimonials-section pre,
-.bg-how-it-works-section pre,
-.bg-benefits-section pre,
-.bg-expert-section pre,
-.bg-faq-section pre {
-  color: #0f172a;
-  background-color: #f8fafc;
-  border: 1px solid #e2e8f0;
-}
-
-/* Blockquotes in light sections */
-.bg-testimonials-section blockquote,
-.bg-how-it-works-section blockquote,
-.bg-benefits-section blockquote,
-.bg-expert-section blockquote,
-.bg-faq-section blockquote {
-  color: #1f2937;
-  border-left-color: #0891b2;
-  background-color: rgba(8, 145, 178, 0.04);
-}
-
-/* Placeholder text contrast */
-.bg-testimonials-section input::placeholder,
-.bg-how-it-works-section input::placeholder,
-.bg-benefits-section input::placeholder,
-.bg-expert-section input::placeholder,
-.bg-faq-section input::placeholder,
-.bg-testimonials-section textarea::placeholder,
-.bg-how-it-works-section textarea::placeholder,
-.bg-benefits-section textarea::placeholder,
-.bg-expert-section textarea::placeholder,
-.bg-faq-section textarea::placeholder {
-  color: #94a3b8;
-}
-
-/* Disabled state contrast */
-.bg-testimonials-section [disabled],
-.bg-how-it-works-section [disabled],
-.bg-benefits-section [disabled],
-.bg-expert-section [disabled],
-.bg-faq-section [disabled] {
-  opacity: 0.6;
-  color: #64748b;
-}
-
-/* Focus states for accessibility */
-.bg-testimonials-section *:focus-visible,
-.bg-how-it-works-section *:focus-visible,
-.bg-benefits-section *:focus-visible,
-.bg-expert-section *:focus-visible,
-.bg-faq-section *:focus-visible {
-  outline: 2px solid #0891b2;
-  outline-offset: 2px;
+/* Enhanced borders with #2399B4 */
+.bg-testimonials-section .border-primary,
+.bg-how-it-works-section .border-primary,
+.bg-benefits-section .border-primary,
+.bg-expert-section .border-primary,
+.bg-faq-section .border-primary {
+  border-color: #2399B4;
 }
 
 /* Dark mode variations */
