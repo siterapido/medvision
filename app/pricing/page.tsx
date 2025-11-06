@@ -39,7 +39,7 @@ const plans = [
 
 export default function PricingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cyan-50 via-white to-teal-50">
+    <div className="min-h-screen bg-session-pricing">
       <div className="container mx-auto px-4 py-16">
         <div className="text-center mb-12">
           <Link
@@ -99,11 +99,9 @@ export default function PricingPage() {
               </ul>
 
               <Button
-                className={`w-full h-12 text-base font-semibold ${
-                  plan.popular
-                    ? "bg-primary hover:bg-primary-hover text-primary-foreground"
-                    : "bg-secondary hover:bg-secondary/90 text-secondary-foreground"
-                }`}
+                className="w-full"
+                size="lg"
+                variant={plan.popular ? "cta" : "secondary"}
               >
                 {plan.cta}
               </Button>

@@ -16,6 +16,13 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# macOS system files
+.DS_Store
+public/.DS_Store
+
+# ignore nested duplicate project folder
+v0-odonto-gpt-ui/
+
 # env files
 .env*
 

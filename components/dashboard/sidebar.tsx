@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
+import { Logo } from "@/components/logo"
 
 const navigation = [
   {
@@ -82,23 +83,12 @@ export function DashboardSidebar() {
 
   return (
     <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
-      <div className="p-6 border-b border-sidebar-border">
-        <Link href="/dashboard" className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-            <svg className="w-6 h-6 text-primary-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"
-              />
-            </svg>
-          </div>
-          <div>
-            <h2 className="font-bold text-lg text-sidebar-foreground">Odonto GPT</h2>
-            <p className="text-xs text-muted-foreground">Plano Free</p>
-          </div>
+      <div className="p-6 border-b border-sidebar-border flex flex-col items-center">
+        <Link href="/dashboard" className="flex items-center justify-center mb-2" aria-label="Dashboard">
+          <Logo width={120} height={32} />
+          <span className="sr-only">Odonto GPT</span>
         </Link>
+        <p className="text-xs text-muted-foreground">Plano Free</p>
       </div>
 
       <nav className="flex-1 p-4 space-y-1">
