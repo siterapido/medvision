@@ -30,7 +30,7 @@ export function SectionHeader({
       {label ? (
         <Badge
           className={cn(
-            "inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary/15 to-accent/15 text-white border-primary/20 px-4 py-1.5 mb-2",
+            "inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-primary/15 to-accent/15 text-primary border-primary/30 px-4 py-1.5 mb-2 font-semibold",
             badgeClassName
           )}
         >
