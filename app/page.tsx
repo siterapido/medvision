@@ -820,15 +820,15 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Logo width={180} height={40} />
+                <Logo width={180} height={40} className="footer-logo-white" />
                 <span className="sr-only">Odonto GPT</span>
               </div>
-              <p className="text-sm text-muted-foreground">Inteligência Artificial especializada em Odontologia</p>
+              <p className="text-sm text-slate-400">Inteligência Artificial especializada em Odontologia</p>
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-semibold">Produto</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="font-semibold text-white">Produto</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li>
                   <Link href="#como-funciona" className="hover:text-primary transition-colors">
                     Como Funciona
@@ -853,8 +853,8 @@ export default function LandingPage() {
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-semibold">Legal</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="font-semibold text-white">Legal</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li>
                   <Link href="/termos" className="hover:text-primary transition-colors">
                     Termos de Uso
@@ -869,8 +869,8 @@ export default function LandingPage() {
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-semibold">Suporte</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="font-semibold text-white">Suporte</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li>
                   <a
                     href="https://wa.me/5511999999999"
@@ -886,7 +886,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
+          <div className="mt-12 pt-8 border-t border-slate-700 text-center text-sm text-slate-400">
             <p>© 2025 Odonto GPT. Todos os direitos reservados.</p>
           </div>
         </div>

@@ -861,6 +861,35 @@ html {
   display: block !important;
 }
 
+/* Force white logo in Footer */
+.footer-logo-white img:first-child {
+  display: none !important;
+}
+.footer-logo-white img:last-child {
+  display: block !important;
+}
+
+/* Force white logo globally in all dark sections on landing page */
+/* This ensures white logo is always used regardless of viewport size */
+.bg-hero-section .hero-logo-white img:first-child,
+.bg-footer .footer-logo-white img:first-child,
+.hero-logo-white img:first-child,
+.footer-logo-white img:first-child {
+  display: none !important;
+}
+
+.bg-hero-section .hero-logo-white img:last-child,
+.bg-footer .footer-logo-white img:last-child,
+.hero-logo-white img:last-child,
+.footer-logo-white img:last-child {
+  display: block !important;
+}
+
+/* Force all text to white in dark sections */
+.bg-footer h1, .bg-footer h2, .bg-footer h3, .bg-footer h4, .bg-footer h5, .bg-footer h6 {
+  color: #ffffff !important;
+}
+
 /* Override badge colors in dark sections - FORCE WHITE */
 .bg-hero-section .inline-flex,
 .bg-dentista-section .inline-flex,
