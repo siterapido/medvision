@@ -1,0 +1,285 @@
+{
+  "name": "Odonto gpt",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -176,
+        -16
+      ],
+      "id": "c4b80565-0d8c-431b-b06f-a16680bac048",
+      "name": "When chat message received",
+      "webhookId": "f9f4b9a0-6775-41f4-bd82-a859d38620d8"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.body.text.message }}",
+        "options": {
+          "systemMessage": "# Persona\nVocê é o **Odonto GPT**, um agente de IA especializado em todas as áreas da odontologia.  \nSeu papel é apoiar cirurgiões-dentistas e estudantes na prática clínica diária, oferecendo informações baseadas em evidências, atualizadas e alinhadas às normas éticas e legais da odontologia no Brasil.  \nSeu foco principal é sanar dúvidas sobre **prescrição odontológica**.\n\n# Instruções\n- Sempre se apresente no início da conversa como Odonto GPT.  \n- Pergunte o nome do usuário para criar rapport.  \n- Pergunte como pode ajudar (inserindo o nome do usuário).  \n- Responda de forma **clara, objetiva e em no máximo 4 linhas**, salvo quando o usuário pedir mais detalhes.  \n\n# Consultas\n- Para dúvidas técnicas sobre prescrição odontológica, **sempre consulte a ferramenta `c.tecnico odonto gpt` antes de responder**.  \n- Se a ferramenta não retornar resultado, avise o usuário que não encontrou referência.  \n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 2,
+      "position": [
+        160,
+        0
+      ],
+      "id": "783c8151-89ec-4a3b-b11a-87a80daedbf8",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        160,
+        224
+      ],
+      "id": "e5f435f2-221e-4b5b-af55-4658a3a75f45",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "OhfnxJiqyoM4BCtM",
+          "name": "Odonto gpt"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=chat_{{ $('Webhook').first().json.body.phone  }}",
+        "contextWindowLength": 6
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        288,
+        224
+      ],
+      "id": "fec7591b-e756-4ebf-bca9-81cf11c23f47",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "description": "Sempre que o usuário tiver uma dúvida técnica sobre prescrição odontológica, usar essa tools",
+        "jsCode": "const infos_odontologia = \"FAQ – Agente de IA para Odontologia (Clínica, Farmacologia e Protocolos)\\n\\\n\\n\\\nQual é o escopo de atuação da IA?\\n\\\nA IA auxilia em triagem, apoio à decisão clínica, farmacologia odontológica, protocolos de atendimento, orientações pré e pós-operatórias, e educação do paciente, SEM substituir o julgamento do cirurgião-dentista.\\n\\\n\\n\\\nQuais fontes científicas baseiam as respostas?\\n\\\nA base considera referências amplamente utilizadas em cursos e serviços odontológicos, incluindo:\\n\\\n• Malamed – Sedação e Controle da Dor / Farmacologia e Terapêutica para Odontologia\\n\\\n• Katzung – Farmacologia Básica e Clínica; Rang & Dale – Farmacologia\\n\\\n• Artigos e diretrizes da ADA, AHA, AAPD, EFP, IADT (trauma dentário)\\n\\\n• CFO (Brasil), Ministério da Saúde, ANVISA (Bulário Eletrônico, RDCs)\\n\\\n• Diretrizes nacionais de antibióticos, analgesia e profilaxia antibiótica\\n\\\n• Protocolos de urgência odontológica e controle de infecção\\n\\\n\\n\\\nComo a IA organiza o conhecimento odontológico?\\n\\\nA IA estrutura as informações em pilares:\\n\\\n1) Avaliação Inicial e Risco: anamnese, alergias, ASA, sinais vitais, medicações de uso contínuo, gestação/lactação, idade.\\n\\\n2) Especialidades: clínica geral, dentística/restauradora, endodontia, periodontia, cirurgia oral, implantodontia, odontopediatria, ortodontia, prótese, DTM/dor orofacial, estomatologia/lesões potencialmente malignas, traumatologia dentária, radiologia.\\n\\\n3) Farmacologia: antibióticos, analgésicos/AINEs, corticoides, antifúngicos/antivirais, anestésicos locais e vasoconstritores, antissépticos, manejo de interações, populações especiais.\\n\\\n4) Procedimentos e Protocolos: pré-operatório, intraoperatório, pós-operatório, hemostasia, suturas, controle de dor/edema, emergências.\\n\\\n5) Biossegurança e Radiologia: EPIs, desinfecção/esterilização, indicação de RX periapical, panorâmico, CBCT.\\n\\\n6) Documentação e Consentimento: prontuário, consentimento informado, orientações escritas ao paciente.\\n\\\n\\n\\\nA IA considera alergias e condições do paciente?\\n\\\nSim. Verifica alergias (ex.: penicilinas/cefalosporinas), histórico de reações, comorbidades (ex.: HAS, DM), gestação/lactação e faixa etária, sinalizando contraindicações e alertas.\\n\\\n\\n\\\nA IA identifica interações medicamentosas relevantes?\\n\\\nSim. Exemplos: AINEs + anticoagulantes; metronidazol + álcool; benzodiazepínicos + depressores do SNC; tramadol + ISRS/ISRSN (risco de síndrome serotoninérgica); vasoconstritor + IMAO/tricíclicos (cautela).\\n\\\n\\n\\\nQuais classes de medicamentos podem ser sugeridas (apoio à prescrição)?\\n\\\n• Antibióticos (ex.: amoxicilina, amoxicilina + clavulanato, metronidazol, clindamicina – quando indicado)\\n\\\n• Analgésicos/AINEs (ex.: paracetamol, ibuprofeno, naproxeno – conforme risco GI/renal)\\n\\\n• Corticoides (ex.: dexametasona, prednisona – edema/inflamação, com critérios)\\n\\\n• Antifúngicos/antivirais orais e tópicos (quando aplicável)\\n\\\n• Antissépticos (ex.: clorexidina 0,12–0,2%)\\n\\\n• Anestésicos locais (ex.: lidocaína, mepivacaína, articaína) e vasoconstritores (epinefrina – dosagem máxima por kg)\\n\\\n\\n\\\nA IA fornece posologia e tempo de uso?\\n\\\nSim. Para cada prescrição, apresenta: princípio ativo, forma/apresentação, dose, intervalo, duração, e instruções de uso (ex.: após refeições). Sempre orienta validação pelo dentista e consulta ao Bulário/ANVISA.\\n\\\n\\n\\\nComo a IA aborda populações especiais?\\n\\\n• Gestantes/lactantes: prioriza fármacos seguros por trimestre e lactação; evita teratogênicos; recomenda validação com obstetra quando necessário.\\n\\\n• Pediatria: doses por peso (mg/kg), formas farmacêuticas adequadas, palatabilidade e segurança.\\n\\\n• Idosos e comorbidades: ajuste de dose por função renal/hepática, polifarmácia e risco de quedas.\\n\\\n\\n\\\nQuais protocolos clínicos a IA cobre (exemplos)?\\n\\\n• Dor odontogênica e abscesso: diagnóstico diferencial, drenagem quando indicado, antibiótico apenas se critérios sistêmicos/espalhamento, controle de dor e reavaliação.\\n\\\n• Alveolite: irrigação, curativo intra-alveolar, analgesia e reorientações.\\n\\\n• Endodontia: urgências (pulpite/necrose), analgesia, antibiótico somente quando indicado.\\n\\\n• Periodontia: gengivite/periodontite – controle de biofilme, antissépticos adjuvantes, antibióticos em casos específicos.\\n\\\n• Cirurgia oral: planejamento, profilaxia antibiótica (critérios), hemostasia, suturas, pós-op.\\n\\\n• Trauma dentário (IADT): reimplante, tempo extra-alveolar, meio de armazenamento, contenção, antibiótico/tétano quando indicado.\\n\\\n• Estomatologia: estomatites, candidíase, líquen plano, úlceras traumáticas; sinais de alerta para lesões potencialmente malignas e encaminhamento.\\n\\\n• DTM/dor orofacial: triagem, diferenciação miofascial/articular, medidas conservadoras iniciais e encaminhamento.\\n\\\n\\n\\\nA IA fornece orientações pré e pós-operatórias?\\n\\\nSim. Inclui jejum quando aplicável, higiene bucal, antissépticos, alimentos frios/moles, evitar tabaco/álcool, sinais de alerta (sangramento persistente, febre, piora da dor/edema) e quando retornar.\\n\\\n\\n\\\nComo a IA lida com anestesia local e vasoconstritor?\\n\\\nApresenta anestésico, concentração, dose máxima por kg e total estimado (carpules), necessidade de aspiração prévia, cautela em cardiopatas e interação com antidepressivos tricíclicos/IMAO.\\n\\\n\\n\\\nA IA está atualizada com a legislação brasileira?\\n\\\nSim. Consulta Bulário Eletrônico da ANVISA, RDCs e protocolos oficiais. Reforça rotulagem, apresentações permitidas e necessidade de receituário adequado.\\n\\\n\\n\\\nA IA substitui o diagnóstico e a conduta do cirurgião-dentista?\\n\\\nNão. É um suporte baseado em evidências. O dentista confirma diagnóstico, risco-benefício, prescrição e assinaturas/documentação.\\n\\\n\\n\\\nA IA oferece checklists e fluxos?\\n\\\nSim. Ex.:\\n\\\n• Triagem rápida: queixa principal → história da dor → sinais/sintomas sistêmicos → exame intra/extraoral → testes pulpares/percussão → exames de imagem.\\n\\\n• Procedimento cirúrgico: planejamento → anestesia → incisão → descolamento → osteotomia/exodontia → curetagem → irrigação → sutura → orientações.\\n\\\n• Prescrição: indicação → fármaco → dose → intervalo → duração → cautelas → interações → instruções.\\n\\\n\\n\\\nA IA gera orientações escritas ao paciente?\\n\\\nSim. Em linguagem clara, com instruções de uso de medicamentos, higiene, dieta, repouso, sinais de alerta e canais de contato para intercorrências.\\n\\\n\\n\\\nComo a IA ajuda estudantes?\\n\\\n• Consulta rápida a fármacos e indicações\\n\\\n• Simulações de casos e prescrições comentadas\\n\\\n• Apoio a TCC/seminários com referências\\n\\\n• Treinamento em prescrição racional e documentação clínica\\n\\\n\\n\\\nQuais benefícios ao cirurgião-dentista?\\n\\\n• Segurança farmacológica e redução de erros\\n\\\n• Agilidade em protocolos e orientações\\n\\\n• Padronização de documentos e checklists\\n\\\n• Lembretes de cautelas e populações especiais\\n\\\n\\n\\\nLimitações e responsabilidade profissional\\n\\\n• As respostas não substituem avaliação clínica e exames complementares.\\n\\\n• A prescrição final e o procedimento são de responsabilidade do cirurgião-dentista.\\n\\\n• Em emergências, seguir PALS/ACLS quando aplicável e encaminhar.\\n\\\n\\n\\\nFormato de saída sugerido pela IA (para cada resposta clínica)\\n\\\n• Resumo do quadro/hipóteses\\n\\\n• Condutas recomendadas (passo a passo)\\n\\\n• Prescrição (quando houver): fármaco, dose, intervalo, duração, instruções\\n\\\n• Cautelas/interações/contraindicações\\n\\\n• Orientações ao paciente (claras e objetivas)\\n\\\n• Referências-chave consultadas\\n\\\n\\n\\\nBoas práticas de uso\\n\\\n• Validar sempre com exame clínico, histórico e exames de imagem\\n\\\n• Checar peso/idade/gestação/renal/hepática antes de dosar\\n\\\n• Registrar no prontuário e coletar consentimento informado\\n\\\n• Aderir às diretrizes CFO/ANVISA/Ministério da Saúde\\n\";\n\nreturn infos_odontologia;\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.toolCode",
+      "typeVersion": 1.3,
+      "position": [
+        608,
+        208
+      ],
+      "id": "b2094fcc-f33b-4344-adfc-4f5774801c06",
+      "name": "c.tecnico odonto gpt"
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "conexão n8n odonto gpt",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        -144,
+        160
+      ],
+      "id": "6706a4c9-575b-4372-b629-24d2cf238e90",
+      "name": "Webhook",
+      "webhookId": "0bfa36e2-edec-4109-9fc8-79f7bcb8fe16"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.z-api.io/instances/3E4157D6898E807F27B95E3E11E99CA6/token/118950DF335320200B3A0483/send-text",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Client-Token",
+              "value": "F576040400275415295c9f56ceb22bcc0S"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "message",
+              "value": "={{ $json.output }}"
+            },
+            {
+              "name": "phone",
+              "value": "={{ $('Webhook').item.json.body.phone }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        528,
+        0
+      ],
+      "id": "64e8c94a-0920-4adf-8226-4088195f78ed",
+      "name": "HTTP Request"
+    }
+  ],
+  "pinData": {
+    "Webhook": [
+      {
+        "json": {
+          "headers": {
+            "host": "devthierryc.app.n8n.cloud",
+            "user-agent": "Mozilla/5.0 (iPad; CPU OS 16_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/111.0.5563.101 Mobile/15E148 Safari/604.1",
+            "content-length": "723",
+            "accept-encoding": "gzip, br",
+            "cdn-loop": "cloudflare; loops=1; subreqs=1",
+            "cf-connecting-ip": "167.234.244.84",
+            "cf-ew-via": "15",
+            "cf-ipcountry": "BR",
+            "cf-ray": "95e129de1549c618-GRU",
+            "cf-visitor": "{\"scheme\":\"https\"}",
+            "cf-worker": "n8n.cloud",
+            "content-type": "application/json",
+            "origin": "https://api.z-api.io",
+            "server": "Z-API",
+            "x-forwarded-for": "167.234.244.84, 172.69.39.130",
+            "x-forwarded-host": "devthierryc.app.n8n.cloud",
+            "x-forwarded-port": "443",
+            "x-forwarded-proto": "https",
+            "x-forwarded-server": "traefik-prod-users-gwc-25-79cb8df8b5-bkm55",
+            "x-is-trusted": "yes",
+            "x-real-ip": "167.234.244.84",
+            "z-api-token": "118950DF335320200B3A0483"
+          },
+          "params": {},
+          "query": {},
+          "body": {
+            "isStatusReply": false,
+            "chatLid": "267752757567545@lid",
+            "connectedPhone": "558486260850",
+            "waitingMessage": false,
+            "isEdit": false,
+            "isGroup": false,
+            "isNewsletter": false,
+            "instanceId": "3E4157D6898E807F27B95E3E11E99CA6",
+            "messageId": "3ABFEB295C3389770FD6",
+            "phone": "558488851138",
+            "fromMe": false,
+            "momment": 1752329839000,
+            "status": "RECEIVED",
+            "chatName": "Thierry",
+            "senderPhoto": null,
+            "senderName": "Thierry",
+            "photo": "https://pps.whatsapp.net/v/t61.24694-24/437936464_382127827493398_2067611140066212382_n.jpg?ccb=11-4&oh=01_Q5Aa2AHVUCeUv-fhapZL-KtgVx6Hvbvw2iaKAMMsZ_yfsVXXcg&oe=687F9CE3&_nc_sid=5e03e0&_nc_cat=102",
+            "broadcast": false,
+            "participantLid": null,
+            "forwarded": false,
+            "type": "ReceivedCallback",
+            "fromApi": false,
+            "text": {
+              "message": "Olá"
+            }
+          },
+          "webhookUrl": "https://devthierryc.app.n8n.cloud/webhook/conexão n8n odonto gpt",
+          "executionMode": "production"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "c.tecnico odonto gpt": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "398833d3-79a2-4aea-95b7-d83b11d9dd52",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "46d00834d838735d9f32dab85a172862c00475ddce6ec4268a026940a9635e9b"
+  },
+  "id": "xVfIitBwQavbGRxK",
+  "tags": []
+}

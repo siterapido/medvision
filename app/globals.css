@@ -885,13 +885,7 @@ html {
 
 /* === DARK SECTION OVERRIDES === */
 
-/* Force white logo in Hero section */
-.hero-logo-white img:first-child {
-  display: none !important;
-}
-.hero-logo-white img:last-child {
-  display: block !important;
-}
+/* Hero logo overrides removed: landing page now uses <Logo variant="white" /> */
 
 /* Force white logo in Login page left side */
 .login-logo-white img:first-child {
@@ -909,18 +903,13 @@ html {
   display: block !important;
 }
 
-/* Force white logo globally in all dark sections on landing page */
-/* This ensures white logo is always used regardless of viewport size */
-.bg-hero-section .hero-logo-white img:first-child,
+/* Scope forced white logo only for footer helper class */
 .bg-footer .footer-logo-white img:first-child,
-.hero-logo-white img:first-child,
 .footer-logo-white img:first-child {
   display: none !important;
 }
 
-.bg-hero-section .hero-logo-white img:last-child,
 .bg-footer .footer-logo-white img:last-child,
-.hero-logo-white img:last-child,
 .footer-logo-white img:last-child {
   display: block !important;
 }

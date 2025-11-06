@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,6 +19,21 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [envReady, setEnvReady] = useState(true)
+
+  // Pré-checagem de variáveis públicas no bundle do cliente
+  useEffect(() => {
+    const hasUrl = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL)
+    const hasAnon = Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    const validUrl = hasUrl && /^https?:\/\//.test(String(process.env.NEXT_PUBLIC_SUPABASE_URL))
+    const ok = hasUrl && hasAnon && validUrl
+    setEnvReady(ok)
+    if (!ok) {
+      setError(
+        "Configuração do Supabase ausente: defina NEXT_PUBLIC_SUPABASE_URL (com https://) e NEXT_PUBLIC_SUPABASE_ANON_KEY em .env.local e reinicie o servidor."
+      )
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,6 +41,10 @@ export function LoginForm() {
     setError(null)
 
     try {
+      if (!envReady) {
+        // Evita tentativa de login se env estiver ausente
+        return
+      }
       const supabase = createClient()
 
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -53,9 +72,16 @@ export function LoginForm() {
         router.push("/dashboard")
         router.refresh()
       }
-    } catch (err) {
+    } catch (err: unknown) {
       console.error("Unexpected error:", err)
-      setError("Erro inesperado. Por favor, tente novamente.")
+      const msg = err instanceof Error ? err.message : String(err)
+      if (msg.toLowerCase().includes("missing supabase environment variables")) {
+        setError(
+          "Configuração do Supabase ausente: defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY em .env.local e reinicie o servidor."
+        )
+      } else {
+        setError("Erro inesperado. Por favor, tente novamente.")
+      }
       setIsLoading(false)
     }
   }
@@ -123,7 +149,7 @@ export function LoginForm() {
       <Button
         type="submit"
         className="w-full h-12 bg-gradient-to-r from-primary to-accent hover:from-primary-hover hover:to-accent text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] mt-6"
-        disabled={isLoading}
+        disabled={isLoading || !envReady}
       >
         {isLoading ? (
           <>
@@ -131,7 +157,7 @@ export function LoginForm() {
             Entrando...
           </>
         ) : (
-          "Entrar na plataforma"
+          envReady ? "Entrar na plataforma" : "Configuração pendente"
         )}
       </Button>
     </form>

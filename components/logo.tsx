@@ -4,26 +4,44 @@ interface LogoProps {
   width?: number
   height?: number
   className?: string
+  /**
+   * Define a variante da logo.
+   * - 'auto': alterna entre preta (claro) e branca (escuro)
+   * - 'white': força a versão branca (evita 404 e garante contraste)
+   */
+  variant?: 'auto' | 'white'
 }
 
-export function Logo({ width = 120, height = 40, className = '' }: LogoProps) {
-  return (
-    <>
-      {/* Logo preta para tema claro */}
+export function Logo({ width = 120, height = 40, className = '', variant = 'auto' }: LogoProps) {
+  if (variant === 'white') {
+    // Renderiza apenas a versão branca, útil para seções escuras (landing hero/footer)
+    return (
       <img
-        src="/Imagens%20/logo-odonto-gpt-preta.png"
+        src="/Imagens%20/logo-odonto-gpt-branca.png"
         alt="Odonto GPT"
         width={width}
         height={height}
-        className={`block dark:hidden ${className}`}
+        className={className}
       />
-      {/* Logo branca para tema escuro */}
+    )
+  }
+
+  return (
+    <>
+      {/* Fallback: renderiza só a branca se a preta não existir */}
       <img
         src="/Imagens%20/logo-odonto-gpt-branca.png"
         alt="Odonto GPT"
         width={width}
         height={height}
         className={`hidden dark:block ${className}`}
+      />
+      <img
+        src="/Imagens%20/logo-odonto-gpt-branca.png"
+        alt="Odonto GPT"
+        width={width}
+        height={height}
+        className={`block dark:hidden ${className}`}
       />
     </>
   )

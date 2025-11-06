@@ -4,6 +4,7 @@ import type { Metadata } from "next"
 import { Analytics } from "@vercel/analytics/next"
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
+import EnvWarning from "@/components/env-warning"
 
 import { Inter } from 'next/font/google'
 
@@ -46,6 +47,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
+          <EnvWarning />
           <div className="min-h-screen bg-session-landing">
             {children}
           </div>

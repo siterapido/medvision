@@ -60,7 +60,7 @@ export default function LandingPage() {
         <div className="container mx-auto">
           {/* Logo - First on Mobile, moved to text section on Desktop */}
           <div className="flex justify-start md:hidden mb-6">
-            <Logo width={140} height={30} className="hero-logo-white" />
+            <Logo variant="white" width={140} height={30} />
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center max-w-6xl mx-auto">
@@ -82,7 +82,7 @@ export default function LandingPage() {
           <div className="space-y-6 md:space-y-8 text-left order-3 md:order-1">
             {/* Logo - Hidden on mobile, shown on desktop */}
             <div className="hidden md:flex justify-start mb-4 md:mb-6">
-              <Logo width={140} height={30} className="hero-logo-white" />
+              <Logo variant="white" width={140} height={30} />
             </div>
 
             <h1 className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-balance">
