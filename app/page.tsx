@@ -1,6 +1,7 @@
  
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
 import {
@@ -20,6 +21,7 @@ import {
   PlayCircle,
   Video,
   HelpCircle,
+  User,
 } from "lucide-react"
 import Link from "next/link"
 import { Logo } from "@/components/logo"
@@ -38,6 +40,24 @@ export default function LandingPage() {
 
       {/* Hero Section */}
       <section className="w-full min-h-screen bg-hero-section text-white flex items-center justify-center py-20">
+        {/* Fundo animado estilo shadcn que transmite ideia de IA */}
+        <div aria-hidden="true" className="hero-ai-bg">
+          {/* Grid técnico suave em ciano */}
+          <div className="hero-ai-grid" />
+          {/* Beams/auroras em camadas para dar sensação de tecnologia/IA */}
+          <div
+            className="hero-ai-beam"
+            style={{ top: "-10%", left: "-6%", ['--beam-color' as any]: "color-mix(in oklab, var(--accent) 45%, transparent)", animationDuration: "20s" }}
+          />
+          <div
+            className="hero-ai-beam"
+            style={{ bottom: "-8%", right: "-4%", ['--beam-color' as any]: "color-mix(in oklab, var(--primary) 40%, transparent)", animationDuration: "22s" }}
+          />
+          <div
+            className="hero-ai-beam"
+            style={{ top: "30%", right: "35%", ['--beam-color' as any]: "color-mix(in oklab, var(--secondary) 35%, transparent)", animationDuration: "24s" }}
+          />
+        </div>
         <div className="container mx-auto">
           <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
           {/* Text Content - Left Side */}
@@ -48,26 +68,25 @@ export default function LandingPage() {
             </div>
             
             <h1 className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-balance">
-              Inteligência Artificial para{" "}
+              Pare de travar nas dúvidas{" "}
               <span className="bg-gradient-to-r from-primary via-accent to-cyan-400 bg-clip-text text-transparent">
-                Odontologia
+                que travam sua carreira
               </span>
             </h1>
 
             <p className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200 text-xl md:text-2xl text-slate-300 text-balance leading-relaxed">
-              Suporte clínico e educacional via WhatsApp. Dúvidas, prescrições e orientações baseadas em literatura
-              científica.
+              Respostas científicas no WhatsApp em 60 segundos - sem passar vergonha perguntando ao professor pela 5ª vez no mesmo dia
             </p>
 
             <div className="flex flex-col sm:flex-row items-center gap-4 pt-6">
               <Link href="/register">
                 <Button
                   size="xl"
-                  aria-label="Contratar Odonto GPT"
+                  aria-label="Assinar agora"
                   variant="cta"
                   className="group shadow-primary/25"
                 >
-                  Contratar Odonto GPT
+                  Assinar agora
                   <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
                 </Button>
               </Link>
@@ -118,10 +137,10 @@ export default function LandingPage() {
       <section className="w-full py-20 md:py-32 bg-dentista-section">
         <div className="container mx-auto max-w-6xl">
           <SectionHeader
-            label="Comparativo"
+            label="A Verdade que Ninguém Te Conta"
             icon={CheckCircle2}
-            title="Dentista, pare de perder tempo"
-            description="Compare a rotina sem e com o Odonto GPT. Tenha orientação confiável baseada em literatura odontológica, direto no WhatsApp."
+            title="Enquanto Você Fica Parado nas Dúvidas, Seus Colegas Já Estão na Frente"
+            description="A diferença entre o estudante que se destaca e o que fica para trás não é inteligência - é ter as respostas certas na hora certa"
             align="center"
             className="mb-12"
           />
@@ -142,25 +161,25 @@ export default function LandingPage() {
                   <span className="inline-flex items-center justify-center rounded-md p-1.5 bg-destructive/10 ring-1 ring-destructive/40">
                     <XCircle className="h-8 w-8 text-destructive" />
                   </span>
-                  <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-destructive">Sem Odonto GPT</h3>
+                  <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-destructive">Estudante Sem Odonto GPT</h3>
                 </div>
 
                 <div className="space-y-4 text-sm md:text-base">
                   <div className="flex items-start gap-2">
                     <XCircle className="h-6 w-6 text-destructive shrink-0 mt-0.5" />
-                    <span>Perder horas buscando informações em livros e sites</span>
+                    <span>Perde oportunidades de estágio por insegurança nas respostas</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <XCircle className="h-6 w-6 text-destructive shrink-0 mt-0.5" />
-                    <span>Insegurança em atendimentos e plantões</span>
+                    <span>Gasta 3h pesquisando o que poderia resolver em 30 segundos</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <XCircle className="h-6 w-6 text-destructive shrink-0 mt-0.5" />
-                    <span>Usar chatbots genéricos para casos odontológicos complexos</span>
+                    <span>Fica com medo de errar prescrições e passar vergonha no plantão</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <XCircle className="h-6 w-6 text-destructive shrink-0 mt-0.5" />
-                    <span>Maior risco de erros por esquecimento ou falta de atualização</span>
+                    <span>Assiste colegas com "contatos" ganharem as melhores vagas</span>
                   </div>
                 </div>
                 </CardContent>
@@ -182,25 +201,25 @@ export default function LandingPage() {
                   <span className="inline-flex items-center justify-center rounded-md p-1.5 bg-[#2399B4]/10 ring-1 ring-[#2399B4]/40">
                     <CheckCircle2 className="h-8 w-8 text-primary" />
                   </span>
-                  <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Com Odonto GPT</h3>
+                  <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Estudante Com Odonto GPT</h3>
                 </div>
 
                 <div className="space-y-4 text-sm md:text-base">
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                    <span>Respostas baseadas em livros e artigos odontológicos atualizados</span>
+                    <span>Tira dúvidas de provas em 30s com citações que impressionam professores</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                    <span>Assistente 24h no WhatsApp: clareza e segurança em decisões clínicas</span>
+                    <span>Chega no plantão com a confiança de quem tem um especialista no bolso</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                    <span>IA especializada em odontologia, calibrada para protocolos da área</span>
+                    <span>Acessa conhecimento equivalente a 5 anos de experiência clínica</span>
                   </div>
                   <div className="flex items-start gap-2">
                     <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
-                    <span>Redução de erros: orientações, prescrições e protocolos sempre à mão</span>
+                    <span>Conquista os melhores estágios enquanto outros ainda estão estudando</span>
                   </div>
                 </div>
                 </CardContent>
@@ -223,28 +242,23 @@ export default function LandingPage() {
       <section className="w-full py-20 md:py-32 bg-testimonials-section">
         <div className="container mx-auto max-w-6xl space-y-16">
           <SectionHeader
-            label="Depoimentos em Vídeo"
+            label="Histórias Reais de Sucesso"
             icon={Video}
-            title="Veja o que nossos usuários estão dizendo"
-            description="Profissionais reais compartilhando suas experiências com o Odonto GPT"
+            title="Resultados Reais: Segurança, Velocidade e Acertos"
+            description="Veja como o Odonto GPT está transformando a jornada acadêmica de estudantes que já estão colhendo os frutos"
             align="center"
           />
 
-          <div className="grid md:grid-cols-3 gap-8 items-stretch">
+          <div className="grid md:grid-cols-3 gap-8 items-start">
             {/* Video 1 */}
-            <Card className="h-full text-center rounded-3xl border-[#21839B]/30 bg-[rgba(35,153,180,0.08)] hover:bg-[rgba(35,153,180,0.12)] transition-colors shadow-lg">
-              <CardContent className="p-6 space-y-4">
-                <div className="flex justify-center">
-                  <span className="inline-flex items-center justify-center rounded-full p-2 bg-[#2399B4]/15 ring-1 ring-[#2399B4]/40">
-                    <MessageSquare className="h-5 w-5 text-[#2399B4]" />
-                  </span>
-                </div>
+            <Card className="h-full text-center bg-transparent border-0 shadow-none">
+              <CardContent className="p-0 space-y-3">
                 <div className="relative mx-auto w-full max-w-[300px]">
                   <YouTubePlayer
                     videoId="loPD53clzR4"
                     title="Depoimento Dr. Carlos Silva - Odonto GPT"
                     aspect="portrait"
-                    className="rounded-3xl border-2 border-[#21839B]/30"
+                    className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
                     controls={0}
                   />
                 </div>
@@ -261,19 +275,14 @@ export default function LandingPage() {
             </Card>
 
             {/* Video 2 */}
-            <Card className="h-full text-center rounded-3xl border-[#21839B]/30 bg-[rgba(35,153,180,0.08)] hover:bg-[rgba(35,153,180,0.12)] transition-colors shadow-lg">
-              <CardContent className="p-6 space-y-4">
-                <div className="flex justify-center">
-                  <span className="inline-flex items-center justify-center rounded-full p-2 bg-[#2399B4]/15 ring-1 ring-[#2399B4]/40">
-                    <MessageSquare className="h-5 w-5 text-[#2399B4]" />
-                  </span>
-                </div>
+            <Card className="h-full text-center bg-transparent border-0 shadow-none">
+              <CardContent className="p-0 space-y-3">
                 <div className="relative mx-auto w-full max-w-[300px]">
                   <YouTubePlayer
                     videoId="loPD53clzR4"
                     title="Depoimento Dra. Ana Oliveira - Odonto GPT"
                     aspect="portrait"
-                    className="rounded-3xl border-2 border-[#21839B]/30"
+                    className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
                     controls={0}
                   />
                 </div>
@@ -290,19 +299,14 @@ export default function LandingPage() {
             </Card>
 
             {/* Video 3 */}
-            <Card className="h-full text-center rounded-3xl border-[#21839B]/30 bg-[rgba(35,153,180,0.08)] hover:bg-[rgba(35,153,180,0.12)] transition-colors shadow-lg">
-              <CardContent className="p-6 space-y-4">
-                <div className="flex justify-center">
-                  <span className="inline-flex items-center justify-center rounded-full p-2 bg-[#2399B4]/15 ring-1 ring-[#2399B4]/40">
-                    <MessageSquare className="h-5 w-5 text-[#2399B4]" />
-                  </span>
-                </div>
+            <Card className="h-full text-center bg-transparent border-0 shadow-none">
+              <CardContent className="p-0 space-y-3">
                 <div className="relative mx-auto w-full max-w-[300px]">
                   <YouTubePlayer
                     videoId="loPD53clzR4"
                     title="Depoimento Dr. Rodrigo Santos - Odonto GPT"
                     aspect="portrait"
-                    className="rounded-3xl border-2 border-[#21839B]/30"
+                    className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
                     controls={0}
                   />
                 </div>
@@ -319,17 +323,7 @@ export default function LandingPage() {
             </Card>
           </div>
 
-          <div className="text-center pt-8">
-            <Link href="#planos">
-              <Button 
-                size="lg" 
-                variant="outline"
-              >
-                Ver mais depoimentos
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
-            </Link>
-          </div>
+          {/* Removed 'Ver mais depoimentos' button per request */}
         </div>
       </section>
 
@@ -337,50 +331,50 @@ export default function LandingPage() {
       <section className="w-full py-20 md:py-32 bg-how-it-works-section">
         <div className="mx-auto max-w-5xl space-y-12">
           <SectionHeader
-            label="O que é o Odonto GPT?"
+            label="Sua Vantagem Competitiva"
             icon={Brain}
-            title="Revolucione seus estudos e prática odontológica"
-            description="Com o Odonto GPT, você tem uma IA treinada exclusivamente em odontologia, integrada ao WhatsApp. Ela responde dúvidas, sugere prescrições e oferece orientações clínicas com base em livros e artigos científicos."
+            title="O Segredo dos Estudantes que se Destacam na Odontologia"
+            description="Enquanto seus colegas ainda estão perdidos nos livros, você terá respostas científicas instantâneas que transformam dúvidas em oportunidades de aprendizado"
             align="center"
           />
 
           <div className="grid md:grid-cols-3 gap-8">
-            <Card className="interactive-card border-2 hover:border-primary/50 transition-colors">
-              <CardContent className="pt-8 space-y-4">
-                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                  <BookOpen className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold">Base Científica</h3>
-                <p className="text-muted-foreground">
-                  Respostas fundamentadas em literatura reconhecida e evidências científicas atualizadas.
-                </p>
-              </CardContent>
-            </Card>
+              <Card className="interactive-card border-2 hover:border-primary/50 transition-colors">
+                <CardContent className="pt-8 space-y-4">
+                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                    <BookOpen className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold">Notas que Impressionam</h3>
+                  <p className="text-muted-foreground">
+                    Respostas de provas com citações de livros que seus professores adoram ver.
+                  </p>
+                </CardContent>
+              </Card>
 
-            <Card className="interactive-card border-2 hover:border-primary/50 transition-colors">
-              <CardContent className="pt-8 space-y-4">
-                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                  <Clock className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold">Acesso Imediato</h3>
-                <p className="text-muted-foreground">
-                  Disponível 24/7 via WhatsApp. Respostas rápidas quando você mais precisa.
-                </p>
-              </CardContent>
-            </Card>
+              <Card className="interactive-card border-2 hover:border-primary/50 transition-colors">
+                <CardContent className="pt-8 space-y-4">
+                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                    <Clock className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold">Plantão Sem Medo</h3>
+                  <p className="text-muted-foreground">
+                    Chegue no plantão com a segurança de ter um expert no bolso 24/7.
+                  </p>
+                </CardContent>
+              </Card>
 
-            <Card className="interactive-card border-2 hover:border-primary/50 transition-colors">
-              <CardContent className="pt-8 space-y-4">
-                <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                  <Brain className="h-6 w-6 text-white" />
-                </div>
-                <h3 className="text-xl font-bold">Especializada</h3>
-                <p className="text-muted-foreground">
-                  IA calibrada exclusivamente para odontologia, não é um chatbot genérico.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+              <Card className="interactive-card border-2 hover:border-primary/50 transition-colors">
+                <CardContent className="pt-8 space-y-4">
+                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                    <Brain className="h-6 w-6 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold">Vantagem Competitiva</h3>
+                  <p className="text-muted-foreground">
+                    O diferencial que vai fazer você se destacar entre dezenas de colegas.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
         </div>
       </section>
 
@@ -388,9 +382,10 @@ export default function LandingPage() {
       <section id="como-funciona" className="w-full py-20 md:py-32 bg-how-it-works-section">
         <div className="container mx-auto max-w-5xl space-y-12">
           <SectionHeader
-            label="Como funciona"
-            icon={MessageSquare}
-            title="Três passos simples para revolucionar sua prática"
+            label="Transformação em 3 Passos"
+            icon={Zap}
+            title="Clareza clínica em menos de 1 minuto"
+            description="Enquanto seus colegas ainda estão na página 50 do livro, você já tem a resposta com respaldo científico"
             align="center"
           />
 
@@ -403,8 +398,8 @@ export default function LandingPage() {
               <Card className="interactive-card pt-12 border-2 hover:shadow-lg transition-shadow">
                 <CardContent className="space-y-4">
                   <MessageSquare className="h-10 w-10 text-primary" />
-                  <h3 className="text-xl font-bold">Envie sua dúvida</h3>
-                  <p className="text-muted-foreground">Via WhatsApp: procedimentos, medicamentos ou casos clínicos.</p>
+                  <h3 className="text-xl font-bold">Tire a Dúvida que Te Travava</h3>
+                  <p className="text-muted-foreground">Aquela questão de prova ou caso clínico que tira seu sono - mande pelo WhatsApp</p>
                 </CardContent>
               </Card>
             </div>
@@ -417,8 +412,8 @@ export default function LandingPage() {
               <Card className="interactive-card pt-12 border-2 hover:shadow-lg transition-shadow">
                 <CardContent className="space-y-4">
                   <Brain className="h-10 w-10 text-primary" />
-                  <h3 className="text-xl font-bold">IA responde</h3>
-                  <p className="text-muted-foreground">A IA processa sua dúvida com base em evidências científicas.</p>
+                  <h3 className="text-xl font-bold">Resposta com Respaldo Científico</h3>
+                  <p className="text-muted-foreground">Em segundos, receba a resposta fundamentada na literatura que seus professores exigem</p>
                 </CardContent>
               </Card>
             </div>
@@ -431,9 +426,9 @@ export default function LandingPage() {
               <Card className="interactive-card pt-12 border-2 hover:shadow-lg transition-shadow">
                 <CardContent className="space-y-4">
                   <CheckCircle2 className="h-10 w-10 text-primary" />
-                  <h3 className="text-xl font-bold">Receba orientação</h3>
+                  <h3 className="text-xl font-bold">Destaque-se na Multidão</h3>
                   <p className="text-muted-foreground">
-                    Receba prescrições, protocolos clínicos e conteúdos educacionais.
+                    Chegue na frente com conhecimento que impressiona professores e conquista os melhores estágios
                   </p>
                 </CardContent>
               </Card>
@@ -455,9 +450,10 @@ export default function LandingPage() {
       <section id="beneficios" className="w-full py-20 md:py-32 bg-benefits-section">
         <div className="mx-auto max-w-6xl space-y-12">
           <SectionHeader
-            label="Benefícios"
-            icon={Zap}
-            title="Por que escolher o Odonto GPT?"
+            label="Sua Jornada de Sucesso"
+            icon={Star}
+            title="O investimento que acelera sua jornada na Odontologia"
+            description="Enquanto seus colegas ainda estão tentando decifrar livros sozinhos, você já está aplicando o conhecimento na prática"
             align="center"
           />
 
@@ -513,115 +509,209 @@ export default function LandingPage() {
         </div>
       </section>
 
-      
-
-      {/* Pricing */}
-      <section id="planos" className="w-full py-20 md:py-32 bg-pricing-section">
-        <div className="mx-auto max-w-6xl space-y-12">
+      {/* Expert Section - Roniery Costa */}
+      <section id="especialista" className="w-full py-20 md:py-32 bg-expert-section">
+        <div className="mx-auto max-w-6xl">
           <SectionHeader
-            label="Planos"
-            icon={TrendingUp}
-            title="Escolha seu plano"
+            label="Responsabilidade Técnica"
+            icon={Award}
+            title="Conhecimento com Respaldo de Quem Entende da Área"
+            description="Por trás de cada resposta do Odonto GPT, está a experiência de um profissional que já viveu suas dúvidas e desafios"
             align="center"
           />
-          <div className="text-center">
-            <Badge className="bg-gradient-to-r from-destructive/10 to-warning/10 text-destructive border-destructive/20 px-4 py-1.5 inline-flex items-center gap-2">
-              <TrendingUp className="h-3.5 w-3.5" />
-              Oferta Especial de Lançamento
-            </Badge>
+
+          <div className="grid md:grid-cols-2 gap-12 items-center mt-12">
+            <div className="space-y-6">
+              <div className="relative flex justify-center">
+                <div className="relative w-72 h-72 bg-gradient-to-br from-primary/30 to-accent/30 rounded-full overflow-hidden shadow-2xl border-2 border-white/20 flex items-center justify-center">
+                  <Image
+                    src="/Imagens /roniery.jpg"
+                    alt="Roniery Costa - Responsável Técnico do Odonto GPT"
+                    width={288}
+                    height={288}
+                    className="w-72 h-72 object-contain object-center"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-2xl font-bold text-primary">Roniery Costa</h3>
+                <p className="text-muted-foreground">Responsável Técnico - CRO 4616/PB</p>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-lg font-semibold text-primary leading-relaxed border-l-4 border-primary pl-4 py-2 bg-primary/5">
+                  "Criei o Odonto GPT para ser o consultor que eu gostaria de ter tido durante minha formação - 
+                  acessível 24/7, sem julgamentos, e com respostas fundamentadas na literatura que realmente importa."
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <span>🧑🏻‍⚕️ Cirurgião dentista</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <span>🎓 Me. e Dr. em Odontologia</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <span>📚 + 3.5k alunos online</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                  <span>🏆 Professor universitário</span>
+                </div>
+              </div>
+
+              <div className="pt-4">
+                <p className="text-sm text-muted-foreground italic">
+                  "Cada resposta que você recebe passa pela minha curadoria técnica, garantindo que 
+                  esteja sempre alinhada com as melhores práticas da odontologia moderna."
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing - substituted with redesigned pricing section using current values */}
+      <section id="planos" className="w-full py-20 md:py-32 bg-pricing-section">
+        <div className="mx-auto max-w-6xl space-y-12">
+          <SectionHeader 
+            label="Sua Vantagem Competitiva" 
+            icon={TrendingUp} 
+            title="Enquanto Seus Colegas Ainda Estão no Google, Você Já Tem a Resposta" 
+            description="Acesso ilimitado ao consultor de odontologia 24/7 que vai te fazer economizar horas de estudo e te poupar de constrangimentos na clínica" 
+            align="center" 
+          />
+
+          {/* Oferta Especial de Lançamento - ajustar conteúdo dentro dos cards e ordem: esquerda anual, direita mensal */}
+          <div className="flex justify-center">
+            {/* Plano Anual - Mais Econômico (esquerda) */}
+            <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-primary shadow-2xl md:scale-[1.04] bg-gradient-to-b from-primary/10 to-transparent w-full max-w-[560px] min-h-[480px]">
+              {/* Fita de oferta especial apenas no plano anual */}
+              <div className="pointer-events-none absolute -right-14 top-6 rotate-45 z-10">
+                <span className="bg-accent text-accent-foreground px-16 py-1 text-xs font-semibold shadow-md">Oferta Especial</span>
+              </div>
+              <div className="text-center mb-5">
+                <div className="flex justify-center mb-2">
+                  <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">ESCOLHA INTELIGENTE</span>
+                </div>
+                <h3 className="text-xl font-bold mb-1">Plano Anual</h3>
+                <div className="flex items-baseline justify-center gap-2">
+                  <span className="text-xs md:text-sm text-muted-foreground line-through">Valor normal: R$ 359,88/ano</span>
+                </div>
+                <div className="flex items-baseline justify-center gap-1">
+                  <span className="text-3xl md:text-4xl font-extrabold text-primary">R$ 240</span>
+                  <span className="text-muted-foreground">/ano</span>
+                </div>
+                <div className="mt-2 text-xs md:text-sm font-medium text-primary">Economize R$ 119,88 • Equivale a R$ 20/mês</div>
+              </div>
+
+              <ul className="space-y-3 mb-6">
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Consultor 24/7 no WhatsApp - sem limite de perguntas</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Respostas fundamentadas em literatura científica</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Prescrições com dosagens corretas e protocolos atualizados</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Ajuda em provas, estágios e casos clínicos complexos</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">Live exclusiva toda quarta-feira com Q&A</span>
+                </li>
+                
+                {/* Bônus exclusivos do anual */}
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">🎁 <strong>Ebook exclusivo:</strong> Como Validar Seu Diploma nos EUA</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">🎁 <strong>Certificado mensal</strong> de participação nas lives</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-sm">🎁 <strong>Acesso prioritário</strong> a novas funcionalidades</span>
+                </li>
+              </ul>
+
+              <Link href="/register" className="block">
+                <Button className="w-full shadow-lg" size="lg" variant="cta">
+                  Garantir Meu Acesso Anual
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </Card>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
-            {/* Monthly Plan */}
-            <Card className="interactive-card border-2 hover:border-primary/50 transition-colors hover:shadow-primary/25 relative">
-              <CardContent className="pt-8 space-y-6">
-                <div>
-                  <h3 className="text-2xl font-bold mb-2">Plano Mensal</h3>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-sm text-muted-foreground line-through">R$ 79,99</span>
-                    <span className="text-4xl font-bold text-primary">R$ 29,99</span>
-                    <span className="text-muted-foreground">/mês</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-2">Pagamento mensal, sem fidelidade</p>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">Acesso ilimitado via WhatsApp</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">Prescrições e orientações personalizadas</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">IA exclusiva para odontologia</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">Base científica atualizada</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">Live toda quarta-feira</span>
-                  </div>
-                </div>
-
-                <Link href="/register" className="block">
-                  <Button className="w-full" size="lg" variant="cta">
-                    Assinar Mensal
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
-
-            {/* Annual Plan */}
-            <Card className="interactive-card border-2 border-primary shadow-lg shadow-primary/25 relative">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                <Badge className="bg-gradient-to-r from-primary to-accent text-white px-4 py-1">Mais Econômico</Badge>
-              </div>
-              <CardContent className="pt-8 space-y-6">
-                <div>
-                  <h3 className="text-2xl font-bold mb-2">Plano Anual</h3>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-sm text-muted-foreground line-through">R$ 359,88</span>
-                    <span className="text-4xl font-bold text-primary">R$ 240</span>
-                    <span className="text-muted-foreground">/ano</span>
-                  </div>
-                  <p className="text-sm font-medium text-primary mt-2">R$ 20/mês • Economize 33%</p>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm font-medium">Tudo do plano mensal</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">🎁 Ebook: Validação de diploma nos EUA</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <Sparkles className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">🎁 1 live mensal com certificado</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">Suporte prioritário</span>
-                  </div>
-                  <div className="flex items-start gap-2">
-                    <CheckCircle2 className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                    <span className="text-sm">Acesso antecipado a novos recursos</span>
-                  </div>
-                </div>
-
-                <Link href="/register" className="block">
-                  <Button className="w-full" size="lg" variant="cta">
-                    Assinar Anual
-                  </Button>
-                </Link>
-              </CardContent>
-            </Card>
+          {/* Trust indicators */}
+          <div className="mt-16 text-center">
+            <p className="text-sm text-muted-foreground mb-4">Pagamento seguro via kiwify</p>
+            <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                  />
+                </svg>
+                Pagamento Seguro
+              </span>
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                Garantia de 7 dias
+              </span>
+              <span className="flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
+                  />
+                </svg>
+                Cartão ou Boleto
+              </span>
+            </div>
           </div>
         </div>
       </section>
@@ -660,73 +750,59 @@ export default function LandingPage() {
             align="center"
           />
 
-          <div className="space-y-4">
-            <Card className="interactive-card border-2">
-              <CardContent className="pt-6 space-y-2">
-                <h3 className="font-bold text-lg">Qual a diferença para o ChatGPT comum?</h3>
-                <p className="text-muted-foreground">
-                  Odonto GPT é calibrado exclusivamente para odontologia com literatura e protocolos clínicos
-                  específicos da área.
-                </p>
-              </CardContent>
-            </Card>
+          <Accordion type="single" collapsible className="space-y-4">
+            <AccordionItem value="item-1" className="interactive-card border-2 rounded-xl">
+              <AccordionTrigger className="font-bold text-lg px-4 py-3">Qual a diferença para o ChatGPT comum?</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground px-4 pb-4">
+                Odonto GPT é calibrado exclusivamente para odontologia com literatura e protocolos clínicos
+                específicos da área.
+              </AccordionContent>
+            </AccordionItem>
 
-            <Card className="interactive-card border-2">
-              <CardContent className="pt-6 space-y-2">
-                <h3 className="font-bold text-lg">Como funciona o acesso via WhatsApp?</h3>
-                <p className="text-muted-foreground">
-                  Após pagar, você recebe o número da IA e fala normalmente pelo WhatsApp, como se fosse uma conversa
-                  comum.
-                </p>
-              </CardContent>
-            </Card>
+            <AccordionItem value="item-2" className="interactive-card border-2 rounded-xl">
+              <AccordionTrigger className="font-bold text-lg px-4 py-3">Como funciona o acesso via WhatsApp?</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground px-4 pb-4">
+                Após pagar, você recebe o número da IA e fala normalmente pelo WhatsApp, como se fosse uma conversa
+                comum.
+              </AccordionContent>
+            </AccordionItem>
 
-            <Card className="interactive-card border-2">
-              <CardContent className="pt-6 space-y-2">
-                <h3 className="font-bold text-lg">As respostas são confiáveis?</h3>
-                <p className="text-muted-foreground">
-                  Sim. Todas as respostas são baseadas em literatura odontológica reconhecida e evidências científicas
-                  atualizadas.
-                </p>
-              </CardContent>
-            </Card>
+            <AccordionItem value="item-3" className="interactive-card border-2 rounded-xl">
+              <AccordionTrigger className="font-bold text-lg px-4 py-3">As respostas são confiáveis?</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground px-4 pb-4">
+                Sim. Todas as respostas são baseadas em literatura odontológica reconhecida e evidências científicas
+                atualizadas.
+              </AccordionContent>
+            </AccordionItem>
 
-            <Card className="interactive-card border-2">
-              <CardContent className="pt-6 space-y-2">
-                <h3 className="font-bold text-lg">É para estudantes também?</h3>
-                <p className="text-muted-foreground">
-                  Sim! Ajuda em provas, estágios, casos clínicos e todo o processo de aprendizado em odontologia.
-                </p>
-              </CardContent>
-            </Card>
+            <AccordionItem value="item-4" className="interactive-card border-2 rounded-xl">
+              <AccordionTrigger className="font-bold text-lg px-4 py-3">É para estudantes também?</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground px-4 pb-4">
+                Sim! Ajuda em provas, estágios, casos clínicos e todo o processo de aprendizado em odontologia.
+              </AccordionContent>
+            </AccordionItem>
 
-            <Card className="interactive-card border-2">
-              <CardContent className="pt-6 space-y-2">
-                <h3 className="font-bold text-lg">Tem limite de perguntas?</h3>
-                <p className="text-muted-foreground">
-                  Não. Você pode fazer quantas perguntas quiser, sem limites ou restrições.
-                </p>
-              </CardContent>
-            </Card>
+            <AccordionItem value="item-5" className="interactive-card border-2 rounded-xl">
+              <AccordionTrigger className="font-bold text-lg px-4 py-3">Tem limite de perguntas?</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground px-4 pb-4">
+                Não. Você pode fazer quantas perguntas quiser, sem limites ou restrições.
+              </AccordionContent>
+            </AccordionItem>
 
-            <Card className="interactive-card border-2">
-              <CardContent className="pt-6 space-y-2">
-                <h3 className="font-bold text-lg">Posso cancelar quando quiser?</h3>
-                <p className="text-muted-foreground">
-                  Sim. Não há fidelidade. Você pode cancelar sua assinatura a qualquer momento.
-                </p>
-              </CardContent>
-            </Card>
+            <AccordionItem value="item-6" className="interactive-card border-2 rounded-xl">
+              <AccordionTrigger className="font-bold text-lg px-4 py-3">Posso cancelar quando quiser?</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground px-4 pb-4">
+                Sim. Não há fidelidade. Você pode cancelar sua assinatura a qualquer momento.
+              </AccordionContent>
+            </AccordionItem>
 
-            <Card className="interactive-card border-2">
-              <CardContent className="pt-6 space-y-2">
-                <h3 className="font-bold text-lg">Meus dados ficam seguros?</h3>
-                <p className="text-muted-foreground">
-                  Sim. Todas as conversas são criptografadas e seguimos rigorosamente a LGPD para proteção de dados.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
+            <AccordionItem value="item-7" className="interactive-card border-2 rounded-xl">
+              <AccordionTrigger className="font-bold text-lg px-4 py-3">Meus dados ficam seguros?</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground px-4 pb-4">
+                Sim. Todas as conversas são criptografadas e seguimos rigorosamente a LGPD para proteção de dados.
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
       </section>
 

@@ -228,6 +228,38 @@
   }
 }
 
+/* Tech grid drift to convey "IA" background */
+@keyframes gridDrift {
+  0% {
+    background-position: 0px 0px, 0px 0px;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    background-position: 80px 40px, 80px 40px;
+    transform: translate3d(1%, -1%, 0) scale(1.01);
+  }
+  100% {
+    background-position: 0px 0px, 0px 0px;
+    transform: translate3d(-1%, 1%, 0) scale(1);
+  }
+}
+
+/* Aurora beams float animation */
+@keyframes beamFloat {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+  33% {
+    transform: translate3d(-2%, 3%, 0) rotate(6deg) scale(1.05);
+  }
+  66% {
+    transform: translate3d(3%, -2%, 0) rotate(-4deg) scale(1.03);
+  }
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
+  }
+}
+
 /* Slight wobble to convey "não é a escolha correta" on hover */
 @keyframes invalidWobble {
   0% { transform: translateX(0) rotate(0deg); }
@@ -282,6 +314,42 @@
   .animate-wobble {
     animation: invalidWobble 420ms ease;
   }
+
+  /* === HERO AI Animated Background (shadcn-style aesthetic) === */
+  .hero-ai-bg {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: -10;
+    overflow: hidden;
+  }
+
+  /* Subtle cyan tech grid that slowly drifts */
+  .hero-ai-grid {
+    position: absolute;
+    inset: 0;
+    opacity: 0.25;
+    filter: saturate(1.05);
+    background-size: 40px 40px, 40px 40px;
+    background-image:
+      repeating-linear-gradient(0deg, color-mix(in oklab, var(--accent) 18%, transparent) 0px, color-mix(in oklab, var(--accent) 18%, transparent) 1px, transparent 1px, transparent 40px),
+      repeating-linear-gradient(90deg, color-mix(in oklab, var(--accent) 12%, transparent) 0px, color-mix(in oklab, var(--accent) 12%, transparent) 1px, transparent 1px, transparent 40px);
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 45%, black 0%, transparent 75%);
+    animation: gridDrift 22s linear infinite;
+  }
+
+  /* Soft moving aurora beams (three layers recommended) */
+  .hero-ai-beam {
+    position: absolute;
+    width: min(48vw, 720px);
+    height: min(48vh, 520px);
+    opacity: 0.38;
+    filter: blur(80px);
+    will-change: transform;
+    background:
+      radial-gradient(circle at 50% 50%, var(--beam-color, color-mix(in oklab, var(--primary) 40%, transparent)) 0%, transparent 60%);
+    animation: beamFloat 18s ease-in-out infinite;
+  }
 }
 
 /* Smooth scrolling for in-page navigation links (e.g., #planos, #faq) */
@@ -298,6 +366,12 @@ html {
 
 @media (prefers-reduced-motion: reduce) {
   .animate-scale-pulse {
+    animation: none;
+  }
+  .hero-ai-grid {
+    animation: none;
+  }
+  .hero-ai-beam {
     animation: none;
   }
 }
@@ -569,6 +643,24 @@ html {
   inset: 0;
   background: radial-gradient(circle at 80% 20%, rgba(25, 199, 190, 0.06) 0%, transparent 50%),
               radial-gradient(circle at 20% 80%, rgba(239, 68, 68, 0.04) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+/* Seção de responsabilidade técnica - seguindo o padrão das demais seções */
+.bg-expert-section {
+  @apply relative overflow-hidden;
+  background: linear-gradient(135deg, #101A34 0%, #131F38 50%, #0F192F 100%);
+  /* Card palette scoped to section for coherence with #131F38 */
+  --card: #16243F;
+  --card-foreground: #E6EDF7;
+  --border: #24324F;
+}
+
+.bg-expert-section::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 40% at 50% 40%, rgba(19, 31, 56, 0.12) 0%, transparent 70%);
   pointer-events: none;
 }
 
