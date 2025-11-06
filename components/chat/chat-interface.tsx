@@ -149,7 +149,7 @@ export function ChatInterface() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-gradient-to-b from-slate-50 to-white">
+    <div className="flex h-full flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
       <Conversation className="h-full">
         {messages.length === 0 ? (
           <ConversationEmptyState
@@ -162,10 +162,10 @@ export function ChatInterface() {
               <Fragment key={message.id}>
                 <Message from={message.role} className="mb-4">
                   <MessageContent
-                    className={`rounded-2xl px-4 py-3 shadow-sm ${
+                    className={`rounded-2xl px-4 py-3 shadow-lg ${
                       message.role === "user"
-                        ? "bg-primary text-primary-foreground ml-auto max-w-[85%]"
-                        : "bg-white border border-slate-200 text-slate-900"
+                        ? "bg-primary text-primary-foreground ml-auto max-w-[85%] shadow-primary/20"
+                        : "bg-slate-800 border border-slate-700 text-slate-100 shadow-slate-900/50"
                     }`}
                   >
                     <Response className="text-sm leading-relaxed">{message.content}</Response>
@@ -177,16 +177,16 @@ export function ChatInterface() {
                     <Action
                       onClick={() => regenerateMessage(index)}
                       label="Regenerar"
-                      className="rounded-full h-8 w-8 flex items-center justify-center hover:bg-slate-100 transition-colors"
+                      className="rounded-full h-8 w-8 flex items-center justify-center bg-slate-800 border border-slate-700 hover:bg-slate-700 transition-colors"
                     >
-                      <RefreshCcwIcon className="h-3.5 w-3.5 text-slate-600" />
+                      <RefreshCcwIcon className="h-3.5 w-3.5 text-slate-300" />
                     </Action>
                     <Action
                       onClick={() => copyToClipboard(message.content)}
                       label="Copiar"
-                      className="rounded-full h-8 w-8 flex items-center justify-center hover:bg-slate-100 transition-colors"
+                      className="rounded-full h-8 w-8 flex items-center justify-center bg-slate-800 border border-slate-700 hover:bg-slate-700 transition-colors"
                     >
-                      <CopyIcon className="h-3.5 w-3.5 text-slate-600" />
+                      <CopyIcon className="h-3.5 w-3.5 text-slate-300" />
                     </Action>
                   </Actions>
                 )}
@@ -194,7 +194,7 @@ export function ChatInterface() {
             ))}
             {status === "submitted" && (
               <div className="flex items-start gap-3">
-                <div className="rounded-full h-8 w-8 bg-primary/10 flex items-center justify-center flex-shrink-0">
+                <div className="rounded-full h-8 w-8 bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0">
                   <Sparkles className="h-4 w-4 text-primary" />
                 </div>
                 <Loader className="mt-1" />
@@ -202,21 +202,21 @@ export function ChatInterface() {
             )}
           </ConversationContent>
         )}
-        <ConversationScrollButton className="rounded-full shadow-lg" />
+        <ConversationScrollButton className="rounded-full shadow-lg bg-slate-800 border border-slate-700 hover:bg-slate-700" />
       </Conversation>
 
-      <div className="border-t border-slate-200 bg-white/80 backdrop-blur-sm p-4">
+      <div className="border-t border-slate-800 bg-slate-900/90 backdrop-blur-sm p-4">
         <div className="mx-auto w-full max-w-4xl">
           <PromptInput
             onSubmit={({ text }) => {
               return sendMessage(text)
             }}
-            className="rounded-2xl border-2 border-slate-200 bg-white shadow-sm hover:border-primary/50 focus-within:border-primary transition-colors"
+            className="rounded-2xl border-2 border-slate-700 bg-slate-800 shadow-xl hover:border-primary/50 focus-within:border-primary transition-colors"
           >
             <PromptInputBody className="p-3">
               <PromptInputTextarea
                 placeholder="Digite sua dúvida clínica..."
-                className="text-sm placeholder:text-slate-400 resize-none"
+                className="text-sm text-slate-100 placeholder:text-slate-500 bg-transparent resize-none"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
               />
@@ -225,7 +225,7 @@ export function ChatInterface() {
               <PromptInputSubmit
                 status={status === "idle" ? undefined : status}
                 disabled={!input.trim() && status === "idle"}
-                className="rounded-full h-9 w-9 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-full h-9 w-9 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </PromptInputFooter>
           </PromptInput>
