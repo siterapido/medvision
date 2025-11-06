@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, memo, useCallback } from 'react'
 import { Play, Volume2, VolumeX, Maximize, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -16,7 +16,7 @@ interface YouTubePlayerProps {
   hideOverlayControls?: boolean
 }
 
-export function YouTubePlayer({ 
+export const YouTubePlayer = memo(function YouTubePlayer({ 
   videoId, 
   title, 
   className,
@@ -58,7 +58,7 @@ export function YouTubePlayer({
   )
 
   // Create and mount the YouTube iframe with desired parameters
-  const createIframe = (autoplay: boolean, mute: boolean) => {
+  const createIframe = useCallback((autoplay: boolean, mute: boolean) => {
     setIsLoading(true)
     const iframe = document.createElement('iframe')
     const originParam = typeof window !== 'undefined' ? `&origin=${encodeURIComponent(window.location.origin)}` : ''
@@ -66,6 +66,7 @@ export function YouTubePlayer({
     iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
     iframe.allowFullscreen = true
     iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin')
+    iframe.loading = 'lazy'
     iframe.className = 'absolute inset-0 w-full h-full rounded-xl'
     iframeRef.current = iframe
     containerRef.current?.appendChild(iframe)
@@ -74,9 +75,9 @@ export function YouTubePlayer({
       setIsLoading(false)
       setIsPlaying(true)
     }
-  }
+  }, [videoId, controls])
 
-  const handlePlay = () => {
+  const handlePlay = useCallback(() => {
     if (!iframeRef.current) {
       // Create iframe when user clicks play
       createIframe(true, isMuted)
@@ -88,9 +89,9 @@ export function YouTubePlayer({
       )
       setIsPlaying(true)
     }
-  }
+  }, [createIframe, isMuted])
 
-  const handlePause = () => {
+  const handlePause = useCallback(() => {
     if (iframeRef.current) {
       iframeRef.current.contentWindow?.postMessage(
         '{"event":"command","func":"pauseVideo","args":""}',
@@ -98,9 +99,9 @@ export function YouTubePlayer({
       )
       setIsPlaying(false)
     }
-  }
+  }, [])
 
-  const toggleMute = () => {
+  const toggleMute = useCallback(() => {
     if (iframeRef.current) {
       iframeRef.current.contentWindow?.postMessage(
         `{"event":"command","func":"${isMuted ? 'unMute' : 'mute'}","args":""}`,
@@ -108,9 +109,9 @@ export function YouTubePlayer({
       )
       setIsMuted(!isMuted)
     }
-  }
+  }, [isMuted])
 
-  const toggleFullscreen = () => {
+  const toggleFullscreen = useCallback(() => {
     if (containerRef.current) {
       if (document.fullscreenElement) {
         document.exitFullscreen()
@@ -118,29 +119,39 @@ export function YouTubePlayer({
         containerRef.current.requestFullscreen()
       }
     }
-  }
+  }, [])
 
-  const handleMouseEnter = () => {
+  const handleMouseEnter = useCallback(() => {
     setShowControls(true)
     clearTimeout(timeoutRef.current)
-  }
+  }, [])
 
-  const handleMouseLeave = () => {
+  const handleMouseLeave = useCallback(() => {
     timeoutRef.current = setTimeout(() => {
       setShowControls(false)
     }, 2000)
-  }
+  }, [])
 
   useEffect(() => {
-    // Autoplay on load (muted)
+    // Autoplay on load (muted) - desabilitado por padrão para melhorar performance
+    // Agora o iframe só é criado quando o usuário clica no play
     if (autoPlayOnLoad && !iframeRef.current) {
-      setIsMuted(true)
-      createIframe(true, true)
+      // Delay para não bloquear renderização inicial
+      const timer = setTimeout(() => {
+        setIsMuted(true)
+        createIframe(true, true)
+      }, 100)
+
+      return () => {
+        clearTimeout(timer)
+        clearTimeout(timeoutRef.current)
+      }
     }
+
     return () => {
       clearTimeout(timeoutRef.current)
     }
-  }, [])
+  }, [autoPlayOnLoad, createIframe])
 
   return (
     <div 
@@ -250,4 +261,4 @@ export function YouTubePlayer({
       </div>
     </div>
   )
-}
+})
