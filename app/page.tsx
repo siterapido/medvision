@@ -38,7 +38,7 @@ export default function LandingPage() {
       </div>
 
       {/* Hero Section */}
-      <section className="w-full min-h-screen bg-hero-section text-white flex items-center justify-center py-20">
+      <section className="w-full min-h-screen bg-hero-section text-white flex items-center justify-center py-16 md:py-20 px-4 md:px-6">
         {/* Fundo animado estilo shadcn que transmite ideia de IA */}
         <div aria-hidden="true" className="hero-ai-bg">
           {/* Grid técnico suave em ciano */}
@@ -58,39 +58,58 @@ export default function LandingPage() {
           />
         </div>
         <div className="container mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
-          {/* Text Content - Left Side */}
-          <div className="space-y-8 text-left">
-            {/* Logo acima do título */}
-            <div className="flex justify-center md:justify-start mb-6">
-              <Logo width={140} height={30} />
+          {/* Logo - First on Mobile, moved to text section on Desktop */}
+          <div className="flex justify-start md:hidden mb-6">
+            <Logo width={140} height={30} className="hero-logo-white" />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center max-w-6xl mx-auto">
+
+          {/* VSL - Second on Mobile, Right on Desktop */}
+          <div className="relative order-2 md:order-2 hero-video-container">
+            <YouTubePlayer
+              videoId="loPD53clzR4"
+              title="VSL Odonto GPT"
+              aspect="landscape"
+              playButtonSize="xl"
+              controls={0}
+              hideOverlayControls
+              className="w-full rounded-2xl border-2 border-[#21839B]/30 shadow-lg"
+            />
+          </div>
+
+          {/* Text Content - Third on Mobile, Left on Desktop */}
+          <div className="space-y-6 md:space-y-8 text-left order-3 md:order-1">
+            {/* Logo - Hidden on mobile, shown on desktop */}
+            <div className="hidden md:flex justify-start mb-4 md:mb-6">
+              <Logo width={140} height={30} className="hero-logo-white" />
             </div>
-            
-            <h1 className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-balance">
+
+            <h1 className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-balance">
               Pare de travar nas dúvidas{" "}
               <span className="bg-gradient-to-r from-primary via-accent to-cyan-400 bg-clip-text text-transparent">
                 que travam sua carreira
               </span>
             </h1>
 
-            <p className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200 text-xl md:text-2xl text-slate-300 text-balance leading-relaxed">
+            <p className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200 text-lg md:text-xl lg:text-2xl text-slate-300 text-balance leading-relaxed">
               Respostas científicas no WhatsApp em 60 segundos - sem passar vergonha perguntando ao professor pela 5ª vez no mesmo dia
             </p>
 
-            <div className="flex flex-col sm:flex-row items-center gap-4 pt-6">
-              <Link href="/register">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 pt-4 md:pt-6">
+              <a href="https://pay.kiwify.com.br/PQH9KhD" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                 <Button
                   size="xl"
                   aria-label="Assinar agora"
                   variant="cta"
-                  className="group shadow-primary/25"
+                  className="group shadow-primary/25 w-full"
                 >
                   Assinar agora
                   <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
                 </Button>
-              </Link>
-              <Link href="#planos">
-                <Button size="xl" variant="outline" aria-label="Ver Planos">
+              </a>
+              <Link href="#planos" className="w-full sm:w-auto">
+                <Button size="xl" variant="outline" aria-label="Ver Planos" className="w-full">
                   Ver Planos
                 </Button>
               </Link>
@@ -99,21 +118,9 @@ export default function LandingPage() {
             {/* Social Proof Metrics removidos conforme solicitado */}
           </div>
 
-          {/* VSL - Right Side */}
-          <div className="relative space-y-6">
-            <YouTubePlayer
-              videoId="loPD53clzR4"
-              title="VSL Odonto GPT"
-              aspect="landscape"
-              playButtonSize="xl"
-              controls={1}
-              autoPlayOnLoad={false}
-              hideOverlayControls={false}
-              className="w-full rounded-2xl border-2 border-[#21839B]/30 shadow-lg"
-            />
-
-            {/* Features abaixo do vídeo com ícones contextuais */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
+          {/* Features - After buttons on Mobile (fourth), below video on Desktop */}
+          <div className="order-4 md:order-3 md:col-span-2">
+            <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 pt-4">
               <div className="flex items-center gap-2 text-sm">
                 <Brain className="h-5 w-5 text-primary" />
                 <span className="font-medium">IA Odontológica</span>
@@ -128,12 +135,13 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </section>
 
       {/* Comparison Section */}
-      <section className="w-full py-20 md:py-32 bg-dentista-section">
+      <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-dentista-section">
         <div className="container mx-auto max-w-6xl">
           <SectionHeader
             label="A Verdade que Ninguém Te Conta"
@@ -238,8 +246,8 @@ export default function LandingPage() {
       </section>
 
       {/* Video Testimonials Section */}
-      <section className="w-full py-20 md:py-32 bg-testimonials-section">
-        <div className="container mx-auto max-w-6xl space-y-16">
+      <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-testimonials-section">
+        <div className="container mx-auto max-w-6xl space-y-12 md:space-y-16">
           <SectionHeader
             label="Histórias Reais de Sucesso"
             icon={Video}
@@ -357,8 +365,8 @@ export default function LandingPage() {
       </section>
 
       {/* What is Odonto GPT */}
-      <section className="w-full py-20 md:py-32 bg-how-it-works-section">
-        <div className="mx-auto max-w-5xl space-y-12">
+      <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-how-it-works-section">
+        <div className="mx-auto max-w-5xl space-y-10 md:space-y-12">
           <SectionHeader
             label="Sua Vantagem Competitiva"
             icon={Brain}
@@ -408,8 +416,8 @@ export default function LandingPage() {
       </section>
 
       {/* How it Works */}
-      <section id="como-funciona" className="w-full py-20 md:py-32 bg-how-it-works-section">
-        <div className="container mx-auto max-w-5xl space-y-12">
+      <section id="como-funciona" className="w-full py-16 md:py-32 px-4 md:px-6 bg-how-it-works-section">
+        <div className="container mx-auto max-w-5xl space-y-10 md:space-y-12">
           <SectionHeader
             label="Transformação em 3 Passos"
             icon={Zap}
@@ -465,19 +473,19 @@ export default function LandingPage() {
           </div>
 
           <div className="text-center pt-8">
-            <Link href="#planos">
+            <a href="https://pay.kiwify.com.br/PQH9KhD" target="_blank" rel="noopener noreferrer">
               <Button size="lg" aria-label="Abrir planos" variant="cta">
                 Pronto para começar?
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-            </Link>
+            </a>
           </div>
         </div>
       </section>
 
       {/* Benefits */}
-      <section id="beneficios" className="w-full py-20 md:py-32 bg-benefits-section">
-        <div className="mx-auto max-w-6xl space-y-12">
+      <section id="beneficios" className="w-full py-16 md:py-32 px-4 md:px-6 bg-benefits-section">
+        <div className="mx-auto max-w-6xl space-y-10 md:space-y-12">
           <SectionHeader
             label="Sua Jornada de Sucesso"
             icon={Star}
@@ -539,7 +547,7 @@ export default function LandingPage() {
       </section>
 
       {/* Expert Section - Roniery Costa */}
-      <section id="especialista" className="w-full py-20 md:py-32 bg-expert-section">
+      <section id="especialista" className="w-full py-16 md:py-32 px-4 md:px-6 bg-expert-section">
         <div className="mx-auto max-w-6xl">
           <SectionHeader
             label="Responsabilidade Técnica"
@@ -571,8 +579,8 @@ export default function LandingPage() {
               </div>
 
               <div className="space-y-4">
-                <p className="text-lg font-semibold text-primary leading-relaxed border-l-4 border-primary pl-4 py-2 bg-primary/5">
-                  "Criei o Odonto GPT para ser o consultor que eu gostaria de ter tido durante minha formação - 
+                <p className="text-lg font-semibold text-white leading-relaxed border-l-4 border-primary pl-4 py-2 bg-primary/5">
+                  "Criei o Odonto GPT para ser o consultor que eu gostaria de ter tido durante minha formação -
                   acessível 24/7, sem julgamentos, e com respostas fundamentadas na literatura que realmente importa."
                 </p>
               </div>
@@ -608,8 +616,8 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing - substituted with redesigned pricing section using current values */}
-      <section id="planos" className="w-full py-20 md:py-32 bg-pricing-section">
-        <div className="mx-auto max-w-6xl space-y-12">
+      <section id="planos" className="w-full py-16 md:py-32 px-4 md:px-6 bg-pricing-section">
+        <div className="mx-auto max-w-6xl space-y-10 md:space-y-12">
           <SectionHeader 
             label="Sua Vantagem Competitiva" 
             icon={TrendingUp} 
@@ -694,12 +702,12 @@ export default function LandingPage() {
                 </li>
               </ul>
 
-              <Link href="/register" className="block">
+              <a href="https://pay.kiwify.com.br/PQH9KhD" target="_blank" rel="noopener noreferrer" className="block">
                 <Button className="w-full shadow-lg" size="lg" variant="cta">
                   Garantir Meu Acesso Anual
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-              </Link>
+              </a>
             </Card>
           </div>
 
@@ -746,8 +754,8 @@ export default function LandingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="w-full py-20 md:py-32 bg-final-cta-section">
-        <div className="container mx-auto max-w-4xl text-center space-y-8">
+      <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-final-cta-section">
+        <div className="container mx-auto max-w-4xl text-center space-y-6 md:space-y-8">
           <SectionHeader
             label="Comece agora"
             icon={ArrowRight}
@@ -755,7 +763,7 @@ export default function LandingPage() {
             description="Junte-se aos profissionais que já estão usando IA especializada na rotina clínica e acadêmica."
             align="center"
           />
-          <Link href="/register">
+          <a href="https://pay.kiwify.com.br/PQH9KhD" target="_blank" rel="noopener noreferrer">
             <Button
               size="xl"
               aria-label="Começar Agora"
@@ -765,13 +773,13 @@ export default function LandingPage() {
               Começar Agora
               <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
             </Button>
-          </Link>
+          </a>
         </div>
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="w-full py-20 md:py-32 bg-faq-section">
-        <div className="mx-auto max-w-3xl space-y-12">
+      <section id="faq" className="w-full py-16 md:py-32 px-4 md:px-6 bg-faq-section">
+        <div className="mx-auto max-w-3xl space-y-10 md:space-y-12">
           <SectionHeader
             label="FAQ"
             icon={HelpCircle}
@@ -841,15 +849,15 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <div className="flex items-center gap-3">
-                <Logo width={180} height={40} />
+                <Logo width={180} height={40} className="footer-logo-white" />
                 <span className="sr-only">Odonto GPT</span>
               </div>
-              <p className="text-sm text-muted-foreground">Inteligência Artificial especializada em Odontologia</p>
+              <p className="text-sm text-slate-400">Inteligência Artificial especializada em Odontologia</p>
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-semibold">Produto</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="font-semibold text-white">Produto</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li>
                   <Link href="#como-funciona" className="hover:text-primary transition-colors">
                     Como Funciona
@@ -874,8 +882,8 @@ export default function LandingPage() {
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-semibold">Legal</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="font-semibold text-white">Legal</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li>
                   <Link href="/termos" className="hover:text-primary transition-colors">
                     Termos de Uso
@@ -890,8 +898,8 @@ export default function LandingPage() {
             </div>
 
             <div className="space-y-4">
-              <h4 className="font-semibold">Suporte</h4>
-              <ul className="space-y-2 text-sm text-muted-foreground">
+              <h4 className="font-semibold text-white">Suporte</h4>
+              <ul className="space-y-2 text-sm text-slate-400">
                 <li>
                   <a
                     href="https://wa.me/5511999999999"
@@ -907,7 +915,7 @@ export default function LandingPage() {
             </div>
           </div>
 
-          <div className="mt-12 pt-8 border-t text-center text-sm text-muted-foreground">
+          <div className="mt-12 pt-8 border-t border-slate-700 text-center text-sm text-slate-400">
             <p>© 2025 Odonto GPT. Todos os direitos reservados.</p>
           </div>
         </div>

@@ -586,17 +586,6 @@ html {
   pointer-events: none;
 }
 
-.bg-how-it-works-section::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Tech dots pattern with #2399B4 */
-  background-image: radial-gradient(circle, rgba(35, 153, 180, 0.08) 1.5px, transparent 1.5px);
-  background-size: 40px 40px;
-  mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 0%, transparent 80%);
-  pointer-events: none;
-  opacity: 0.3;
-}
 
 .bg-benefits-section {
   @apply relative overflow-hidden;
@@ -895,6 +884,52 @@ html {
 }
 
 /* === DARK SECTION OVERRIDES === */
+
+/* Force white logo in Hero section */
+.hero-logo-white img:first-child {
+  display: none !important;
+}
+.hero-logo-white img:last-child {
+  display: block !important;
+}
+
+/* Force white logo in Login page left side */
+.login-logo-white img:first-child {
+  display: none !important;
+}
+.login-logo-white img:last-child {
+  display: block !important;
+}
+
+/* Force white logo in Footer */
+.footer-logo-white img:first-child {
+  display: none !important;
+}
+.footer-logo-white img:last-child {
+  display: block !important;
+}
+
+/* Force white logo globally in all dark sections on landing page */
+/* This ensures white logo is always used regardless of viewport size */
+.bg-hero-section .hero-logo-white img:first-child,
+.bg-footer .footer-logo-white img:first-child,
+.hero-logo-white img:first-child,
+.footer-logo-white img:first-child {
+  display: none !important;
+}
+
+.bg-hero-section .hero-logo-white img:last-child,
+.bg-footer .footer-logo-white img:last-child,
+.hero-logo-white img:last-child,
+.footer-logo-white img:last-child {
+  display: block !important;
+}
+
+/* Force all text to white in dark sections */
+.bg-footer h1, .bg-footer h2, .bg-footer h3, .bg-footer h4, .bg-footer h5, .bg-footer h6 {
+  color: #ffffff !important;
+}
+
 /* Override badge colors in dark sections - FORCE WHITE */
 .bg-hero-section .inline-flex,
 .bg-dentista-section .inline-flex,
@@ -1025,6 +1060,73 @@ html {
   border-color: #2399B4;
 }
 
+/* === MOBILE SPACING IMPROVEMENTS === */
+@media (max-width: 768px) {
+  /* Better section padding on mobile */
+  section {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Ensure containers have proper padding */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Improved card spacing on mobile */
+  .interactive-card {
+    margin-bottom: 1rem;
+  }
+
+  /* Better text readability on mobile */
+  h1 {
+    line-height: 1.2;
+    margin-bottom: 1rem;
+  }
+
+  h2 {
+    line-height: 1.3;
+    margin-bottom: 0.75rem;
+  }
+
+  h3 {
+    line-height: 1.4;
+    margin-bottom: 0.5rem;
+  }
+
+  /* Improve button spacing on mobile */
+  button, .button, [role="button"] {
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    min-height: 44px; /* Touch target size */
+  }
+
+  /* Card content padding on mobile */
+  .space-y-8 {
+    gap: 1.5rem;
+  }
+
+  .space-y-6 {
+    gap: 1.25rem;
+  }
+
+  .space-y-4 {
+    gap: 1rem;
+  }
+
+  /* Hero video play button - smaller on mobile */
+  .hero-video-container button div {
+    width: 4rem !important;  /* 64px - smaller than xl (112px) */
+    height: 4rem !important;
+  }
+
+  .hero-video-container button div svg {
+    width: 2rem !important;  /* 32px icon */
+    height: 2rem !important;
+  }
+}
+
 /* === TECH/AI TEXTURES === */
 
 /* Shadcn/ui style AI pattern for Hero section */
@@ -1096,26 +1198,6 @@ html {
   }
 }
 
-/* Neural network pattern for "What is Odonto GPT" section */
-.bg-how-it-works-section::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(circle at 15% 20%, rgba(35, 153, 180, 0.15) 3px, transparent 3px),
-    radial-gradient(circle at 45% 35%, rgba(35, 153, 180, 0.12) 2.5px, transparent 2.5px),
-    radial-gradient(circle at 75% 25%, rgba(35, 153, 180, 0.15) 3px, transparent 3px),
-    radial-gradient(circle at 25% 60%, rgba(35, 153, 180, 0.12) 2.5px, transparent 2.5px),
-    radial-gradient(circle at 55% 70%, rgba(35, 153, 180, 0.15) 3px, transparent 3px),
-    radial-gradient(circle at 85% 65%, rgba(35, 153, 180, 0.12) 2.5px, transparent 2.5px),
-    linear-gradient(135deg, transparent 0%, transparent 48%, rgba(35, 153, 180, 0.04) 49%, rgba(35, 153, 180, 0.04) 51%, transparent 52%, transparent 100%),
-    linear-gradient(45deg, transparent 0%, transparent 48%, rgba(35, 153, 180, 0.04) 49%, rgba(35, 153, 180, 0.04) 51%, transparent 52%, transparent 100%);
-  background-size: 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 100% 100%, 400px 400px, 400px 400px;
-  mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 0%, transparent 75%);
-  pointer-events: none;
-  opacity: 0.5;
-  z-index: 1;
-}
 
 /* Data matrix pattern for Benefits section */
 .bg-benefits-section::after {
@@ -1213,6 +1295,30 @@ html {
   pointer-events: none;
   opacity: 0.5;
   z-index: 1;
+}
+
+/* === LOGIN PAGE STYLES === */
+
+.bg-login-page {
+  background: linear-gradient(135deg, #0F192F 0%, #131D37 50%, #1A2847 100%);
+}
+
+/* Grid pattern for login left side */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(90deg, rgba(35, 153, 180, 0.03) 1px, transparent 1px),
+    linear-gradient(0deg, rgba(35, 153, 180, 0.03) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: gridFloat 20s ease-in-out infinite;
+}
+
+@keyframes gridFloat {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(10px, 10px);
+  }
 }
 
 /* Dark mode variations */
