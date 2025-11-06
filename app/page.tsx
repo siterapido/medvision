@@ -1,32 +1,31 @@
- 
+'use client'
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
+import dynamic from "next/dynamic"
 import {
-  Brain,
-  MessageSquare,
-  Clock,
-  BookOpen,
-  Shield,
-  Zap,
-  CheckCircle2,
-  Star,
-  Sparkles,
-  ArrowRight,
-  Award,
-  TrendingUp,
-  XCircle,
-  PlayCircle,
-  Video,
-  HelpCircle,
-  User,
+  Brain, MessageSquare, Clock, BookOpen, Shield, Zap,
+  CheckCircle2, Star, ArrowRight, Award, TrendingUp,
+  XCircle, Video, HelpCircle
 } from "lucide-react"
 import Link from "next/link"
 import { Logo } from "@/components/logo"
-import { YouTubePlayer } from "@/components/video/youtube-player"
-import { SectionHeader } from "@/components/ui/section-header"
+
+// Lazy load componentes pesados
+const YouTubePlayer = dynamic(() => import("@/components/video/youtube-player").then(mod => ({ default: mod.YouTubePlayer })), {
+  loading: () => <div className="w-full aspect-video bg-gray-900 rounded-xl animate-pulse" />,
+  ssr: false
+})
+
+const SectionHeader = dynamic(() => import("@/components/ui/section-header").then(mod => ({ default: mod.SectionHeader })), {
+  loading: () => <div className="h-20 bg-transparent animate-pulse" />
+})
+
+const LazyVideoWrapper = dynamic(() => import("@/components/video/lazy-video-wrapper").then(mod => ({ default: mod.LazyVideoWrapper })), {
+  ssr: false
+})
 
 export default function LandingPage() {
   return (
@@ -107,9 +106,9 @@ export default function LandingPage() {
               title="VSL Odonto GPT"
               aspect="landscape"
               playButtonSize="xl"
-              controls={0}
-              autoPlayOnLoad
-              hideOverlayControls
+              controls={1}
+              autoPlayOnLoad={false}
+              hideOverlayControls={false}
               className="w-full rounded-2xl border-2 border-[#21839B]/30 shadow-lg"
             />
 
@@ -148,13 +147,13 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-8 items-center">
             {/* Sem Odonto GPT */}
             <div className="relative group">
-              {/* Alert red cloud gradient on hover (radial) */}
+              {/* Alert red cloud gradient on hover (radial) - blur reduzido para melhor performance */}
               <div
                 aria-hidden
-                className="absolute -z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[180%] h-[240%] rounded-[50%] opacity-0 group-hover:opacity-85 blur-[140px] transition-all duration-300 group-hover:scale-105 bg-[radial-gradient(ellipse_at_center,_rgba(239,68,68,0.35)_0%,_rgba(239,68,68,0.22)_50%,_transparent_90%)]"
+                className="absolute -z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[180%] h-[240%] rounded-[50%] opacity-0 group-hover:opacity-70 blur-[80px] transition-all duration-300 group-hover:scale-105 bg-[radial-gradient(ellipse_at_center,_rgba(239,68,68,0.35)_0%,_rgba(239,68,68,0.22)_50%,_transparent_90%)]"
               />
-              {/* Subtle edge glow that intensifies on hover */}
-              <div aria-hidden className="absolute -inset-4 -z-10 rounded-2xl bg-gradient-to-br from-destructive/10 to-transparent blur-2xl transition-all duration-300 group-hover:from-destructive/25" />
+              {/* Subtle edge glow that intensifies on hover - blur reduzido */}
+              <div aria-hidden className="absolute -inset-4 -z-10 rounded-2xl bg-gradient-to-br from-destructive/10 to-transparent blur-xl transition-all duration-300 group-hover:from-destructive/25" />
               <Card className="transition-all duration-300 border-2 hover:scale-95 hover:shadow-md hover:border-destructive/50 group-hover:shadow-lg group-hover:shadow-destructive/20 group-hover:animate-wobble">
                 <CardContent className="p-8 md:p-10 pt-10 md:pt-12 space-y-6 text-base">
                 <div className="flex items-center gap-3 mb-8">
@@ -188,13 +187,13 @@ export default function LandingPage() {
 
             {/* Com Odonto GPT */}
             <div className="relative group">
-              {/* Cloud gradient behind card (highlight) in #2399B4 - INTENSO */}
+              {/* Cloud gradient behind card (highlight) in #2399B4 - blur reduzido para melhor performance */}
               <div
                 aria-hidden
-                className="absolute -z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[220%] h-[300%] rounded-[50%] opacity-90 group-hover:opacity-100 blur-[140px] transition-all duration-300 group-hover:scale-110 bg-[radial-gradient(ellipse_at_center,_rgba(35,153,180,0.6)_0%,_rgba(35,153,180,0.4)_30%,_rgba(35,153,180,0.2)_60%,_transparent_100%)]"
+                className="absolute -z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[220%] h-[300%] rounded-[50%] opacity-75 group-hover:opacity-90 blur-[80px] transition-all duration-300 group-hover:scale-110 bg-[radial-gradient(ellipse_at_center,_rgba(35,153,180,0.6)_0%,_rgba(35,153,180,0.4)_30%,_rgba(35,153,180,0.2)_60%,_transparent_100%)]"
               />
-              {/* Intense edge glow matching #2399B4 - always visible */}
-              <div aria-hidden className="absolute -inset-6 -z-10 rounded-2xl bg-gradient-to-br from-[#2399B4]/40 via-[#2399B4]/20 to-transparent blur-3xl" />
+              {/* Intense edge glow matching #2399B4 - blur reduzido */}
+              <div aria-hidden className="absolute -inset-6 -z-10 rounded-2xl bg-gradient-to-br from-[#2399B4]/40 via-[#2399B4]/20 to-transparent blur-2xl" />
               <Card className="transition-all duration-300 border-2 border-[#2399B4] border-[3px] hover:scale-105 hover:shadow-md hover:shadow-[#2399B4]/20 bg-[radial-gradient(ellipse_at_center,_rgba(35,153,180,0.1)_0%,_rgba(35,153,180,0.05)_50%,_transparent_70%)]">
                 <CardContent className="p-8 md:p-10 pt-10 md:pt-12 space-y-6 text-base">
                 <div className="flex items-center gap-3 mb-8">
@@ -254,13 +253,23 @@ export default function LandingPage() {
             <Card className="h-full text-center bg-transparent border-0 shadow-none">
               <CardContent className="p-0 space-y-3">
                 <div className="relative mx-auto w-full max-w-[300px]">
-                  <YouTubePlayer
-                    videoId="loPD53clzR4"
-                    title="Depoimento Dr. Carlos Silva - Odonto GPT"
-                    aspect="portrait"
-                    className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
-                    controls={0}
-                  />
+                  <LazyVideoWrapper
+                    threshold={0.2}
+                    rootMargin="100px"
+                    placeholder={
+                      <div className="aspect-[9/16] bg-gray-900 rounded-3xl flex items-center justify-center border-2 border-[#2399B4]">
+                        <div className="text-white/40 text-sm">Carregando...</div>
+                      </div>
+                    }
+                  >
+                    <YouTubePlayer
+                      videoId="loPD53clzR4"
+                      title="Depoimento Dr. Carlos Silva - Odonto GPT"
+                      aspect="portrait"
+                      className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
+                      controls={0}
+                    />
+                  </LazyVideoWrapper>
                 </div>
                 <div className="space-y-2">
                   <h3 className="font-semibold text-lg">Dr. Carlos Silva</h3>
@@ -278,13 +287,23 @@ export default function LandingPage() {
             <Card className="h-full text-center bg-transparent border-0 shadow-none">
               <CardContent className="p-0 space-y-3">
                 <div className="relative mx-auto w-full max-w-[300px]">
-                  <YouTubePlayer
-                    videoId="loPD53clzR4"
-                    title="Depoimento Dra. Ana Oliveira - Odonto GPT"
-                    aspect="portrait"
-                    className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
-                    controls={0}
-                  />
+                  <LazyVideoWrapper
+                    threshold={0.2}
+                    rootMargin="100px"
+                    placeholder={
+                      <div className="aspect-[9/16] bg-gray-900 rounded-3xl flex items-center justify-center border-2 border-[#2399B4]">
+                        <div className="text-white/40 text-sm">Carregando...</div>
+                      </div>
+                    }
+                  >
+                    <YouTubePlayer
+                      videoId="loPD53clzR4"
+                      title="Depoimento Dra. Ana Oliveira - Odonto GPT"
+                      aspect="portrait"
+                      className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
+                      controls={0}
+                    />
+                  </LazyVideoWrapper>
                 </div>
                 <div className="space-y-2">
                   <h3 className="font-semibold text-lg">Dra. Ana Oliveira</h3>
@@ -302,13 +321,23 @@ export default function LandingPage() {
             <Card className="h-full text-center bg-transparent border-0 shadow-none">
               <CardContent className="p-0 space-y-3">
                 <div className="relative mx-auto w-full max-w-[300px]">
-                  <YouTubePlayer
-                    videoId="loPD53clzR4"
-                    title="Depoimento Dr. Rodrigo Santos - Odonto GPT"
-                    aspect="portrait"
-                    className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
-                    controls={0}
-                  />
+                  <LazyVideoWrapper
+                    threshold={0.2}
+                    rootMargin="100px"
+                    placeholder={
+                      <div className="aspect-[9/16] bg-gray-900 rounded-3xl flex items-center justify-center border-2 border-[#2399B4]">
+                        <div className="text-white/40 text-sm">Carregando...</div>
+                      </div>
+                    }
+                  >
+                    <YouTubePlayer
+                      videoId="loPD53clzR4"
+                      title="Depoimento Dr. Rodrigo Santos - Odonto GPT"
+                      aspect="portrait"
+                      className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
+                      controls={0}
+                    />
+                  </LazyVideoWrapper>
                 </div>
                 <div className="space-y-2">
                   <h3 className="font-semibold text-lg">Dr. Rodrigo Santos</h3>
