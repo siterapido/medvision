@@ -4,127 +4,83 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Logo } from "@/components/logo"
+import { Button } from "@/components/ui/button"
+import {
+  BotIcon,
+  GraduationCap,
+  LayoutDashboard,
+  LogOut,
+  Sparkles,
+  UserRound,
+  type LucideIcon,
+} from "lucide-react"
 
-const navigation = [
-  {
-    name: "Dashboard",
-    href: "/dashboard",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "Chat",
-    href: "/dashboard/chat",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "Cursos",
-    href: "/dashboard/cursos",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "Perfil",
-    href: "/dashboard/perfil",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
-        />
-      </svg>
-    ),
-  },
-  {
-    name: "Assinatura",
-    href: "/dashboard/assinatura",
-    icon: (
-      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          strokeWidth={2}
-          d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-        />
-      </svg>
-    ),
-  },
+type NavItem = {
+  name: string
+  href: string
+  icon: LucideIcon
+}
+
+const navigation: NavItem[] = [
+  { name: "Visão geral", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Chat de IA", href: "/dashboard/chat", icon: BotIcon },
+  { name: "Cursos", href: "/dashboard/cursos", icon: GraduationCap },
+  { name: "Perfil", href: "/dashboard/perfil", icon: UserRound },
+  { name: "Assinatura", href: "/dashboard/assinatura", icon: Sparkles },
 ]
 
 export function DashboardSidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="w-64 bg-sidebar border-r border-sidebar-border flex flex-col">
-      <div className="p-6 border-b border-sidebar-border flex flex-col items-center">
-        <Link href="/dashboard" className="flex items-center justify-center mb-2" aria-label="Dashboard">
-          <Logo width={120} height={32} />
-          <span className="sr-only">Odonto GPT</span>
+    <aside className="hidden min-h-screen w-72 flex-col border-r border-sidebar-border/40 bg-[radial-gradient(circle_at_top,_rgba(35,153,180,0.35),_transparent_65%),_linear-gradient(180deg,_#0f192f,_#050b18)] text-sidebar-foreground md:flex">
+      <div className="flex flex-col gap-2 px-6 pb-6 pt-10">
+        <Link href="/dashboard" aria-label="Dashboard" className="flex items-center gap-2">
+          <Logo width={140} height={36} variant="white" />
         </Link>
-        <p className="text-xs text-muted-foreground">Plano Free</p>
+        <p className="text-xs uppercase tracking-[0.2em] text-white/60">Odonto GPT</p>
+        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
+          Plano atual: <span className="font-semibold text-white">Free</span>
+        </div>
       </div>
 
-      <nav className="flex-1 p-4 space-y-1">
+      <nav className="flex-1 space-y-1 px-4">
         {navigation.map((item) => {
+          const Icon = item.icon
           const isActive = pathname === item.href
+
           return (
             <Link
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
                 isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-accent-foreground",
+                  ? "bg-white/15 text-white shadow-[0_0_25px_rgba(8,145,178,0.35)]"
+                  : "text-white/80 hover:bg-white/10 hover:text-white",
               )}
             >
-              {item.icon}
+              <Icon className="h-5 w-5" />
               {item.name}
             </Link>
           )
         })}
       </nav>
 
-      <div className="p-4 border-t border-sidebar-border">
+      <div className="mt-8 space-y-4 px-4 pb-8">
+        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/15 to-white/5 p-4 text-sm text-white/90">
+          <p className="font-semibold text-white">Desbloqueie o modo Expert</p>
+          <p className="mt-1 text-xs text-white/70">Modelos clínicos avançados, mais mensagens e segunda opinião assistida.</p>
+          <Button asChild size="sm" className="mt-3 w-full bg-white text-slate-900 hover:bg-primary hover:text-white">
+            <Link href="/dashboard/assinatura">Fazer upgrade</Link>
+          </Button>
+        </div>
+
         <Link
           href="/login"
-          className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+          className="flex items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
         >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-            />
-          </svg>
+          <LogOut className="h-4 w-4" />
           Sair
         </Link>
       </div>

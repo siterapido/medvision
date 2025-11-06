@@ -21,11 +21,13 @@ export default async function DashboardLayout({
     }
 
     return (
-      <div className="flex h-screen bg-session-dashboard">
+      <div className="flex min-h-screen bg-muted/60">
         <DashboardSidebar />
-        <div className="flex-1 flex flex-col overflow-hidden">
+        <div className="flex flex-1 flex-col overflow-hidden">
           <DashboardHeader />
-          <main className="flex-1 overflow-y-auto">{children}</main>
+          <main className="flex-1 overflow-y-auto bg-[#eff4fb] px-4 py-6 md:px-8">
+            {children}
+          </main>
         </div>
       </div>
     )
