@@ -1037,6 +1037,17 @@ html {
   .space-y-4 {
     gap: 1rem;
   }
+
+  /* Hero video play button - smaller on mobile */
+  .hero-video-container button div {
+    width: 4rem !important;  /* 64px - smaller than xl (112px) */
+    height: 4rem !important;
+  }
+
+  .hero-video-container button div svg {
+    width: 2rem !important;  /* 32px icon */
+    height: 2rem !important;
+  }
 }
 
 /* === TECH/AI TEXTURES === */

@@ -67,7 +67,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center max-w-6xl mx-auto">
 
           {/* VSL - Second on Mobile, Right on Desktop */}
-          <div className="relative order-2 md:order-2">
+          <div className="relative order-2 md:order-2 hero-video-container">
             <YouTubePlayer
               videoId="loPD53clzR4"
               title="VSL Odonto GPT"
