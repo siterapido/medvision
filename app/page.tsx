@@ -39,7 +39,7 @@ export default function LandingPage() {
       </div>
 
       {/* Hero Section */}
-      <section className="w-full min-h-screen bg-hero-section text-white flex items-center justify-center py-20">
+      <section className="w-full min-h-screen bg-hero-section text-white flex items-center justify-center py-16 md:py-20 px-4 md:px-6">
         {/* Fundo animado estilo shadcn que transmite ideia de IA */}
         <div aria-hidden="true" className="hero-ai-bg">
           {/* Grid técnico suave em ciano */}
@@ -59,62 +59,22 @@ export default function LandingPage() {
           />
         </div>
         <div className="container mx-auto">
-          <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
-          {/* Text Content - Left Side */}
-          <div className="space-y-8 text-left">
-            {/* Logo acima do título */}
-            <div className="flex justify-center md:justify-start mb-6">
-              <Logo width={140} height={30} />
-            </div>
-            
-            <h1 className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 text-4xl md:text-6xl lg:text-7xl font-bold tracking-tight text-balance">
-              Pare de travar nas dúvidas{" "}
-              <span className="bg-gradient-to-r from-primary via-accent to-cyan-400 bg-clip-text text-transparent">
-                que travam sua carreira
-              </span>
-            </h1>
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center max-w-6xl mx-auto">
 
-            <p className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200 text-xl md:text-2xl text-slate-300 text-balance leading-relaxed">
-              Respostas científicas no WhatsApp em 60 segundos - sem passar vergonha perguntando ao professor pela 5ª vez no mesmo dia
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center gap-4 pt-6">
-              <Link href="/register">
-                <Button
-                  size="xl"
-                  aria-label="Assinar agora"
-                  variant="cta"
-                  className="group shadow-primary/25"
-                >
-                  Assinar agora
-                  <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
-                </Button>
-              </Link>
-              <Link href="#planos">
-                <Button size="xl" variant="outline" aria-label="Ver Planos">
-                  Ver Planos
-                </Button>
-              </Link>
-            </div>
-
-            {/* Social Proof Metrics removidos conforme solicitado */}
-          </div>
-
-          {/* VSL - Right Side */}
-          <div className="relative space-y-6">
+          {/* VSL - First on Mobile, Right on Desktop */}
+          <div className="relative space-y-4 md:space-y-6 order-1 md:order-2">
             <YouTubePlayer
               videoId="loPD53clzR4"
               title="VSL Odonto GPT"
               aspect="landscape"
               playButtonSize="xl"
               controls={0}
-              autoPlayOnLoad
               hideOverlayControls
               className="w-full rounded-2xl border-2 border-[#21839B]/30 shadow-lg"
             />
 
             {/* Features abaixo do vídeo com ícones contextuais */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 pt-2">
               <div className="flex items-center gap-2 text-sm">
                 <Brain className="h-5 w-5 text-primary" />
                 <span className="font-medium">IA Odontológica</span>
@@ -129,12 +89,53 @@ export default function LandingPage() {
               </div>
             </div>
           </div>
+
+          {/* Text Content - Second on Mobile, Left on Desktop */}
+          <div className="space-y-6 md:space-y-8 text-left order-2 md:order-1">
+            {/* Logo acima do título */}
+            <div className="flex justify-center md:justify-start mb-4 md:mb-6">
+              <Logo width={140} height={30} className="hero-logo-white" />
+            </div>
+
+            <h1 className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-balance">
+              Pare de travar nas dúvidas{" "}
+              <span className="bg-gradient-to-r from-primary via-accent to-cyan-400 bg-clip-text text-transparent">
+                que travam sua carreira
+              </span>
+            </h1>
+
+            <p className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200 text-lg md:text-xl lg:text-2xl text-slate-300 text-balance leading-relaxed">
+              Respostas científicas no WhatsApp em 60 segundos - sem passar vergonha perguntando ao professor pela 5ª vez no mesmo dia
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 pt-4 md:pt-6">
+              <Link href="/register" className="w-full sm:w-auto">
+                <Button
+                  size="xl"
+                  aria-label="Assinar agora"
+                  variant="cta"
+                  className="group shadow-primary/25 w-full"
+                >
+                  Assinar agora
+                  <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+                </Button>
+              </Link>
+              <Link href="#planos" className="w-full sm:w-auto">
+                <Button size="xl" variant="outline" aria-label="Ver Planos" className="w-full">
+                  Ver Planos
+                </Button>
+              </Link>
+            </div>
+
+            {/* Social Proof Metrics removidos conforme solicitado */}
+          </div>
+
         </div>
       </div>
     </section>
 
       {/* Comparison Section */}
-      <section className="w-full py-20 md:py-32 bg-dentista-section">
+      <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-dentista-section">
         <div className="container mx-auto max-w-6xl">
           <SectionHeader
             label="A Verdade que Ninguém Te Conta"
@@ -239,8 +240,8 @@ export default function LandingPage() {
       </section>
 
       {/* Video Testimonials Section */}
-      <section className="w-full py-20 md:py-32 bg-testimonials-section">
-        <div className="container mx-auto max-w-6xl space-y-16">
+      <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-testimonials-section">
+        <div className="container mx-auto max-w-6xl space-y-12 md:space-y-16">
           <SectionHeader
             label="Histórias Reais de Sucesso"
             icon={Video}
@@ -328,8 +329,8 @@ export default function LandingPage() {
       </section>
 
       {/* What is Odonto GPT */}
-      <section className="w-full py-20 md:py-32 bg-how-it-works-section">
-        <div className="mx-auto max-w-5xl space-y-12">
+      <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-how-it-works-section">
+        <div className="mx-auto max-w-5xl space-y-10 md:space-y-12">
           <SectionHeader
             label="Sua Vantagem Competitiva"
             icon={Brain}
@@ -379,8 +380,8 @@ export default function LandingPage() {
       </section>
 
       {/* How it Works */}
-      <section id="como-funciona" className="w-full py-20 md:py-32 bg-how-it-works-section">
-        <div className="container mx-auto max-w-5xl space-y-12">
+      <section id="como-funciona" className="w-full py-16 md:py-32 px-4 md:px-6 bg-how-it-works-section">
+        <div className="container mx-auto max-w-5xl space-y-10 md:space-y-12">
           <SectionHeader
             label="Transformação em 3 Passos"
             icon={Zap}
@@ -447,8 +448,8 @@ export default function LandingPage() {
       </section>
 
       {/* Benefits */}
-      <section id="beneficios" className="w-full py-20 md:py-32 bg-benefits-section">
-        <div className="mx-auto max-w-6xl space-y-12">
+      <section id="beneficios" className="w-full py-16 md:py-32 px-4 md:px-6 bg-benefits-section">
+        <div className="mx-auto max-w-6xl space-y-10 md:space-y-12">
           <SectionHeader
             label="Sua Jornada de Sucesso"
             icon={Star}
@@ -510,7 +511,7 @@ export default function LandingPage() {
       </section>
 
       {/* Expert Section - Roniery Costa */}
-      <section id="especialista" className="w-full py-20 md:py-32 bg-expert-section">
+      <section id="especialista" className="w-full py-16 md:py-32 px-4 md:px-6 bg-expert-section">
         <div className="mx-auto max-w-6xl">
           <SectionHeader
             label="Responsabilidade Técnica"
@@ -579,8 +580,8 @@ export default function LandingPage() {
       </section>
 
       {/* Pricing - substituted with redesigned pricing section using current values */}
-      <section id="planos" className="w-full py-20 md:py-32 bg-pricing-section">
-        <div className="mx-auto max-w-6xl space-y-12">
+      <section id="planos" className="w-full py-16 md:py-32 px-4 md:px-6 bg-pricing-section">
+        <div className="mx-auto max-w-6xl space-y-10 md:space-y-12">
           <SectionHeader 
             label="Sua Vantagem Competitiva" 
             icon={TrendingUp} 
@@ -717,8 +718,8 @@ export default function LandingPage() {
       </section>
 
       {/* Final CTA */}
-      <section className="w-full py-20 md:py-32 bg-final-cta-section">
-        <div className="container mx-auto max-w-4xl text-center space-y-8">
+      <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-final-cta-section">
+        <div className="container mx-auto max-w-4xl text-center space-y-6 md:space-y-8">
           <SectionHeader
             label="Comece agora"
             icon={ArrowRight}
@@ -741,8 +742,8 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="w-full py-20 md:py-32 bg-faq-section">
-        <div className="mx-auto max-w-3xl space-y-12">
+      <section id="faq" className="w-full py-16 md:py-32 px-4 md:px-6 bg-faq-section">
+        <div className="mx-auto max-w-3xl space-y-10 md:space-y-12">
           <SectionHeader
             label="FAQ"
             icon={HelpCircle}
