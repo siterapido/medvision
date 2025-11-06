@@ -5,24 +5,59 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { userId, message, plan } = body
 
-    // Simulate AI response - In production, this would call your n8n webhook
-    // Example: await fetch('YOUR_N8N_WEBHOOK_URL', { method: 'POST', body: JSON.stringify({ userId, message, plan }) })
+    // Get N8N webhook URL from environment variables
+    const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL
 
-    await new Promise((resolve) => setTimeout(resolve, 1500))
+    if (!n8nWebhookUrl) {
+      console.error("N8N_WEBHOOK_URL not configured")
+      return NextResponse.json(
+        { error: "Webhook não configurado. Verifique as variáveis de ambiente." },
+        { status: 500 }
+      )
+    }
 
-    // Mock response based on common dental questions
-    const responses = [
-      "Com base na literatura odontológica atual, recomendo avaliar cuidadosamente o caso clínico. É importante considerar o histórico do paciente e realizar exames complementares adequados.",
-      "Essa é uma excelente pergunta clínica. Na prática odontológica moderna, devemos sempre priorizar técnicas minimamente invasivas e baseadas em evidências científicas.",
-      "Para esse tipo de procedimento, sugiro seguir o protocolo estabelecido pela literatura científica. Lembre-se de sempre considerar as particularidades de cada paciente.",
-      "De acordo com as diretrizes atuais de odontologia, é fundamental realizar uma anamnese completa e estabelecer um plano de tratamento individualizado.",
-    ]
+    // Call N8N webhook with the chat message
+    console.log("Calling N8N webhook:", n8nWebhookUrl)
 
-    const reply = responses[Math.floor(Math.random() * responses.length)]
+    const n8nResponse = await fetch(n8nWebhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        action: "sendMessage",
+        sessionId: userId || "demo-user",
+        chatInput: message,
+        metadata: {
+          plan: plan || "free",
+          timestamp: new Date().toISOString(),
+        },
+      }),
+    })
+
+    if (!n8nResponse.ok) {
+      const errorText = await n8nResponse.text()
+      console.error("N8N webhook error:", n8nResponse.status, errorText)
+      return NextResponse.json(
+        { error: `Erro ao processar mensagem: ${n8nResponse.statusText}` },
+        { status: n8nResponse.status }
+      )
+    }
+
+    const n8nData = await n8nResponse.json()
+    console.log("N8N response:", n8nData)
+
+    // Extract the AI response from N8N
+    // The response structure may vary depending on your N8N workflow
+    const reply = n8nData.output || n8nData.reply || n8nData.message || n8nData.response ||
+                  "Desculpe, não consegui processar sua mensagem no momento."
 
     return NextResponse.json({ reply })
   } catch (error) {
     console.error("Chat API error:", error)
-    return NextResponse.json({ error: "Erro ao processar mensagem" }, { status: 500 })
+    return NextResponse.json(
+      { error: "Erro ao processar mensagem. Tente novamente." },
+      { status: 500 }
+    )
   }
 }
