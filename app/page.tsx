@@ -109,7 +109,7 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 pt-4 md:pt-6">
-              <Link href="/register" className="w-full sm:w-auto">
+              <a href="https://pay.kiwify.com.br/PQH9KhD" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
                 <Button
                   size="xl"
                   aria-label="Assinar agora"
@@ -119,7 +119,7 @@ export default function LandingPage() {
                   Assinar agora
                   <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
                 </Button>
-              </Link>
+              </a>
               <Link href="#planos" className="w-full sm:w-auto">
                 <Button size="xl" variant="outline" aria-label="Ver Planos" className="w-full">
                   Ver Planos
@@ -437,12 +437,12 @@ export default function LandingPage() {
           </div>
 
           <div className="text-center pt-8">
-            <Link href="#planos">
+            <a href="https://pay.kiwify.com.br/PQH9KhD" target="_blank" rel="noopener noreferrer">
               <Button size="lg" aria-label="Abrir planos" variant="cta">
                 Pronto para começar?
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-            </Link>
+            </a>
           </div>
         </div>
       </section>
@@ -666,12 +666,12 @@ export default function LandingPage() {
                 </li>
               </ul>
 
-              <Link href="/register" className="block">
+              <a href="https://pay.kiwify.com.br/PQH9KhD" target="_blank" rel="noopener noreferrer" className="block">
                 <Button className="w-full shadow-lg" size="lg" variant="cta">
                   Garantir Meu Acesso Anual
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-              </Link>
+              </a>
             </Card>
           </div>
 
@@ -727,7 +727,7 @@ export default function LandingPage() {
             description="Junte-se aos profissionais que já estão usando IA especializada na rotina clínica e acadêmica."
             align="center"
           />
-          <Link href="/register">
+          <a href="https://pay.kiwify.com.br/PQH9KhD" target="_blank" rel="noopener noreferrer">
             <Button
               size="xl"
               aria-label="Começar Agora"
@@ -737,7 +737,7 @@ export default function LandingPage() {
               Começar Agora
               <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
             </Button>
-          </Link>
+          </a>
         </div>
       </section>
 
