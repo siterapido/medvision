@@ -6,57 +6,107 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { createClient } from "@/lib/supabase/client"
+import { useRouter } from "next/navigation"
 
-export function ProfileForm() {
-  const [name, setName] = useState("Dr. João Silva")
-  const [email, setEmail] = useState("joao.silva@email.com")
-  const [phone, setPhone] = useState("(11) 98765-4321")
-  const [specialty, setSpecialty] = useState("Implantodontia")
-  const [cro, setCro] = useState("SP 12345")
+interface ProfileFormProps {
+  initialData: {
+    full_name: string
+    email: string
+  }
+}
+
+export function ProfileForm({ initialData }: ProfileFormProps) {
+  const [fullName, setFullName] = useState(initialData.full_name)
+  const [email, setEmail] = useState(initialData.email)
   const [isLoading, setIsLoading] = useState(false)
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
+    setMessage(null)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      const supabase = createClient()
 
-    setIsLoading(false)
+      // Get current user
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        setMessage({ type: "error", text: "Usuário não autenticado" })
+        return
+      }
+
+      // Update profile
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          full_name: fullName,
+          email: email,
+        })
+        .eq("id", user.id)
+
+      if (error) {
+        throw error
+      }
+
+      setMessage({ type: "success", text: "Perfil atualizado com sucesso!" })
+
+      // Refresh the page to show updated data
+      setTimeout(() => {
+        router.refresh()
+      }, 1000)
+    } catch (error) {
+      console.error("Error updating profile:", error)
+      setMessage({ type: "error", text: "Erro ao atualizar perfil" })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleReset = () => {
+    setFullName(initialData.full_name)
+    setEmail(initialData.email)
+    setMessage(null)
   }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
+      {message && (
+        <div
+          className={`rounded-lg p-4 text-sm ${message.type === "success" ? "bg-green-50 text-green-800" : "bg-red-50 text-red-800"}`}
+        >
+          {message.text}
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="space-y-2">
           <Label htmlFor="name">Nome Completo</Label>
-          <Input id="name" type="text" value={name} onChange={(e) => setName(e.target.value)} className="h-11" />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="email">Email</Label>
-          <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} className="h-11" />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="phone">Telefone</Label>
-          <Input id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="h-11" />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="specialty">Especialidade</Label>
           <Input
-            id="specialty"
+            id="name"
             type="text"
-            value={specialty}
-            onChange={(e) => setSpecialty(e.target.value)}
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
             className="h-11"
+            required
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="cro">CRO</Label>
-          <Input id="cro" type="text" value={cro} onChange={(e) => setCro(e.target.value)} className="h-11" />
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="h-11"
+            required
+          />
         </div>
       </div>
 
@@ -68,17 +118,7 @@ export function ProfileForm() {
         >
           {isLoading ? "Salvando..." : "Salvar Alterações"}
         </Button>
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => {
-            setName("Dr. João Silva")
-            setEmail("joao.silva@email.com")
-            setPhone("(11) 98765-4321")
-            setSpecialty("Implantodontia")
-            setCro("SP 12345")
-          }}
-        >
+        <Button type="button" variant="outline" onClick={handleReset} disabled={isLoading}>
           Cancelar
         </Button>
       </div>
