@@ -1,32 +1,27 @@
- 
+'use client'
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
+import dynamic from "next/dynamic"
 import {
-  Brain,
-  MessageSquare,
-  Clock,
-  BookOpen,
-  Shield,
-  Zap,
-  CheckCircle2,
-  Star,
-  Sparkles,
-  ArrowRight,
-  Award,
-  TrendingUp,
-  XCircle,
-  PlayCircle,
-  Video,
-  HelpCircle,
-  User,
+  Brain, MessageSquare, Clock, BookOpen, Shield, Zap,
+  CheckCircle2, Star, ArrowRight, Award, TrendingUp,
+  XCircle, Video, HelpCircle
 } from "lucide-react"
 import Link from "next/link"
 import { Logo } from "@/components/logo"
-import { YouTubePlayer } from "@/components/video/youtube-player"
-import { SectionHeader } from "@/components/ui/section-header"
+
+// Lazy load componentes pesados
+const YouTubePlayer = dynamic(() => import("@/components/video/youtube-player").then(mod => ({ default: mod.YouTubePlayer })), {
+  loading: () => <div className="w-full aspect-video bg-gray-900 rounded-xl animate-pulse" />,
+  ssr: false
+})
+
+const SectionHeader = dynamic(() => import("@/components/ui/section-header").then(mod => ({ default: mod.SectionHeader })), {
+  loading: () => <div className="h-20 bg-transparent animate-pulse" />
+})
 
 export default function LandingPage() {
   return (

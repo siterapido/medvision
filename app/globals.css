@@ -292,27 +292,37 @@
       radial-gradient(50% 50% at 90% 10%, color-mix(in oklab, var(--primary) 22%, transparent) 0%, transparent 62%),
       radial-gradient(40% 40% at 10% 90%, color-mix(in oklab, var(--secondary) 18%, transparent) 0%, transparent 65%);
     animation: gradientShift 12s ease-in-out infinite;
+    /* Otimizações de performance */
+    will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
   }
 
   .animate-float {
     animation: float 6s ease-in-out infinite;
+    will-change: transform;
+    transform: translateZ(0);
   }
 
   .interactive-card {
     @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5;
+    will-change: transform, box-shadow;
   }
 
   .interactive-button {
     @apply transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98];
+    will-change: transform;
   }
 
   .animate-scale-pulse {
     animation: pulseScale 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
     will-change: transform;
+    transform: translateZ(0);
   }
 
   .animate-wobble {
     animation: invalidWobble 420ms ease;
+    will-change: transform;
   }
 
   /* === HERO AI Animated Background (shadcn-style aesthetic) === */
@@ -322,6 +332,7 @@
     pointer-events: none;
     z-index: -10;
     overflow: hidden;
+    contain: layout style paint;
   }
 
   /* Subtle cyan tech grid that slowly drifts */
@@ -336,19 +347,25 @@
       repeating-linear-gradient(90deg, color-mix(in oklab, var(--accent) 12%, transparent) 0px, color-mix(in oklab, var(--accent) 12%, transparent) 1px, transparent 1px, transparent 40px);
     mask-image: radial-gradient(ellipse 80% 60% at 50% 45%, black 0%, transparent 75%);
     animation: gridDrift 22s linear infinite;
+    will-change: background-position, transform;
+    transform: translateZ(0);
+    contain: layout style paint;
   }
 
-  /* Soft moving aurora beams (three layers recommended) */
+  /* Soft moving aurora beams - blur reduzido de 80px para 60px para melhor performance */
   .hero-ai-beam {
     position: absolute;
     width: min(48vw, 720px);
     height: min(48vh, 520px);
-    opacity: 0.38;
-    filter: blur(80px);
+    opacity: 0.35;
+    filter: blur(60px);
     will-change: transform;
+    transform: translateZ(0);
+    backface-visibility: hidden;
     background:
       radial-gradient(circle at 50% 50%, var(--beam-color, color-mix(in oklab, var(--primary) 40%, transparent)) 0%, transparent 60%);
     animation: beamFloat 18s ease-in-out infinite;
+    contain: layout style paint;
   }
 }
 
@@ -397,16 +414,18 @@ html {
   inset: 0;
   background: radial-gradient(
     circle at 20% 20%,
-    rgba(8, 145, 178, 0.08) 0%, 
-    rgba(6, 182, 212, 0.05) 25%, 
+    rgba(8, 145, 178, 0.08) 0%,
+    rgba(6, 182, 212, 0.05) 25%,
     transparent 55%
   );
   /* Otimizações para reduzir reflow/CLS durante animações */
   will-change: transform;
-  contain: paint;
+  contain: layout style paint;
   pointer-events: none;
   animation: float 20s ease-in-out infinite;
   z-index: -1;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .bg-session-chat {
