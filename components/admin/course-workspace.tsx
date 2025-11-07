@@ -352,7 +352,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
           <div className="space-y-2">
             <label className="text-sm text-white font-semibold">Formato</label>
             <Select value={courseBasics.format} onValueChange={(value) => handleCourseField("format", value)}>
-              <SelectTrigger className="bg-white text-slate-900 border-sky-600/50">
+              <SelectTrigger className="bg-white text-slate-900 border-[#24324F]">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -370,7 +370,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
               value={courseBasics.duration}
               onChange={(event) => handleCourseField("duration", event.target.value)}
               placeholder="12h"
-              className={cn("bg-white text-slate-900 border-sky-600/50 placeholder:text-slate-400", stepTouched.basics && !courseBasics.duration.trim() && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
+              className={cn("bg-white text-slate-900 border-[#24324F] placeholder:text-slate-400 focus-visible:ring-[#0891b2]/50", stepTouched.basics && !courseBasics.duration.trim() && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
               aria-invalid={stepTouched.basics && !courseBasics.duration.trim()}
             />
             {stepTouched.basics && !courseBasics.duration.trim() && (
@@ -380,7 +380,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
           <div className="space-y-2">
             <label className="text-sm text-white font-semibold">Nível</label>
             <Select value={courseBasics.difficulty} onValueChange={(value) => handleCourseField("difficulty", value)}>
-              <SelectTrigger className="bg-white text-slate-900 border-sky-600/50">
+              <SelectTrigger className="bg-white text-slate-900 border-[#24324F]">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -395,20 +395,20 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-sm text-slate-700">Investimento sugerido</label>
+            <label className="text-sm text-white font-semibold">Investimento sugerido</label>
             <Input
               value={courseBasics.price}
               onChange={(event) => handleCourseField("price", event.target.value)}
               placeholder="Ex.: R$ 1.497"
-              className="bg-white"
+              className="bg-white text-slate-900 border-[#24324F] placeholder:text-slate-400 focus-visible:ring-[#0891b2]/50"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-slate-700">Thumb / capa <span className="text-rose-500">*</span></label>
+            <label className="text-sm text-white font-semibold">Thumb / capa <span className="text-rose-400">*</span></label>
             {courseBasics.thumbnailUrl ? (
-              <div className="flex items-center gap-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+              <div className="flex items-center gap-3 rounded-xl border border-[#24324F] bg-[#16243F] p-3">
                 <img src={courseBasics.thumbnailUrl} alt="Capa do curso" className="h-14 w-24 rounded-md object-cover" />
-                <span className="text-xs text-slate-600 break-all">{courseBasics.thumbnailUrl}</span>
+                <span className="text-xs text-[#cbd5e1] break-all">{courseBasics.thumbnailUrl}</span>
               </div>
             ) : null}
             <input
@@ -425,7 +425,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
               type="button"
               variant="outline"
               className={cn(
-                "w-full rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50",
+                "w-full rounded-xl border-[#24324F] text-[#cbd5e1] bg-[#16243F] hover:bg-[#1A2847]",
                 stepTouched.basics && !courseBasics.thumbnailUrl.trim() && "border-rose-400/60",
               )}
               disabled={uploadingThumb}
@@ -443,49 +443,49 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
               )}
             </Button>
             {stepTouched.basics && !courseBasics.thumbnailUrl.trim() && (
-              <p className="text-xs text-rose-700">Envie uma imagem para definir a capa do curso.</p>
+              <p className="text-xs text-rose-300">Envie uma imagem para definir a capa do curso.</p>
             )}
           </div>
         </div>
         <div className="space-y-2">
-          <label className="text-sm text-slate-700">Descrição para o catálogo <span className="text-rose-500">*</span></label>
+          <label className="text-sm text-white font-semibold">Descrição para o catálogo <span className="text-rose-400">*</span></label>
           <Textarea
             value={courseBasics.description}
             onChange={(event) => handleCourseField("description", event.target.value)}
             rows={4}
             placeholder="Conte em 2-3 frases o resultado clínico, diferenciais e para quem é o curso."
-            className={cn("bg-white", stepTouched.basics && !courseBasics.description.trim() && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
+            className={cn("bg-white text-slate-900 border-[#24324F] placeholder:text-slate-400 focus-visible:ring-[#0891b2]/50", stepTouched.basics && !courseBasics.description.trim() && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
             aria-invalid={stepTouched.basics && !courseBasics.description.trim()}
           />
           {stepTouched.basics && !courseBasics.description.trim() && (
-            <p className="text-xs text-rose-700">Descreva o curso para o catálogo.</p>
+            <p className="text-xs text-rose-300">Descreva o curso para o catálogo.</p>
           )}
         </div>
         <div className="space-y-2">
-          <label className="text-sm text-slate-700">Tags (separe por vírgula)</label>
+          <label className="text-sm text-white font-semibold">Tags (separe por vírgula)</label>
           <Input
             value={courseBasics.tags}
             onChange={(event) => handleCourseField("tags", event.target.value)}
             placeholder="ex.: implantodontia, fluxo digital, IA"
-            className="bg-white"
+            className="bg-white text-slate-900 border-[#24324F] placeholder:text-slate-400 focus-visible:ring-[#0891b2]/50"
           />
         </div>
-        <div className="flex flex-wrap gap-2 text-xs text-slate-600">
-          <Badge className="border-[#0891b2]/30 bg-[#0891b2]/10 text-[#0e7490]">
+        <div className="flex flex-wrap gap-2 text-xs">
+          <Badge className="border-[#0891b2]/40 bg-[#0891b2]/20 text-[#06b6d4]">
             {totalLessons} aulas mapeadas
           </Badge>
-          <span className="rounded-full border border-slate-200 px-3 py-1">Formato {courseBasics.format}</span>
-          <span className="rounded-full border border-slate-200 px-3 py-1">Nível {courseBasics.difficulty}</span>
+          <span className="rounded-full border border-[#24324F] bg-[#16243F] px-3 py-1 text-[#cbd5e1]">Formato {courseBasics.format}</span>
+          <span className="rounded-full border border-[#24324F] bg-[#16243F] px-3 py-1 text-[#cbd5e1]">Nível {courseBasics.difficulty}</span>
         </div>
       </CardContent>
     </Card>
   )
 
   const renderModulesCard = () => (
-    <Card className="rounded-2xl border border-[#0891b2]/20 bg-white">
+    <Card className="rounded-2xl border border-[#24324F] bg-gradient-to-br from-[#131D37] to-[#16243F]">
       <CardHeader>
-        <CardTitle className="text-[#0e7490]">Módulos e aulas</CardTitle>
-        <CardDescription className="text-slate-600">
+        <CardTitle className="text-white">Módulos e aulas</CardTitle>
+        <CardDescription className="text-[#cbd5e1]/70">
           Estruture cada aula com link do vídeo, objetivos e anexos. Essa estrutura vai direto para o player do aluno.
         </CardDescription>
       </CardHeader>
