@@ -96,26 +96,26 @@ export default function AdminInvitePage() {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-10 lg:px-0">
       <div className="flex flex-col gap-4 sm:items-center sm:justify-between sm:flex-row">
         <div>
-          <p className="text-sm text-sky-300 font-semibold uppercase tracking-wide">Convite interno</p>
+          <p className="text-sm text-[#cbd5e1] font-semibold uppercase tracking-wide">Convite interno</p>
           <h1 className="text-3xl font-bold text-white mt-2">Cadastrar novo administrador</h1>
-          <p className="text-sm text-sky-200/80 mt-2 max-w-lg">
+          <p className="text-sm text-[#cbd5e1]/70 mt-2 max-w-lg">
             Apenas admins autenticados podem acessar esta tela. Compartilhe o link apenas com quem precisa ter acesso.
           </p>
         </div>
-        <Button asChild variant="outline" className="rounded-xl border-sky-600/50 text-white bg-sky-900/50 hover:bg-sky-900/70 whitespace-nowrap">
+        <Button asChild variant="outline" className="rounded-xl border-[#24324F] text-[#cbd5e1] bg-[#131D37]/50 hover:bg-[#1A2847] whitespace-nowrap">
           <Link href="/admin">Voltar ao painel</Link>
         </Button>
       </div>
 
-      <Card className="rounded-2xl border border-sky-600/40 bg-sky-900/50">
+      <Card className="rounded-2xl border border-[#24324F] bg-gradient-to-br from-[#131D37] to-[#16243F] shadow-lg">
         <CardHeader className="gap-2 pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-sky-700 to-cyan-700">
-              <UserPlus2 className="h-5 w-5 text-sky-200" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[#0891b2] to-[#06b6d4]">
+              <UserPlus2 className="h-5 w-5 text-white" />
             </div>
             <CardTitle className="text-white">Cadastro rápido</CardTitle>
           </div>
-          <CardDescription className="text-sky-200/80">
+          <CardDescription className="text-[#cbd5e1]/70">
             Defina credenciais provisórias. A pessoa convidada poderá alterar a senha após o primeiro acesso.
           </CardDescription>
         </CardHeader>
@@ -130,7 +130,7 @@ export default function AdminInvitePage() {
                 placeholder="Ex: Dra. Ana Monteiro"
                 value={form.name}
                 onChange={handleChange("name")}
-                className="rounded-lg border-sky-600/50 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-sky-400/50"
+                className="rounded-lg border-[#24324F] bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#0891b2]/50"
                 required
               />
             </div>
@@ -145,7 +145,7 @@ export default function AdminInvitePage() {
                 placeholder="admin@odontogpt.com"
                 value={form.email}
                 onChange={handleChange("email")}
-                className="rounded-lg border-sky-600/50 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-sky-400/50"
+                className="rounded-lg border-[#24324F] bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#0891b2]/50"
                 required
               />
             </div>
@@ -161,7 +161,7 @@ export default function AdminInvitePage() {
                 value={form.password}
                 onChange={handleChange("password")}
                 minLength={8}
-                className="rounded-lg border-sky-600/50 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-sky-400/50"
+                className="rounded-lg border-[#24324F] bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#0891b2]/50"
                 required
               />
             </div>
@@ -203,25 +203,25 @@ export default function AdminInvitePage() {
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border border-sky-600/40 bg-sky-900/50">
+      <Card className="rounded-2xl border border-[#24324F] bg-gradient-to-br from-[#131D37] to-[#16243F] shadow-lg">
         <CardHeader className="gap-2 pb-4">
           <div className="flex items-center gap-2">
-            <Badge className="border-sky-500/60 bg-sky-700 text-sky-100 font-semibold">Link interno</Badge>
+            <Badge className="border-[#0891b2]/60 bg-[#0891b2]/20 text-[#06b6d4] font-semibold">Link interno</Badge>
             <CardTitle className="text-white">Compartilhe com segurança</CardTitle>
           </div>
-          <CardDescription className="text-sky-200/80">
+          <CardDescription className="text-[#cbd5e1]/70">
             O link só funciona para usuários logados como admin. Utilize canais internos (Slack, e-mail corporativo) e
             revogue acessos quando necessário.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-lg border border-sky-600/40 bg-sky-800/50 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <code className="break-all text-xs text-sky-100 font-mono bg-sky-950/60 rounded px-3 py-2 border border-sky-600/40">{inviteLink}</code>
+          <div className="flex flex-col gap-3 rounded-lg border border-[#24324F] bg-[#16243F]/80 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <code className="break-all text-xs text-[#cbd5e1] font-mono bg-[#0F192F] rounded px-3 py-2 border border-[#24324F]">{inviteLink}</code>
             <Button
               type="button"
               variant="outline"
               onClick={copyLink}
-              className="rounded-lg border-sky-600/50 text-white bg-sky-800/50 hover:bg-sky-800/70"
+              className="rounded-lg border-[#24324F] text-[#cbd5e1] bg-[#16243F]/80 hover:bg-[#1A2847]"
             >
               {copied ? (
                 <>
@@ -241,7 +241,7 @@ export default function AdminInvitePage() {
             <Textarea
               readOnly
               value={`Oi! Você foi convidado(a) para administrar o Odonto GPT.\n\n1. Acesse: ${inviteLink}\n2. Informe o email corporativo autorizado\n3. Troque a senha após o primeiro login\n\nDúvidas? Fale com a diretoria.`}
-              className="rounded-lg border-sky-600/40 bg-white text-slate-900 resize-none focus-visible:ring-sky-400/50"
+              className="rounded-lg border-[#24324F] bg-white text-slate-900 resize-none focus-visible:ring-[#0891b2]/50"
             />
           </div>
         </CardContent>

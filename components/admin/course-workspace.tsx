@@ -312,10 +312,10 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
   }
 
   const renderBasicsCard = () => (
-    <Card className="rounded-2xl border border-sky-600/40 bg-sky-900/50">
+    <Card className="rounded-2xl border border-[#24324F] bg-gradient-to-br from-[#131D37] to-[#16243F]">
       <CardHeader>
         <CardTitle className="text-white">Cadastro rápido</CardTitle>
-        <CardDescription className="text-sky-200/80">
+        <CardDescription className="text-[#cbd5e1]/70">
           {shortName}, preencha os detalhes essenciais do curso. Assim que publicar, ele aparece automaticamente na área de cursos para os alunos.
         </CardDescription>
       </CardHeader>
@@ -327,7 +327,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
               value={courseBasics.title}
               onChange={(event) => handleCourseField("title", event.target.value)}
               placeholder="Ex.: Sedação consciente na prática clínica"
-              className={cn("bg-white text-slate-900 border-sky-600/50 placeholder:text-slate-400", stepTouched.basics && !courseBasics.title.trim() && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
+              className={cn("bg-white text-slate-900 border-[#24324F] placeholder:text-slate-400 focus-visible:ring-[#0891b2]/50", stepTouched.basics && !courseBasics.title.trim() && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
               aria-invalid={stepTouched.basics && !courseBasics.title.trim()}
             />
             {stepTouched.basics && !courseBasics.title.trim() && (
