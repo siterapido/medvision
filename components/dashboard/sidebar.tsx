@@ -14,6 +14,20 @@ import {
   UserRound,
   type LucideIcon,
 } from "lucide-react"
+import type { User } from "@supabase/supabase-js"
+
+interface Profile {
+  id: string
+  full_name: string | null
+  email: string | null
+  avatar_url: string | null
+  role: string
+}
+
+interface DashboardSidebarProps {
+  user: User
+  profile: Profile | null
+}
 
 type NavItem = {
   name: string
@@ -29,8 +43,9 @@ const navigation: NavItem[] = [
   { name: "Assinatura", href: "/dashboard/assinatura", icon: Sparkles },
 ]
 
-export function DashboardSidebar() {
+export function DashboardSidebar({ user, profile }: DashboardSidebarProps) {
   const pathname = usePathname()
+  const userEmail = profile?.email || user.email || ""
 
   return (
     <aside className="hidden min-h-screen w-72 flex-col border-r border-slate-800 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 shadow-2xl md:flex">
@@ -39,8 +54,15 @@ export function DashboardSidebar() {
           <Logo width={140} height={36} variant="white" />
         </Link>
         <p className="text-xs uppercase tracking-[0.25em] text-slate-500">Odonto GPT</p>
-        <div className="rounded-xl border border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900 px-4 py-3 text-sm text-slate-200 shadow-lg">
-          Plano atual: <span className="font-semibold text-white">Free</span>
+        <div className="rounded-xl border border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900 px-4 py-3 shadow-lg">
+          <div className="text-sm text-slate-200">
+            Plano atual: <span className="font-semibold text-white">Free</span>
+          </div>
+          <div className="mt-2 pt-2 border-t border-slate-700">
+            <p className="text-xs text-slate-400 truncate" title={userEmail}>
+              {userEmail}
+            </p>
+          </div>
         </div>
       </div>
 
