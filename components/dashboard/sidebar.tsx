@@ -33,18 +33,18 @@ export function DashboardSidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden min-h-screen w-72 flex-col border-r border-sidebar-border/40 bg-[radial-gradient(circle_at_top,_rgba(35,153,180,0.35),_transparent_65%),_linear-gradient(180deg,_#0f192f,_#050b18)] text-sidebar-foreground md:flex">
-      <div className="flex flex-col gap-2 px-6 pb-6 pt-10">
+    <aside className="hidden min-h-screen w-72 flex-col border-r border-slate-800 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 shadow-2xl md:flex">
+      <div className="flex flex-col gap-3 px-6 pb-6 pt-10">
         <Link href="/dashboard" aria-label="Dashboard" className="flex items-center gap-2">
           <Logo width={140} height={36} variant="white" />
         </Link>
-        <p className="text-xs uppercase tracking-[0.2em] text-white/60">Odonto GPT</p>
-        <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white/80">
+        <p className="text-xs uppercase tracking-[0.25em] text-slate-500">Odonto GPT</p>
+        <div className="rounded-xl border border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900 px-4 py-3 text-sm text-slate-200 shadow-lg">
           Plano atual: <span className="font-semibold text-white">Free</span>
         </div>
       </div>
 
-      <nav className="flex-1 space-y-1 px-4">
+      <nav className="flex-1 space-y-1.5 px-4">
         {navigation.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
@@ -54,31 +54,40 @@ export function DashboardSidebar() {
               key={item.name}
               href={item.href}
               className={cn(
-                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-white/15 text-white shadow-[0_0_25px_rgba(8,145,178,0.35)]"
-                  : "text-white/80 hover:bg-white/10 hover:text-white",
+                  ? "bg-gradient-to-r from-primary/20 to-primary/10 text-white border border-primary/30 shadow-lg shadow-primary/10"
+                  : "text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-transparent",
               )}
             >
-              <Icon className="h-5 w-5" />
+              <Icon className={cn("h-5 w-5", isActive && "text-primary")} />
               {item.name}
             </Link>
           )
         })}
       </nav>
 
-      <div className="mt-8 space-y-4 px-4 pb-8">
-        <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/15 to-white/5 p-4 text-sm text-white/90">
-          <p className="font-semibold text-white">Desbloqueie o modo Expert</p>
-          <p className="mt-1 text-xs text-white/70">Modelos clínicos avançados, mais mensagens e segunda opinião assistida.</p>
-          <Button asChild size="sm" className="mt-3 w-full bg-white text-slate-900 hover:bg-primary hover:text-white">
+      <div className="mt-8 space-y-3 px-4 pb-8">
+        <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 p-5 text-sm shadow-xl">
+          <div className="mb-3 flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-primary" />
+            <p className="font-semibold text-white">Modo Expert</p>
+          </div>
+          <p className="text-xs leading-relaxed text-slate-400">
+            Modelos clínicos avançados, mensagens ilimitadas e segunda opinião assistida.
+          </p>
+          <Button
+            asChild
+            size="sm"
+            className="mt-4 w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20"
+          >
             <Link href="/dashboard/assinatura">Fazer upgrade</Link>
           </Button>
         </div>
 
         <Link
           href="/login"
-          className="flex items-center justify-center gap-2 rounded-xl border border-white/10 px-4 py-3 text-sm font-medium text-white/80 transition-colors hover:bg-white/10 hover:text-white"
+          className="flex items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm font-medium text-slate-300 transition-all hover:bg-slate-700 hover:text-slate-100"
         >
           <LogOut className="h-4 w-4" />
           Sair
