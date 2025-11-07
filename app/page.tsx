@@ -27,6 +27,8 @@ const LazyVideoWrapper = dynamic(() => import("@/components/video/lazy-video-wra
   ssr: false
 })
 
+const vturbEmbedHtml = `<vturb-smartplayer id="vid-690ddf3e19eaa3a949e81a16" style="display: block; margin: 0 auto; width: 100%; "></vturb-smartplayer> <script type="text/javascript"> var s=document.createElement("script"); s.src="https://scripts.converteai.net/b4d52743-082a-47bd-a232-f61795447a53/players/690ddf3e19eaa3a949e81a16/v4/player.js", s.async=!0,document.head.appendChild(s); </script>`
+
 export default function LandingPage() {
   return (
     <div className="relative min-h-screen bg-gradient-to-b from-background via-cyan-50/30 to-background">
@@ -66,17 +68,10 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center max-w-6xl mx-auto">
 
           {/* VSL - Second on Mobile, Right on Desktop */}
-          <div className="relative order-2 md:order-2 hero-video-container">
-            <YouTubePlayer
-              videoId="loPD53clzR4"
-              title="VSL Odonto GPT"
-              aspect="landscape"
-              playButtonSize="xl"
-              controls={0}
-              hideOverlayControls
-              className="w-full rounded-2xl border-2 border-[#21839B]/30 shadow-lg"
-            />
-          </div>
+          <div
+            className="relative order-2 md:order-2 hero-video-container rounded-2xl border-2 border-[#21839B]/30 shadow-lg"
+            dangerouslySetInnerHTML={{ __html: vturbEmbedHtml }}
+          />
 
           {/* Text Content - Third on Mobile, Left on Desktop */}
           <div className="space-y-6 md:space-y-8 text-left order-3 md:order-1">
@@ -86,14 +81,18 @@ export default function LandingPage() {
             </div>
 
             <h1 className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-balance">
-              Pare de travar nas dúvidas{" "}
+              Inteligência Artificial{" "}
               <span className="bg-gradient-to-r from-primary via-accent to-cyan-400 bg-clip-text text-transparent">
-                que travam sua carreira
+                Especializada em Odontologia
               </span>
             </h1>
 
             <p className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200 text-lg md:text-xl lg:text-2xl text-slate-300 text-balance leading-relaxed">
-              Respostas científicas no WhatsApp em 60 segundos - sem passar vergonha perguntando ao professor pela 5ª vez no mesmo dia
+              A IA que responde suas dúvidas clínicas em segundos.
+            </p>
+
+            <p className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200 text-lg md:text-xl lg:text-2xl text-slate-300 text-balance leading-relaxed">
+              Diagnóstico, planejamento e evidências clínicas sem perder tempo em buscas ou grupos.
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 pt-4 md:pt-6">
@@ -122,16 +121,16 @@ export default function LandingPage() {
           <div className="order-4 md:order-3 md:col-span-2">
             <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 pt-4">
               <div className="flex items-center gap-2 text-sm">
-                <Brain className="h-5 w-5 text-primary" />
-                <span className="font-medium">IA Odontológica</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm">
                 <BookOpen className="h-5 w-5 text-primary" />
-                <span className="font-medium">Base científica</span>
+                <span className="font-medium">Literatura científica comprovada</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <MessageSquare className="h-5 w-5 text-primary" />
-                <span className="font-medium">WhatsApp 24/7</span>
+                <span className="font-medium">WhatsApp e Web</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Clock className="h-5 w-5 text-primary" />
+                <span className="font-medium">Disponível 24/7</span>
               </div>
             </div>
           </div>
