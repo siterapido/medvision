@@ -18,7 +18,7 @@ export default async function NovoCursoPage() {
     supabase
       .from("courses")
       .select(
-        `id, title, description, duration, lessons_count, thumbnail_url, updated_at,
+        `id, title, description, lessons_count, thumbnail_url, updated_at,
          lessons ( id, title, module_title, duration_minutes, video_url, materials, available_at )`
       )
       .order("updated_at", { ascending: false })
@@ -32,7 +32,6 @@ export default async function NovoCursoPage() {
       id: course.id,
       title: course.title,
       description: course.description,
-      duration: course.duration,
       lessons_count: course.lessons_count,
       thumbnail_url: course.thumbnail_url,
       updated_at: course.updated_at,

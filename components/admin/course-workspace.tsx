@@ -55,7 +55,6 @@ export type CourseRowWithLessons = {
   id: string
   title: string
   description: string | null
-  duration: string | null
   lessons_count: number | null
   thumbnail_url: string | null
   updated_at: string | null
@@ -144,62 +143,60 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
   const isFirstStep = currentStep === 0
   const currentStepId = workflowSteps[currentStep].id
   const stepErrors = useMemo<StepErrors>(() => {
-    const basicsErrors: string[] = []
-    if (!courseBasics.title.trim()) basicsErrors.push("Informe o título do curso.")
-    if (!courseBasics.area.trim()) basicsErrors.push("Defina a área ou especialidade.")
-    if (!courseBasics.duration.trim()) basicsErrors.push("Informe a carga horária.")
-    if (!courseBasics.description.trim()) basicsErrors.push("Escreva a descrição para o catálogo.")
-    if (!courseBasics.thumbnailUrl.trim()) basicsErrors.push("Adicione a URL da capa/thumbnail.")
-
-    const lessonsErrors: string[] = []
-    const isYouTubeUrl = (url: string) => {
-      const yt = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\//i
-      return yt.test(url.trim())
+    const errors: StepErrors = {
+      basics: [],
+      lessons: [],
+      materials: [],
     }
 
+    // Validate basics step
+    if (!courseBasics.title.trim()) {
+      errors.basics.push("Título do curso é obrigatório")
+    }
+    if (!courseBasics.area.trim()) {
+      errors.basics.push("Área/especialidade é obrigatória")
+    }
+    if (!courseBasics.description.trim()) {
+      errors.basics.push("Descrição do curso é obrigatória")
+    }
+    if (!courseBasics.thumbnailUrl) {
+      errors.basics.push("Imagem de capa é obrigatória")
+    }
+
+    // Validate lessons step
     modules.forEach((module, moduleIndex) => {
       if (!module.title.trim()) {
-        lessonsErrors.push(`Nome do módulo ${moduleIndex + 1} é obrigatório.`)
+        errors.lessons.push(`Módulo ${moduleIndex + 1}: título é obrigatório`)
       }
 
       module.lessons.forEach((lesson, lessonIndex) => {
         if (!lesson.title.trim()) {
-          lessonsErrors.push(`Aula ${lessonIndex + 1} do módulo ${moduleIndex + 1} precisa de título.`)
+          errors.lessons.push(`Módulo ${moduleIndex + 1}, Aula ${lessonIndex + 1}: título é obrigatório`)
         }
-        if (!lesson.duration.trim()) {
-          lessonsErrors.push(`Informe a duração da aula ${lessonIndex + 1} no módulo ${moduleIndex + 1}.`)
+        if (!lesson.duration.trim() || Number(lesson.duration) <= 0) {
+          errors.lessons.push(`Módulo ${moduleIndex + 1}, Aula ${lessonIndex + 1}: duração válida é obrigatória`)
         }
         if (!lesson.videoUrl.trim()) {
-          lessonsErrors.push(`Inclua o link do YouTube da aula ${lessonIndex + 1} no módulo ${moduleIndex + 1}.`)
-        } else if (!isYouTubeUrl(lesson.videoUrl)) {
-          lessonsErrors.push(`Use um link válido do YouTube na aula ${lessonIndex + 1} do módulo ${moduleIndex + 1}.`)
+          errors.lessons.push(`Módulo ${moduleIndex + 1}, Aula ${lessonIndex + 1}: link do vídeo é obrigatório`)
         }
       })
     })
 
-    const materialsErrors: string[] = []
+    // Validate materials - only if materials exist
     modules.forEach((module, moduleIndex) => {
       module.lessons.forEach((lesson, lessonIndex) => {
         lesson.materials.forEach((material, materialIndex) => {
           if (!material.title.trim()) {
-            materialsErrors.push(
-              `Material ${materialIndex + 1} da aula ${lessonIndex + 1} no módulo ${moduleIndex + 1} precisa de título.`
-            )
+            errors.materials.push(`Módulo ${moduleIndex + 1}, Aula ${lessonIndex + 1}, Material ${materialIndex + 1}: título é obrigatório`)
           }
           if (!material.url.trim()) {
-            materialsErrors.push(
-              `Material ${materialIndex + 1} da aula ${lessonIndex + 1} no módulo ${moduleIndex + 1} precisa de link ou arquivo.`
-            )
+            errors.materials.push(`Módulo ${moduleIndex + 1}, Aula ${lessonIndex + 1}, Material ${materialIndex + 1}: URL é obrigatória`)
           }
         })
       })
     })
 
-    return {
-      basics: basicsErrors,
-      lessons: lessonsErrors,
-      materials: materialsErrors,
-    }
+    return errors
   }, [courseBasics, modules])
 
   const markStepTouched = (stepId: WorkflowStepId) => {
@@ -322,37 +319,29 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
       <CardContent className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-sm text-slate-900 font-semibold">Título do curso <span className="text-rose-500">*</span></label>
+            <label className="text-sm text-slate-900 font-semibold">Título do curso</label>
             <Input
               value={courseBasics.title}
               onChange={(event) => handleCourseField("title", event.target.value)}
               placeholder="Ex.: Sedação consciente na prática clínica"
-              className={cn("bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2]", stepTouched.basics && !courseBasics.title.trim() && "border-rose-500 focus-visible:ring-rose-500")}
-              aria-invalid={stepTouched.basics && !courseBasics.title.trim()}
+              className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
             />
-            {stepTouched.basics && !courseBasics.title.trim() && (
-              <p className="text-xs text-rose-600">Informe o título do curso.</p>
-            )}
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-slate-900 font-semibold">Área / especialidade <span className="text-rose-500">*</span></label>
+            <label className="text-sm text-slate-900 font-semibold">Área / especialidade</label>
             <Input
               value={courseBasics.area}
               onChange={(event) => handleCourseField("area", event.target.value)}
               placeholder="Ex.: Cirurgia oral, DTM"
-              className={cn("bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2]", stepTouched.basics && !courseBasics.area.trim() && "border-rose-500 focus-visible:ring-rose-500")}
-              aria-invalid={stepTouched.basics && !courseBasics.area.trim()}
+              className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
             />
-            {stepTouched.basics && !courseBasics.area.trim() && (
-              <p className="text-xs text-rose-600">Defina a especialidade principal.</p>
-            )}
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
             <label className="text-sm text-slate-900 font-semibold">Formato</label>
             <Select value={courseBasics.format} onValueChange={(value) => handleCourseField("format", value)}>
-              <SelectTrigger className="bg-white text-slate-900 border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-[#0891b2]">
+              <SelectTrigger className="bg-white text-slate-900 border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-[#0891b2] shadow-sm">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -365,22 +354,18 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
             </Select>
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-slate-900 font-semibold">Carga horária <span className="text-rose-500">*</span></label>
+            <label className="text-sm text-slate-900 font-semibold">Carga horária</label>
             <Input
               value={courseBasics.duration}
               onChange={(event) => handleCourseField("duration", event.target.value)}
               placeholder="12h"
-              className={cn("bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2]", stepTouched.basics && !courseBasics.duration.trim() && "border-rose-500 focus-visible:ring-rose-500")}
-              aria-invalid={stepTouched.basics && !courseBasics.duration.trim()}
+              className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
             />
-            {stepTouched.basics && !courseBasics.duration.trim() && (
-              <p className="text-xs text-rose-600">Informe a carga horária estimada.</p>
-            )}
           </div>
           <div className="space-y-2">
             <label className="text-sm text-slate-900 font-semibold">Nível</label>
             <Select value={courseBasics.difficulty} onValueChange={(value) => handleCourseField("difficulty", value)}>
-              <SelectTrigger className="bg-white text-slate-900 border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-[#0891b2]">
+              <SelectTrigger className="bg-white text-slate-900 border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-[#0891b2] shadow-sm">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -400,11 +385,11 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
               value={courseBasics.price}
               onChange={(event) => handleCourseField("price", event.target.value)}
               placeholder="Ex.: R$ 1.497"
-              className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2]"
+              className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-slate-900 font-semibold">Thumb / capa <span className="text-rose-500">*</span></label>
+            <label className="text-sm text-slate-900 font-semibold">Thumb / capa</label>
             {courseBasics.thumbnailUrl ? (
               <div className="flex items-center gap-3 rounded-xl border border-slate-300 bg-slate-50 p-3">
                 <img src={courseBasics.thumbnailUrl} alt="Capa do curso" className="h-14 w-24 rounded-md object-cover" />
@@ -424,13 +409,9 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
             <Button
               type="button"
               variant="outline"
-              className={cn(
-                "w-full rounded-xl border-slate-300 text-slate-700 bg-white hover:bg-slate-50",
-                stepTouched.basics && !courseBasics.thumbnailUrl.trim() && "border-rose-500",
-              )}
+              className="w-full rounded-xl border-slate-300 text-slate-700 bg-white hover:bg-slate-50"
               disabled={uploadingThumb}
               onClick={() => document.getElementById("thumb-file")?.click()}
-              aria-invalid={stepTouched.basics && !courseBasics.thumbnailUrl.trim()}
             >
               {uploadingThumb ? (
                 <>
@@ -442,24 +423,17 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                 </>
               )}
             </Button>
-            {stepTouched.basics && !courseBasics.thumbnailUrl.trim() && (
-              <p className="text-xs text-rose-600">Envie uma imagem para definir a capa do curso.</p>
-            )}
           </div>
         </div>
         <div className="space-y-2">
-          <label className="text-sm text-slate-900 font-semibold">Descrição para o catálogo <span className="text-rose-500">*</span></label>
+          <label className="text-sm text-slate-900 font-semibold">Descrição para o catálogo</label>
           <Textarea
             value={courseBasics.description}
             onChange={(event) => handleCourseField("description", event.target.value)}
             rows={4}
             placeholder="Conte em 2-3 frases o resultado clínico, diferenciais e para quem é o curso."
-            className={cn("bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2]", stepTouched.basics && !courseBasics.description.trim() && "border-rose-500 focus-visible:ring-rose-500")}
-            aria-invalid={stepTouched.basics && !courseBasics.description.trim()}
+            className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
           />
-          {stepTouched.basics && !courseBasics.description.trim() && (
-            <p className="text-xs text-rose-600">Descreva o curso para o catálogo.</p>
-          )}
         </div>
         <div className="space-y-2">
           <label className="text-sm text-slate-900 font-semibold">Tags (separe por vírgula)</label>
@@ -467,7 +441,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
             value={courseBasics.tags}
             onChange={(event) => handleCourseField("tags", event.target.value)}
             placeholder="ex.: implantodontia, fluxo digital, IA"
-            className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2]"
+            className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
           />
         </div>
         <div className="flex flex-wrap gap-2 text-xs">
@@ -499,16 +473,14 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                   <Input
                     value={module.title}
                     onChange={(event) => updateModule(module.id, { title: event.target.value })}
-                    className={cn("bg-white", moduleTitleError && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
+                    className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
                     placeholder="Nome do módulo"
-                    aria-invalid={moduleTitleError}
                   />
-                  {moduleTitleError && <p className="text-xs text-rose-200">Nomeie o módulo para organizar as aulas.</p>}
                   <Input
                     type="date"
                     value={module.releaseDate}
                     onChange={(event) => updateModule(module.id, { releaseDate: event.target.value })}
-                    className="bg-white"
+                    className="bg-white text-slate-900 border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -548,31 +520,23 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                       </div>
                       <div className="mt-3 grid gap-3 md:grid-cols-2">
                         <div className="space-y-2">
-                          <label className="text-xs uppercase tracking-wide text-slate-600">Nome da aula <span className="text-rose-500">*</span></label>
+                          <label className="text-xs uppercase tracking-wide text-slate-600">Nome da aula</label>
                           <Input
                             value={lesson.title}
                             onChange={(event) => updateLesson(module.id, lesson.id, { title: event.target.value })}
-                            className={cn("bg-white", lessonTitleError && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
-                            aria-invalid={lessonTitleError}
+                            className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
                           />
-                          {lessonTitleError && (
-                            <p className="text-xs text-rose-200">Informe o título desta aula.</p>
-                          )}
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-2">
-                            <label className="text-xs uppercase tracking-wide text-slate-600">Duração (min) <span className="text-rose-500">*</span></label>
+                            <label className="text-xs uppercase tracking-wide text-slate-600">Duração (min)</label>
                             <Input
                               type="number"
                               min={1}
                               value={lesson.duration}
                               onChange={(event) => updateLesson(module.id, lesson.id, { duration: event.target.value })}
-                              className={cn("bg-white", lessonDurationError && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
-                              aria-invalid={lessonDurationError}
+                              className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
                             />
-                            {lessonDurationError && (
-                              <p className="text-xs text-rose-700">Informe a duração estimada.</p>
-                            )}
                           </div>
                           <div className="space-y-2">
                             <label className="text-xs uppercase tracking-wide text-slate-600">Liberação</label>
@@ -580,13 +544,13 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                               type="date"
                               value={lesson.releaseDate}
                               onChange={(event) => updateLesson(module.id, lesson.id, { releaseDate: event.target.value })}
-                              className="bg-white"
+                              className="bg-white text-slate-900 border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
                             />
                           </div>
                         </div>
                       </div>
                       <div className="mt-3 space-y-2">
-                        <label className="text-xs uppercase tracking-wide text-slate-600">Link do vídeo (YouTube) <span className="text-rose-500">*</span></label>
+                        <label className="text-xs uppercase tracking-wide text-slate-600">Link do vídeo (YouTube)</label>
                         <div className="flex items-center gap-2">
                           <Video className="h-4 w-4 text-[#0891b2]" />
                           <Input
@@ -596,13 +560,9 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                               updateLesson(module.id, lesson.id, { videoUrl: normalizeYouTubeUrl(event.target.value) })
                             }
                             placeholder="Cole o link do YouTube (watch, youtu.be ou shorts)"
-                            className={cn("bg-white", lessonVideoError && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
-                            aria-invalid={lessonVideoError}
+                            className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
                           />
                         </div>
-                        {lessonVideoError && (
-                          <p className="text-xs text-rose-700">Cole um link válido do YouTube (watch, youtu.be ou shorts).</p>
-                        )}
                       </div>
                       <div className="mt-3 space-y-2">
                         <label className="text-xs uppercase tracking-wide text-slate-600">Resumo / objetivo da aula</label>
@@ -610,7 +570,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                           value={lesson.notes}
                           onChange={(event) => updateLesson(module.id, lesson.id, { notes: event.target.value })}
                           rows={2}
-                          className="bg-white"
+                          className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
                         />
                       </div>
                       <Collapsible className="mt-4">
@@ -627,18 +587,14 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                               <div key={material.id} className="rounded-xl border border-slate-200 bg-white p-4">
                                 <div className="grid gap-3 md:grid-cols-3">
                                   <div className="space-y-2">
-                                    <label className="text-xs text-slate-600">Título <span className="text-rose-500">*</span></label>
+                                    <label className="text-xs text-slate-600">Título</label>
                                     <Input
                                       value={material.title}
                                       onChange={(event) =>
                                         updateMaterial(module.id, lesson.id, material.id, { title: event.target.value })
                                       }
-                                      className={cn("bg-white", materialTitleError && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
-                                      aria-invalid={materialTitleError}
+                                      className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
                                     />
-                                    {materialTitleError && (
-                                      <p className="text-xs text-rose-200">Preencha o nome do material.</p>
-                                    )}
                                   </div>
                                   <div className="space-y-2">
                                     <label className="text-xs text-slate-600">Tipo</label>
@@ -648,7 +604,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                                         updateMaterial(module.id, lesson.id, material.id, { type: value })
                                       }
                                     >
-                                      <SelectTrigger className="bg-white">
+                                      <SelectTrigger className="bg-white text-slate-900 border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-[#0891b2] shadow-sm">
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
@@ -661,19 +617,15 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                                     </Select>
                                   </div>
                                   <div className="space-y-2">
-                                    <label className="text-xs text-slate-600">URL / arquivo <span className="text-rose-500">*</span></label>
+                                    <label className="text-xs text-slate-600">URL / arquivo</label>
                                     <Input
                                       value={material.url}
                                       onChange={(event) =>
                                         updateMaterial(module.id, lesson.id, material.id, { url: event.target.value })
                                       }
                                       placeholder="https://..."
-                                      className={cn("bg-white", materialUrlError && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
-                                      aria-invalid={materialUrlError}
+                                      className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
                                     />
-                                    {materialUrlError && (
-                                      <p className="text-xs text-rose-700">Inclua o link ou caminho do arquivo.</p>
-                                    )}
                                   </div>
                                 </div>
                                 <div className="mt-3 grid gap-2">
@@ -684,7 +636,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                                     }
                                     rows={2}
                                     placeholder="Resumo ou instruções de uso"
-                                    className="bg-white"
+                                    className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
                                   />
                                   <div className="flex justify-end">
                                     <Button
@@ -730,54 +682,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
     </Card>
   )
 
-  const renderPreviewCard = () => (
-    <Card className="rounded-2xl border border-[#0891b2]/20 bg-white">
-      <CardHeader>
-        <CardTitle className="text-[#0e7490]">Pré-visualização</CardTitle>
-        <CardDescription className="text-slate-600">
-          Como o curso aparece para você e para os alunos.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-600">Curso</p>
-          <h3 className="mt-1 text-lg font-semibold text-slate-900">
-            {courseBasics.title || "Sem título"}
-          </h3>
-          <p className="text-sm text-slate-600">{courseBasics.description || "Descrição aparecerá aqui."}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {(courseBasics.tags || "").split(",").slice(0, 4).map((tag) => (
-              <Badge key={tag} className="border-slate-200 bg-slate-50 text-slate-700">
-                {tag.trim() || "Tag"}
-              </Badge>
-            ))}
-          </div>
-          <div className="mt-4 grid grid-cols-3 gap-3 text-xs text-slate-600">
-            <div>
-              <p className="text-slate-500">Carga horária</p>
-              <p className="text-slate-900">{courseBasics.duration || "—"}</p>
-            </div>
-            <div>
-              <p className="text-slate-500">Nível</p>
-              <p className="text-slate-900">{courseBasics.difficulty}</p>
-            </div>
-            <div>
-              <p className="text-slate-500">Aulas</p>
-              <p className="text-slate-900">{totalLessons}</p>
-            </div>
-          </div>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <p className="text-xs uppercase tracking-wide text-slate-600">Linha editorial</p>
-          <p className="text-sm text-slate-700">
-            {modules[0]?.lessons[0]?.notes
-              ? modules[0].lessons[0].notes.slice(0, 120)
-              : "Use os campos acima para escrever o storytelling da primeira aula."}
-          </p>
-        </div>
-      </CardContent>
-    </Card>
-  )
+  const renderPreviewCard = () => null
 
   const renderMaterialsCard = () => (
     <Card className="rounded-2xl border border-[#0891b2]/20 bg-white">
@@ -840,9 +745,6 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
             <p className="mt-1 text-xs text-slate-600 line-clamp-2">
               {course.description || "Sem descrição"}
             </p>
-            <div className="mt-2 flex flex-wrap gap-2 text-[11px] uppercase tracking-wide text-slate-500">
-              <span>{course.duration || "—"}</span>
-            </div>
           </div>
         ))}
       </CardContent>
@@ -887,10 +789,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
       return (
         <div className="space-y-4">
           {renderStepAlert("basics")}
-          <div className="grid gap-6 lg:grid-cols-[1.5fr,1fr]">
-            {renderBasicsCard()}
-            {renderPreviewCard()}
-          </div>
+          {renderBasicsCard()}
         </div>
       )
     }
@@ -907,9 +806,8 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
     return (
       <div className="space-y-4">
         {renderStepAlert("materials")}
-        <div className="grid gap-6 lg:grid-cols-[1.4fr,1fr]">
+        <div className="grid gap-6 lg:grid-cols-2">
           <div className="space-y-6">
-            {renderPreviewCard()}
             {renderMaterialsCard()}
           </div>
           <div className="space-y-6">
@@ -1053,28 +951,45 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
     setStatus(null)
 
     try {
-      const duration = courseBasics.duration || `${totalLessons * 20} min`
+      // Calculate total duration from all lessons
+      const totalDurationMinutes = modules.reduce((total, module) => {
+        return total + module.lessons.reduce((sum, lesson) => {
+          return sum + (Number(lesson.duration) || 0)
+        }, 0)
+      }, 0)
+      const totalHours = Math.floor(totalDurationMinutes / 60)
+      const remainingMinutes = totalDurationMinutes % 60
+      const durationText = remainingMinutes > 0
+        ? `${totalHours}h${remainingMinutes}min`
+        : `${totalHours}h`
+
       const courseInsert = {
         title: courseBasics.title.trim(),
-        description: courseBasics.description.trim() || null,
-        duration,
-        thumbnail_url: courseBasics.thumbnailUrl || null,
-        lessons_count: totalLessons,
+        description: courseBasics.description.trim(),
+        thumbnail_url: courseBasics.thumbnailUrl,
+        area: courseBasics.area.trim() || null,
+        difficulty: courseBasics.difficulty,
+        format: courseBasics.format,
+        price: courseBasics.price.trim() || null,
+        tags: courseBasics.tags.trim() || null,
+        duration: courseBasics.duration || durationText,
+        lessons_count: 0, // Will be updated by trigger
+        is_published: true,
       }
 
       const { data: newCourse, error: courseError } = await supabase
         .from("courses")
         .insert(courseInsert)
-        .select("id, title, description, duration, lessons_count, thumbnail_url, updated_at")
+        .select("id, title, description, area, difficulty, format, price, tags, duration, lessons_count, thumbnail_url, is_published, published_at, updated_at")
         .single()
 
       if (courseError) {
-        throw courseError
+        console.error("Course insert error:", courseError)
+        throw new Error(`Erro ao criar curso: ${courseError.message}`)
       }
 
       const lessonsPayload = modules.flatMap((module, moduleIndex) =>
         module.lessons.map((lesson, lessonIndex) => ({
-          id: lesson.id,
           course_id: newCourse.id,
           title: lesson.title.trim() || `Aula ${lessonIndex + 1}`,
           description: lesson.notes.trim() || null,
@@ -1087,35 +1002,59 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
         }))
       )
 
+      let insertedLessons: any[] = []
       if (lessonsPayload.length) {
-        const { error: lessonError } = await supabase.from("lessons").insert(lessonsPayload)
+        const { data: lessonData, error: lessonError } = await supabase
+          .from("lessons")
+          .insert(lessonsPayload)
+          .select("id, title, module_title, duration_minutes, video_url, materials, available_at, order_index")
+
         if (lessonError) {
-          throw lessonError
+          console.error("Lesson insert error:", lessonError)
+          // Try to cleanup the created course
+          await supabase.from("courses").delete().eq("id", newCourse.id)
+          throw new Error(`Erro ao criar aulas: ${lessonError.message}`)
         }
+        insertedLessons = lessonData || []
       }
 
+      // Insert course resources if there are materials
       const resourcesPayload = modules.flatMap((module, moduleIndex) =>
-        module.lessons.flatMap((lesson, lessonIndex) =>
-          lesson.materials.map((material, materialIndex) => ({
+        module.lessons.flatMap((lesson, lessonIndex) => {
+          const insertedLesson = insertedLessons.find(
+            (inserted) => inserted.order_index === moduleIndex * 100 + lessonIndex
+          )
+
+          if (!insertedLesson) {
+            console.warn(`Lesson not found for module ${moduleIndex}, lesson ${lessonIndex}`)
+            return []
+          }
+
+          return lesson.materials.map((material, materialIndex) => ({
             course_id: newCourse.id,
-            lesson_id: lesson.id,
+            lesson_id: insertedLesson.id,
             title: material.title.trim(),
             resource_type: material.type,
             description: material.description?.trim() || null,
             url: material.url.trim(),
             position: moduleIndex * 100 + lessonIndex * 10 + materialIndex,
           }))
-        )
-      )
+        })
+      ).filter(r => r.lesson_id) // Remove any without lesson_id
 
-      if (resourcesPayload.length) {
-        const { error: resourceError } = await supabase.from("course_resources").insert(resourcesPayload)
+      if (resourcesPayload.length > 0) {
+        const { error: resourceError } = await supabase
+          .from("course_resources")
+          .insert(resourcesPayload)
+
         if (resourceError) {
-          throw resourceError
+          console.error("Resource insert error:", resourceError)
+          // Don't fail the whole operation for resources, just warn
+          console.warn("Alguns materiais não puderam ser salvos:", resourceError.message)
         }
       }
 
-      const normalizedLessons: CourseLessonRow[] = lessonsPayload.map((lesson) => ({
+      const normalizedLessons: CourseLessonRow[] = insertedLessons.map((lesson) => ({
         id: lesson.id,
         title: lesson.title,
         module_title: lesson.module_title,
@@ -1133,10 +1072,18 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
         ...prev,
       ])
 
-      setStatus({ type: "success", message: "Curso publicado no catálogo e sincronizado com a área de cursos." })
-      resetForms()
+      const successMessage = resourcesPayload.length > 0
+        ? `✓ Curso publicado com sucesso! ${insertedLessons.length} aulas e ${resourcesPayload.length} materiais foram adicionados.`
+        : `✓ Curso publicado com sucesso! ${insertedLessons.length} aulas foram adicionadas.`
+
+      setStatus({ type: "success", message: successMessage })
+
+      // Reset form after a short delay to let user see the success message
+      setTimeout(() => {
+        resetForms()
+      }, 2000)
     } catch (error) {
-      console.error(error)
+      console.error("Error publishing course:", error)
       const message =
         error instanceof Error
           ? error.message
@@ -1153,7 +1100,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
     <div className="space-y-6">
       <Card className="rounded-2xl border border-sky-200/50 bg-white shadow-sm">
         <CardHeader className="pb-4">
-          <CardTitle className="text-[#0891b2] font-bold">Fluxo guiado</CardTitle>
+          <CardTitle className="text-slate-900 font-bold">Fluxo guiado</CardTitle>
           <CardDescription className="text-slate-600">
             Publique em {workflowSteps.length} etapas sem sair desta tela.
           </CardDescription>
@@ -1243,7 +1190,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
           <Button
             type="button"
             variant="outline"
-            className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50"
+            className="rounded-xl border-slate-300 text-slate-900 hover:bg-slate-50"
             onClick={handlePrev}
             disabled={isFirstStep}
           >
