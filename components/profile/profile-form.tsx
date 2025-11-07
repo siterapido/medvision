@@ -154,7 +154,6 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
 
   return (
     <div className="space-y-8">
-<<<<<<< HEAD
       <Card className="relative overflow-hidden border-[#24324F]/60 bg-[#131D37] text-white shadow-2xl shadow-[#0B1627]/40">
         <div className="pointer-events-none absolute inset-0 opacity-70">
           <div className="absolute inset-0 bg-[radial-gradient(75%_60%_at_20%_0%,rgba(8,145,178,0.22),transparent),radial-gradient(55%_45%_at_85%_25%,rgba(6,182,212,0.18),transparent)]" />
@@ -181,61 +180,29 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                 role="status"
                 aria-live="polite"
                 className={`rounded-2xl border p-4 text-sm transition-colors ${message.type === "success" ? "border-emerald-400/60 bg-emerald-500/15 text-emerald-100" : "border-rose-400/60 bg-rose-500/15 text-rose-100"}`}
-=======
-      {/* Informações Pessoais */}
-      <Card className="border-slate-100 bg-gradient-to-br from-white to-slate-50/50 shadow-sm">
-        <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-slate-50/50 to-white pb-6">
-          <CardTitle className="text-xl font-bold text-slate-900">Informações Pessoais</CardTitle>
-          <CardDescription className="text-slate-500 mt-1">
-            Gerencie seus dados pessoais e profissionais
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-8">
-          <form onSubmit={handleSubmit} className="space-y-8">
-            {message && (
-              <div
-                className={`rounded-xl p-4 text-sm font-medium ${message.type === "success" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"}`}
->>>>>>> origin/main
               >
                 {message.text}
               </div>
             )}
 
-<<<<<<< HEAD
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-white/80">
-=======
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-3">
-                <Label htmlFor="name" className="text-sm font-semibold text-slate-700">
->>>>>>> origin/main
                   Nome Completo
                 </Label>
                 <Input
                   id="name"
                   type="text"
-<<<<<<< HEAD
                   autoComplete="name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
-=======
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="h-12 border-slate-200 text-slate-900 bg-white focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-lg"
->>>>>>> origin/main
                   required
                 />
               </div>
 
-<<<<<<< HEAD
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-white/80">
-=======
-              <div className="space-y-3">
-                <Label htmlFor="email" className="text-sm font-semibold text-slate-700">
->>>>>>> origin/main
                   Email
                 </Label>
                 <Input
@@ -244,22 +211,13 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-<<<<<<< HEAD
                   className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
-=======
-                  className="h-12 border-slate-200 text-slate-900 bg-white focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-lg"
->>>>>>> origin/main
                   required
                 />
               </div>
 
-<<<<<<< HEAD
               <div className="space-y-2">
                 <Label htmlFor="profession" className="text-white/80">
-=======
-              <div className="space-y-3">
-                <Label htmlFor="profession" className="text-sm font-semibold text-slate-700">
->>>>>>> origin/main
                   Profissão
                 </Label>
                 <Input
@@ -269,21 +227,16 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                   value={profession}
                   onChange={(e) => setProfession(e.target.value)}
                   placeholder="Ex: Dentista, Estudante"
-<<<<<<< HEAD
+                  className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
+                />
+              </div>
+
                   className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="cro" className="text-white/80">
-=======
-                  className="h-12 border-slate-200 text-slate-900 bg-white placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-lg"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="cro" className="text-sm font-semibold text-slate-700">
->>>>>>> origin/main
                   CRO
                 </Label>
                 <Input
@@ -292,21 +245,16 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                   value={cro}
                   onChange={(e) => setCro(e.target.value)}
                   placeholder="Ex: CRO-SP 12345"
-<<<<<<< HEAD
+                  className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
+                />
+              </div>
+
                   className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
                 />
               </div>
 
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="company" className="text-white/80">
-=======
-                  className="h-12 border-slate-200 text-slate-900 bg-white placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-lg"
-                />
-              </div>
-
-              <div className="space-y-3 md:col-span-2">
-                <Label htmlFor="company" className="text-sm font-semibold text-slate-700">
->>>>>>> origin/main
                   Empresa/Clínica
                 </Label>
                 <Input
@@ -316,28 +264,16 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                   value={company}
                   onChange={(e) => setCompany(e.target.value)}
                   placeholder="Ex: Clínica Odonto Saúde"
-<<<<<<< HEAD
                   className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
-=======
-                  className="h-12 border-slate-200 text-slate-900 bg-white placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-lg"
->>>>>>> origin/main
                 />
               </div>
             </div>
 
-<<<<<<< HEAD
             <div className="flex flex-wrap gap-3 pt-4">
               <Button
                 type="submit"
                 disabled={isLoading}
                 className="bg-[#06b6d4] text-[#0B1627] hover:bg-[#0891b2]"
-=======
-            <div className="flex gap-3 pt-2 border-t border-slate-100">
-              <Button
-                type="submit"
-                disabled={isLoading}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 h-11 rounded-lg font-semibold shadow-sm"
->>>>>>> origin/main
               >
                 {isLoading ? "Salvando..." : "Salvar Alterações"}
               </Button>
@@ -346,11 +282,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                 variant="outline"
                 onClick={handleReset}
                 disabled={isLoading}
-<<<<<<< HEAD
                 className="border-white/20 text-white hover:border-white hover:bg-white/5"
-=======
-                className="border-slate-200 text-slate-700 hover:bg-slate-50 h-11 px-6 rounded-lg font-semibold"
->>>>>>> origin/main
               >
                 Cancelar
               </Button>
@@ -359,7 +291,6 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
         </CardContent>
       </Card>
 
-<<<<<<< HEAD
       <Card className="relative overflow-hidden border-[#24324F]/60 bg-[#0F192F] text-white shadow-2xl shadow-[#060d1d]/50">
         <div className="pointer-events-none absolute inset-0 opacity-60">
           <div className="absolute inset-0 bg-[radial-gradient(65%_60%_at_10%_0%,rgba(35,153,180,0.28),transparent),radial-gradient(45%_45%_at_80%_40%,rgba(8,145,178,0.18),transparent)]" />
@@ -449,58 +380,9 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                 >
                   {isChangingPassword ? "Alterando..." : "Alterar Senha"}
                 </Button>
-=======
-      {/* Alterar Senha */}
-      <Card className="border-slate-100 bg-gradient-to-br from-white to-slate-50/50 shadow-sm">
-        <CardHeader className="border-b border-slate-100 bg-gradient-to-r from-slate-50/50 to-white pb-6">
-          <CardTitle className="text-xl font-bold text-slate-900">Segurança</CardTitle>
-          <CardDescription className="text-slate-500 mt-1">
-            Altere sua senha de acesso
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-8">
-          <form onSubmit={handlePasswordChange} className="space-y-8">
-            {passwordMessage && (
-              <div
-                className={`rounded-xl p-4 text-sm font-medium ${passwordMessage.type === "success" ? "bg-green-50 text-green-700 border border-green-100" : "bg-red-50 text-red-700 border border-red-100"}`}
-              >
-                {passwordMessage.text}
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              <div className="space-y-3 md:col-span-2">
-                <Label htmlFor="currentPassword" className="text-sm font-semibold text-slate-700">
-                  Senha Atual <span className="text-slate-400 font-normal">(opcional)</span>
-                </Label>
-                <Input
-                  id="currentPassword"
-                  type="password"
-                  value={currentPassword}
-                  onChange={(e) => setCurrentPassword(e.target.value)}
-                  className="h-12 border-slate-200 text-slate-900 bg-white placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-lg"
-                  placeholder="Digite sua senha atual"
-                />
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="newPassword" className="text-sm font-semibold text-slate-700">
-                  Nova Senha
-                </Label>
-                <Input
-                  id="newPassword"
-                  type="password"
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="h-12 border-slate-200 text-slate-900 bg-white placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-lg"
-                  placeholder="Mínimo 6 caracteres"
-                  required
-                />
->>>>>>> origin/main
               </div>
             </form>
 
-<<<<<<< HEAD
             <div className="space-y-4">
               <div className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/5 via-transparent to-transparent p-5">
                 <p className="text-sm font-semibold text-white">Boas práticas recomendadas</p>
@@ -523,34 +405,6 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               </div>
             </div>
           </div>
-=======
-              <div className="space-y-3">
-                <Label htmlFor="confirmPassword" className="text-sm font-semibold text-slate-700">
-                  Confirmar Nova Senha
-                </Label>
-                <Input
-                  id="confirmPassword"
-                  type="password"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="h-12 border-slate-200 text-slate-900 bg-white placeholder:text-slate-400 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-lg"
-                  placeholder="Repita a nova senha"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 pt-2 border-t border-slate-100">
-              <Button
-                type="submit"
-                disabled={isChangingPassword || !newPassword || !confirmPassword}
-                className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 h-11 rounded-lg font-semibold shadow-sm"
-              >
-                {isChangingPassword ? "Alterando..." : "Alterar Senha"}
-              </Button>
-            </div>
-          </form>
->>>>>>> origin/main
         </CardContent>
       </Card>
     </div>
