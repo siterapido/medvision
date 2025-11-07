@@ -1,5 +1,4 @@
 import { ProfileForm } from "@/components/profile/profile-form"
-import { Card } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/server"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
@@ -7,7 +6,6 @@ import { ptBR } from "date-fns/locale"
 export default async function PerfilPage() {
   const supabase = await createClient()
 
-  // Get authenticated user
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -16,24 +14,19 @@ export default async function PerfilPage() {
     return null
   }
 
-  // Get user profile
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
-
-  // Get user subscription
   const { data: subscription } = await supabase.from("subscriptions").select("*").eq("user_id", user.id).single()
 
-  const displayName = profile?.full_name || user.email?.split("@")[0] || "Usuário"
+  const displayName = profile?.full_name || user.email?.split("@")[0] || "Profissional"
+  const professionalRole = profile?.profession || "Profissional da odontologia"
+  const companyName = profile?.company || "Clínica não informada"
 
-  // Get initials for avatar
-  const getInitials = (name: string) => {
-    const parts = name.split(" ")
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase()
-    }
-    return name.substring(0, 2).toUpperCase()
-  }
-
-  const initials = getInitials(displayName)
+  const initials = displayName
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("") || "OG"
 
   const planType =
     subscription?.plan === "monthly"
@@ -47,39 +40,57 @@ export default async function PerfilPage() {
     : "Recente"
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">Perfil</h1>
-        <p className="text-muted-foreground">Gerencie suas informações pessoais</p>
+    <div className="relative mx-auto max-w-5xl space-y-8 px-4 py-6 lg:px-0">
+      <div className="space-y-2">
+        <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Área do profissional</p>
+        <h1 className="text-3xl font-semibold text-slate-900">Seu perfil no Odonto GPT</h1>
+        <p className="text-base text-slate-600">
+          Centralize informações clínicas e mantenha seus dados alinhados com a experiência premium do app.
+        </p>
       </div>
 
-      <Card className="p-6">
-        <div className="flex items-center gap-6 mb-8 pb-6 border-b border-border">
-          <div className="relative">
-            <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-3xl font-bold">
-              {initials}
+      <section className="relative overflow-hidden rounded-3xl border border-[#24324F]/50 bg-[#0F192F] px-6 py-8 text-white shadow-2xl">
+        <div className="absolute inset-0 opacity-60">
+          <div className="absolute inset-0 bg-[radial-gradient(75%_65%_at_15%_20%,rgba(8,145,178,0.35),transparent),radial-gradient(60%_60%_at_85%_30%,rgba(6,182,212,0.25),transparent)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent)] mix-blend-screen" />
+        </div>
+
+        <div className="relative">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-center">
+            <div className="relative w-fit">
+              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-white/10 text-3xl font-semibold text-white backdrop-blur">
+                {initials}
+              </div>
+              <span className="absolute -bottom-1 -right-1 rounded-full bg-emerald-500/90 px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-white">
+                ativo
+              </span>
             </div>
-          </div>
-          <div>
-            <h3 className="text-xl font-semibold mb-1">{displayName}</h3>
-            <p className="text-sm text-muted-foreground mb-2">{profile?.email || user.email}</p>
-            <div className="flex items-center gap-2">
-              <span className="text-xs bg-muted px-2 py-1 rounded">{planType}</span>
-              <span className="text-xs text-muted-foreground">Membro desde {memberSince}</span>
+
+            <div className="space-y-2">
+              <p className="text-sm text-white/70">Bem-vindo(a) de volta</p>
+              <h2 className="text-2xl font-semibold">{displayName}</h2>
+              <p className="text-sm text-white/70">{professionalRole}</p>
+              <p className="text-sm text-white/60">{companyName}</p>
+
+              <div className="flex flex-wrap gap-3 pt-3 text-xs font-medium">
+                <span className="rounded-full bg-white/10 px-3 py-1 text-white">{planType}</span>
+                <span className="rounded-full border border-white/20 px-3 py-1 text-white/80">Membro desde {memberSince}</span>
+                {profile?.cro && <span className="rounded-full px-3 py-1 text-white/60">CRO {profile.cro}</span>}
+              </div>
             </div>
           </div>
         </div>
+      </section>
 
-        <ProfileForm
-          initialData={{
-            full_name: profile?.full_name || "",
-            email: profile?.email || user.email || "",
-            profession: profile?.profession || "",
-            cro: profile?.cro || "",
-            company: profile?.company || "",
-          }}
-        />
-      </Card>
+      <ProfileForm
+        initialData={{
+          full_name: profile?.full_name || "",
+          email: profile?.email || user.email || "",
+          profession: profile?.profession || "",
+          cro: profile?.cro || "",
+          company: profile?.company || "",
+        }}
+      />
     </div>
   )
 }
