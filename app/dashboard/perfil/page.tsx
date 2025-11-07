@@ -74,6 +74,9 @@ export default async function PerfilPage() {
           initialData={{
             full_name: profile?.full_name || "",
             email: profile?.email || user.email || "",
+            profession: profile?.profession || "",
+            cro: profile?.cro || "",
+            company: profile?.company || "",
           }}
         />
       </Card>

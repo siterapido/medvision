@@ -46,6 +46,7 @@ const navigation: NavItem[] = [
 export function DashboardSidebar({ user, profile }: DashboardSidebarProps) {
   const pathname = usePathname()
   const userEmail = profile?.email || user.email || ""
+  const userName = profile?.full_name || user.email?.split("@")[0] || "Usuário"
 
   return (
     <aside className="hidden min-h-screen w-72 flex-col border-r border-slate-800 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 shadow-2xl md:flex">
@@ -53,7 +54,6 @@ export function DashboardSidebar({ user, profile }: DashboardSidebarProps) {
         <Link href="/dashboard" aria-label="Dashboard" className="flex items-center gap-2">
           <Logo width={140} height={36} variant="white" />
         </Link>
-        <p className="text-xs uppercase tracking-[0.25em] text-slate-500">Odonto GPT</p>
       </div>
 
       <nav className="flex-1 space-y-1.5 px-4">
@@ -81,10 +81,13 @@ export function DashboardSidebar({ user, profile }: DashboardSidebarProps) {
 
       <div className="space-y-3 px-4 pb-8">
         <div className="rounded-xl border border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900 px-4 py-3 shadow-lg">
+          <p className="text-sm font-semibold text-white truncate mb-1" title={userName}>
+            {userName}
+          </p>
           <p className="text-xs text-slate-400 truncate mb-2" title={userEmail}>
             {userEmail}
           </p>
-          <div className="text-sm text-slate-200">
+          <div className="text-sm text-slate-200 pt-2 border-t border-slate-700">
             Plano: <span className="font-semibold text-white">Free</span>
           </div>
         </div>

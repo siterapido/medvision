@@ -19,7 +19,8 @@ import {
 import { Response } from "@/components/ai-elements/response"
 import { Action, Actions } from "@/components/ai-elements/actions"
 import { Loader } from "@/components/ai-elements/loader"
-import { CopyIcon, RefreshCcwIcon, Sparkles } from "lucide-react"
+import { CopyIcon, RefreshCcwIcon, Sparkles, Share2Icon } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 type ChatMessage = {
   id: string
@@ -148,75 +149,122 @@ export function ChatInterface() {
     navigator.clipboard.writeText(text)
   }
 
+  const copyAllMessages = () => {
+    const allText = messages
+      .map((m) => `${m.role === "user" ? "Você" : "Odonto GPT"}: ${m.content}`)
+      .join("\n\n")
+    navigator.clipboard.writeText(allText)
+  }
+
+  const shareChat = () => {
+    const allText = messages
+      .map((m) => `${m.role === "user" ? "Você" : "Odonto GPT"}: ${m.content}`)
+      .join("\n\n")
+    if (navigator.share) {
+      navigator.share({
+        title: "Conversa Odonto GPT",
+        text: allText,
+      })
+    }
+  }
+
   return (
-    <div className="flex h-full flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-      <Conversation className="h-full">
+    <div className="flex h-full flex-col bg-white">
+      {/* Header com botões de copiar e compartilhar */}
+      <div className="border-b border-slate-200 bg-white px-4 py-3 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-slate-900">Chat de IA</h2>
+        <div className="flex gap-2">
+          <Button
+            onClick={copyAllMessages}
+            variant="outline"
+            size="sm"
+            className="rounded-lg border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+          >
+            <CopyIcon className="h-4 w-4 mr-2" />
+            Copiar
+          </Button>
+          <Button
+            onClick={shareChat}
+            variant="outline"
+            size="sm"
+            className="rounded-lg border-slate-300 text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+          >
+            <Share2Icon className="h-4 w-4 mr-2" />
+            Compartilhar
+          </Button>
+        </div>
+      </div>
+
+      <Conversation className="h-full bg-slate-50">
         {messages.length === 0 ? (
           <ConversationEmptyState
             description="Envie sua primeira pergunta para começar"
             title="Sem mensagens ainda"
+            className="text-slate-700"
           />
         ) : (
           <ConversationContent className="px-4 py-6">
-            {messages.map((message, index) => (
-              <Fragment key={message.id}>
-                <Message from={message.role} className="mb-4">
-                  <MessageContent
-                    className={`rounded-2xl px-4 py-3 shadow-lg ${
-                      message.role === "user"
-                        ? "bg-primary text-primary-foreground ml-auto max-w-[85%] shadow-primary/20"
-                        : "bg-slate-800 border border-slate-700 text-slate-100 shadow-slate-900/50"
-                    }`}
-                  >
-                    <Response className="text-sm leading-relaxed">{message.content}</Response>
-                  </MessageContent>
-                </Message>
+            <div className="mx-auto max-w-3xl">
+              {messages.map((message, index) => (
+                <Fragment key={message.id}>
+                  <Message from={message.role} className="mb-4">
+                    <MessageContent
+                      className={`rounded-2xl px-4 py-3 shadow-md ${
+                        message.role === "user"
+                          ? "bg-primary text-primary-foreground ml-auto max-w-[85%]"
+                          : "bg-white border border-slate-200 text-slate-900 mr-auto max-w-[85%]"
+                      }`}
+                    >
+                      <Response className="text-sm leading-relaxed">{message.content}</Response>
+                    </MessageContent>
+                  </Message>
 
-                {message.role === "assistant" && index === messages.length - 1 && status === "idle" && (
-                  <Actions className="mt-2 mb-4 flex gap-1">
-                    <Action
-                      onClick={() => regenerateMessage(index)}
-                      label="Regenerar"
-                      className="rounded-full h-8 w-8 flex items-center justify-center bg-slate-800 border border-slate-700 hover:bg-slate-700 transition-colors"
-                    >
-                      <RefreshCcwIcon className="h-3.5 w-3.5 text-slate-300" />
-                    </Action>
-                    <Action
-                      onClick={() => copyToClipboard(message.content)}
-                      label="Copiar"
-                      className="rounded-full h-8 w-8 flex items-center justify-center bg-slate-800 border border-slate-700 hover:bg-slate-700 transition-colors"
-                    >
-                      <CopyIcon className="h-3.5 w-3.5 text-slate-300" />
-                    </Action>
-                  </Actions>
-                )}
-              </Fragment>
-            ))}
-            {status === "submitted" && (
-              <div className="flex items-start gap-3">
-                <div className="rounded-full h-8 w-8 bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0">
-                  <Sparkles className="h-4 w-4 text-primary" />
+                  {message.role === "assistant" && index === messages.length - 1 && status === "idle" && (
+                    <Actions className="mt-2 mb-4 flex gap-1">
+                      <Action
+                        onClick={() => regenerateMessage(index)}
+                        label="Regenerar"
+                        className="rounded-full h-8 w-8 flex items-center justify-center bg-white border border-slate-300 hover:bg-slate-100 transition-colors shadow-sm"
+                      >
+                        <RefreshCcwIcon className="h-3.5 w-3.5 text-slate-700" />
+                      </Action>
+                      <Action
+                        onClick={() => copyToClipboard(message.content)}
+                        label="Copiar"
+                        className="rounded-full h-8 w-8 flex items-center justify-center bg-white border border-slate-300 hover:bg-slate-100 transition-colors shadow-sm"
+                      >
+                        <CopyIcon className="h-3.5 w-3.5 text-slate-700" />
+                      </Action>
+                    </Actions>
+                  )}
+                </Fragment>
+              ))}
+              {status === "submitted" && (
+                <div className="flex items-start gap-3">
+                  <div className="rounded-full h-8 w-8 bg-primary/10 border border-primary/30 flex items-center justify-center flex-shrink-0">
+                    <Sparkles className="h-4 w-4 text-primary" />
+                  </div>
+                  <Loader className="mt-1" />
                 </div>
-                <Loader className="mt-1" />
-              </div>
-            )}
+              )}
+            </div>
           </ConversationContent>
         )}
-        <ConversationScrollButton className="rounded-full shadow-lg bg-slate-800 border border-slate-700 hover:bg-slate-700" />
+        <ConversationScrollButton className="rounded-full shadow-lg bg-white border border-slate-300 hover:bg-slate-100" />
       </Conversation>
 
-      <div className="border-t border-slate-800 bg-slate-900/90 backdrop-blur-sm p-4">
-        <div className="mx-auto w-full max-w-4xl">
+      <div className="border-t border-slate-200 bg-white p-4">
+        <div className="mx-auto w-full max-w-3xl">
           <PromptInput
             onSubmit={({ text }) => {
               return sendMessage(text)
             }}
-            className="rounded-2xl border-2 border-slate-700 bg-slate-800 shadow-xl hover:border-primary/50 focus-within:border-primary transition-colors"
+            className="rounded-xl border-2 border-slate-300 bg-white shadow-md hover:border-primary/50 focus-within:border-primary transition-colors"
           >
             <PromptInputBody className="p-3">
               <PromptInputTextarea
                 placeholder="Digite sua dúvida clínica..."
-                className="text-sm text-slate-100 placeholder:text-slate-500 bg-transparent resize-none"
+                className="text-sm text-slate-900 placeholder:text-slate-400 bg-transparent resize-none"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
               />
@@ -225,7 +273,7 @@ export function ChatInterface() {
               <PromptInputSubmit
                 status={status === "idle" ? undefined : status}
                 disabled={!input.trim() && status === "idle"}
-                className="rounded-full h-9 w-9 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                className="rounded-full h-9 w-9 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </PromptInputFooter>
           </PromptInput>
