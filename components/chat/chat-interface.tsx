@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { Fragment, useEffect, useState } from "react"
 import type { ChatStatus } from "ai"
 import {
   Conversation,
@@ -8,17 +8,18 @@ import {
   ConversationEmptyState,
   ConversationScrollButton,
 } from "@/components/ai-elements/conversation"
-import {
-  Message,
-  MessageContent,
-  MessageResponse,
-} from "@/components/ai-elements/message"
+import { Message, MessageContent } from "@/components/ai-elements/message"
 import {
   PromptInput,
   PromptInputBody,
   PromptInputTextarea,
   PromptInputSubmit,
+  PromptInputFooter,
 } from "@/components/ai-elements/prompt-input"
+import { Response } from "@/components/ai-elements/response"
+import { Action, Actions } from "@/components/ai-elements/actions"
+import { Loader } from "@/components/ai-elements/loader"
+import { CopyIcon, RefreshCcwIcon, Sparkles } from "lucide-react"
 
 type ChatMessage = {
   id: string
@@ -38,6 +39,7 @@ export function ChatInterface() {
     },
   ])
   const [status, setStatus] = useState<ChatStatus>("idle")
+  const [input, setInput] = useState("")
 
   useEffect(() => {
     // noop - Conversation handles stick-to-bottom
@@ -54,6 +56,7 @@ export function ChatInterface() {
     }
     setMessages((prev) => [...prev, userMessage])
     setStatus("submitted")
+    setInput("")
 
     try {
       const response = await fetch("/api/chat", {
@@ -89,47 +92,144 @@ export function ChatInterface() {
         },
       ])
       setStatus("error")
-      // Return to idle after a short delay so user can resend
       setTimeout(() => setStatus("idle"), 1200)
     }
   }
 
+  const regenerateMessage = async (messageIndex: number) => {
+    if (status === "submitted" || status === "streaming") return
+
+    const messageToRegenerate = messages[messageIndex - 1]
+    if (!messageToRegenerate || messageToRegenerate.role !== "user") return
+
+    // Remove last assistant response
+    setMessages((prev) => prev.slice(0, -1))
+    setStatus("submitted")
+
+    try {
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: "demo-user",
+          message: messageToRegenerate.content,
+          plan: "free",
+        }),
+      })
+
+      const data = await response.json()
+
+      const assistantMessage: ChatMessage = {
+        id: `${Date.now()}-assistant-regen`,
+        role: "assistant",
+        content: data.reply || "Desculpe, não consegui processar sua mensagem.",
+        timestamp: new Date(),
+      }
+
+      setMessages((prev) => [...prev, assistantMessage])
+      setStatus("idle")
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `${Date.now()}-error`,
+          role: "assistant",
+          content:
+            "Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.",
+          timestamp: new Date(),
+        },
+      ])
+      setStatus("error")
+      setTimeout(() => setStatus("idle"), 1200)
+    }
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+  }
+
   return (
-    <div className="flex h-full flex-col">
-      <Conversation>
+    <div className="flex h-full flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+      <Conversation className="h-full">
         {messages.length === 0 ? (
           <ConversationEmptyState
             description="Envie sua primeira pergunta para começar"
             title="Sem mensagens ainda"
           />
         ) : (
-          <ConversationContent>
-            {messages.map((m) => (
-              <Message key={m.id} from={m.role}>
-                <MessageContent>
-                  <MessageResponse>{m.content}</MessageResponse>
-                </MessageContent>
-              </Message>
+          <ConversationContent className="px-4 py-6">
+            {messages.map((message, index) => (
+              <Fragment key={message.id}>
+                <Message from={message.role} className="mb-4">
+                  <MessageContent
+                    className={`rounded-2xl px-4 py-3 shadow-lg ${
+                      message.role === "user"
+                        ? "bg-primary text-primary-foreground ml-auto max-w-[85%] shadow-primary/20"
+                        : "bg-slate-800 border border-slate-700 text-slate-100 shadow-slate-900/50"
+                    }`}
+                  >
+                    <Response className="text-sm leading-relaxed">{message.content}</Response>
+                  </MessageContent>
+                </Message>
+
+                {message.role === "assistant" && index === messages.length - 1 && status === "idle" && (
+                  <Actions className="mt-2 mb-4 flex gap-1">
+                    <Action
+                      onClick={() => regenerateMessage(index)}
+                      label="Regenerar"
+                      className="rounded-full h-8 w-8 flex items-center justify-center bg-slate-800 border border-slate-700 hover:bg-slate-700 transition-colors"
+                    >
+                      <RefreshCcwIcon className="h-3.5 w-3.5 text-slate-300" />
+                    </Action>
+                    <Action
+                      onClick={() => copyToClipboard(message.content)}
+                      label="Copiar"
+                      className="rounded-full h-8 w-8 flex items-center justify-center bg-slate-800 border border-slate-700 hover:bg-slate-700 transition-colors"
+                    >
+                      <CopyIcon className="h-3.5 w-3.5 text-slate-300" />
+                    </Action>
+                  </Actions>
+                )}
+              </Fragment>
             ))}
+            {status === "submitted" && (
+              <div className="flex items-start gap-3">
+                <div className="rounded-full h-8 w-8 bg-primary/20 border border-primary/30 flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="h-4 w-4 text-primary" />
+                </div>
+                <Loader className="mt-1" />
+              </div>
+            )}
           </ConversationContent>
         )}
-        <ConversationScrollButton />
+        <ConversationScrollButton className="rounded-full shadow-lg bg-slate-800 border border-slate-700 hover:bg-slate-700" />
       </Conversation>
 
-      <div className="border-t border-border bg-card p-3">
+      <div className="border-t border-slate-800 bg-slate-900/90 backdrop-blur-sm p-4">
         <div className="mx-auto w-full max-w-4xl">
           <PromptInput
             onSubmit={({ text }) => {
               return sendMessage(text)
             }}
-            className=""
+            className="rounded-2xl border-2 border-slate-700 bg-slate-800 shadow-xl hover:border-primary/50 focus-within:border-primary transition-colors"
           >
-            <PromptInputBody>
-              <PromptInputTextarea placeholder="Digite sua dúvida clínica..." />
-              <PromptInputSubmit status={status === "idle" ? undefined : status} />
+            <PromptInputBody className="p-3">
+              <PromptInputTextarea
+                placeholder="Digite sua dúvida clínica..."
+                className="text-sm text-slate-100 placeholder:text-slate-500 bg-transparent resize-none"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+              />
             </PromptInputBody>
+            <PromptInputFooter className="px-3 pb-3 flex items-center justify-end">
+              <PromptInputSubmit
+                status={status === "idle" ? undefined : status}
+                disabled={!input.trim() && status === "idle"}
+                className="rounded-full h-9 w-9 flex items-center justify-center bg-primary hover:bg-primary/90 text-primary-foreground shadow-lg shadow-primary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+            </PromptInputFooter>
           </PromptInput>
-          <p className="mt-2 text-center text-xs text-muted-foreground">
+          <p className="mt-2 text-center text-xs text-slate-500">
             Pressione Enter para enviar, Shift + Enter para nova linha
           </p>
         </div>
