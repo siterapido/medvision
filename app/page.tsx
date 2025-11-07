@@ -74,24 +74,20 @@ export default function LandingPage() {
           />
 
           {/* Text Content - Third on Mobile, Left on Desktop */}
-          <div className="space-y-6 md:space-y-8 text-left order-3 md:order-1">
+          <div className="space-y-5 md:space-y-8 text-left order-3 md:order-1">
             {/* Logo - Hidden on mobile, shown on desktop */}
             <div className="hidden md:flex justify-start mb-4 md:mb-6">
               <Logo variant="white" width={140} height={30} />
             </div>
 
-            <h1 className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-balance">
+            <h1 className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-balance">
               Inteligência Artificial{" "}
               <span className="bg-gradient-to-r from-primary via-accent to-cyan-400 bg-clip-text text-transparent">
                 Especializada em Odontologia
               </span>
             </h1>
 
-            <p className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200 text-lg md:text-xl lg:text-2xl text-slate-300 text-balance leading-relaxed">
-              A IA que responde suas dúvidas clínicas em segundos.
-            </p>
-
-            <p className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200 text-lg md:text-xl lg:text-2xl text-slate-300 text-balance leading-relaxed">
+            <p className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200 text-base sm:text-lg md:text-xl lg:text-2xl text-slate-300 text-balance leading-relaxed">
               Diagnóstico, planejamento e evidências clínicas sem perder tempo em buscas ou grupos.
             </p>
 

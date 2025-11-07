@@ -20,3 +20,6 @@ Use the conventional format seen in history (`feat(auth): …`, `fix(chat): …`
 
 ## Supabase & Configuration Tips
 Store `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local` (never commit secrets). Evolve schemas with the Supabase CLI (`supabase db diff` / `supabase db push`) and commit the generated SQL under `supabase/migrations`, updating `SUPABASE_SETUP.md` if prerequisites change.
+
+## Orientação de Idioma
+Todas as respostas automatizadas e comunicações nos PRs devem ser redigidas em português brasileiro, mantendo tom profissional e direto.
