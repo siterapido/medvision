@@ -54,16 +54,6 @@ export function DashboardSidebar({ user, profile }: DashboardSidebarProps) {
           <Logo width={140} height={36} variant="white" />
         </Link>
         <p className="text-xs uppercase tracking-[0.25em] text-slate-500">Odonto GPT</p>
-        <div className="rounded-xl border border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900 px-4 py-3 shadow-lg">
-          <div className="text-sm text-slate-200">
-            Plano atual: <span className="font-semibold text-white">Free</span>
-          </div>
-          <div className="mt-2 pt-2 border-t border-slate-700">
-            <p className="text-xs text-slate-400 truncate" title={userEmail}>
-              {userEmail}
-            </p>
-          </div>
-        </div>
       </div>
 
       <nav className="flex-1 space-y-1.5 px-4">
@@ -89,22 +79,14 @@ export function DashboardSidebar({ user, profile }: DashboardSidebarProps) {
         })}
       </nav>
 
-      <div className="mt-8 space-y-3 px-4 pb-8">
-        <div className="rounded-2xl border border-slate-700 bg-gradient-to-br from-slate-800 via-slate-900 to-slate-800 p-5 text-sm shadow-xl">
-          <div className="mb-3 flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-primary" />
-            <p className="font-semibold text-white">Modo Expert</p>
-          </div>
-          <p className="text-xs leading-relaxed text-slate-400">
-            Modelos clínicos avançados, mensagens ilimitadas e segunda opinião assistida.
+      <div className="space-y-3 px-4 pb-8">
+        <div className="rounded-xl border border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900 px-4 py-3 shadow-lg">
+          <p className="text-xs text-slate-400 truncate mb-2" title={userEmail}>
+            {userEmail}
           </p>
-          <Button
-            asChild
-            size="sm"
-            className="mt-4 w-full rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 shadow-lg shadow-primary/20"
-          >
-            <Link href="/dashboard/assinatura">Fazer upgrade</Link>
-          </Button>
+          <div className="text-sm text-slate-200">
+            Plano: <span className="font-semibold text-white">Free</span>
+          </div>
         </div>
 
         <Link
