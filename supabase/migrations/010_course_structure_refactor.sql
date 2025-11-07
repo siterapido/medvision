@@ -12,7 +12,9 @@
 ALTER TABLE public.courses
   ADD COLUMN IF NOT EXISTS thumbnail_url text,
   ADD COLUMN IF NOT EXISTS lessons_count integer DEFAULT 0,
-  ADD COLUMN IF NOT EXISTS duration text;
+  ADD COLUMN IF NOT EXISTS duration text,
+  ADD COLUMN IF NOT EXISTS created_at timestamptz DEFAULT timezone('utc'::text, now()),
+  ADD COLUMN IF NOT EXISTS updated_at timestamptz DEFAULT timezone('utc'::text, now());
 
 -- Add metadata fields to courses if they don't exist
 ALTER TABLE public.courses
@@ -157,6 +159,26 @@ CREATE TRIGGER trigger_set_published_at
   BEFORE UPDATE ON public.courses
   FOR EACH ROW
   EXECUTE FUNCTION public.set_course_published_at();
+
+-- =====================================================
+-- 6. CREATE TRIGGER FOR UPDATED_AT
+-- =====================================================
+
+-- Check if handle_updated_at function exists, if not create it
+CREATE OR REPLACE FUNCTION public.handle_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Create trigger for courses updated_at
+DROP TRIGGER IF EXISTS on_courses_updated ON public.courses;
+CREATE TRIGGER on_courses_updated
+  BEFORE UPDATE ON public.courses
+  FOR EACH ROW
+  EXECUTE FUNCTION public.handle_updated_at();
 
 -- =====================================================
 -- 6. UPDATE RLS POLICIES FOR ADMIN OPERATIONS
