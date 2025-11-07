@@ -20,6 +20,7 @@ const buttonVariants = cva(
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
         cta: "rounded-xl border border-[#0e7490]/40 bg-[linear-gradient(135deg,#0891b2_0%,#06b6d4_100%)] text-white font-semibold shadow-[0_10px_35px_rgba(6,182,212,0.45)] hover:shadow-[0_18px_45px_rgba(6,182,212,0.5)] hover:bg-[linear-gradient(135deg,#0e7490_0%,#0891b2_100%)] active:scale-95 focus-visible:ring-primary/40 focus-visible:ring-offset-0",
+        blue: "rounded-xl border border-[#0e7490]/30 bg-[linear-gradient(135deg,#0891b2_0%,#06b6d4_100%)] text-white font-semibold shadow-[0_10px_30px_rgba(8,145,178,0.35)] hover:bg-[linear-gradient(135deg,#0e7490_0%,#0891b2_100%)] hover:shadow-[0_16px_40px_rgba(6,182,212,0.45)] active:scale-[0.98]",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

@@ -96,33 +96,33 @@ export default function AdminInvitePage() {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-10 lg:px-0">
       <div className="flex flex-col gap-4 sm:items-center sm:justify-between sm:flex-row">
         <div>
-          <p className="text-sm text-slate-500 font-semibold uppercase tracking-wide">Convite interno</p>
-          <h1 className="text-3xl font-bold text-slate-900 mt-2">Cadastrar novo administrador</h1>
-          <p className="text-sm text-slate-600 mt-2 max-w-lg">
+          <p className="text-sm text-sky-300 font-semibold uppercase tracking-wide">Convite interno</p>
+          <h1 className="text-3xl font-bold text-white mt-2">Cadastrar novo administrador</h1>
+          <p className="text-sm text-sky-200/80 mt-2 max-w-lg">
             Apenas admins autenticados podem acessar esta tela. Compartilhe o link apenas com quem precisa ter acesso.
           </p>
         </div>
-        <Button asChild variant="outline" className="rounded-xl border-sky-300/50 text-slate-700 hover:bg-sky-50 whitespace-nowrap">
+        <Button asChild variant="outline" className="rounded-xl border-sky-600/50 text-white bg-sky-900/50 hover:bg-sky-900/70 whitespace-nowrap">
           <Link href="/admin">Voltar ao painel</Link>
         </Button>
       </div>
 
-      <Card className="rounded-2xl border border-sky-200/50 bg-white shadow-sm">
+      <Card className="rounded-2xl border border-sky-600/40 bg-sky-900/50">
         <CardHeader className="gap-2 pb-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-sky-100 to-cyan-100">
-              <UserPlus2 className="h-5 w-5 text-[#0891b2]" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-sky-700 to-cyan-700">
+              <UserPlus2 className="h-5 w-5 text-sky-200" />
             </div>
-            <CardTitle className="text-slate-900">Cadastro rápido</CardTitle>
+            <CardTitle className="text-white">Cadastro rápido</CardTitle>
           </div>
-          <CardDescription className="text-slate-600">
+          <CardDescription className="text-sky-200/80">
             Defina credenciais provisórias. A pessoa convidada poderá alterar a senha após o primeiro acesso.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-slate-700 font-semibold">
+              <Label htmlFor="name" className="text-white font-semibold">
                 Nome completo
               </Label>
               <Input
@@ -130,13 +130,13 @@ export default function AdminInvitePage() {
                 placeholder="Ex: Dra. Ana Monteiro"
                 value={form.name}
                 onChange={handleChange("name")}
-                className="rounded-lg border-sky-200/50 text-slate-900 placeholder:text-slate-400 focus-visible:ring-sky-500/50"
+                className="rounded-lg border-sky-600/50 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-sky-400/50"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-slate-700 font-semibold">
+              <Label htmlFor="email" className="text-white font-semibold">
                 Email corporativo
               </Label>
               <Input
@@ -145,13 +145,13 @@ export default function AdminInvitePage() {
                 placeholder="admin@odontogpt.com"
                 value={form.email}
                 onChange={handleChange("email")}
-                className="rounded-lg border-sky-200/50 text-slate-900 placeholder:text-slate-400 focus-visible:ring-sky-500/50"
+                className="rounded-lg border-sky-600/50 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-sky-400/50"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-slate-700 font-semibold">
+              <Label htmlFor="password" className="text-white font-semibold">
                 Senha temporária
               </Label>
               <Input
@@ -161,25 +161,25 @@ export default function AdminInvitePage() {
                 value={form.password}
                 onChange={handleChange("password")}
                 minLength={8}
-                className="rounded-lg border-sky-200/50 text-slate-900 placeholder:text-slate-400 focus-visible:ring-sky-500/50"
+                className="rounded-lg border-sky-600/50 bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-sky-400/50"
                 required
               />
             </div>
 
             {error && (
-              <div className="rounded-lg border border-rose-300/50 bg-rose-50 p-4 text-sm text-rose-800">
+              <div className="rounded-lg border border-rose-400/60 bg-rose-500/10 p-4 text-sm text-rose-100">
                 <p className="font-semibold">Erro ao registrar</p>
                 <p className="text-xs mt-1">{error}</p>
               </div>
             )}
 
             {successData && (
-              <div className="rounded-lg border border-emerald-300/50 bg-emerald-50 p-4 text-sm text-emerald-900">
-                <p className="flex items-center gap-2 font-semibold text-emerald-900">
+              <div className="rounded-lg border border-emerald-400/60 bg-emerald-500/10 p-4 text-sm text-emerald-100">
+                <p className="flex items-center gap-2 font-semibold text-emerald-50">
                   <CheckCircle2 className="h-5 w-5" />
                   Admin criado com sucesso!
                 </p>
-                <p className="text-xs mt-2 text-emerald-800">
+                <p className="text-xs mt-2 text-emerald-100">
                   Envie as credenciais para <span className="font-semibold">{successData.email}</span>.
                 </p>
               </div>
@@ -187,7 +187,7 @@ export default function AdminInvitePage() {
 
             <Button
               type="submit"
-              className="w-full rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 text-white font-semibold hover:from-sky-600 hover:to-cyan-600 shadow-md"
+              className="w-full rounded-lg bg-gradient-to-r from-sky-500 to-cyan-500 text-white font-semibold hover:from-sky-600 hover:to-cyan-600 shadow-lg"
               disabled={loading}
             >
               {loading ? (
@@ -203,29 +203,29 @@ export default function AdminInvitePage() {
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border border-sky-200/50 bg-white shadow-sm">
+      <Card className="rounded-2xl border border-sky-600/40 bg-sky-900/50">
         <CardHeader className="gap-2 pb-4">
           <div className="flex items-center gap-2">
-            <Badge className="border-sky-300/60 bg-sky-100 text-sky-900 font-semibold">Link interno</Badge>
-            <CardTitle className="text-slate-900">Compartilhe com segurança</CardTitle>
+            <Badge className="border-sky-500/60 bg-sky-700 text-sky-100 font-semibold">Link interno</Badge>
+            <CardTitle className="text-white">Compartilhe com segurança</CardTitle>
           </div>
-          <CardDescription className="text-slate-600">
+          <CardDescription className="text-sky-200/80">
             O link só funciona para usuários logados como admin. Utilize canais internos (Slack, e-mail corporativo) e
             revogue acessos quando necessário.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-lg border border-slate-300/50 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <code className="break-all text-xs text-slate-700 font-mono bg-white rounded px-3 py-2 border border-slate-200/50">{inviteLink}</code>
+          <div className="flex flex-col gap-3 rounded-lg border border-sky-600/40 bg-sky-800/50 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <code className="break-all text-xs text-sky-100 font-mono bg-sky-950/60 rounded px-3 py-2 border border-sky-600/40">{inviteLink}</code>
             <Button
               type="button"
               variant="outline"
               onClick={copyLink}
-              className="rounded-lg border-sky-300/50 text-slate-700 hover:bg-sky-50"
+              className="rounded-lg border-sky-600/50 text-white bg-sky-800/50 hover:bg-sky-800/70"
             >
               {copied ? (
                 <>
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                   Copiado!
                 </>
               ) : (
@@ -237,11 +237,11 @@ export default function AdminInvitePage() {
             </Button>
           </div>
           <div className="space-y-2">
-            <Label className="text-slate-700 font-semibold">Mensagem sugerida</Label>
+            <Label className="text-white font-semibold">Mensagem sugerida</Label>
             <Textarea
               readOnly
               value={`Oi! Você foi convidado(a) para administrar o Odonto GPT.\n\n1. Acesse: ${inviteLink}\n2. Informe o email corporativo autorizado\n3. Troque a senha após o primeiro login\n\nDúvidas? Fale com a diretoria.`}
-              className="rounded-lg border-sky-200/50 bg-slate-50 text-slate-700 resize-none focus-visible:ring-sky-500/50"
+              className="rounded-lg border-sky-600/40 bg-white text-slate-900 resize-none focus-visible:ring-sky-400/50"
             />
           </div>
         </CardContent>

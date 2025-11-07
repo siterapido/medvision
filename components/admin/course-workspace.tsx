@@ -312,47 +312,47 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
   }
 
   const renderBasicsCard = () => (
-    <Card className="rounded-2xl border border-[#0891b2]/20 bg-white">
+    <Card className="rounded-2xl border border-sky-600/40 bg-sky-900/50">
       <CardHeader>
-        <CardTitle className="text-[#0e7490]">Cadastro rápido</CardTitle>
-        <CardDescription className="text-slate-600">
+        <CardTitle className="text-white">Cadastro rápido</CardTitle>
+        <CardDescription className="text-sky-200/80">
           {shortName}, preencha os detalhes essenciais do curso. Assim que publicar, ele aparece automaticamente na área de cursos para os alunos.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-sm text-slate-700">Título do curso <span className="text-rose-500">*</span></label>
+            <label className="text-sm text-white font-semibold">Título do curso <span className="text-rose-400">*</span></label>
             <Input
               value={courseBasics.title}
               onChange={(event) => handleCourseField("title", event.target.value)}
               placeholder="Ex.: Sedação consciente na prática clínica"
-              className={cn("bg-white", stepTouched.basics && !courseBasics.title.trim() && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
+              className={cn("bg-white text-slate-900 border-sky-600/50 placeholder:text-slate-400", stepTouched.basics && !courseBasics.title.trim() && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
               aria-invalid={stepTouched.basics && !courseBasics.title.trim()}
             />
             {stepTouched.basics && !courseBasics.title.trim() && (
-              <p className="text-xs text-rose-700">Informe o título do curso.</p>
+              <p className="text-xs text-rose-300">Informe o título do curso.</p>
             )}
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-slate-700">Área / especialidade <span className="text-rose-500">*</span></label>
+            <label className="text-sm text-white font-semibold">Área / especialidade <span className="text-rose-400">*</span></label>
             <Input
               value={courseBasics.area}
               onChange={(event) => handleCourseField("area", event.target.value)}
               placeholder="Ex.: Cirurgia oral, DTM"
-              className={cn("bg-white", stepTouched.basics && !courseBasics.area.trim() && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
+              className={cn("bg-white text-slate-900 border-sky-600/50 placeholder:text-slate-400", stepTouched.basics && !courseBasics.area.trim() && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
               aria-invalid={stepTouched.basics && !courseBasics.area.trim()}
             />
             {stepTouched.basics && !courseBasics.area.trim() && (
-              <p className="text-xs text-rose-700">Defina a especialidade principal.</p>
+              <p className="text-xs text-rose-300">Defina a especialidade principal.</p>
             )}
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
-            <label className="text-sm text-slate-700">Formato</label>
+            <label className="text-sm text-white font-semibold">Formato</label>
             <Select value={courseBasics.format} onValueChange={(value) => handleCourseField("format", value)}>
-              <SelectTrigger className="bg-white">
+              <SelectTrigger className="bg-white text-slate-900 border-sky-600/50">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -365,22 +365,22 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
             </Select>
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-slate-700">Carga horária <span className="text-rose-500">*</span></label>
+            <label className="text-sm text-white font-semibold">Carga horária <span className="text-rose-400">*</span></label>
             <Input
               value={courseBasics.duration}
               onChange={(event) => handleCourseField("duration", event.target.value)}
               placeholder="12h"
-              className={cn("bg-white", stepTouched.basics && !courseBasics.duration.trim() && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
+              className={cn("bg-white text-slate-900 border-sky-600/50 placeholder:text-slate-400", stepTouched.basics && !courseBasics.duration.trim() && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
               aria-invalid={stepTouched.basics && !courseBasics.duration.trim()}
             />
             {stepTouched.basics && !courseBasics.duration.trim() && (
-              <p className="text-xs text-rose-700">Informe a carga horária estimada.</p>
+              <p className="text-xs text-rose-300">Informe a carga horária estimada.</p>
             )}
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-slate-700">Nível</label>
+            <label className="text-sm text-white font-semibold">Nível</label>
             <Select value={courseBasics.difficulty} onValueChange={(value) => handleCourseField("difficulty", value)}>
-              <SelectTrigger className="bg-white">
+              <SelectTrigger className="bg-white text-slate-900 border-sky-600/50">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>

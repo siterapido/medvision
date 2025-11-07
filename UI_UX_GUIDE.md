@@ -20,6 +20,28 @@
 
 ---
 
+## Navegação e Padrões
+
+- Admin (fundo claro, painéis escuros): a rota `app/admin` usa `bg-slate-50` com painéis em degradê azul claro (`from-sky-800 via-sky-700 to-sky-800`) e glows `sky`.
+- O blocão “Central de cursos” é azul: use painel com degradê azul escuro (`linear-gradient(135deg, #0f3a63 0%, #124a78 100%)`) e textos claros; botões principais podem ser brancos para alto contraste.
+- Cadastro de cursos: deixou de ser popup. O botão "Nova trilha guiada" leva para `app/admin/cursos/novo`, página clara com painel escuro e formulário por etapas (colapsáveis/“acordeão”).
+- Cards de estatísticas são claros (`bg-white` + `border-slate-200`) para não “escurecer tudo”. Detalhes (badges, ícones, headers) mantêm acentos teal.
+
+### Acentos com degradês azul escuro (vida/ênfase)
+
+- Botões principais: use `Button` com `variant="blue"` (gradiente teal do dashboard: `#0891b2 → #06b6d4`) em CTAs como “Nova trilha guiada” e “Publicar curso”.
+- Ícones em métricas/charts: use fundo com leve gradiente `bg-[linear-gradient(135deg,rgba(8,145,178,0.12)_0%,rgba(6,182,212,0.06)_100%)]`.
+- Gráficos/visualizações: adote traços/fills `#0f3a63 → #124a78` para linhas/áreas e use superfícies claras.
+- Regra: aplique degradê apenas em elementos de foco (CTAs, pontos de dados, indicadores) para preservar o minimalismo no restante da UI.
+
+### Números e blocos de “roteiros de cursos”
+
+- Números (métricas do painel): use `text-[#0891b2]` (ou `text-primary`) para valores principais.
+- Blocos de roteiros/etapas (cards do cadastro de cursos, módulos e aulas): bordas `border-[#0891b2]/20` e headings `text-[#0e7490]`.
+- Painel “Central de cursos”: gradiente teal do dashboard `linear-gradient(135deg,#0891b2,#06b6d4)` com botões brancos para contraste.
+
+---
+
 ## Visão Geral
 
 O design do Odonto GPT segue uma estética **profissional médica** com tons de **ciano/teal** que transmitem:
@@ -163,6 +185,30 @@ background:
 ```
 
 **Uso:** Seção principal da landing page com vídeo VSL e CTA primário.
+
+---
+
+### 1.1 Gradientes claros (UI interna)
+
+Recomendação para elementos de UI em páginas claras (admin, cards, painéis):
+
+```css
+/* Painéis escuros com azul mais claro */
+background: linear-gradient(135deg, #0f3a63 0%, #124a78 45%, #0f3a63 100%);
+/* Alternativa Tailwind */
+bg-gradient-to-br from-sky-800 via-sky-700 to-sky-800
+
+/* Cards claros com leve degradê azul */
+background: linear-gradient(180deg, #ffffff 0%, #f0f9ff 100%);
+/* Alternativa Tailwind */
+bg-gradient-to-b from-white to-sky-50
+
+/* Glows / overlays em páginas claras */
+radial-gradient(circle at top, rgba(56, 189, 248, 0.22), transparent 62%),
+radial-gradient(circle at bottom, rgba(186, 230, 253, 0.35), transparent 70%)
+```
+
+Use estes gradientes para “clarear” os tons de azul sem perder o contraste esperado para conteúdo e ícones.
 
 ---
 
