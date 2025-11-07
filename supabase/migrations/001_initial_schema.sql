@@ -33,10 +33,10 @@ create policy "public can read notes"
 -- Create profiles table linked to auth.users
 create table if not exists public.profiles (
   id uuid references auth.users on delete cascade not null primary key,
-  full_name text,
+  name text,
   email text,
   avatar_url text,
-  role text default 'user' check (role in ('user', 'admin')),
+  role text not null default 'cliente' check (role in ('cliente', 'admin')),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -45,22 +45,38 @@ create table if not exists public.profiles (
 alter table public.profiles enable row level security;
 
 -- Policy: Users can view their own profile
-create policy "Users can view own profile"
+create policy "Clientes podem ver o próprio perfil"
   on public.profiles
   for select
   using ( auth.uid() = id );
 
--- Policy: Users can update their own profile
-create policy "Users can update own profile"
+-- Policy: Clients can update their own profile (role enforced elsewhere)
+create policy "Clientes podem atualizar o próprio perfil"
   on public.profiles
   for update
-  using ( auth.uid() = id );
-
--- Policy: Users can insert their own profile
-create policy "Users can insert own profile"
-  on public.profiles
-  for insert
+  using ( auth.uid() = id )
   with check ( auth.uid() = id );
+
+-- Policy: Admins have full access to manage every profile
+create policy "Admins podem gerenciar perfis"
+  on public.profiles
+  for all
+  using (
+    exists (
+      select 1
+      from public.profiles admins
+      where admins.id = auth.uid()
+        and admins.role = 'admin'
+    )
+  )
+  with check (
+    exists (
+      select 1
+      from public.profiles admins
+      where admins.id = auth.uid()
+        and admins.role = 'admin'
+    )
+  );
 
 -- =====================================================
 -- Trigger: Auto-create profile on user signup
@@ -71,13 +87,33 @@ returns trigger
 language plpgsql
 security definer set search_path = public
 as $$
+declare
+  sanitized_role text;
+  profile_name text;
 begin
-  insert into public.profiles (id, full_name, email)
+  sanitized_role := case
+    when new.raw_user_meta_data->>'role' = 'admin' then 'admin'
+    else 'cliente'
+  end;
+
+  profile_name := coalesce(
+    new.raw_user_meta_data->>'name',
+    new.raw_user_meta_data->>'full_name',
+    split_part(coalesce(new.email, ''), '@', 1)
+  );
+
+  insert into public.profiles (id, name, email, role)
   values (
     new.id,
-    new.raw_user_meta_data->>'full_name',
-    new.email
-  );
+    profile_name,
+    new.email,
+    sanitized_role
+  )
+  on conflict (id) do update
+  set name = excluded.name,
+      email = excluded.email,
+      role = excluded.role;
+
   return new;
 end;
 $$;
