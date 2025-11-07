@@ -1,7 +1,65 @@
 -- =====================================================
--- Migration: Course Structure Refactor
--- Created: 2025-11-07
--- Description: Consolidates and fixes course structure with proper metadata fields
+-- INSTRUÇÕES DE EXECUÇÃO
+-- =====================================================
+-- 1. Acesse: https://supabase.com/dashboard/project/qphofwxpmmhfplylozsh/sql/new
+-- 2. Copie TODO o conteúdo deste arquivo
+-- 3. Cole no SQL Editor
+-- 4. Clique em "RUN" ou pressione Ctrl+Enter
+-- 5. Aguarde a mensagem de sucesso
+-- =====================================================
+
+-- =====================================================
+-- MIGRATION 009: Storage Buckets
+-- =====================================================
+
+-- Insert bucket for course assets (thumbnails, materials, etc)
+INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+VALUES (
+  'course-assets',
+  'course-assets',
+  true,
+  52428800, -- 50MB
+  ARRAY['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf', 'application/vnd.ms-powerpoint', 'application/vnd.openxmlformats-officedocument.presentationml.presentation']
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "Anyone can view course assets" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can upload course assets" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can update course assets" ON storage.objects;
+DROP POLICY IF EXISTS "Authenticated users can delete course assets" ON storage.objects;
+
+-- Policy: Anyone can view files in course-assets
+CREATE POLICY "Anyone can view course assets"
+  ON storage.objects FOR SELECT
+  USING (bucket_id = 'course-assets');
+
+-- Policy: Authenticated users can upload to course-assets
+CREATE POLICY "Authenticated users can upload course assets"
+  ON storage.objects FOR INSERT
+  WITH CHECK (
+    bucket_id = 'course-assets'
+    AND auth.role() = 'authenticated'
+  );
+
+-- Policy: Authenticated users can update their own uploads
+CREATE POLICY "Authenticated users can update course assets"
+  ON storage.objects FOR UPDATE
+  USING (
+    bucket_id = 'course-assets'
+    AND auth.role() = 'authenticated'
+  );
+
+-- Policy: Authenticated users can delete their own uploads
+CREATE POLICY "Authenticated users can delete course assets"
+  ON storage.objects FOR DELETE
+  USING (
+    bucket_id = 'course-assets'
+    AND auth.role() = 'authenticated'
+  );
+
+-- =====================================================
+-- MIGRATION 010: Course Structure Refactor
 -- =====================================================
 
 -- =====================================================
@@ -142,7 +200,7 @@ CREATE TRIGGER trigger_update_lessons_count
 CREATE OR REPLACE FUNCTION public.set_course_published_at()
 RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.is_published = true AND OLD.is_published = false THEN
+  IF NEW.is_published = true AND (OLD.is_published IS NULL OR OLD.is_published = false) THEN
     NEW.published_at = NOW();
   ELSIF NEW.is_published = false THEN
     NEW.published_at = NULL;
@@ -232,7 +290,9 @@ CREATE POLICY "Admins podem gerenciar recursos de curso"
 -- 7. CREATE HELPER VIEW FOR ADMIN COURSE LISTING
 -- =====================================================
 
-CREATE OR REPLACE VIEW public.admin_courses_with_stats AS
+DROP VIEW IF EXISTS public.admin_courses_with_stats;
+
+CREATE VIEW public.admin_courses_with_stats AS
 SELECT
   c.id,
   c.title,
@@ -281,10 +341,10 @@ GRANT SELECT ON public.admin_courses_with_stats TO authenticated;
 -- Set default values for existing courses
 UPDATE public.courses
 SET
-  is_published = true,
-  published_at = created_at,
-  difficulty = 'Intermediário',
-  format = '100% online'
+  is_published = COALESCE(is_published, true),
+  published_at = COALESCE(published_at, created_at),
+  difficulty = COALESCE(difficulty, 'Intermediário'),
+  format = COALESCE(format, '100% online')
 WHERE is_published IS NULL OR difficulty IS NULL OR format IS NULL;
 
 -- Ensure all lessons have proper order_index
@@ -305,6 +365,19 @@ UPDATE public.lessons
 SET materials = '[]'::jsonb
 WHERE materials IS NULL;
 
+-- Update lessons_count for all courses
+UPDATE public.courses c
+SET lessons_count = (
+  SELECT COUNT(*)
+  FROM public.lessons l
+  WHERE l.course_id = c.id
+);
+
 -- =====================================================
--- COMPLETED
+-- COMPLETED ✅
 -- =====================================================
+-- As migrations 009 e 010 foram aplicadas com sucesso!
+-- Verifique abaixo se há algum erro. Se não houver, tudo está pronto!
+-- =====================================================
+
+SELECT 'Migration completed successfully! ✅' as status;
