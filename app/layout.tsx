@@ -8,6 +8,9 @@ import EnvWarning from "@/components/env-warning"
 
 import { Inter } from 'next/font/google'
 
+// Sentry must be imported in the root layout
+import * as Sentry from "@sentry/nextjs"
+
 // Otimizando carregamento de fontes - apenas pesos realmente usados
 const inter = Inter({
   subsets: ["latin"],
