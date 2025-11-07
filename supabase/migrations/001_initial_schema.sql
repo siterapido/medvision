@@ -54,8 +54,8 @@ create policy "Clientes podem ver o próprio perfil"
 create policy "Clientes podem atualizar o próprio perfil"
   on public.profiles
   for update
-  using ( auth.uid() = id )
-  with check ( auth.uid() = id );
+  using ( auth.uid() = id and role = 'cliente' )
+  with check ( auth.uid() = id and role = 'cliente' );
 
 -- Policy: Admins have full access to manage every profile
 create policy "Admins podem gerenciar perfis"

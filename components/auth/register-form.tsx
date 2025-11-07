@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
+import { DEFAULT_ROLE, resolveUserRole } from "@/lib/auth/roles"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export function RegisterForm() {
@@ -50,7 +51,8 @@ export function RegisterForm() {
         password,
         options: {
           data: {
-            full_name: name,
+            name,
+            role: DEFAULT_ROLE,
           },
         },
       })
@@ -78,10 +80,21 @@ export function RegisterForm() {
 
         // Se o email foi confirmado automaticamente (depende da configuração do Supabase)
         if (data.user.email_confirmed_at || data.session) {
-          // Redirecionar para dashboard
+          const { data: profileRow, error: profileError } = await supabase
+            .from("profiles")
+            .select("role")
+            .eq("id", data.user.id)
+            .maybeSingle()
+
+          if (profileError) {
+            console.warn("[auth] Could not load profile role after signup", profileError)
+          }
+
+          const resolvedRole = resolveUserRole(profileRow?.role, data.user)
+          const destination = resolvedRole === "admin" ? "/admin" : "/dashboard"
+
           setTimeout(() => {
-            router.push("/dashboard")
-            router.refresh()
+            router.replace(destination)
           }, 2000)
         } else {
           // Mostrar mensagem de confirmação de email

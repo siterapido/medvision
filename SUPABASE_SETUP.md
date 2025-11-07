@@ -39,6 +39,8 @@ Este documento descreve como configurar a autenticação via Supabase no projeto
    NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    NEXT_PUBLIC_SITE_URL=http://localhost:3000
+   # Necessário para rotas administrativas (/api/admin/users)
+   SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    ```
 
 ### 4. Configurar Authentication no Supabase
@@ -77,7 +79,8 @@ Se preferir começar apenas com o essencial para teste:
    -- Criar tabela de perfis de usuário (opcional)
    create table public.profiles (
      id uuid references auth.users on delete cascade not null primary key,
-     full_name text,
+     name text,
+     role text not null default 'cliente' check (role in ('cliente', 'admin')),
      created_at timestamp with time zone default timezone('utc'::text, now()) not null,
      updated_at timestamp with time zone default timezone('utc'::text, now()) not null
    );
@@ -85,22 +88,44 @@ Se preferir começar apenas com o essencial para teste:
    -- Habilitar RLS
    alter table public.profiles enable row level security;
 
-   -- Política: usuários podem ver apenas seu próprio perfil
-   create policy "Users can view own profile"
+   -- Política: clientes enxergam apenas o próprio registro
+   create policy "Clientes podem ver o próprio perfil"
      on public.profiles for select
      using ( auth.uid() = id );
 
-   -- Política: usuários podem atualizar apenas seu próprio perfil
-   create policy "Users can update own profile"
+   -- Política: clientes atualizam apenas o próprio registro
+   create policy "Clientes podem atualizar o próprio perfil"
      on public.profiles for update
-     using ( auth.uid() = id );
+     using ( auth.uid() = id and role = 'cliente' )
+     with check ( auth.uid() = id and role = 'cliente' );
+
+   -- Política: admins têm acesso completo
+   create policy "Admins podem gerenciar perfis"
+     on public.profiles for all
+     using ( exists (
+       select 1 from public.profiles admins
+       where admins.id = auth.uid() and admins.role = 'admin'
+     ))
+     with check ( exists (
+       select 1 from public.profiles admins
+       where admins.id = auth.uid() and admins.role = 'admin'
+     ));
 
    -- Trigger para criar perfil automaticamente ao registrar
    create function public.handle_new_user()
    returns trigger as $$
+   declare
+     sanitized_role text := case
+       when new.raw_user_meta_data->>'role' = 'admin' then 'admin'
+       else 'cliente'
+     end;
    begin
-     insert into public.profiles (id, full_name)
-     values (new.id, new.raw_user_meta_data->>'full_name');
+     insert into public.profiles (id, name, role)
+     values (
+       new.id,
+       coalesce(new.raw_user_meta_data->>'name', new.raw_user_meta_data->>'full_name'),
+       sanitized_role
+     );
      return new;
    end;
    $$ language plpgsql security definer;
@@ -127,7 +152,7 @@ Se preferir começar apenas com o essencial para teste:
 - Campos: Nome completo, Email, Senha
 - Mensagens de sucesso/erro em português
 - Confirmação de email (se habilitado)
-- Salvamento do nome no metadata do usuário
+- Salvamento do nome + role (cliente) no metadata do usuário
 
 ### ✅ Middleware de Autenticação
 - Proteção automática de rotas
@@ -137,6 +162,19 @@ Se preferir começar apenas com o essencial para teste:
   - Usuários autenticados → `/dashboard` (se tentarem acessar `/login` ou `/register`)
 - Refresh automático de sessão
 - Preservação da URL de destino após login
+
+### ✅ Criação de usuário Admin via API
+- Endpoint: `POST /api/admin/users`
+- Requer sessão ativa de um usuário com `role = admin`
+- Payload:
+  ```json
+  {
+    "email": "nova.admin@exemplo.com",
+    "password": "senha-segura",
+    "name": "Nome Opcional"
+  }
+  ```
+- Utiliza `SUPABASE_SERVICE_ROLE_KEY` para chamar a Admin API do Supabase e já salva o perfil como `admin`
 
 ### ✅ Componentes de UI
 - Alert component para mensagens de erro/sucesso

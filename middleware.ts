@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
+import { resolveUserRole } from "@/lib/auth/roles"
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -38,8 +39,10 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const userRole = user ? resolveUserRole(undefined, user) : undefined
+
   // Protected routes that require authentication
-  const protectedPaths = ["/dashboard", "/settings", "/profile"]
+  const protectedPaths = ["/dashboard", "/settings", "/profile", "/admin"]
   const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path))
 
   // Auth pages that authenticated users shouldn't access
@@ -54,10 +57,10 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Redirect authenticated users from auth pages to dashboard
+  // Redirect authenticated users from auth pages to their default panel
   if (isAuthPath && user) {
     const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = "/dashboard"
+    redirectUrl.pathname = userRole === "admin" ? "/admin" : "/dashboard"
     return NextResponse.redirect(redirectUrl)
   }
 

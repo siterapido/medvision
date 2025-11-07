@@ -32,7 +32,7 @@ const securityHighlights = [
 
 interface ProfileFormProps {
   initialData: {
-    full_name: string
+    name: string
     email: string
     profession?: string
     cro?: string
@@ -41,7 +41,7 @@ interface ProfileFormProps {
 }
 
 export function ProfileForm({ initialData }: ProfileFormProps) {
-  const [fullName, setFullName] = useState(initialData.full_name)
+  const [name, setName] = useState(initialData.name)
   const [email, setEmail] = useState(initialData.email)
   const [profession, setProfession] = useState(initialData.profession || "")
   const [cro, setCro] = useState(initialData.cro || "")
@@ -77,7 +77,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
       const { error } = await supabase
         .from("profiles")
         .update({
-          full_name: fullName,
+          name,
           email: email,
           profession: profession,
           cro: cro,
@@ -144,7 +144,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
   }
 
   const handleReset = () => {
-    setFullName(initialData.full_name)
+    setName(initialData.name)
     setEmail(initialData.email)
     setProfession(initialData.profession || "")
     setCro(initialData.cro || "")
@@ -194,8 +194,8 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                   id="name"
                   type="text"
                   autoComplete="name"
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
                   className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
                   required
                 />

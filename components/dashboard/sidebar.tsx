@@ -1,10 +1,12 @@
 "use client"
 
+import { useState } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Logo } from "@/components/logo"
-import { Button } from "@/components/ui/button"
+import { resolveUserRole } from "@/lib/auth/roles"
+import { createClient } from "@/lib/supabase/client"
 import {
   BotIcon,
   GraduationCap,
@@ -18,10 +20,10 @@ import type { User } from "@supabase/supabase-js"
 
 interface Profile {
   id: string
-  full_name: string | null
+  name: string | null
   email: string | null
   avatar_url: string | null
-  role: string
+  role: string | null
 }
 
 interface DashboardSidebarProps {
@@ -45,8 +47,25 @@ const navigation: NavItem[] = [
 
 export function DashboardSidebar({ user, profile }: DashboardSidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
+  const supabase = createClient()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
   const userEmail = profile?.email || user.email || ""
-  const userName = profile?.full_name || user.email?.split("@")[0] || "Usuário"
+  const userName = profile?.name || user.email?.split("@")[0] || "Usuário"
+  const resolvedRole = resolveUserRole(profile?.role, user)
+  const userRoleLabel = resolvedRole === "admin" ? "Administrador" : "Cliente"
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true)
+      await supabase.auth.signOut()
+      router.replace("/login")
+    } catch (error) {
+      console.error("[dashboard] Failed to logout user", error)
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
 
   return (
     <aside className="hidden min-h-screen w-72 flex-col border-r border-slate-800 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 shadow-2xl md:flex">
@@ -90,15 +109,20 @@ export function DashboardSidebar({ user, profile }: DashboardSidebarProps) {
           <div className="text-sm text-slate-200 pt-2 border-t border-slate-700">
             Plano: <span className="font-semibold text-white">Free</span>
           </div>
+          <div className="text-xs text-slate-400">
+            Função: <span className="font-semibold text-white">{userRoleLabel}</span>
+          </div>
         </div>
 
-        <Link
-          href="/login"
-          className="flex items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm font-medium text-slate-300 transition-all hover:bg-slate-700 hover:text-slate-100"
+        <button
+          type="button"
+          onClick={handleLogout}
+          disabled={isLoggingOut}
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm font-medium text-slate-300 transition-all hover:bg-slate-700 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <LogOut className="h-4 w-4" />
-          Sair
-        </Link>
+          {isLoggingOut ? "Saindo..." : "Sair"}
+        </button>
       </div>
     </aside>
   )

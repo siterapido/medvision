@@ -89,17 +89,17 @@ Vinculada à tabela `auth.users` do Supabase.
 
 **Campos:**
 - `id` - UUID (referência a auth.users)
-- `full_name` - Nome completo do usuário
+- `name` - Nome completo do usuário
 - `email` - Email do usuário
 - `avatar_url` - URL do avatar
-- `role` - Função (user, admin)
+- `role` - Função (`cliente` padrão ou `admin` para acesso total)
 - `created_at` - Data de criação
 - `updated_at` - Data de atualização
 
 **RLS Policies:**
-- ✅ Usuários podem ver seu próprio perfil
-- ✅ Usuários podem atualizar seu próprio perfil
-- ✅ Usuários podem inserir seu próprio perfil
+- ✅ Clientes podem ver apenas o próprio perfil
+- ✅ Clientes podem atualizar apenas o próprio perfil
+- ✅ Admins podem gerenciar qualquer registro
 
 **Trigger:** Ao criar novo usuário em `auth.users`, automaticamente cria um perfil em `profiles`
 
@@ -151,9 +151,9 @@ Todas as tabelas têm RLS habilitado para garantir que:
 
 ```sql
 -- Exemplo: profiles
-✅ Users can view own profile
-✅ Users can update own profile
-✅ Users can insert own profile
+✅ Clientes podem ver o próprio perfil
+✅ Clientes podem atualizar o próprio perfil
+✅ Admins podem gerenciar perfis
 
 -- Exemplo: subscriptions
 ✅ Users can view own subscription

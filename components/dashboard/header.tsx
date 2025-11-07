@@ -1,14 +1,15 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
+import { resolveUserRole } from "@/lib/auth/roles"
 import type { User } from "@supabase/supabase-js"
 
 interface Profile {
   id: string
-  full_name: string | null
+  name: string | null
   email: string | null
   avatar_url: string | null
-  role: string
+  role: string | null
 }
 
 interface DashboardHeaderProps {
@@ -17,8 +18,10 @@ interface DashboardHeaderProps {
 }
 
 export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
-  const displayName = profile?.full_name || user.email?.split("@")[0] || "Usuário"
+  const displayName = profile?.name || user.email?.split("@")[0] || "Usuário"
   const firstName = displayName.split(" ")[0]
+  const resolvedRole = resolveUserRole(profile?.role, user)
+  const roleLabel = resolvedRole === "admin" ? "Administrador" : "Cliente"
 
   // Get initials for avatar
   const getInitials = (name: string) => {
@@ -48,6 +51,9 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
           <p className="text-sm text-slate-400">
             Acompanhe suas conversas com IA, progresso nos cursos e recomendações personalizadas.
           </p>
+          <Badge variant="outline" className="border-primary/30 text-primary">
+            {roleLabel}
+          </Badge>
         </div>
 
         <div className="flex items-center gap-2">

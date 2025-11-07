@@ -17,7 +17,7 @@ export default async function PerfilPage() {
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
   const { data: subscription } = await supabase.from("subscriptions").select("*").eq("user_id", user.id).single()
 
-  const displayName = profile?.full_name || user.email?.split("@")[0] || "Profissional"
+  const displayName = profile?.name || user.email?.split("@")[0] || "Profissional"
   const professionalRole = profile?.profession || "Profissional da odontologia"
   const companyName = profile?.company || "Clínica não informada"
 
@@ -84,7 +84,7 @@ export default async function PerfilPage() {
 
       <ProfileForm
         initialData={{
-          full_name: profile?.full_name || "",
+          name: profile?.name || "",
           email: profile?.email || user.email || "",
           profession: profile?.profession || "",
           cro: profile?.cro || "",

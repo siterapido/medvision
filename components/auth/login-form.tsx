@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label"
 import { Eye, EyeOff, Loader2, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
+import { resolveUserRole } from "@/lib/auth/roles"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export function LoginForm() {
@@ -68,9 +69,20 @@ export function LoginForm() {
       }
 
       if (data.user) {
-        // Login bem-sucedido, redirecionar para dashboard
-        router.push("/dashboard")
-        router.refresh()
+        const { data: profileRow, error: profileError } = await supabase
+          .from("profiles")
+          .select("role")
+          .eq("id", data.user.id)
+          .maybeSingle()
+
+        if (profileError) {
+          console.warn("[auth] Could not load profile role after login", profileError)
+        }
+
+        const resolvedRole = resolveUserRole(profileRow?.role, data.user)
+        const destination = resolvedRole === "admin" ? "/admin" : "/dashboard"
+
+        router.replace(destination)
       }
     } catch (err: unknown) {
       console.error("Unexpected error:", err)
