@@ -96,33 +96,33 @@ export default function AdminInvitePage() {
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-10 lg:px-0">
       <div className="flex flex-col gap-4 sm:items-center sm:justify-between sm:flex-row">
         <div>
-          <p className="text-sm text-[#cbd5e1] font-semibold uppercase tracking-wide">Convite interno</p>
-          <h1 className="text-3xl font-bold text-white mt-2">Cadastrar novo administrador</h1>
-          <p className="text-sm text-[#cbd5e1]/70 mt-2 max-w-lg">
+          <p className="text-sm text-slate-500 font-semibold uppercase tracking-wide">Convite interno</p>
+          <h1 className="text-3xl font-bold text-slate-900 mt-2">Cadastrar novo administrador</h1>
+          <p className="text-sm text-slate-600 mt-2 max-w-lg">
             Apenas admins autenticados podem acessar esta tela. Compartilhe o link apenas com quem precisa ter acesso.
           </p>
         </div>
-        <Button asChild variant="outline" className="rounded-xl border-[#24324F] text-[#cbd5e1] bg-[#131D37]/50 hover:bg-[#1A2847] whitespace-nowrap">
+        <Button asChild variant="outline" className="rounded-xl border-slate-300 text-slate-700 bg-white hover:bg-slate-50 whitespace-nowrap">
           <Link href="/admin">Voltar ao painel</Link>
         </Button>
       </div>
 
-      <Card className="rounded-2xl border border-[#24324F] bg-gradient-to-br from-[#131D37] to-[#16243F] shadow-lg">
+      <Card className="rounded-2xl border border-slate-300 bg-white shadow-lg">
         <CardHeader className="gap-2 pb-4">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[#0891b2] to-[#06b6d4]">
               <UserPlus2 className="h-5 w-5 text-white" />
             </div>
-            <CardTitle className="text-white">Cadastro rápido</CardTitle>
+            <CardTitle className="text-slate-900">Cadastro rápido</CardTitle>
           </div>
-          <CardDescription className="text-[#cbd5e1]/70">
+          <CardDescription className="text-slate-600">
             Defina credenciais provisórias. A pessoa convidada poderá alterar a senha após o primeiro acesso.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="space-y-2">
-              <Label htmlFor="name" className="text-white font-semibold">
+              <Label htmlFor="name" className="text-slate-900 font-semibold">
                 Nome completo
               </Label>
               <Input
@@ -130,13 +130,13 @@ export default function AdminInvitePage() {
                 placeholder="Ex: Dra. Ana Monteiro"
                 value={form.name}
                 onChange={handleChange("name")}
-                className="rounded-lg border-[#24324F] bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#0891b2]/50"
+                className="rounded-lg border-2 border-slate-300 bg-white text-slate-900 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2]"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-white font-semibold">
+              <Label htmlFor="email" className="text-slate-900 font-semibold">
                 Email corporativo
               </Label>
               <Input
@@ -145,13 +145,13 @@ export default function AdminInvitePage() {
                 placeholder="admin@odontogpt.com"
                 value={form.email}
                 onChange={handleChange("email")}
-                className="rounded-lg border-[#24324F] bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#0891b2]/50"
+                className="rounded-lg border-2 border-slate-300 bg-white text-slate-900 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2]"
                 required
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-white font-semibold">
+              <Label htmlFor="password" className="text-slate-900 font-semibold">
                 Senha temporária
               </Label>
               <Input
@@ -161,7 +161,7 @@ export default function AdminInvitePage() {
                 value={form.password}
                 onChange={handleChange("password")}
                 minLength={8}
-                className="rounded-lg border-[#24324F] bg-white text-slate-900 placeholder:text-slate-400 focus-visible:ring-[#0891b2]/50"
+                className="rounded-lg border-2 border-slate-300 bg-white text-slate-900 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2]"
                 required
               />
             </div>
@@ -203,29 +203,29 @@ export default function AdminInvitePage() {
         </CardContent>
       </Card>
 
-      <Card className="rounded-2xl border border-[#24324F] bg-gradient-to-br from-[#131D37] to-[#16243F] shadow-lg">
+      <Card className="rounded-2xl border border-slate-300 bg-white shadow-lg">
         <CardHeader className="gap-2 pb-4">
           <div className="flex items-center gap-2">
-            <Badge className="border-[#0891b2]/60 bg-[#0891b2]/20 text-[#06b6d4] font-semibold">Link interno</Badge>
-            <CardTitle className="text-white">Compartilhe com segurança</CardTitle>
+            <Badge className="border-[#0891b2]/30 bg-[#0891b2]/10 text-[#0891b2] font-semibold">Link interno</Badge>
+            <CardTitle className="text-slate-900">Compartilhe com segurança</CardTitle>
           </div>
-          <CardDescription className="text-[#cbd5e1]/70">
+          <CardDescription className="text-slate-600">
             O link só funciona para usuários logados como admin. Utilize canais internos (Slack, e-mail corporativo) e
             revogue acessos quando necessário.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex flex-col gap-3 rounded-lg border border-[#24324F] bg-[#16243F]/80 p-4 sm:flex-row sm:items-center sm:justify-between">
-            <code className="break-all text-xs text-[#cbd5e1] font-mono bg-[#0F192F] rounded px-3 py-2 border border-[#24324F]">{inviteLink}</code>
+          <div className="flex flex-col gap-3 rounded-lg border border-slate-300 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+            <code className="break-all text-xs text-slate-700 font-mono bg-white rounded px-3 py-2 border border-slate-300">{inviteLink}</code>
             <Button
               type="button"
               variant="outline"
               onClick={copyLink}
-              className="rounded-lg border-[#24324F] text-[#cbd5e1] bg-[#16243F]/80 hover:bg-[#1A2847]"
+              className="rounded-lg border-slate-300 text-slate-700 bg-white hover:bg-slate-50"
             >
               {copied ? (
                 <>
-                  <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                   Copiado!
                 </>
               ) : (
@@ -237,11 +237,11 @@ export default function AdminInvitePage() {
             </Button>
           </div>
           <div className="space-y-2">
-            <Label className="text-white font-semibold">Mensagem sugerida</Label>
+            <Label className="text-slate-900 font-semibold">Mensagem sugerida</Label>
             <Textarea
               readOnly
               value={`Oi! Você foi convidado(a) para administrar o Odonto GPT.\n\n1. Acesse: ${inviteLink}\n2. Informe o email corporativo autorizado\n3. Troque a senha após o primeiro login\n\nDúvidas? Fale com a diretoria.`}
-              className="rounded-lg border-[#24324F] bg-white text-slate-900 resize-none focus-visible:ring-[#0891b2]/50"
+              className="rounded-lg border-2 border-slate-300 bg-white text-slate-900 placeholder:text-slate-500 resize-none focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2]"
             />
           </div>
         </CardContent>

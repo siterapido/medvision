@@ -327,7 +327,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
               value={courseBasics.title}
               onChange={(event) => handleCourseField("title", event.target.value)}
               placeholder="Ex.: Sedação consciente na prática clínica"
-              className={cn("bg-white text-slate-900 border-[#24324F] placeholder:text-slate-400 focus-visible:ring-[#0891b2]/50", stepTouched.basics && !courseBasics.title.trim() && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
+              className={cn("bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2]", stepTouched.basics && !courseBasics.title.trim() && "border-rose-500 focus-visible:ring-rose-500")}
               aria-invalid={stepTouched.basics && !courseBasics.title.trim()}
             />
             {stepTouched.basics && !courseBasics.title.trim() && (
@@ -340,7 +340,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
               value={courseBasics.area}
               onChange={(event) => handleCourseField("area", event.target.value)}
               placeholder="Ex.: Cirurgia oral, DTM"
-              className={cn("bg-white text-slate-900 border-sky-600/50 placeholder:text-slate-400", stepTouched.basics && !courseBasics.area.trim() && "border border-rose-400/60 focus-visible:ring-rose-400/40")}
+              className={cn("bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2]", stepTouched.basics && !courseBasics.area.trim() && "border-rose-500 focus-visible:ring-rose-500")}
               aria-invalid={stepTouched.basics && !courseBasics.area.trim()}
             />
             {stepTouched.basics && !courseBasics.area.trim() && (
@@ -352,7 +352,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
           <div className="space-y-2">
             <label className="text-sm text-white font-semibold">Formato</label>
             <Select value={courseBasics.format} onValueChange={(value) => handleCourseField("format", value)}>
-              <SelectTrigger className="bg-white text-slate-900 border-[#24324F]">
+              <SelectTrigger className="bg-white text-slate-900 border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-[#0891b2]">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
