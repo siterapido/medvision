@@ -6,7 +6,7 @@
 -- TABLE: courses
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.courses (
-  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   title text NOT NULL,
   description text,
   thumbnail_url text,
@@ -31,18 +31,19 @@ CREATE POLICY "Anyone can read courses"
 -- TABLE: lessons
 -- ============================================================================
 CREATE TABLE IF NOT EXISTS public.lessons (
-  id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-  course_id bigint NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  course_id uuid NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
   title text NOT NULL,
-  duration text,
+  description text,
   video_url text,
-  order_index integer DEFAULT 0,
+  order_index integer,
+  duration_minutes integer,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
 -- Indexes
-CREATE INDEX lessons_course_id_idx ON public.lessons(course_id);
-CREATE INDEX lessons_order_idx ON public.lessons(course_id, order_index);
+CREATE INDEX IF NOT EXISTS lessons_course_id_idx ON public.lessons(course_id);
+CREATE INDEX IF NOT EXISTS lessons_order_idx ON public.lessons(course_id, order_index);
 
 -- Enable RLS
 ALTER TABLE public.lessons ENABLE ROW LEVEL SECURITY;
@@ -58,7 +59,7 @@ CREATE POLICY "Anyone can read lessons"
 CREATE TABLE IF NOT EXISTS public.user_courses (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  course_id bigint NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
+  course_id uuid NOT NULL REFERENCES public.courses(id) ON DELETE CASCADE,
   progress integer DEFAULT 0 CHECK (progress >= 0 AND progress <= 100),
   started_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
@@ -91,7 +92,7 @@ CREATE POLICY "Users can update own course progress"
 CREATE TABLE IF NOT EXISTS public.user_lessons (
   id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  lesson_id bigint NOT NULL REFERENCES public.lessons(id) ON DELETE CASCADE,
+  lesson_id uuid NOT NULL REFERENCES public.lessons(id) ON DELETE CASCADE,
   is_completed boolean DEFAULT false,
   completed_at timestamp with time zone,
   UNIQUE(user_id, lesson_id)
@@ -131,9 +132,9 @@ CREATE TABLE IF NOT EXISTS public.chat_messages (
 );
 
 -- Indexes
-CREATE INDEX chat_messages_user_id_idx ON public.chat_messages(user_id);
-CREATE INDEX chat_messages_created_at_idx ON public.chat_messages(created_at DESC);
-CREATE INDEX chat_messages_session_id_idx ON public.chat_messages(session_id);
+CREATE INDEX IF NOT EXISTS chat_messages_user_id_idx ON public.chat_messages(user_id);
+CREATE INDEX IF NOT EXISTS chat_messages_created_at_idx ON public.chat_messages(created_at DESC);
+CREATE INDEX IF NOT EXISTS chat_messages_session_id_idx ON public.chat_messages(session_id);
 
 -- Enable RLS
 ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
@@ -161,8 +162,8 @@ CREATE TABLE IF NOT EXISTS public.activities (
 );
 
 -- Indexes
-CREATE INDEX activities_user_id_idx ON public.activities(user_id);
-CREATE INDEX activities_created_at_idx ON public.activities(created_at DESC);
+CREATE INDEX IF NOT EXISTS activities_user_id_idx ON public.activities(user_id);
+CREATE INDEX IF NOT EXISTS activities_created_at_idx ON public.activities(created_at DESC);
 
 -- Enable RLS
 ALTER TABLE public.activities ENABLE ROW LEVEL SECURITY;
@@ -181,33 +182,49 @@ CREATE POLICY "Users can insert own activities"
 -- ============================================================================
 
 -- Trigger for courses
-CREATE TRIGGER on_courses_updated
-  BEFORE UPDATE ON public.courses
-  FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'handle_updated_at') THEN
+    CREATE TRIGGER on_courses_updated
+      BEFORE UPDATE ON public.courses
+      FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
+  END IF;
+END $$;
 
 -- Trigger for user_courses
-CREATE TRIGGER on_user_courses_updated
-  BEFORE UPDATE ON public.user_courses
-  FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'handle_updated_at') THEN
+    CREATE TRIGGER on_user_courses_updated
+      BEFORE UPDATE ON public.user_courses
+      FOR EACH ROW EXECUTE PROCEDURE public.handle_updated_at();
+  END IF;
+END $$;
 
 -- ============================================================================
 -- SEED DATA: Sample courses
 -- ============================================================================
 
-INSERT INTO public.courses (title, description, thumbnail_url, lessons_count, duration)
+-- Adapt seed to existing columns (title, description, thumbnail)
+INSERT INTO public.courses (title, description, thumbnail)
 VALUES
-  ('Implantodontia Básica', 'Fundamentos e técnicas essenciais de implantodontia', '/placeholder.svg?height=200&width=400', 6, '8h 30min'),
-  ('Endodontia Avançada', 'Técnicas modernas de tratamento de canal', '/placeholder.svg?height=200&width=400', 8, '10h 15min'),
-  ('Ortodontia Digital', 'Planejamento ortodôntico com tecnologia digital', '/placeholder.svg?height=200&width=400', 5, '6h 45min')
+  ('Implantodontia Básica', 'Fundamentos e técnicas essenciais de implantodontia', '/placeholder.svg?height=200&width=400'),
+  ('Endodontia Avançada', 'Técnicas modernas de tratamento de canal', '/placeholder.svg?height=200&width=400'),
+  ('Ortodontia Digital', 'Planejamento ortodôntico com tecnologia digital', '/placeholder.svg?height=200&width=400')
 ON CONFLICT DO NOTHING;
 
--- Seed lessons for course 1 (Implantodontia Básica)
-INSERT INTO public.lessons (course_id, title, duration, video_url, order_index)
-VALUES
-  (1, 'Introdução à Implantodontia', '15:30', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 1),
-  (1, 'Anatomia e Fisiologia Óssea', '22:45', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 2),
-  (1, 'Planejamento Cirúrgico', '18:20', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 3),
-  (1, 'Técnicas de Instalação', '25:10', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 4),
-  (1, 'Cuidados Pós-operatórios', '12:30', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 5),
-  (1, 'Complicações e Soluções', '20:15', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 6)
+-- Seed lessons for course "Implantodontia Básica"
+-- Adapt seed to existing lesson columns and types
+INSERT INTO public.lessons (course_id, title, duration_minutes, video_url, order_index)
+SELECT c.id, l.title, l.duration_minutes, l.video_url, l.order_index
+FROM (
+  VALUES
+    ('Introdução à Implantodontia', '15:30', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 1),
+    ('Anatomia e Fisiologia Óssea', '22:45', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 2),
+    ('Planejamento Cirúrgico', '18:20', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 3),
+    ('Técnicas de Instalação', '25:10', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 4),
+    ('Cuidados Pós-operatórios', '12:30', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 5),
+    ('Complicações e Soluções', '20:15', 'https://www.youtube.com/embed/dQw4w9WgXcQ', 6)
+) AS l(title, duration_minutes, video_url, order_index)
+JOIN public.courses c ON c.title = 'Implantodontia Básica'
 ON CONFLICT DO NOTHING;
