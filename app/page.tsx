@@ -424,7 +424,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-3 gap-8 relative">
             {/* Step 1 */}
             <div className="relative">
-              <div className="absolute -top-4 -left-4 h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg">
+              <div className="absolute -top-4 -left-4 h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg z-10">
                 1
               </div>
               <Card className="interactive-card pt-12 border-2 hover:shadow-lg transition-shadow">
@@ -438,7 +438,7 @@ export default function LandingPage() {
 
             {/* Step 2 */}
             <div className="relative">
-              <div className="absolute -top-4 -left-4 h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg">
+              <div className="absolute -top-4 -left-4 h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg z-10">
                 2
               </div>
               <Card className="interactive-card pt-12 border-2 hover:shadow-lg transition-shadow">
@@ -452,7 +452,7 @@ export default function LandingPage() {
 
             {/* Step 3 */}
             <div className="relative">
-              <div className="absolute -top-4 -left-4 h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg">
+              <div className="absolute -top-4 -left-4 h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg z-10">
                 3
               </div>
               <Card className="interactive-card pt-12 border-2 hover:shadow-lg transition-shadow">
