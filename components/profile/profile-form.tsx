@@ -231,10 +231,6 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                 />
               </div>
 
-                  className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
-                />
-              </div>
-
               <div className="space-y-2">
                 <Label htmlFor="cro" className="text-white/80">
                   CRO
@@ -245,10 +241,6 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
                   value={cro}
                   onChange={(e) => setCro(e.target.value)}
                   placeholder="Ex: CRO-SP 12345"
-                  className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
-                />
-              </div>
-
                   className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
                 />
               </div>
