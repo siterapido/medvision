@@ -277,7 +277,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
       <CardContent className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-sm text-slate-300">Título do curso</label>
+            <label className="text-sm text-slate-300">Título do curso <span className="text-rose-300">*</span></label>
             <Input
               value={courseBasics.title}
               onChange={(event) => handleCourseField("title", event.target.value)}
@@ -290,7 +290,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
             )}
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-slate-300">Área / especialidade</label>
+            <label className="text-sm text-slate-300">Área / especialidade <span className="text-rose-300">*</span></label>
             <Input
               value={courseBasics.area}
               onChange={(event) => handleCourseField("area", event.target.value)}
@@ -320,7 +320,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
             </Select>
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-slate-300">Carga horária</label>
+            <label className="text-sm text-slate-300">Carga horária <span className="text-rose-300">*</span></label>
             <Input
               value={courseBasics.duration}
               onChange={(event) => handleCourseField("duration", event.target.value)}
@@ -359,7 +359,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-slate-300">Thumb / capa (URL)</label>
+            <label className="text-sm text-slate-300">Thumb / capa (URL) <span className="text-rose-300">*</span></label>
             <Input
               value={courseBasics.thumbnailUrl}
               onChange={(event) => handleCourseField("thumbnailUrl", event.target.value)}
@@ -373,7 +373,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
           </div>
         </div>
         <div className="space-y-2">
-          <label className="text-sm text-slate-300">Descrição para o catálogo</label>
+          <label className="text-sm text-slate-300">Descrição para o catálogo <span className="text-rose-300">*</span></label>
           <Textarea
             value={courseBasics.description}
             onChange={(event) => handleCourseField("description", event.target.value)}
@@ -474,7 +474,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                       </div>
                       <div className="mt-3 grid gap-3 md:grid-cols-2">
                         <div className="space-y-2">
-                          <label className="text-xs uppercase tracking-wide text-slate-400">Nome da aula</label>
+                          <label className="text-xs uppercase tracking-wide text-slate-400">Nome da aula <span className="text-rose-300">*</span></label>
                           <Input
                             value={lesson.title}
                             onChange={(event) => updateLesson(module.id, lesson.id, { title: event.target.value })}
@@ -487,7 +487,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-2">
-                            <label className="text-xs uppercase tracking-wide text-slate-400">Duração (min)</label>
+                            <label className="text-xs uppercase tracking-wide text-slate-400">Duração (min) <span className="text-rose-300">*</span></label>
                             <Input
                               type="number"
                               min={1}
@@ -512,7 +512,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                         </div>
                       </div>
                       <div className="mt-3 space-y-2">
-                        <label className="text-xs uppercase tracking-wide text-slate-400">Link do vídeo</label>
+                        <label className="text-xs uppercase tracking-wide text-slate-400">Link do vídeo <span className="text-rose-300">*</span></label>
                         <div className="flex items-center gap-2">
                           <Video className="h-4 w-4 text-cyan-300" />
                           <Input
@@ -548,7 +548,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                               <div key={material.id} className="rounded-xl border border-white/10 bg-[#0a1327] p-4">
                                 <div className="grid gap-3 md:grid-cols-3">
                                   <div className="space-y-2">
-                                    <label className="text-xs text-slate-400">Título</label>
+                                    <label className="text-xs text-slate-400">Título <span className="text-rose-300">*</span></label>
                                     <Input
                                       value={material.title}
                                       onChange={(event) =>
@@ -582,7 +582,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                                     </Select>
                                   </div>
                                   <div className="space-y-2">
-                                    <label className="text-xs text-slate-400">URL / arquivo</label>
+                                    <label className="text-xs text-slate-400">URL / arquivo <span className="text-rose-300">*</span></label>
                                     <Input
                                       value={material.url}
                                       onChange={(event) =>

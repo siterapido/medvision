@@ -30,6 +30,8 @@ O design do Odonto GPT segue uma estética **profissional médica** com tons de 
 
 O sistema utiliza **tema escuro predominante** em todas as seções da landing page para criar uma experiência premium e moderna, com toques de IA através de texturas sutis e gradientes animados.
 
+**Fluxo de onboarding atualizado:** após a compra confirmada na Kiwfy o usuário recebe automaticamente, via WhatsApp (Z-API), um magic link para acessar `/login`. Essa etapa deve ser mencionada sempre que apresentarmos o produto para reforçar a experiência “comprou → recebeu o acesso em minutos”. Ajuste qualquer copy de onboarding para refletir esse gatilho instantâneo.
+
 ---
 
 ## Paleta de Cores
@@ -1180,6 +1182,12 @@ padding: 2rem - 2.5rem
 ---
 
 ## Acessibilidade
+
+### Admin – Cadastro de Cursos (Atualizado)
+- O formulário de cadastro de cursos agora abre em um modal (popup) com fluxo em etapas.
+- Campos obrigatórios são sinalizados com `*` e possuem validação por etapa antes de avançar.
+- O modal utiliza `Dialog` (shadcn) e mantém o conteúdo navegável e rolável em telas menores.
+- Botão de entrada: "Nova trilha guiada" na página `app/admin` abre o modal.
 
 ### 1. Contraste de Cores
 

@@ -2,7 +2,8 @@ import Link from "next/link"
 import { formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { createClient } from "@/lib/supabase/server"
-import { CourseWorkspace, type CourseRowWithLessons } from "@/components/admin/course-workspace"
+import { type CourseRowWithLessons } from "@/components/admin/course-workspace"
+import { AdminCourseModal } from "@/components/admin/course-modal"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -111,7 +112,7 @@ export default async function AdminPage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-3">
-                <Button className="rounded-2xl bg-cyan-500 text-slate-950 hover:bg-cyan-400">Nova trilha guiada</Button>
+                <AdminCourseModal adminName={adminName} existingCourses={normalizedCourses} />
                 <Button
                   asChild
                   variant="outline"
@@ -193,7 +194,7 @@ export default async function AdminPage() {
         </CardContent>
       </Card>
 
-      <CourseWorkspace adminName={adminName} existingCourses={normalizedCourses} />
+      {/* O formulário foi movido para popup (Dialog) acima */}
     </div>
   )
 }

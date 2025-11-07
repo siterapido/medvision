@@ -92,22 +92,27 @@ export default function LandingPage() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 pt-4 md:pt-6">
-              <a href="https://pay.kiwify.com.br/PQH9KhD" target="_blank" rel="noopener noreferrer" className="w-full sm:w-auto">
-                <Button
-                  size="xl"
-                  aria-label="Assinar agora"
-                  variant="cta"
-                  className="group shadow-primary/25 w-full"
-                >
+              <Button
+                size="xl"
+                aria-label="Assinar agora"
+                variant="cta"
+                className="group shadow-primary/25 w-full sm:w-auto"
+                asChild
+              >
+                <a href="https://pay.kiwify.com.br/PQH9KhD" target="_blank" rel="noopener noreferrer">
                   Assinar agora
                   <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
-                </Button>
-              </a>
-              <Link href="#planos" className="w-full sm:w-auto">
-                <Button size="xl" variant="outline" aria-label="Ver Planos" className="w-full">
-                  Ver Planos
-                </Button>
-              </Link>
+                </a>
+              </Button>
+              <Button
+                size="xl"
+                variant="outline"
+                aria-label="Ver Planos"
+                className="w-full sm:w-auto"
+                asChild
+              >
+                <Link href="#planos">Ver Planos</Link>
+              </Button>
             </div>
 
             {/* Social Proof Metrics removidos conforme solicitado */}

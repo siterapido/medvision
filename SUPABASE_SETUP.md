@@ -39,8 +39,19 @@ Este documento descreve como configurar a autenticação via Supabase no projeto
    NEXT_PUBLIC_SUPABASE_URL=https://xxxxx.supabase.co
    NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    NEXT_PUBLIC_SITE_URL=http://localhost:3000
+   APP_URL=http://localhost:3000
    # Necessário para rotas administrativas (/api/admin/users)
    SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+   # Webhook da Kiwfy
+   KIWFY_WEBHOOK_SECRET=coloque-o-segredo-do-painel-da-kiwfy
+   KIWFY_SIGNATURE_HEADER=x-kiwfy-signature
+   KIWFY_PROVISION_STATUSES=paid,approved,active
+   WHATSAPP_DEFAULT_COUNTRY_CODE=55
+   # Z-API (WhatsApp)
+   ZAPI_BASE_URL=https://api.z-api.io
+   ZAPI_INSTANCE_ID=instances-xxxx
+   ZAPI_TOKEN=zapi-token
+   ZAPI_SENDER_NAME=Odonto GPT Concierge
    ```
 
 ### 4. Configurar Authentication no Supabase
@@ -175,6 +186,20 @@ Se preferir começar apenas com o essencial para teste:
   }
   ```
 - Utiliza `SUPABASE_SERVICE_ROLE_KEY` para chamar a Admin API do Supabase e já salva o perfil como `admin`
+
+### ✅ Webhook da Kiwfy + WhatsApp (Z-API)
+- Endpoint privado: `POST /api/kiwfy/webhook`
+- O header `x-kiwfy-signature` é validado com `KIWFY_WEBHOOK_SECRET` (HMAC SHA-256)
+- Ao receber um evento `paid/approved/active`, o backend:
+  1. Garante a existência do usuário (cria no Supabase se necessário)
+  2. Atualiza a tabela `profiles` com `kiwfy_purchase_id`, plano e status
+  3. Registra o evento em `kiwfy_webhook_events`
+  4. Gera um magic link com `APP_URL` como base de redirecionamento
+  5. Envia o link pelo WhatsApp via Z-API (`ZAPI_INSTANCE_ID` + `ZAPI_TOKEN`)
+- Pré-requisitos de banco:
+  - Executar a migration `supabase/migrations/008_kiwfy_webhook_and_whatsapp.sql`
+  - Garantir a extensão `pgcrypto` habilitada (já ocorre nas migrations anteriores)
+- A coluna `whatsapp_last_message_at` é atualizada somente quando a Z-API confirma envio.
 
 ### ✅ Componentes de UI
 - Alert component para mensagens de erro/sucesso
