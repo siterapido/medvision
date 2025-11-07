@@ -1,100 +1,219 @@
-import { Card } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import Link from "next/link"
+import { createClient } from "@/lib/supabase/server"
+import { Check, Sparkles, Crown } from "lucide-react"
 
-export default function AssinaturaPage() {
+export default async function AssinaturaPage() {
+  const supabase = await createClient()
+
+  // Get authenticated user
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return null
+  }
+
+  // Get user subscription
+  const { data: subscription } = await supabase.from("subscriptions").select("*").eq("user_id", user.id).single()
+
+  const currentPlan =
+    subscription?.plan === "monthly"
+      ? "Mensal"
+      : subscription?.plan === "annual"
+        ? "Anual"
+        : "Free"
+
+  const isActive = subscription?.status === "active"
+
   return (
-    <div className="p-6 space-y-6 max-w-4xl mx-auto">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">Assinatura</h1>
-        <p className="text-muted-foreground">Gerencie seu plano e informações de pagamento</p>
+    <div className="space-y-8 pb-8">
+      {/* Header */}
+      <div className="px-6 pt-6">
+        <h1 className="text-3xl font-bold text-slate-900 mb-2">Assinatura</h1>
+        <p className="text-slate-600">Gerencie seu plano e informações de pagamento</p>
       </div>
 
-      <Card className="p-6">
-        <div className="flex items-start justify-between mb-6">
-          <div>
-            <h3 className="text-xl font-semibold mb-2">Plano Atual</h3>
-            <div className="flex items-center gap-3">
-              <Badge className="bg-muted text-foreground text-base px-3 py-1">Free</Badge>
-              <span className="text-sm text-muted-foreground">Acesso limitado</span>
-            </div>
-          </div>
-          <Link href="/pricing">
-            <Button className="bg-primary hover:bg-primary-hover text-primary-foreground">Fazer Upgrade</Button>
-          </Link>
-        </div>
-
-        <div className="border-t border-border pt-6">
-          <h4 className="font-semibold mb-4">Recursos do Plano Free</h4>
-          <ul className="space-y-2">
-            <li className="flex items-center gap-2 text-sm">
-              <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Chat de IA limitado (10 mensagens/dia)
-            </li>
-            <li className="flex items-center gap-2 text-sm">
-              <svg className="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              Acesso a 3 cursos gratuitos
-            </li>
-            <li className="flex items-center gap-2 text-sm">
-              <svg className="w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-              Sem certificados
-            </li>
-          </ul>
-        </div>
-      </Card>
-
-      <Card className="p-6">
-        <h3 className="text-xl font-semibold mb-4">Histórico de Pagamentos</h3>
-        <div className="text-center py-8 text-muted-foreground">
-          <svg className="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-            />
-          </svg>
-          <p>Nenhum pagamento registrado</p>
-          <p className="text-sm mt-1">Faça upgrade para começar</p>
-        </div>
-      </Card>
-
-      <Card className="p-6 bg-primary/5 border-primary/20">
-        <div className="flex items-start gap-4">
-          <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-            <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-              />
-            </svg>
-          </div>
-          <div className="flex-1">
-            <h4 className="font-semibold mb-2">Desbloqueie Todo o Potencial</h4>
-            <p className="text-sm text-muted-foreground mb-4">
-              Faça upgrade para o plano premium e tenha acesso ilimitado ao chat de IA, todos os cursos, certificados e
-              muito mais.
-            </p>
-            <Link href="/pricing">
-              <Button
+      {/* Plano Atual */}
+      <div className="px-6">
+        <Card className="border-slate-200 bg-gradient-to-br from-slate-50 to-white">
+          <CardHeader>
+            <div className="flex items-start justify-between">
+              <div>
+                <CardTitle className="text-slate-900 flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                  Plano Atual
+                </CardTitle>
+                <CardDescription className="text-slate-600 mt-2">
+                  Você está no plano <span className="font-semibold text-slate-900">{currentPlan}</span>
+                </CardDescription>
+              </div>
+              <Badge
+                className={
+                  isActive
+                    ? "bg-green-100 text-green-800 border-green-200"
+                    : "bg-slate-100 text-slate-800 border-slate-200"
+                }
                 variant="outline"
-                className="border-primary text-primary hover:bg-primary hover:text-primary-foreground bg-transparent"
               >
-                Ver Planos
+                {isActive ? "Ativo" : "Inativo"}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {currentPlan === "Free" ? (
+              <div className="space-y-3">
+                <p className="text-sm text-slate-600">
+                  Você está usando o plano gratuito. Faça upgrade para desbloquear todos os recursos!
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <Check className="h-4 w-4 text-green-600" />
+                    Acesso limitado ao Chat de IA
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <Check className="h-4 w-4 text-green-600" />
+                    Alguns cursos disponíveis
+                  </li>
+                </ul>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-sm text-slate-600">
+                  Obrigado por ser um membro premium! Você tem acesso completo a todos os recursos.
+                </p>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <Check className="h-4 w-4 text-green-600" />
+                    Acesso ilimitado ao Chat de IA
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <Check className="h-4 w-4 text-green-600" />
+                    Todos os cursos disponíveis
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <Check className="h-4 w-4 text-green-600" />
+                    Certificados de conclusão
+                  </li>
+                  <li className="flex items-center gap-2 text-sm text-slate-700">
+                    <Check className="h-4 w-4 text-green-600" />
+                    Suporte prioritário
+                  </li>
+                </ul>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Planos Disponíveis */}
+      <div className="px-6">
+        <h2 className="text-2xl font-bold text-slate-900 mb-6">Planos Disponíveis</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl">
+          {/* Plano Mensal */}
+          <Card className="border-slate-200 hover:border-primary transition-colors relative overflow-hidden">
+            <CardHeader className="pb-8">
+              <CardTitle className="text-slate-900 text-2xl">Plano Mensal</CardTitle>
+              <CardDescription className="text-slate-600">
+                Perfeito para começar sua jornada
+              </CardDescription>
+              <div className="mt-4">
+                <span className="text-4xl font-bold text-slate-900">R$ 30</span>
+                <span className="text-slate-600">/mês</span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3 text-sm text-slate-700">
+                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Acesso ilimitado ao Chat de IA</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm text-slate-700">
+                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Todos os cursos disponíveis</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm text-slate-700">
+                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Certificados de conclusão</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm text-slate-700">
+                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Suporte por email</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm text-slate-700">
+                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Atualizações mensais</span>
+                </li>
+              </ul>
+              <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground mt-6">
+                {currentPlan === "Mensal" ? "Plano Atual" : "Assinar Plano Mensal"}
               </Button>
-            </Link>
-          </div>
+            </CardContent>
+          </Card>
+
+          {/* Plano Anual */}
+          <Card className="border-primary shadow-lg relative overflow-hidden">
+            <div className="absolute top-0 right-0 bg-primary text-primary-foreground px-3 py-1 text-xs font-semibold">
+              MAIS POPULAR
+            </div>
+            <CardHeader className="pb-8 bg-gradient-to-br from-primary/5 to-primary/10">
+              <CardTitle className="text-slate-900 text-2xl flex items-center gap-2">
+                <Crown className="h-6 w-6 text-primary" />
+                Plano Anual
+              </CardTitle>
+              <CardDescription className="text-slate-600">
+                Melhor custo-benefício com economia de 33%
+              </CardDescription>
+              <div className="mt-4">
+                <span className="text-4xl font-bold text-slate-900">R$ 240</span>
+                <span className="text-slate-600">/ano</span>
+                <div className="mt-2">
+                  <Badge className="bg-green-100 text-green-800 border-green-200" variant="outline">
+                    Economize R$ 120/ano
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <ul className="space-y-3">
+                <li className="flex items-start gap-3 text-sm text-slate-700">
+                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span className="font-semibold">Tudo do plano mensal</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm text-slate-700">
+                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Economize 33% no valor total</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm text-slate-700">
+                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Acesso prioritário a novos cursos</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm text-slate-700">
+                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Suporte prioritário</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm text-slate-700">
+                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Sessões de mentoria exclusivas</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm text-slate-700">
+                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Material complementar em PDF</span>
+                </li>
+                <li className="flex items-start gap-3 text-sm text-slate-700">
+                  <Check className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <span>Certificados premium</span>
+                </li>
+              </ul>
+              <Button className="w-full bg-primary hover:bg-primary/90 text-primary-foreground mt-6 shadow-lg">
+                {currentPlan === "Anual" ? "Plano Atual" : "Assinar Plano Anual"}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
-      </Card>
+      </div>
     </div>
   )
 }
