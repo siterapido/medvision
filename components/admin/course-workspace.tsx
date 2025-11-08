@@ -72,7 +72,10 @@ type StatusMessage = {
 }
 
 const difficultyOptions = ["Iniciante", "Intermediário", "Avançado"]
-const formatOptions = ["100% online", "Híbrido", "Presencial"]
+const courseTypeOptions = [
+  { value: "Ondonto GPT", label: "🤖 Ondonto GPT" },
+  { value: "Premium", label: "⭐ Cursos Premium" },
+]
 const materialOptions: { value: CourseResourceType; label: string }[] = [
   { value: "pdf", label: "PDF / Apostila" },
   { value: "slides", label: "Slides" },
@@ -105,7 +108,7 @@ const defaultCourse = {
   area: "",
   duration: "12h",
   difficulty: "Intermediário",
-  format: "Híbrido",
+  course_type: "Ondonto GPT",
   price: "",
   thumbnailUrl: "",
   description: "",
@@ -339,15 +342,15 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
-            <label className="text-sm text-slate-900 font-semibold">Formato</label>
-            <Select value={courseBasics.format} onValueChange={(value) => handleCourseField("format", value)}>
+            <label className="text-sm text-slate-900 font-semibold">Tipo de Curso</label>
+            <Select value={courseBasics.course_type} onValueChange={(value) => handleCourseField("course_type", value)}>
               <SelectTrigger className="bg-white text-slate-900 border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-[#0891b2] shadow-sm">
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
-                {formatOptions.map((option) => (
-                  <SelectItem key={option} value={option}>
-                    {option}
+                {courseTypeOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -448,7 +451,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
           <Badge className="border-[#0891b2]/30 bg-[#0891b2]/10 text-[#0891b2]">
             {totalLessons} aulas mapeadas
           </Badge>
-          <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-slate-700">Formato {courseBasics.format}</span>
+          <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-slate-700">Tipo {courseBasics.course_type}</span>
           <span className="rounded-full border border-slate-300 bg-slate-50 px-3 py-1 text-slate-700">Nível {courseBasics.difficulty}</span>
         </div>
       </CardContent>
@@ -765,7 +768,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
             <p className="text-xs uppercase tracking-wide text-slate-600">Título</p>
             <p className="font-semibold text-slate-900">{courseBasics.title || "Sem título"}</p>
           </div>
-          <Badge className="border-[#0891b2]/30 bg-[#0891b2]/10 text-[#0e7490]">{courseBasics.format}</Badge>
+          <Badge className="border-[#0891b2]/30 bg-[#0891b2]/10 text-[#0e7490]">{courseBasics.course_type}</Badge>
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-slate-200 bg-white p-3">
@@ -969,7 +972,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
         thumbnail_url: courseBasics.thumbnailUrl,
         area: courseBasics.area.trim() || null,
         difficulty: courseBasics.difficulty,
-        format: courseBasics.format,
+        course_type: courseBasics.course_type,
         price: courseBasics.price.trim() || null,
         tags: courseBasics.tags.trim() || null,
         duration: courseBasics.duration || durationText,
@@ -980,7 +983,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
       const { data: newCourse, error: courseError } = await supabase
         .from("courses")
         .insert(courseInsert)
-        .select("id, title, description, area, difficulty, format, price, tags, duration, lessons_count, thumbnail_url, is_published, published_at, updated_at")
+        .select("id, title, description, area, difficulty, course_type, price, tags, duration, lessons_count, thumbnail_url, is_published, published_at, updated_at")
         .single()
 
       if (courseError) {

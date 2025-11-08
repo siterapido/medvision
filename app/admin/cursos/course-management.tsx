@@ -41,7 +41,7 @@ interface Course {
   description: string | null
   area: string
   difficulty: string
-  format: string
+  course_type: string
   price: string | null
   tags: string | null
   duration: string | null

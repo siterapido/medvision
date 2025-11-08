@@ -43,7 +43,7 @@ export async function createCourse(
         description: parsed.data.description || null,
         area: parsed.data.area,
         difficulty: parsed.data.difficulty,
-        format: parsed.data.format,
+        course_type: parsed.data.course_type,
         price: parsed.data.price || null,
         tags: parsed.data.tags || null,
         duration: parsed.data.duration || null,
@@ -106,7 +106,7 @@ export async function updateCourse(
         description: parsed.data.description || null,
         area: parsed.data.area,
         difficulty: parsed.data.difficulty,
-        format: parsed.data.format,
+        course_type: parsed.data.course_type,
         price: parsed.data.price || null,
         tags: parsed.data.tags || null,
         duration: parsed.data.duration || null,
@@ -347,6 +347,16 @@ export async function uploadCourseThumbnail(
     }
   } catch (error) {
     console.error("Erro inesperado no upload:", error)
+
+    // Tratamento específico para erro de tamanho de corpo
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    if (errorMessage.includes("Body exceeded") || errorMessage.includes("413")) {
+      return {
+        success: false,
+        error: "O arquivo é muito grande. Limite máximo de upload é 5MB. Por favor, reduza o tamanho da imagem e tente novamente.",
+      }
+    }
+
     return {
       success: false,
       error: "Erro inesperado ao fazer upload",

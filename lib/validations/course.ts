@@ -16,8 +16,8 @@ export const courseFormSchema = z.object({
   difficulty: z.enum(["Iniciante", "Intermediário", "Avançado"], {
     required_error: "Selecione o nível de dificuldade",
   }),
-  format: z.enum(["100% online", "Híbrido", "Presencial"], {
-    required_error: "Selecione o formato do curso",
+  course_type: z.enum(["Ondonto GPT", "Premium"], {
+    required_error: "Selecione o tipo de curso",
   }),
   price: z.string().optional(),
   tags: z.string().optional(),

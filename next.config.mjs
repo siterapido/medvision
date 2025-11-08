@@ -11,6 +11,10 @@ const nextConfig = {
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
     minimumCacheTTL: 60,
   },
+  // Aumentar limite de tamanho de corpo para uploads (padrão: 1MB)
+  serverActions: {
+    bodySizeLimit: '50mb',
+  },
   // Otimizações adicionais
   compress: true,
   poweredByHeader: false,

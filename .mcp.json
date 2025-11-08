@@ -1,7 +1,34 @@
 {
-  "mcpServers": {
-    "Sentry": {
-      "url": "https://mcp.sentry.dev/mcp/insightfy-dr/odontogpt"
-    }
-  }
+"mcpServers": {
+"context7": {
+"type": "stdio",
+"command": "npx",
+"args": [
+"-y",
+"@upstash/context7-mcp@latest"
+],
+"env": {}
+},
+"gemini-cli": {
+"type": "stdio",
+"command": "npx",
+"args": [
+"-y",
+"gemini-mcp-tool"
+],
+"env": {}
+},
+"netlify": {
+"type": "http",
+"url": "https://netlify-mcp.netlify.app/mcp"
+},
+"supabase": {
+"type": "http",
+"url": "https://mcp.supabase.com/mcp?project_ref=fjcbowphcbnvuowsjvbz"
+},
+"vercel": {
+"type": "http",
+"url": "https://mcp.vercel.com"
+}
+}
 }

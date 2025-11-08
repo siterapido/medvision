@@ -50,7 +50,7 @@ interface Course {
   description: string | null
   area: string
   difficulty: string
-  format: string
+  course_type: string
   price: string | null
   tags: string | null
   duration: string | null
@@ -364,7 +364,7 @@ export function CoursesTable({
             description: courseToEdit.description || "",
             area: courseToEdit.area,
             difficulty: courseToEdit.difficulty as any,
-            format: courseToEdit.format as any,
+            course_type: courseToEdit.course_type as any,
             price: courseToEdit.price || "",
             tags: courseToEdit.tags || "",
             duration: courseToEdit.duration || "",
