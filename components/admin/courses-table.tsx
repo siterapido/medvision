@@ -39,6 +39,7 @@ import {
   Eye,
   BookOpen,
   Loader2,
+  Video,
 } from "lucide-react"
 import Link from "next/link"
 import type { CourseFormData } from "@/lib/validations/course"
@@ -275,7 +276,16 @@ export function CoursesTable({
                             className="hover:bg-[#16243F] cursor-pointer"
                           >
                             <Edit className="mr-2 h-4 w-4" />
-                            Editar
+                            Editar Curso
+                          </DropdownMenuItem>
+                          <DropdownMenuItem asChild>
+                            <Link
+                              href={`/admin/cursos/${course.id}/aulas`}
+                              className="hover:bg-[#16243F] cursor-pointer"
+                            >
+                              <Video className="mr-2 h-4 w-4" />
+                              Gerenciar Aulas
+                            </Link>
                           </DropdownMenuItem>
                           <DropdownMenuItem asChild>
                             <Link
