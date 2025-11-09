@@ -43,8 +43,16 @@ export function LoginForm() {
     try {
       const supabase = createClient()
 
+      const trimmedEmail = email.trim()
+
+      if (!trimmedEmail) {
+        setError("Informe um email válido antes de continuar.")
+        setIsLoading(false)
+        return
+      }
+
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
-        email,
+        email: trimmedEmail,
         password,
       })
 
@@ -125,6 +133,7 @@ export function LoginForm() {
           </Label>
           <Link
             href="/forgot-password"
+            prefetch={false}
             className="text-xs text-primary hover:text-primary-hover font-medium transition-colors"
           >
             Esqueceu a senha?
