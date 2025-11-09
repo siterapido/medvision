@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CourseCarousel } from "@/components/courses/course-carousel"
+import { sanitizeCourseId } from "@/lib/course/helpers"
 import Link from "next/link"
 import Image from "next/image"
 import { createClient } from "@/lib/supabase/server"
@@ -68,11 +69,16 @@ export default async function CursosPage() {
   const { data: userProgress } = await supabase.from("user_courses").select("*").eq("user_id", user.id)
 
   // Merge courses with user progress
-  const courses: CourseWithProgress[] = (
-    allCourses?.map((course) => {
+  const courses: CourseWithProgress[] =
+    allCourses?.reduce<CourseWithProgress[]>((acc, course) => {
+      const id = sanitizeCourseId(course?.id ?? null)
+      if (!id) {
+        return acc
+      }
+
       const progress = userProgress?.find((p) => p.course_id === course.id)
-      return {
-        id: String(course.id),
+      acc.push({
+        id,
         title: course.title,
         description: course.description || "Descrição em breve",
         thumbnail: course.thumbnail_url || "/placeholder.svg?height=200&width=400",
@@ -80,9 +86,10 @@ export default async function CursosPage() {
         lessons: course.lessons_count ?? 0,
         duration: formatDurationLabel(course.duration, course.duration_minutes),
         isDraft: course.is_published !== true,
-      }
-    }) || []
-  )
+      })
+
+      return acc
+    }, []) ?? []
 
   const dedupedCourses = Array.from(new Map(courses.map((course) => [course.id, course])).values())
 

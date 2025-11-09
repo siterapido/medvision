@@ -46,7 +46,6 @@ O workflow N8N (`public/Odonto gpt.json`) inclui:
 - **OpenAI Chat Model**: GPT-4o-mini para respostas
 - **Memory Buffer**: Mantém contexto (últimas 6 mensagens)
 - **Tool Code**: FAQ técnico de odontologia
-- **HTTP Request**: Integração opcional com Z-API (WhatsApp)
 
 ## Formato da Resposta
 

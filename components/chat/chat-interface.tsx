@@ -2,6 +2,8 @@
 
 import { Fragment, useEffect, useRef, useState } from "react"
 import type { ChatStatus } from "ai"
+import clsx from "clsx"
+import { CopyIcon, RefreshCcwIcon, Share2Icon, Sparkles } from "lucide-react"
 import {
   Conversation,
   ConversationContent,
@@ -19,7 +21,6 @@ import {
 import { Response } from "@/components/ai-elements/response"
 import { Action, Actions } from "@/components/ai-elements/actions"
 import { Loader } from "@/components/ai-elements/loader"
-import { CopyIcon, RefreshCcwIcon, Sparkles, Share2Icon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 type ChatMessage = {
@@ -175,16 +176,18 @@ export function ChatInterface() {
   }
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-1 flex-col bg-gradient-to-b from-[#0F192F] via-[#101C34] to-[#0B1423] text-[#E6EDF7]">
+    <div className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden bg-gradient-to-b from-[#0F192F] via-[#101C34] to-[#0B1423] text-[#E6EDF7]">
       {/* Header com botões de copiar e compartilhar */}
-      <div className="flex items-center justify-between border-b border-[#1f2d4a] bg-[#111b2d]/90 px-6 py-4">
-        <h2 className="text-lg font-semibold text-white">Chat Odonto GPT</h2>
+      <div className="flex items-center justify-between px-6 py-4 shadow-sm border-b border-[#1f2d4a] bg-[#111b2d]/90">
+        <h2 className="text-lg font-semibold text-white">
+          Chat Odonto GPT
+        </h2>
         <div className="flex gap-2">
           <Button
             onClick={copyAllMessages}
             variant="outline"
             size="sm"
-            className="rounded-lg border-[#1f2d4a] bg-[#131f36] text-[#E6EDF7] transition-colors hover:border-[#2399B4] hover:text-white"
+            className="rounded-lg border px-3 py-2 text-sm font-semibold transition-colors shadow-[0_15px_35px_rgba(15,23,42,0.12)] border-[#1f2d4a] bg-[#131f36] text-[#E6EDF7] hover:border-[#2399B4] hover:text-white"
           >
             <CopyIcon className="mr-2 h-4 w-4" />
             Copiar
@@ -193,7 +196,7 @@ export function ChatInterface() {
             onClick={shareChat}
             variant="outline"
             size="sm"
-            className="rounded-lg border-[#1f2d4a] bg-[#131f36] text-[#E6EDF7] transition-colors hover:border-[#2399B4] hover:text-white"
+            className="rounded-lg border px-3 py-2 text-sm font-semibold transition-colors shadow-[0_15px_35px_rgba(15,23,42,0.12)] border-[#1f2d4a] bg-[#131f36] text-[#E6EDF7] hover:border-[#2399B4] hover:text-white"
           >
             <Share2Icon className="mr-2 h-4 w-4" />
             Compartilhar
@@ -201,7 +204,9 @@ export function ChatInterface() {
         </div>
       </div>
 
-      <Conversation className="flex-1 bg-transparent px-4 py-6 sm:px-6">
+      <Conversation
+        className="flex-1 px-4 py-6 sm:px-6 bg-transparent"
+      >
         {messages.length === 0 ? (
           <ConversationEmptyState
             description="Envie sua primeira pergunta para começar"
@@ -214,29 +219,36 @@ export function ChatInterface() {
               <Fragment key={message.id}>
                 <Message from={message.role} className="mb-1">
                   <MessageContent
-                    className={`rounded-2xl border px-5 py-4 text-sm leading-relaxed ${
-                      message.role === "user"
-                        ? "ml-auto max-w-[85%] border-[#1f8ab1]/40 bg-[#0F172A] text-white"
-                        : "mr-auto max-w-[85%] border-[#1f2d4a] bg-[#131F36] text-[#E6EDF7]"
-                    }`}
+                    className={clsx(
+                      "rounded-2xl border px-5 py-4 text-sm leading-relaxed max-w-[85%]",
+                      message.role === "user" ? "ml-auto border-[#1f8ab1]/40 bg-[#0F172A] text-white" : "mr-auto border-[#1f2d4a] bg-[#131F36] text-[#E6EDF7]"
+                    )}
                   >
                     <Response className="text-sm leading-relaxed">{message.content}</Response>
                   </MessageContent>
                 </Message>
 
                 {message.role === "assistant" && index === messages.length - 1 && status === "idle" && (
-                  <Actions className="mt-2 mb-2 flex gap-2 text-[#E6EDF7]">
+                  <Actions
+                    className="mt-2 mb-2 flex gap-2 text-[#E6EDF7]"
+                  >
                     <Action
                       onClick={() => regenerateMessage(index)}
                       label="Regenerar"
-                      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1f2d4a] bg-[#121c31] text-[#E6EDF7] transition-colors hover:border-[#2399B4]"
+                      className={clsx(
+                        "flex h-9 w-9 items-center justify-center rounded-full border text-center transition-colors shadow-[0_15px_40px_rgba(15,23,42,0.12)]",
+                        "border-[#1f2d4a] bg-[#121c31] text-[#E6EDF7] hover:border-[#2399B4]"
+                      )}
                     >
                       <RefreshCcwIcon className="h-3.5 w-3.5 text-inherit" />
                     </Action>
                     <Action
                       onClick={() => copyToClipboard(message.content)}
                       label="Copiar"
-                      className="flex h-9 w-9 items-center justify-center rounded-full border border-[#1f2d4a] bg-[#121c31] text-[#E6EDF7] transition-colors hover:border-[#2399B4]"
+                      className={clsx(
+                        "flex h-9 w-9 items-center justify-center rounded-full border text-center transition-colors shadow-[0_15px_40px_rgba(15,23,42,0.12)]",
+                        "border-[#1f2d4a] bg-[#121c31] text-[#E6EDF7] hover:border-[#2399B4]"
+                      )}
                     >
                       <CopyIcon className="h-3.5 w-3.5 text-inherit" />
                     </Action>
@@ -245,30 +257,52 @@ export function ChatInterface() {
               </Fragment>
             ))}
             {status === "submitted" && (
-              <div className="flex items-center gap-3 rounded-2xl border border-dashed border-[#1f2d4a] bg-[#121a30]/70 px-4 py-3">
-                <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[#1f2d4a] bg-[#10192c]">
+              <div
+                className={clsx(
+                  "flex items-center gap-3 rounded-2xl border border-dashed px-4 py-3 border-[#1f2d4a] bg-[#121a30]/70"
+                )}
+              >
+                <div
+                  className={clsx(
+                    "flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[#1f2d4a] bg-[#10192c]"
+                  )}
+                >
                   <Sparkles className="h-4 w-4 text-[#06b6d4]" />
                 </div>
-                <Loader className="text-[#E6EDF7]" />
+                <Loader className="text-sm text-[#E6EDF7]" />
               </div>
             )}
           </ConversationContent>
         )}
-        <ConversationScrollButton className="rounded-full border border-[#1f2d4a] bg-[#131f36] text-[#E6EDF7] hover:border-[#2399B4] hover:text-white" />
+        <ConversationScrollButton
+          className={clsx(
+            "rounded-full border text-sm transition-colors shadow-[0_15px_35px_rgba(15,23,42,0.12)]",
+            "border-[#1f2d4a] bg-[#131f36] text-[#E6EDF7] hover:border-[#2399B4] hover:text-white"
+          )}
+        />
       </Conversation>
 
-      <div className="border-t border-[#1f2d4a] bg-[#0F172A]/90 p-5">
+      <div
+        className={clsx(
+          "p-5 border-t border-[#1f2d4a] bg-[#0F172A]/90"
+        )}
+      >
         <div className="mx-auto w-full max-w-4xl">
           <PromptInput
             onSubmit={({ text }) => {
               return sendMessage(text)
             }}
-            className="rounded-2xl border border-[#1f2d4a] bg-[#101a30] transition-colors hover:border-[#2399B4] focus-within:border-[#2399B4] focus-within:ring-0"
+            className={clsx(
+              "rounded-2xl border transition-colors focus-within:ring-0 shadow-[0_20px_50px_rgba(15,23,42,0.08)] border-[#1f2d4a] bg-[#101a30] hover:border-[#2399B4]"
+            )}
           >
             <PromptInputBody className="p-4">
               <PromptInputTextarea
                 placeholder="Digite sua dúvida clínica..."
-                className="resize-none bg-transparent text-sm text-[#E6EDF7] placeholder:text-slate-400/70"
+                className={clsx(
+                  "resize-none bg-transparent text-sm",
+                  "text-[#E6EDF7] placeholder:text-slate-400/70"
+                )}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
               />
@@ -281,7 +315,11 @@ export function ChatInterface() {
               />
             </PromptInputFooter>
           </PromptInput>
-          <p className="mt-3 text-center text-xs text-slate-400">
+          <p
+            className={clsx(
+              "mt-3 text-center text-xs text-slate-400"
+            )}
+          >
             Pressione Enter para enviar, Shift + Enter para nova linha
           </p>
         </div>

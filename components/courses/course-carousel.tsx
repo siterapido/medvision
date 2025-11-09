@@ -1,6 +1,6 @@
 "use client"
 
-import { Children, Fragment, ReactNode, useEffect, useMemo, useRef } from "react"
+import { Children, Fragment, ReactNode, useMemo, useRef } from "react"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -14,54 +14,10 @@ type CourseCarouselProps = {
 export function CourseCarousel({ children, ariaLabel, className }: CourseCarouselProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const items = useMemo(() => Children.toArray(children), [children])
-  const loopedItems = useMemo(
-    () => [...items, ...items].map((child, index) => <Fragment key={`carousel-item-${index}`}>{child}</Fragment>),
+  const renderedItems = useMemo(
+    () => items.map((child, index) => <Fragment key={`carousel-item-${index}`}>{child}</Fragment>),
     [items],
   )
-
-  useEffect(() => {
-    const container = scrollRef.current
-    if (!container || items.length === 0) return
-
-    const isScrollable = container.scrollWidth > container.clientWidth
-    if (!isScrollable) {
-      container.scrollLeft = 0
-      return
-    }
-
-    let rafId: number | null = null
-
-    const setInitialPosition = () => {
-      const halfWidth = container.scrollWidth / 2
-      if (halfWidth > 0) {
-        container.scrollLeft = halfWidth
-      }
-    }
-
-    const handleLoopScroll = () => {
-      if (!container) return
-      if (container.scrollWidth <= container.clientWidth) return
-
-      const halfWidth = container.scrollWidth / 2
-      const maxScrollLeft = container.scrollWidth - container.clientWidth
-      if (halfWidth === 0) return
-
-      if (container.scrollLeft <= 0) {
-        container.scrollLeft += halfWidth
-      } else if (container.scrollLeft >= maxScrollLeft - 1) {
-        container.scrollLeft -= halfWidth
-      }
-    }
-
-    rafId = window.requestAnimationFrame(setInitialPosition)
-    container.addEventListener("scroll", handleLoopScroll)
-
-    return () => {
-      if (rafId) window.cancelAnimationFrame(rafId)
-      container.removeEventListener("scroll", handleLoopScroll)
-    }
-  }, [items])
-
   const handleScroll = (direction: "prev" | "next") => {
     const container = scrollRef.current
     if (!container || container.scrollWidth <= container.clientWidth) return
@@ -85,7 +41,7 @@ export function CourseCarousel({ children, ariaLabel, className }: CourseCarouse
           aria-label={ariaLabel}
           className="flex min-w-max gap-5 overflow-x-auto pb-4 px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
-          {loopedItems}
+          {renderedItems}
         </div>
       </div>
 

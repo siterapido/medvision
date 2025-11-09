@@ -1,5 +1,6 @@
 "use server"
 
+import type { PostgrestError } from "@supabase/postgrest-js"
 import { createClient } from "@/lib/supabase/server"
 import { revalidatePath } from "next/cache"
 import {
@@ -18,12 +19,32 @@ import {
   type ModuleFormData,
   type ModuleUpdateData,
 } from "@/lib/validations/module"
+import {
+  LESSON_MODULE_SUPPORT_ERROR,
+  getLessonModuleSupport,
+  isLessonModulesTableMissingError,
+  supportsLessonModules,
+  type LessonModuleSupport,
+} from "@/lib/lesson-module-support"
 
 export type ActionResult<T = void> = {
   success: boolean
   data?: T
   error?: string
   fieldErrors?: Record<string, string[]>
+}
+
+function getMissingLessonModulesTableResult<T = void>(
+  error: PostgrestError | null
+): ActionResult<T> | null {
+  if (isLessonModulesTableMissingError(error)) {
+    return {
+      success: false,
+      error: LESSON_MODULE_SUPPORT_ERROR,
+    }
+  }
+
+  return null
 }
 
 const DEFAULT_MODULE_TITLE = "Sem módulo"
@@ -34,9 +55,16 @@ async function resolveModuleReference(
   supabase: ReturnType<typeof createClient>,
   courseId: string,
   moduleId: string | undefined,
-  moduleTitle: string | undefined
+  moduleTitle: string | undefined,
+  moduleSupport?: LessonModuleSupport
 ): Promise<{ id: string | null; title: string }> {
+  const support = moduleSupport ?? (await getLessonModuleSupport(supabase))
   const normalizedTitle = moduleTitle?.trim() || DEFAULT_MODULE_TITLE
+  const fallbackReference = { id: null, title: normalizedTitle }
+
+  if (!supportsLessonModules(support)) {
+    return fallbackReference
+  }
 
   if (moduleId) {
     const { data, error } = await supabase
@@ -44,6 +72,10 @@ async function resolveModuleReference(
       .select("id, title")
       .eq("id", moduleId)
       .maybeSingle()
+
+    if (isLessonModulesTableMissingError(error)) {
+      return fallbackReference
+    }
 
     if (!error && data) {
       return {
@@ -59,6 +91,10 @@ async function resolveModuleReference(
     .eq("course_id", courseId)
     .eq("title", normalizedTitle)
     .maybeSingle()
+
+  if (isLessonModulesTableMissingError(existingError)) {
+    return fallbackReference
+  }
 
   if (!existingError && existing) {
     return {
@@ -76,6 +112,10 @@ async function resolveModuleReference(
     })
     .select("id, title")
     .single()
+
+  if (isLessonModulesTableMissingError(insertError)) {
+    return fallbackReference
+  }
 
   if (insertError) {
     console.error("Erro ao criar módulo automático:", insertError)
@@ -144,35 +184,41 @@ export async function createLesson(
     }
 
     // Resolver módulo associado
+    const moduleSupport = await getLessonModuleSupport(supabase)
     const resolvedModule = await resolveModuleReference(
       supabase,
       courseId,
       parsed.data.module_id,
-      parsed.data.module_title
+      parsed.data.module_title,
+      moduleSupport
     )
 
-    if (!resolvedModule.id) {
+    if (supportsLessonModules(moduleSupport) && !resolvedModule.id) {
       return {
         success: false,
         error: "Não foi possível associar o módulo",
       }
     }
 
-    // Inserir aula
+    const lessonPayload: Record<string, unknown> = {
+      course_id: courseId,
+      title: parsed.data.title,
+      description: parsed.data.description || null,
+      video_url: parsed.data.video_url || null,
+      duration_minutes: parsed.data.duration_minutes || null,
+      module_title: resolvedModule.title,
+      order_index: parsed.data.order_index,
+      materials: parsed.data.materials || [],
+      available_at: parsed.data.available_at || null,
+    }
+
+    if (moduleSupport.lessonsModuleIdColumn && resolvedModule.id) {
+      lessonPayload.module_id = resolvedModule.id
+    }
+
     const { data, error } = await supabase
       .from("lessons")
-      .insert({
-        course_id: courseId,
-        title: parsed.data.title,
-        description: parsed.data.description || null,
-        video_url: parsed.data.video_url || null,
-        duration_minutes: parsed.data.duration_minutes || null,
-        module_title: resolvedModule.title,
-        module_id: resolvedModule.id,
-        order_index: parsed.data.order_index,
-        materials: parsed.data.materials || [],
-        available_at: parsed.data.available_at || null,
-      })
+      .insert(lessonPayload)
       .select("id")
       .single()
 
@@ -238,16 +284,20 @@ export async function updateLesson(
       }
     }
 
+    const moduleSupport = await getLessonModuleSupport(supabase)
+    const moduleFeatureReady = supportsLessonModules(moduleSupport)
+
     let resolvedModule: { id: string | null; title: string } | null = null
     if (parsed.data.module_title !== undefined || parsed.data.module_id !== undefined) {
       resolvedModule = await resolveModuleReference(
         supabase,
         lesson.course_id,
         parsed.data.module_id,
-        parsed.data.module_title
+        parsed.data.module_title,
+        moduleSupport
       )
 
-      if (!resolvedModule.id) {
+      if (moduleFeatureReady && !resolvedModule.id) {
         return {
           success: false,
           error: "Não foi possível associar o módulo",
@@ -263,7 +313,10 @@ export async function updateLesson(
     if (parsed.data.duration_minutes !== undefined) updateData.duration_minutes = parsed.data.duration_minutes || null
     if (resolvedModule) {
       updateData.module_title = resolvedModule.title
-      updateData.module_id = resolvedModule.id
+
+      if (moduleSupport.lessonsModuleIdColumn && resolvedModule.id) {
+        updateData.module_id = resolvedModule.id
+      }
     }
     if (parsed.data.order_index !== undefined) updateData.order_index = parsed.data.order_index
     if (parsed.data.materials !== undefined) updateData.materials = parsed.data.materials || []
@@ -421,34 +474,42 @@ export async function createBulkLessons(
     }
 
     // Preparar dados para inserção
+    const moduleSupport = await getLessonModuleSupport(supabase)
+    const moduleFeatureReady = supportsLessonModules(moduleSupport)
     const lessonsToInsert: any[] = []
     for (const lesson of parsed.data.lessons) {
       const resolvedModule = await resolveModuleReference(
         supabase,
         parsed.data.course_id,
         lesson.module_id,
-        lesson.module_title
+        lesson.module_title,
+        moduleSupport
       )
 
-      if (!resolvedModule.id) {
+      if (moduleFeatureReady && !resolvedModule.id) {
         return {
           success: false,
           error: "Não foi possível associar o módulo em uma das aulas",
         }
       }
 
-      lessonsToInsert.push({
+      const lessonPayload: Record<string, unknown> = {
         course_id: parsed.data.course_id,
         title: lesson.title,
         description: lesson.description || null,
         video_url: lesson.video_url || null,
         duration_minutes: lesson.duration_minutes || null,
         module_title: resolvedModule.title,
-        module_id: resolvedModule.id,
         order_index: lesson.order_index,
         materials: lesson.materials || [],
         available_at: lesson.available_at || null,
-      })
+      }
+
+      if (moduleSupport.lessonsModuleIdColumn && resolvedModule.id) {
+        lessonPayload.module_id = resolvedModule.id
+      }
+
+      lessonsToInsert.push(lessonPayload)
     }
 
     // Inserir aulas
@@ -561,6 +622,13 @@ export async function createModule(
     }
 
     const supabase = await createClient()
+    const moduleSupport = await getLessonModuleSupport(supabase)
+    if (!moduleSupport.lessonModulesTable) {
+      return {
+        success: false,
+        error: LESSON_MODULE_SUPPORT_ERROR,
+      }
+    }
 
     const { data, error } = await supabase
       .from("lesson_modules")
@@ -575,6 +643,11 @@ export async function createModule(
 
     if (error) {
       console.error("Erro ao criar módulo:", error)
+
+      const missingTableResult = getMissingLessonModulesTableResult<{ id: string }>(error)
+      if (missingTableResult) {
+        return missingTableResult
+      }
 
       if (error.code && DUPLICATE_MODULE_ERROR_CODES.has(error.code)) {
         return {
@@ -626,12 +699,24 @@ export async function updateModule(
     }
 
     const supabase = await createClient()
+    const moduleSupport = await getLessonModuleSupport(supabase)
+    if (!moduleSupport.lessonModulesTable) {
+      return {
+        success: false,
+        error: LESSON_MODULE_SUPPORT_ERROR,
+      }
+    }
 
     const { data: module, error: moduleError } = await supabase
       .from("lesson_modules")
       .select("id, course_id")
       .eq("id", parsed.data.id)
       .single()
+
+    const missingModuleResult = getMissingLessonModulesTableResult(moduleError)
+    if (missingModuleResult) {
+      return missingModuleResult
+    }
 
     if (moduleError || !module) {
       return {
@@ -656,6 +741,11 @@ export async function updateModule(
 
     if (updateError) {
       console.error("Erro ao atualizar módulo:", updateError)
+      const missingUpdateResult = getMissingLessonModulesTableResult(updateError)
+      if (missingUpdateResult) {
+        return missingUpdateResult
+      }
+
       return {
         success: false,
         error: "Erro ao atualizar módulo. Tente novamente.",
@@ -684,12 +774,24 @@ export async function updateModule(
 export async function deleteModule(moduleId: string): Promise<ActionResult> {
   try {
     const supabase = await createClient()
+    const moduleSupport = await getLessonModuleSupport(supabase)
+    if (!moduleSupport.lessonModulesTable) {
+      return {
+        success: false,
+        error: LESSON_MODULE_SUPPORT_ERROR,
+      }
+    }
 
     const { data: module, error: moduleError } = await supabase
       .from("lesson_modules")
       .select("id, course_id, title")
       .eq("id", moduleId)
       .single()
+
+    const missingModuleResult = getMissingLessonModulesTableResult(moduleError)
+    if (missingModuleResult) {
+      return missingModuleResult
+    }
 
     if (moduleError || !module) {
       return {
@@ -705,6 +807,11 @@ export async function deleteModule(moduleId: string): Promise<ActionResult> {
 
     if (error) {
       console.error("Erro ao deletar módulo:", error)
+      const missingDeleteResult = getMissingLessonModulesTableResult(error)
+      if (missingDeleteResult) {
+        return missingDeleteResult
+      }
+
       return {
         success: false,
         error: "Erro ao deletar módulo. Tente novamente.",

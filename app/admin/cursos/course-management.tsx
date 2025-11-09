@@ -34,6 +34,7 @@ import {
   XCircle,
   Loader2,
 } from "lucide-react"
+import type { CourseRowWithLessons } from "@/components/admin/course-workspace"
 
 interface Course {
   id: string
@@ -54,9 +55,15 @@ interface Course {
 
 interface CourseManagementProps {
   courses: Course[]
+  adminName: string
+  workspaceCourses: CourseRowWithLessons[]
 }
 
-export function CourseManagement({ courses }: CourseManagementProps) {
+export function CourseManagement({
+  courses,
+  adminName,
+  workspaceCourses,
+}: CourseManagementProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
@@ -288,14 +295,16 @@ export function CourseManagement({ courses }: CourseManagementProps) {
           )}
         </div>
 
-        {/* Botão criar curso */}
-        <Button
-          onClick={() => setCreateDialogOpen(true)}
-          className="bg-cyan-600 hover:bg-cyan-700 text-white whitespace-nowrap"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Novo Curso
-        </Button>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
+          {/* Botão criar curso */}
+          <Button
+            onClick={() => setCreateDialogOpen(true)}
+            className="bg-cyan-600 hover:bg-cyan-700 text-white whitespace-nowrap"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Novo Curso
+          </Button>
+        </div>
       </div>
 
       {/* Barra de ações em lote */}

@@ -48,9 +48,14 @@ interface LessonManagerProps {
   courseId: string
   courseTitle: string
   modules: ModuleWithLessons[]
+  modulesEnabled?: boolean
 }
 
-export function LessonManager({ courseId, courseTitle, modules }: LessonManagerProps) {
+export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }: LessonManagerProps) {
+  const isModulesEnabled = modulesEnabled ?? true
+  const modulesDisabledTitle =
+    "Ative a tabela lesson_modules (migration 013) no banco para criar e editar módulos."
+
   const router = useRouter()
   const [isLessonDialogOpen, setIsLessonDialogOpen] = useState(false)
   const [editingLesson, setEditingLesson] = useState<LessonData | null>(null)
@@ -144,10 +149,14 @@ export function LessonManager({ courseId, courseTitle, modules }: LessonManagerP
             <div className="flex flex-wrap gap-2">
               <Button
                 onClick={() => {
+                  if (!isModulesEnabled) return
                   setEditingModule(null)
                   setIsModuleDialogOpen(true)
                 }}
+                disabled={!isModulesEnabled}
+                variant="solid"
                 className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                title={!isModulesEnabled ? modulesDisabledTitle : undefined}
               >
                 <Plus className="h-4 w-4" />
                 Novo módulo
@@ -370,31 +379,33 @@ export function LessonManager({ courseId, courseTitle, modules }: LessonManagerP
         }}
       />
 
-      <ModuleFormDialog
-        key={editingModule?.id ?? "new"}
-        open={isModuleDialogOpen}
-        onOpenChange={(open) => {
-          setIsModuleDialogOpen(open)
-          if (!open) setEditingModule(null)
-        }}
-        mode={editingModule ? "edit" : "create"}
-        courseId={courseId}
-        initialData={
-          editingModule
-            ? {
-                id: editingModule.id ?? undefined,
-                title: editingModule.title,
-                description: editingModule.description,
-                order_index: editingModule.order_index,
-              }
-            : undefined
-        }
-        onSuccess={() => {
-          setIsModuleDialogOpen(false)
-          setEditingModule(null)
-          router.refresh()
-        }}
-      />
+      {isModulesEnabled && (
+        <ModuleFormDialog
+          key={editingModule?.id ?? "new"}
+          open={isModuleDialogOpen}
+          onOpenChange={(open) => {
+            setIsModuleDialogOpen(open)
+            if (!open) setEditingModule(null)
+          }}
+          mode={editingModule ? "edit" : "create"}
+          courseId={courseId}
+          initialData={
+            editingModule
+              ? {
+                  id: editingModule.id ?? undefined,
+                  title: editingModule.title,
+                  description: editingModule.description,
+                  order_index: editingModule.order_index,
+                }
+              : undefined
+          }
+          onSuccess={() => {
+            setIsModuleDialogOpen(false)
+            setEditingModule(null)
+            router.refresh()
+          }}
+        />
+      )}
 
       <AlertDialog
         open={!!deletingLessonId}

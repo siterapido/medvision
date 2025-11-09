@@ -91,6 +91,105 @@ const getLessonProgressLabel = (progress: number) => {
   return `${progress}% concluído`
 }
 
+const extractUrlFromString = (value?: string | null): string | null => {
+  if (!value) return null
+  const trimmed = value.trim()
+  if (trimmed.length === 0) return null
+
+  const matches = trimmed.match(/https?:\/\/[^\s"']+/g)
+  if (matches && matches.length > 0) {
+    return matches[0]
+  }
+
+  return trimmed
+}
+
+const trimDuplicateProtocol = (value: string) => {
+  const protocols = ["https://", "http://"]
+  let secondIndex = -1
+  const baseIndex = Math.min(
+    ...protocols
+      .map((proto) => value.indexOf(proto))
+      .filter((idx) => idx !== -1),
+  )
+
+  if (baseIndex === Infinity || baseIndex === -1) {
+    return value
+  }
+
+  protocols.forEach((proto) => {
+    const nextIndex = value.indexOf(proto, baseIndex + proto.length)
+    if (nextIndex > -1) {
+      secondIndex = secondIndex === -1 ? nextIndex : Math.min(secondIndex, nextIndex)
+    }
+  })
+
+  if (secondIndex > -1) {
+    return value.slice(0, secondIndex)
+  }
+
+  return value
+}
+
+const normalizeVideoUrl = (value?: string | null): string | null => {
+  const urlCandidate = extractUrlFromString(value)
+  if (!urlCandidate) return null
+
+  const sanitizedUrl = trimDuplicateProtocol(urlCandidate)
+
+  try {
+    const parsed = new URL(sanitizedUrl)
+    const hostname = parsed.hostname.replace(/^www\./, "").toLowerCase()
+
+    if (hostname === "youtu.be") {
+      const videoId = parsed.pathname.replace(/^\//, "")
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`
+      }
+    }
+
+    if (hostname === "youtube.com" || hostname === "youtube-nocookie.com") {
+      const videoId = parsed.searchParams.get("v")
+      if (videoId) {
+        return `https://www.youtube.com/embed/${videoId}`
+      }
+    }
+
+    if (hostname.includes("vimeo.com")) {
+      const videoId = parsed.pathname.split("/").filter(Boolean).pop()
+      if (videoId) {
+        return `https://player.vimeo.com/video/${videoId}`
+      }
+    }
+
+    return urlCandidate
+  } catch {
+    return urlCandidate
+  }
+}
+
+const persistLessonCompletion = async (courseId: string, lessonId: string) => {
+  try {
+    const response = await fetch("/api/courses/lessons/complete", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ courseId, lessonId }),
+    })
+
+    if (!response.ok) {
+      const errorPayload = await response.json().catch(() => null)
+      console.error(
+        "[course-player] falha ao salvar progresso:",
+        errorPayload?.error ?? response.statusText,
+      )
+    }
+  } catch (error) {
+    console.error("[course-player] erro ao salvar progresso:", error)
+  }
+}
+
 type CoursePlayerLessonState = CoursePlayerLesson & { completed: boolean }
 
 export function CoursePlayer({
@@ -101,7 +200,18 @@ export function CoursePlayer({
   progress?: number
 }) {
   const normalizedLessons = useMemo<CoursePlayerLessonState[]>(() => {
-    const items = [...(course.lessons ?? [])]
+    const seenLessonIds = new Set<string>()
+    const uniqueLessons: CoursePlayerLesson[] = []
+    ;(course.lessons ?? []).forEach((lesson) => {
+      if (lesson.id) {
+        if (seenLessonIds.has(lesson.id)) {
+          return
+        }
+        seenLessonIds.add(lesson.id)
+      }
+      uniqueLessons.push(lesson)
+    })
+    const items = [...uniqueLessons]
     items.sort((a, b) => {
       if (a.order_index != null && b.order_index != null) {
         return a.order_index - b.order_index
@@ -121,8 +231,17 @@ export function CoursePlayer({
     }))
   }, [course.lessons, progress])
 
-  const [lessons, setLessons] = useState<CoursePlayerLessonState[]>(normalizedLessons)
+  const [completedOverrides, setCompletedOverrides] = useState<Set<string>>(() => new Set())
   const [currentLessonId, setCurrentLessonId] = useState(normalizedLessons[0]?.id ?? "")
+
+  const lessons = useMemo(
+    () =>
+      normalizedLessons.map((lesson) => ({
+        ...lesson,
+        completed: lesson.completed || (lesson.id ? completedOverrides.has(lesson.id) : false),
+      })),
+    [normalizedLessons, completedOverrides],
+  )
 
   const currentLesson = lessons.find((lesson) => lesson.id === currentLessonId) ?? lessons[0]
   const currentLessonIndex = lessons.findIndex((lesson) => lesson.id === currentLessonId)
@@ -132,16 +251,27 @@ export function CoursePlayer({
   const upcomingLesson =
     lessons.find((lesson, index) => index > currentLessonIndex && !lesson.completed) ?? null
 
-  const handleMarkComplete = () => {
+  const normalizedVideoUrl = normalizeVideoUrl(currentLesson?.video_url)
+
+  const handleMarkComplete = async () => {
     if (!currentLesson) return
 
-    setLessons((prev) =>
-      prev.map((lesson) => (lesson.id === currentLesson.id ? { ...lesson, completed: true } : lesson)),
-    )
+    setCompletedOverrides((prev) => {
+      if (!currentLesson.id) {
+        return prev
+      }
+      const next = new Set(prev)
+      next.add(currentLesson.id)
+      return next
+    })
 
     const currentIndex = lessons.findIndex((lesson) => lesson.id === currentLesson.id)
     if (currentIndex > -1 && currentIndex < lessons.length - 1) {
       setCurrentLessonId(lessons[currentIndex + 1].id)
+    }
+
+    if (course.id && currentLesson.id) {
+      void persistLessonCompletion(course.id, currentLesson.id)
     }
   }
 
@@ -221,10 +351,10 @@ export function CoursePlayer({
         <div className="flex-1 space-y-5">
           <div className="overflow-hidden rounded-2xl border border-white/5 bg-black">
             <div className="aspect-video w-full">
-              {hasLessons && currentLesson?.video_url ? (
+              {hasLessons && normalizedVideoUrl ? (
                 <iframe
-                  src={currentLesson.video_url}
-                  title={currentLesson.title}
+                  src={normalizedVideoUrl}
+                  title={currentLesson?.title ?? "Vídeo do curso"}
                   className="h-full w-full"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen

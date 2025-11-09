@@ -29,3 +29,35 @@ export const parseTags = (tags?: string) => {
 
   return parsed.length > 0 ? parsed : null
 }
+
+const decodeIfNeeded = (value: string) => {
+  try {
+    return decodeURIComponent(value)
+  } catch {
+    return value
+  }
+}
+
+export const sanitizeCourseId = (value?: string | null): string | null => {
+  if (!value) {
+    return null
+  }
+
+  const decoded = decodeIfNeeded(value)
+  const trimmed = decoded.trim()
+  if (trimmed.length === 0) {
+    return null
+  }
+
+  const withoutQuotes = trimmed.replace(/^["'`]+/, "").replace(/["'`]+$/, "")
+  const withoutTrailingSlash = withoutQuotes.replace(/\/$/, "")
+  if (withoutTrailingSlash.length === 0) {
+    return null
+  }
+
+  if (withoutTrailingSlash.toLowerCase() === "undefined") {
+    return null
+  }
+
+  return withoutTrailingSlash
+}

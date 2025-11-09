@@ -92,6 +92,11 @@ const workflowSteps = [
   { id: "materials", title: "Revisão", helper: "Anexos e publicação" },
 ] as const
 
+const darkFieldClass =
+  "bg-[#16243F] text-white border border-[#1F2B4B] placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#06b6d4] focus-visible:border-[#06b6d4]"
+const darkSelectTriggerClass =
+  "bg-[#16243F] text-white border border-[#1F2B4B] focus-visible:ring-2 focus-visible:ring-[#06b6d4] focus-visible:border-[#06b6d4]"
+
 type WorkflowStep = (typeof workflowSteps)[number]
 type WorkflowStepId = WorkflowStep["id"]
 
@@ -312,39 +317,39 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
   }
 
   const renderBasicsCard = () => (
-    <Card className="rounded-2xl border border-slate-300 bg-gradient-to-br from-white to-slate-50 shadow-lg">
+    <Card className="rounded-2xl border border-[#24324F] bg-gradient-to-br from-[#0F192F] to-[#131D37] shadow-[0_25px_45px_rgba(3,7,18,0.8)]">
       <CardHeader>
-        <CardTitle className="text-slate-900">Cadastro rápido</CardTitle>
-        <CardDescription className="text-slate-600">
+        <CardTitle className="text-white">Cadastro rápido</CardTitle>
+        <CardDescription className="text-slate-200">
           {shortName}, preencha os detalhes essenciais do curso. Assim que publicar, ele aparece automaticamente na área de cursos para os alunos.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-sm text-slate-900 font-semibold">Título do curso</label>
+            <label className="text-sm text-slate-200 font-semibold">Título do curso</label>
             <Input
               value={courseBasics.title}
               onChange={(event) => handleCourseField("title", event.target.value)}
               placeholder="Ex.: Sedação consciente na prática clínica"
-              className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+              className="bg-[#16243F] text-white border border-[#1F2B4B] placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#06b6d4] focus-visible:border-[#06b6d4]"
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-slate-900 font-semibold">Área / especialidade</label>
+            <label className="text-sm text-slate-200 font-semibold">Área / especialidade</label>
             <Input
               value={courseBasics.area}
               onChange={(event) => handleCourseField("area", event.target.value)}
               placeholder="Ex.: Cirurgia oral, DTM"
-              className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+              className="bg-[#16243F] text-white border border-[#1F2B4B] placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#06b6d4] focus-visible:border-[#06b6d4]"
             />
           </div>
         </div>
         <div className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-2">
-            <label className="text-sm text-slate-900 font-semibold">Tipo de Curso</label>
+            <label className="text-sm text-slate-200 font-semibold">Tipo de Curso</label>
             <Select value={courseBasics.course_type} onValueChange={(value) => handleCourseField("course_type", value)}>
-              <SelectTrigger className="bg-white text-slate-900 border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-[#0891b2] shadow-sm">
+              <SelectTrigger className={darkSelectTriggerClass}>
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -357,18 +362,18 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
             </Select>
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-slate-900 font-semibold">Carga horária</label>
+            <label className="text-sm text-slate-200 font-semibold">Carga horária</label>
             <Input
               value={courseBasics.duration}
               onChange={(event) => handleCourseField("duration", event.target.value)}
               placeholder="12h"
-              className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+              className={darkFieldClass}
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-slate-900 font-semibold">Nível</label>
+            <label className="text-sm text-slate-200 font-semibold">Nível</label>
             <Select value={courseBasics.difficulty} onValueChange={(value) => handleCourseField("difficulty", value)}>
-              <SelectTrigger className="bg-white text-slate-900 border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-[#0891b2] shadow-sm">
+            <SelectTrigger className={darkSelectTriggerClass}>
                 <SelectValue placeholder="Selecione" />
               </SelectTrigger>
               <SelectContent>
@@ -383,20 +388,20 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-2">
-            <label className="text-sm text-slate-900 font-semibold">Investimento sugerido</label>
+            <label className="text-sm text-slate-200 font-semibold">Investimento sugerido</label>
             <Input
               value={courseBasics.price}
               onChange={(event) => handleCourseField("price", event.target.value)}
               placeholder="Ex.: R$ 1.497"
-              className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+              className={darkFieldClass}
             />
           </div>
           <div className="space-y-2">
-            <label className="text-sm text-slate-900 font-semibold">Thumb / capa</label>
+            <label className="text-sm text-slate-200 font-semibold">Thumb / capa</label>
             {courseBasics.thumbnailUrl ? (
-              <div className="flex items-center gap-3 rounded-xl border border-slate-300 bg-slate-50 p-3">
+              <div className="flex items-center gap-3 rounded-xl border border-[#1F2B4B] bg-[#0F162A] p-3">
                 <img src={courseBasics.thumbnailUrl} alt="Capa do curso" className="h-14 w-24 rounded-md object-cover" />
-                <span className="text-xs text-slate-700 break-all">{courseBasics.thumbnailUrl}</span>
+                <span className="text-xs text-slate-400 break-all">{courseBasics.thumbnailUrl}</span>
               </div>
             ) : null}
             <input
@@ -412,7 +417,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
             <Button
               type="button"
               variant="outline"
-              className="w-full rounded-xl border-slate-300 text-slate-700 bg-white hover:bg-slate-50"
+              className="w-full rounded-xl border border-[#1F2B4B] bg-[#16243F] text-white hover:bg-[#1f2d4f]"
               disabled={uploadingThumb}
               onClick={() => document.getElementById("thumb-file")?.click()}
             >
@@ -429,22 +434,22 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
           </div>
         </div>
         <div className="space-y-2">
-          <label className="text-sm text-slate-900 font-semibold">Descrição para o catálogo</label>
+          <label className="text-sm text-slate-200 font-semibold">Descrição para o catálogo</label>
           <Textarea
             value={courseBasics.description}
             onChange={(event) => handleCourseField("description", event.target.value)}
             rows={4}
             placeholder="Conte em 2-3 frases o resultado clínico, diferenciais e para quem é o curso."
-            className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+            className={darkFieldClass}
           />
         </div>
         <div className="space-y-2">
-          <label className="text-sm text-slate-900 font-semibold">Tags (separe por vírgula)</label>
+          <label className="text-sm text-slate-200 font-semibold">Tags (separe por vírgula)</label>
           <Input
             value={courseBasics.tags}
             onChange={(event) => handleCourseField("tags", event.target.value)}
             placeholder="ex.: implantodontia, fluxo digital, IA"
-            className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+            className={darkFieldClass}
           />
         </div>
         <div className="flex flex-wrap gap-2 text-xs">
@@ -459,31 +464,31 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
   )
 
   const renderModulesCard = () => (
-    <Card className="rounded-2xl border border-slate-300 bg-gradient-to-br from-white to-slate-50 shadow-lg">
+    <Card className="rounded-2xl border border-[#24324F] bg-[#0F192F] shadow-[0_25px_45px_rgba(3,7,18,0.8)]">
       <CardHeader>
-        <CardTitle className="text-slate-900">Módulos e aulas</CardTitle>
-        <CardDescription className="text-slate-600">
-          Estruture cada aula com link do vídeo, objetivos e anexos. Essa estrutura vai direto para o player do aluno.
+        <CardTitle className="text-white">Módulos e aulas</CardTitle>
+        <CardDescription className="text-slate-300">
+          Estruture cada aula com link do vídeo, objetivos e anexos. Essa estrutura vai direito para o player do aluno.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {modules.map((module) => {
           const moduleTitleError = stepTouched.lessons && !module.title.trim()
           return (
-            <div key={module.id} className="rounded-2xl border border-slate-200 bg-white p-4 sm:p-5">
+          <div key={module.id} className="rounded-2xl border border-[#1F2B4B] bg-[#131d37] p-4 sm:p-5">
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="flex-1 space-y-3">
                   <Input
                     value={module.title}
                     onChange={(event) => updateModule(module.id, { title: event.target.value })}
-                    className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+                    className={darkFieldClass}
                     placeholder="Nome do módulo"
                   />
                   <Input
                     type="date"
                     value={module.releaseDate}
                     onChange={(event) => updateModule(module.id, { releaseDate: event.target.value })}
-                    className="bg-white text-slate-900 border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+                    className={darkFieldClass}
                   />
                 </div>
                 <div className="flex gap-2">
@@ -508,7 +513,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                   const lessonDurationError = stepTouched.lessons && !lesson.duration.trim()
                   const lessonVideoError = stepTouched.lessons && !lesson.videoUrl.trim()
                   return (
-                    <div key={lesson.id} className="rounded-2xl border border-[#0891b2]/20 bg-white p-4">
+                    <div key={lesson.id} className="rounded-2xl border border-[#1F2B4B] bg-[#16243F] p-4">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-semibold text-[#0e7490]">Aula {lessonIndex + 1}</p>
                         <Button
@@ -523,37 +528,37 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                       </div>
                       <div className="mt-3 grid gap-3 md:grid-cols-2">
                         <div className="space-y-2">
-                          <label className="text-xs uppercase tracking-wide text-slate-600">Nome da aula</label>
+                          <label className="text-xs uppercase tracking-wide text-slate-400">Nome da aula</label>
                           <Input
                             value={lesson.title}
                             onChange={(event) => updateLesson(module.id, lesson.id, { title: event.target.value })}
-                            className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+                            className={darkFieldClass}
                           />
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                           <div className="space-y-2">
-                            <label className="text-xs uppercase tracking-wide text-slate-600">Duração (min)</label>
+                            <label className="text-xs uppercase tracking-wide text-slate-400">Duração (min)</label>
                             <Input
                               type="number"
                               min={1}
                               value={lesson.duration}
                               onChange={(event) => updateLesson(module.id, lesson.id, { duration: event.target.value })}
-                              className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+                              className={darkFieldClass}
                             />
                           </div>
                           <div className="space-y-2">
-                            <label className="text-xs uppercase tracking-wide text-slate-600">Liberação</label>
+                            <label className="text-xs uppercase tracking-wide text-slate-400">Liberação</label>
                             <Input
                               type="date"
                               value={lesson.releaseDate}
                               onChange={(event) => updateLesson(module.id, lesson.id, { releaseDate: event.target.value })}
-                              className="bg-white text-slate-900 border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+                              className={darkFieldClass}
                             />
                           </div>
                         </div>
                       </div>
                       <div className="mt-3 space-y-2">
-                        <label className="text-xs uppercase tracking-wide text-slate-600">Link do vídeo (YouTube)</label>
+                        <label className="text-xs uppercase tracking-wide text-slate-400">Link do vídeo (YouTube)</label>
                         <div className="flex items-center gap-2">
                           <Video className="h-4 w-4 text-[#0891b2]" />
                           <Input
@@ -563,17 +568,17 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                               updateLesson(module.id, lesson.id, { videoUrl: normalizeYouTubeUrl(event.target.value) })
                             }
                             placeholder="Cole o link do YouTube (watch, youtu.be ou shorts)"
-                            className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+                            className={darkFieldClass}
                           />
                         </div>
                       </div>
                       <div className="mt-3 space-y-2">
-                        <label className="text-xs uppercase tracking-wide text-slate-600">Resumo / objetivo da aula</label>
+                        <label className="text-xs uppercase tracking-wide text-slate-400">Resumo / objetivo da aula</label>
                         <Textarea
                           value={lesson.notes}
                           onChange={(event) => updateLesson(module.id, lesson.id, { notes: event.target.value })}
                           rows={2}
-                          className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+                          className={darkFieldClass}
                         />
                       </div>
                       <Collapsible className="mt-4">
@@ -590,24 +595,24 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                               <div key={material.id} className="rounded-xl border border-slate-200 bg-white p-4">
                                 <div className="grid gap-3 md:grid-cols-3">
                                   <div className="space-y-2">
-                                    <label className="text-xs text-slate-600">Título</label>
+                                    <label className="text-xs text-slate-400">Título</label>
                                     <Input
                                       value={material.title}
                                       onChange={(event) =>
                                         updateMaterial(module.id, lesson.id, material.id, { title: event.target.value })
                                       }
-                                      className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+                                      className={darkFieldClass}
                                     />
                                   </div>
                                   <div className="space-y-2">
-                                    <label className="text-xs text-slate-600">Tipo</label>
+                                    <label className="text-xs text-slate-400">Tipo</label>
                                     <Select
                                       value={material.type}
                                       onValueChange={(value: CourseResourceType) =>
                                         updateMaterial(module.id, lesson.id, material.id, { type: value })
                                       }
                                     >
-                                      <SelectTrigger className="bg-white text-slate-900 border-2 border-slate-300 focus-visible:ring-2 focus-visible:ring-[#0891b2] shadow-sm">
+                              <SelectTrigger className={darkSelectTriggerClass}>
                                         <SelectValue />
                                       </SelectTrigger>
                                       <SelectContent>
@@ -620,14 +625,14 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                                     </Select>
                                   </div>
                                   <div className="space-y-2">
-                                    <label className="text-xs text-slate-600">URL / arquivo</label>
+                                    <label className="text-xs text-slate-400">URL / arquivo</label>
                                     <Input
                                       value={material.url}
                                       onChange={(event) =>
                                         updateMaterial(module.id, lesson.id, material.id, { url: event.target.value })
                                       }
                                       placeholder="https://..."
-                                      className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+                                      className={darkFieldClass}
                                     />
                                   </div>
                                 </div>
@@ -639,7 +644,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                                     }
                                     rows={2}
                                     placeholder="Resumo ou instruções de uso"
-                                    className="bg-white text-slate-900 border-2 border-slate-300 placeholder:text-slate-500 focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:border-[#0891b2] shadow-sm"
+                                    className={darkFieldClass}
                                   />
                                   <div className="flex justify-end">
                                     <Button

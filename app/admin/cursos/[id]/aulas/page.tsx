@@ -1,6 +1,13 @@
 import { Suspense } from "react"
+import type { PostgrestError } from "@supabase/postgrest-js"
 import { createClient } from "@/lib/supabase/server"
 import { LessonManager } from "@/components/admin/lesson-manager"
+import {
+  LESSON_MODULE_SUPPORT_ERROR,
+  getLessonModuleSupport,
+  isLessonModulesTableMissingError,
+  isLessonsModuleIdColumnMissingError,
+} from "@/lib/lesson-module-support"
 import { Loader2, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -26,38 +33,88 @@ async function LessonsContent({ courseId }: { courseId: string }) {
     notFound()
   }
 
-  // Buscar módulos e aulas
-  const [modulesResult, lessonsResult] = await Promise.all([
-    supabase
+  const moduleSupport = await getLessonModuleSupport(supabase)
+  let modulesEnabled = moduleSupport.lessonModulesTable
+  let moduleIdEnabled = moduleSupport.lessonsModuleIdColumn && modulesEnabled
+
+  let modulesResult: {
+    data: { id: string; title: string; description: string | null; order_index: number }[] | null
+    error: PostgrestError | null
+  } = { data: [], error: null }
+
+  if (modulesEnabled) {
+    modulesResult = await supabase
       .from("lesson_modules")
       .select("id, title, description, order_index")
       .eq("course_id", courseId)
-      .order("order_index", { ascending: true }),
-    supabase
-      .from("lessons")
-      .select(
-        "id, title, description, video_url, module_title, module_id, duration_minutes, order_index, materials, available_at"
-      )
-      .eq("course_id", courseId)
-      .order("order_index", { ascending: true }),
-  ])
+      .order("order_index", { ascending: true })
 
-  if (modulesResult.error) {
-    console.error("Erro ao buscar módulos:", modulesResult.error)
+    if (modulesResult.error) {
+      console.error("Erro ao buscar módulos:", modulesResult.error)
+
+      if (isLessonModulesTableMissingError(modulesResult.error)) {
+        modulesEnabled = false
+        moduleIdEnabled = false
+        modulesResult = { data: [], error: null }
+      }
+    }
   }
+
+  const buildLessonSelectFields = (includeModuleId: boolean) => [
+    "id",
+    "title",
+    "description",
+    "video_url",
+    "module_title",
+    ...(includeModuleId ? ["module_id"] : []),
+    "duration_minutes",
+    "order_index",
+    "materials",
+    "available_at",
+  ].join(", ")
+
+  let includeModuleId = moduleIdEnabled
+  let lessonSelectFields = buildLessonSelectFields(includeModuleId)
+  let lessonsResult = await supabase
+    .from("lessons")
+    .select(lessonSelectFields)
+    .eq("course_id", courseId)
+    .order("order_index", { ascending: true })
+
   if (lessonsResult.error) {
     console.error("Erro ao buscar aulas:", lessonsResult.error)
+
+    if (isLessonsModuleIdColumnMissingError(lessonsResult.error)) {
+      includeModuleId = false
+      lessonSelectFields = buildLessonSelectFields(includeModuleId)
+      lessonsResult = await supabase
+        .from("lessons")
+        .select(lessonSelectFields)
+        .eq("course_id", courseId)
+        .order("order_index", { ascending: true })
+
+      if (lessonsResult.error) {
+        console.error("Erro ao buscar aulas sem module_id:", lessonsResult.error)
+      }
+    }
   }
 
   const lessons = lessonsResult.data || []
   const modulesFromDb = modulesResult.data || []
 
-  const modulesWithLessons = modulesFromDb.map((module) => ({
-    ...module,
-    lessons: lessons.filter((lesson) => lesson.module_id === module.id),
-  }))
+  const moduleIdAvailable = includeModuleId && modulesEnabled
 
-  const unassignedLessons = lessons.filter((lesson) => !lesson.module_id)
+  const modulesWithLessons = moduleIdAvailable
+    ? modulesFromDb.map((module) => ({
+        ...module,
+        lessons: lessons.filter((lesson) => lesson.module_id === module.id),
+      }))
+    : modulesFromDb.map((module) => ({
+        ...module,
+        lessons: [],
+      }))
+
+  const unassignedLessons = moduleIdAvailable ? lessons.filter((lesson) => !lesson.module_id) : lessons
 
   const modulesPayload = unassignedLessons.length
     ? [
@@ -89,10 +146,17 @@ async function LessonsContent({ courseId }: { courseId: string }) {
       </div>
 
       {/* Gerenciador de aulas */}
+      {!modulesEnabled && (
+        <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 px-4 py-3 text-sm text-amber-100">
+          <strong className="font-semibold text-amber-200">Módulos desativados:</strong>{" "}
+          {LESSON_MODULE_SUPPORT_ERROR}
+        </div>
+      )}
       <LessonManager
         courseId={course.id}
         courseTitle={course.title}
         modules={modulesPayload}
+        modulesEnabled={modulesEnabled}
       />
     </div>
   )

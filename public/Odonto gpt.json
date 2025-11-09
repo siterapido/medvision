@@ -101,108 +101,8 @@
       "id": "6706a4c9-575b-4372-b629-24d2cf238e90",
       "name": "Webhook",
       "webhookId": "0bfa36e2-edec-4109-9fc8-79f7bcb8fe16"
-    },
-    {
-      "parameters": {
-        "method": "POST",
-        "url": "https://api.z-api.io/instances/3E4157D6898E807F27B95E3E11E99CA6/token/118950DF335320200B3A0483/send-text",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Client-Token",
-              "value": "F576040400275415295c9f56ceb22bcc0S"
-            }
-          ]
-        },
-        "sendBody": true,
-        "bodyParameters": {
-          "parameters": [
-            {
-              "name": "message",
-              "value": "={{ $json.output }}"
-            },
-            {
-              "name": "phone",
-              "value": "={{ $('Webhook').item.json.body.phone }}"
-            }
-          ]
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        528,
-        0
-      ],
-      "id": "64e8c94a-0920-4adf-8226-4088195f78ed",
-      "name": "HTTP Request"
     }
   ],
-  "pinData": {
-    "Webhook": [
-      {
-        "json": {
-          "headers": {
-            "host": "devthierryc.app.n8n.cloud",
-            "user-agent": "Mozilla/5.0 (iPad; CPU OS 16_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) CriOS/111.0.5563.101 Mobile/15E148 Safari/604.1",
-            "content-length": "723",
-            "accept-encoding": "gzip, br",
-            "cdn-loop": "cloudflare; loops=1; subreqs=1",
-            "cf-connecting-ip": "167.234.244.84",
-            "cf-ew-via": "15",
-            "cf-ipcountry": "BR",
-            "cf-ray": "95e129de1549c618-GRU",
-            "cf-visitor": "{\"scheme\":\"https\"}",
-            "cf-worker": "n8n.cloud",
-            "content-type": "application/json",
-            "origin": "https://api.z-api.io",
-            "server": "Z-API",
-            "x-forwarded-for": "167.234.244.84, 172.69.39.130",
-            "x-forwarded-host": "devthierryc.app.n8n.cloud",
-            "x-forwarded-port": "443",
-            "x-forwarded-proto": "https",
-            "x-forwarded-server": "traefik-prod-users-gwc-25-79cb8df8b5-bkm55",
-            "x-is-trusted": "yes",
-            "x-real-ip": "167.234.244.84",
-            "z-api-token": "118950DF335320200B3A0483"
-          },
-          "params": {},
-          "query": {},
-          "body": {
-            "isStatusReply": false,
-            "chatLid": "267752757567545@lid",
-            "connectedPhone": "558486260850",
-            "waitingMessage": false,
-            "isEdit": false,
-            "isGroup": false,
-            "isNewsletter": false,
-            "instanceId": "3E4157D6898E807F27B95E3E11E99CA6",
-            "messageId": "3ABFEB295C3389770FD6",
-            "phone": "558488851138",
-            "fromMe": false,
-            "momment": 1752329839000,
-            "status": "RECEIVED",
-            "chatName": "Thierry",
-            "senderPhoto": null,
-            "senderName": "Thierry",
-            "photo": "https://pps.whatsapp.net/v/t61.24694-24/437936464_382127827493398_2067611140066212382_n.jpg?ccb=11-4&oh=01_Q5Aa2AHVUCeUv-fhapZL-KtgVx6Hvbvw2iaKAMMsZ_yfsVXXcg&oe=687F9CE3&_nc_sid=5e03e0&_nc_cat=102",
-            "broadcast": false,
-            "participantLid": null,
-            "forwarded": false,
-            "type": "ReceivedCallback",
-            "fromApi": false,
-            "text": {
-              "message": "Olá"
-            }
-          },
-          "webhookUrl": "https://devthierryc.app.n8n.cloud/webhook/conexão n8n odonto gpt",
-          "executionMode": "production"
-        }
-      }
-    ]
-  },
   "connections": {
     "When chat message received": {
       "main": [
@@ -253,17 +153,6 @@
         [
           {
             "node": "AI Agent",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent": {
-      "main": [
-        [
-          {
-            "node": "HTTP Request",
             "type": "main",
             "index": 0
           }

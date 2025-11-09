@@ -24,12 +24,12 @@
 
 - Admin (fundo claro, painéis escuros): a rota `app/admin` usa `bg-slate-50` com painéis em degradê azul claro (`from-sky-800 via-sky-700 to-sky-800`) e glows `sky`.
 - O blocão “Central de cursos” é azul: use painel com degradê azul escuro (`linear-gradient(135deg, #0f3a63 0%, #124a78 100%)`) e textos claros; botões principais podem ser brancos para alto contraste.
-- Cadastro de cursos: deixou de ser popup. O botão "Nova trilha guiada" leva para `app/admin/cursos/novo`, página clara com painel escuro e formulário por etapas (colapsáveis/“acordeão”).
+- Cadastro de cursos: o painel em `app/admin/cursos` lista os cursos existentes e o botão “Novo Curso” abre um dialog em etapas com área escura e cards colapsáveis (“acordeão”).
 - Cards de estatísticas são claros (`bg-white` + `border-slate-200`) para não “escurecer tudo”. Detalhes (badges, ícones, headers) mantêm acentos teal.
 
 ### Acentos com degradês azul escuro (vida/ênfase)
 
-- Botões principais: use `Button` com `variant="blue"` (gradiente teal do dashboard: `#0891b2 → #06b6d4`) em CTAs como “Nova trilha guiada” e “Publicar curso”.
+- Botões principais: use `Button` com `variant="blue"` (gradiente teal do dashboard: `#0891b2 → #06b6d4`) em CTAs como “Novo Curso” e “Publicar curso”.
 - Ícones em métricas/charts: use fundo com leve gradiente `bg-[linear-gradient(135deg,rgba(8,145,178,0.12)_0%,rgba(6,182,212,0.06)_100%)]`.
 - Gráficos/visualizações: adote traços/fills `#0f3a63 → #124a78` para linhas/áreas e use superfícies claras.
 - Regra: aplique degradê apenas em elementos de foco (CTAs, pontos de dados, indicadores) para preservar o minimalismo no restante da UI.
@@ -51,8 +51,6 @@ O design do Odonto GPT segue uma estética **profissional médica** com tons de 
 - Seriedade científica
 
 O sistema utiliza **tema escuro predominante** em todas as seções da landing page para criar uma experiência premium e moderna, com toques de IA através de texturas sutis e gradientes animados.
-
-**Fluxo de onboarding atualizado:** após a compra confirmada na Kiwfy o usuário recebe automaticamente, via WhatsApp (Z-API), um magic link para acessar `/login`. Essa etapa deve ser mencionada sempre que apresentarmos o produto para reforçar a experiência “comprou → recebeu o acesso em minutos”. Ajuste qualquer copy de onboarding para refletir esse gatilho instantâneo.
 
 ---
 
@@ -1233,7 +1231,7 @@ padding: 2rem - 2.5rem
 - O formulário de cadastro de cursos agora abre em um modal (popup) com fluxo em etapas.
 - Campos obrigatórios são sinalizados com `*` e possuem validação por etapa antes de avançar.
 - O modal utiliza `Dialog` (shadcn) e mantém o conteúdo navegável e rolável em telas menores.
-- Botão de entrada: "Nova trilha guiada" na página `app/admin` abre o modal.
+- Botão de entrada: "Novo Curso" na página `app/admin/cursos` abre o modal.
 
 ### 1. Contraste de Cores
 

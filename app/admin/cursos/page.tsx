@@ -2,6 +2,7 @@ import { Suspense } from "react"
 import { createClient } from "@/lib/supabase/server"
 import { CourseManagement } from "./course-management"
 import { Loader2 } from "lucide-react"
+import type { CourseRowWithLessons } from "@/components/admin/course-workspace"
 
 export const metadata = {
   title: "Gestão de Cursos | Admin",
@@ -10,6 +11,31 @@ export const metadata = {
 
 async function CoursesContent() {
   const supabase = await createClient()
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-3">
+          <p className="text-lg font-semibold text-white">Acesso necessário</p>
+          <p className="text-sm text-slate-300">
+            Faça login novamente para continuar gerenciando cursos.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", user.id)
+    .maybeSingle()
+
+  const adminName = profile?.full_name || user.email || "Administrador"
 
   // Buscar cursos ordenados por created_at
   let { data: courses, error } = await supabase
@@ -90,7 +116,25 @@ async function CoursesContent() {
     )
   }
 
-  return <CourseManagement courses={courses || []} />
+  const { data: workspaceCoursesRaw } = await supabase
+    .from("admin_courses_with_stats")
+    .select("id, title, description, lessons_count, thumbnail_url, updated_at, lessons")
+    .order("updated_at", { ascending: false })
+
+  const workspaceCourses: CourseRowWithLessons[] = (
+    (workspaceCoursesRaw ?? []) as CourseRowWithLessons[]
+  ).map((course) => ({
+    ...course,
+    lessons: course.lessons ?? [],
+  }))
+
+  return (
+    <CourseManagement
+      courses={courses || []}
+      adminName={adminName}
+      workspaceCourses={workspaceCourses}
+    />
+  )
 }
 
 function LoadingState() {

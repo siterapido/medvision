@@ -33,14 +33,6 @@ Públicas (Available in: All/Production/Preview):
 Somente servidor (Environment: Production/Preview, Type: Encrypted):
 - `APP_URL` (ex.: `https://seu-dominio.com`)
 - `SUPABASE_SERVICE_ROLE_KEY`
-- `KIWFY_WEBHOOK_SECRET`
-- `KIWFY_SIGNATURE_HEADER` (ex.: `x-kiwfy-signature`)
-- `KIWFY_PROVISION_STATUSES` (ex.: `paid,approved,active`)
-- `WHATSAPP_DEFAULT_COUNTRY_CODE` (ex.: `55`)
-- `ZAPI_BASE_URL` (ex.: `https://api.z-api.io`)
-- `ZAPI_INSTANCE_ID`
-- `ZAPI_TOKEN`
-- `ZAPI_SENDER_NAME` (ex.: `Odonto GPT Concierge`)
 - (Opcional) `N8N_WEBHOOK_URL` (sem espaços no valor)
 
 Dica (CLI):
@@ -88,9 +80,6 @@ Observação: o build usa `next/font` para hospedar a fonte Inter. Em ambientes 
 - Login e registro: `/login` e `/register`
 - Redirecionamentos protegidos: tente acessar `/dashboard` deslogado (deve ir para `/login`)
 - Sessão e refresh (navegação entre páginas)
-- Webhook Kiwfy: valide assinatura HMAC e fluxo de provisionamento
-- Envio de WhatsApp (Z‑API)
-- Magic link gerado com base em `APP_URL`
 - Analytics da Vercel carregam sem erros
 
 ## 8) Notas e futuras melhorias
@@ -106,5 +95,4 @@ Observação: o build usa `next/font` para hospedar a fonte Inter. Em ambientes 
 - 401/403 no Supabase:
   - Revise `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY` e policies RLS
 - Webhook inválido:
-  - Cheque `KIWFY_WEBHOOK_SECRET` e o header configurado na Kiwfy
-
+  - Revise `N8N_WEBHOOK_URL` e verifique se o payload está no formato esperado pelo N8N

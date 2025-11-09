@@ -57,7 +57,12 @@ SELECT
   title,
   ROW_NUMBER() OVER (PARTITION BY course_id ORDER BY sample_order, title) - 1
 FROM distinct_modules
-ON CONFLICT ON CONSTRAINT lesson_modules_course_title_idx DO NOTHING;
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM public.lesson_modules existing
+  WHERE existing.course_id = distinct_modules.course_id
+    AND lower(existing.title) = lower(distinct_modules.title)
+);
 
 UPDATE public.lessons l
 SET
@@ -68,7 +73,8 @@ WHERE m.course_id = l.course_id
   AND COALESCE(NULLIF(trim(l.module_title), ''), 'Sem módulo') = m.title;
 
 -- 4. Políticas e permissões
-CREATE POLICY IF NOT EXISTS "Admins podem gerenciar módulos"
+DROP POLICY IF EXISTS "Admins podem gerenciar módulos" ON public.lesson_modules;
+CREATE POLICY "Admins podem gerenciar módulos"
   ON public.lesson_modules
   FOR ALL
   USING (
