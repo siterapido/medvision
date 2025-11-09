@@ -10,6 +10,9 @@ export {
   getLessons as getLessonsAction,
   createBulkLessons as createBulkLessonsAction,
   reorderLessons as reorderLessonsAction,
+  createModule as createModuleAction,
+  updateModule as updateModuleAction,
+  deleteModule as deleteModuleAction,
 } from "./lessons"
 
 export type { ActionResult } from "./lessons"

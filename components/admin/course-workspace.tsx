@@ -781,7 +781,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
           </div>
         </div>
         <p className="text-xs text-slate-600">
-          Dica: use o botão "Próxima etapa" para voltar e ajustar qualquer informação antes de publicar.
+          Dica: use o botão &quot;Próxima etapa&quot; para voltar e ajustar qualquer informação antes de publicar.
         </p>
       </CardContent>
     </Card>

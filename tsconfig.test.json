@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": ".tmp/test-run",
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "esModuleInterop": true
+  },
+  "include": [
+    "lib/course/helpers.ts",
+    "tests/course-helpers.test.ts"
+  ]
+}

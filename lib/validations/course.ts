@@ -15,7 +15,7 @@ export const courseFormSchema = z.object({
   area: z.string().min(1, "A área é obrigatória"),
   difficulty: z.enum(["Iniciante", "Intermediário", "Avançado"], {
     required_error: "Selecione o nível de dificuldade",
-  }),
+  }).describe("Nível de dificuldade do curso"),
   course_type: z.enum(["Ondonto GPT", "Premium"], {
     required_error: "Selecione o tipo de curso",
   }),
@@ -26,24 +26,6 @@ export const courseFormSchema = z.object({
 })
 
 export type CourseFormData = z.infer<typeof courseFormSchema>
-
-// Schema para validação de upload de thumbnail
-export const thumbnailSchema = z.object({
-  file: z
-    .instanceof(File)
-    .refine((file) => file.size <= 5 * 1024 * 1024, {
-      message: "A imagem deve ter no máximo 5MB",
-    })
-    .refine(
-      (file) =>
-        ["image/jpeg", "image/jpg", "image/png", "image/webp"].includes(
-          file.type
-        ),
-      {
-        message: "Apenas imagens JPG, PNG ou WebP são permitidas",
-      }
-    ),
-})
 
 // Schema para operações em lote
 export const bulkActionSchema = z.object({

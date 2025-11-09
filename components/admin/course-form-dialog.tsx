@@ -1,7 +1,9 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useRef, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
+import Image from "next/image"
+import { createClient } from "@/lib/supabase/client"
 import {
   Dialog,
   DialogContent,
@@ -21,9 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { createCourse, updateCourse, uploadCourseThumbnail } from "@/app/actions/courses"
+import { createCourse, updateCourse } from "@/app/actions/courses"
 import type { CourseFormData } from "@/lib/validations/course"
-import { Loader2, Upload, X, AlertCircle } from "lucide-react"
+import { Loader2, UploadCloud, X } from "lucide-react"
 
 interface CourseFormDialogProps {
   open: boolean
@@ -40,18 +42,7 @@ export function CourseFormDialog({
 }: CourseFormDialogProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [isUploading, setIsUploading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
-  const [thumbnailPreview, setThumbnailPreview] = useState<string | null>(
-    initialData?.thumbnail_url || null
-  )
-  const [showSizeAlert, setShowSizeAlert] = useState(false)
-
-  const [imageDimensions, setImageDimensions] = useState<{
-    width: number
-    height: number
-    aspectRatio: string
-  } | null>(null)
 
   const [formData, setFormData] = useState<CourseFormData>({
     title: initialData?.title || "",
@@ -64,6 +55,49 @@ export function CourseFormDialog({
     duration: initialData?.duration || "",
     thumbnail_url: initialData?.thumbnail_url || "",
   })
+
+  const supabase = createClient()
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string>(formData.thumbnail_url || "")
+  const [uploadingImage, setUploadingImage] = useState(false)
+
+  const handleThumbnailUpload = async (file: File) => {
+    try {
+      setUploadingImage(true)
+      const ext = file.name.split(".").pop() || "jpg"
+      const path = `thumbnails/${crypto.randomUUID()}.${ext}`
+      const { error: uploadError } = await supabase.storage.from("course-assets").upload(path, file, {
+        cacheControl: "3600",
+        upsert: true,
+      })
+      if (uploadError) throw uploadError
+
+      const { data } = supabase.storage.from("course-assets").getPublicUrl(path)
+      const publicUrl = data.publicUrl
+      setFormData((prev) => ({ ...prev, thumbnail_url: publicUrl }))
+      setThumbnailPreviewUrl(publicUrl)
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next.thumbnail_url
+        return next
+      })
+    } catch (uploadError) {
+      console.error("❌ [handleThumbnailUpload] erro:", uploadError)
+      setErrors((prev) => ({ ...prev, thumbnail_url: "Falha ao enviar a imagem. Tente novamente." }))
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
+  const handleThumbnailClear = () => {
+    setFormData((prev) => ({ ...prev, thumbnail_url: "" }))
+    setThumbnailPreviewUrl("")
+    setErrors((prev) => {
+      const next = { ...prev }
+      delete next.thumbnail_url
+      return next
+    })
+  }
 
   const handleInputChange = (
     field: keyof CourseFormData,
@@ -80,153 +114,51 @@ export function CourseFormDialog({
     }
   }
 
-  const handleThumbnailChange = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // Validação local de tamanho
-    const maxSizeBytes = 5 * 1024 * 1024 // 5MB
-    if (file.size > maxSizeBytes) {
-      setShowSizeAlert(true)
-      setErrors((prev) => ({
-        ...prev,
-        thumbnail: "A imagem deve ter no máximo 5MB. Reduza o tamanho e tente novamente.",
-      }))
-      return
-    }
-
-    // Validação de dimensões da imagem
-    const img = new Image()
-    const reader = new FileReader()
-
-    reader.onload = (e) => {
-      const src = e.target?.result as string
-      img.src = src
-      setThumbnailPreview(src) // Preview mesmo com warning
-
-      img.onload = async () => {
-        const width = img.width
-        const height = img.height
-        const aspectRatio = width / height
-        const aspectRatioString = (aspectRatio).toFixed(2) + ":1"
-
-        // Armazenar dimensões para exibição
-        setImageDimensions({
-          width,
-          height,
-          aspectRatio: aspectRatioString,
-        })
-
-        // Validações de dimensão
-        const idealWidth = 1280
-        const idealHeight = 720
-        const minWidth = 640
-        const minHeight = 360
-        const targetAspectRatio = 16 / 9 // 1.777...
-        const aspectRatioTolerance = 0.1 // 10% de tolerância
-
-        let dimensionWarnings: string[] = []
-
-        // Verificar proporção (16:9)
-        if (
-          aspectRatio < targetAspectRatio - aspectRatioTolerance ||
-          aspectRatio > targetAspectRatio + aspectRatioTolerance
-        ) {
-          dimensionWarnings.push(
-            `❌ Proporção incorreta: ${width}×${height} (${(aspectRatio).toFixed(2)}:1). Ideal: 16:9 (1.78:1)`
-          )
-        }
-
-        // Verificar se está abaixo do mínimo
-        if (width < minWidth || height < minHeight) {
-          dimensionWarnings.push(
-            `❌ Resolução muito baixa: ${width}×${height}. Mínimo recomendado: ${minWidth}×${minHeight}`
-          )
-        }
-
-        // Verificar se está abaixo do ideal
-        if (width < idealWidth || height < idealHeight) {
-          if (dimensionWarnings.length === 0) {
-            dimensionWarnings.push(
-              `⚠️ Resolução abaixo do ideal: ${width}×${height}. Ideal: ${idealWidth}×${idealHeight}`
-            )
-          }
-        }
-
-        // Se houver avisos, mostrar na interface
-        if (dimensionWarnings.length > 0) {
-          setErrors((prev) => ({
-            ...prev,
-            thumbnail: dimensionWarnings.join(" | "),
-          }))
-        } else {
-          // Limpar erros se dimensões estiverem OK
-          setErrors((prev) => {
-            const newErrors = { ...prev }
-            delete newErrors.thumbnail
-            return newErrors
-          })
-        }
-
-        // Continuar com upload mesmo com warnings
-        setIsUploading(true)
-        const formDataUpload = new FormData()
-        formDataUpload.append("file", file)
-
-        const result = await uploadCourseThumbnail(formDataUpload)
-        setIsUploading(false)
-
-        if (result.success && result.data) {
-          handleInputChange("thumbnail_url", result.data.url)
-          setShowSizeAlert(false)
-        } else {
-          // Verificar se é erro de tamanho de corpo
-          if (result.error?.includes("muito grande") || result.error?.includes("Body exceeded")) {
-            setShowSizeAlert(true)
-          }
-          setErrors((prev) => ({ ...prev, thumbnail: result.error || "Erro ao fazer upload" }))
-        }
-      }
-    }
-
-    reader.readAsDataURL(file)
-  }
-
-  const handleRemoveThumbnail = () => {
-    setThumbnailPreview(null)
-    setImageDimensions(null)
-    handleInputChange("thumbnail_url", "")
-  }
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    console.log("📋 [handleSubmit] Formulário submetido", { mode, formData })
     setErrors({})
 
     startTransition(async () => {
       let result
+      console.log("🔄 [handleSubmit] Iniciando transição server action", { mode })
 
       if (mode === "create") {
+        console.log("🚀 [handleSubmit] Chamando createCourse com dados:", formData)
         result = await createCourse(formData)
       } else if (mode === "edit" && initialData?.id) {
+        console.log("✏️ [handleSubmit] Chamando updateCourse com dados:", formData)
         result = await updateCourse(initialData.id, formData)
       }
 
+      console.log("📝 [handleSubmit] Resultado recebido:", result)
+
+      const fieldErrors =
+        result?.fieldErrors && Object.keys(result.fieldErrors).length > 0
+          ? result.fieldErrors
+          : undefined
+      const generalError = result?.error
+
       if (result?.success) {
+        console.log("✅ [handleSubmit] Sucesso! Modal será fechado e página recarregada")
         onOpenChange(false)
         router.refresh()
-      } else if (result?.fieldErrors) {
+      } else if (fieldErrors) {
+        console.error("❌ [handleSubmit] Erros de validação de campo:", fieldErrors)
         // Converter array de erros em string
         const flatErrors: Record<string, string> = {}
-        Object.entries(result.fieldErrors).forEach(([key, messages]) => {
+        Object.entries(fieldErrors).forEach(([key, messages]) => {
           if (messages && messages.length > 0) {
             flatErrors[key] = messages[0]
           }
         })
         setErrors(flatErrors)
-      } else if (result?.error) {
-        setErrors({ general: result.error })
+      } else if (generalError) {
+        console.error("❌ [handleSubmit] Erro geral:", generalError)
+        setErrors({ general: generalError })
+      } else {
+        console.error("❌ [handleSubmit] Resultado inválido ou undefined:", result)
+        setErrors({ general: "Erro desconhecido ao processar formulário" })
       }
     })
   }
@@ -244,33 +176,6 @@ export function CourseFormDialog({
               : "Atualize as informações do curso."}
           </DialogDescription>
         </DialogHeader>
-
-        {/* Alerta de tamanho de arquivo */}
-        {showSizeAlert && (
-          <div className="fixed top-4 right-4 z-50 max-w-md animate-in slide-in-from-top-2 fade-in">
-            <div className="bg-red-900/90 border border-red-700 rounded-lg p-4 shadow-lg backdrop-blur-sm">
-              <div className="flex items-start gap-3">
-                <div className="mt-0.5">
-                  <AlertCircle className="h-5 w-5 text-red-300 flex-shrink-0" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-red-100 mb-1">Arquivo muito grande</h3>
-                  <p className="text-sm text-red-200">
-                    A imagem deve ter no máximo 5MB. Por favor, reduza o tamanho e tente novamente.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowSizeAlert(false)}
-                  className="ml-2 text-red-300 hover:text-red-100 transition-colors flex-shrink-0"
-                  aria-label="Fechar alerta"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Erro geral */}
@@ -443,103 +348,71 @@ export function CourseFormDialog({
             </div>
           </div>
 
-          {/* Thumbnail */}
           <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label className="text-white">Thumbnail</Label>
-              <span className="text-xs text-slate-400">
-                <span className="text-cyan-400 font-semibold">Ideal:</span> 1280×720px
-              </span>
-            </div>
-            {thumbnailPreview ? (
-              <div className="relative w-full h-48 rounded-lg overflow-hidden bg-[#131D37] border border-slate-600">
-                <img
-                  src={thumbnailPreview}
-                  alt="Preview"
-                  className="w-full h-full object-cover"
+            <Label className="text-white">Thumbnail (imagem)</Label>
+            {thumbnailPreviewUrl && (
+              <div className="relative w-full h-48 overflow-hidden rounded-lg border border-slate-600 bg-slate-900">
+                <Image
+                  src={thumbnailPreviewUrl}
+                  alt="Preview da thumbnail"
+                  fill
+                  sizes="(max-width: 640px) 100vw, 480px"
+                  className="object-cover"
+                  unoptimized
                 />
-                <button
-                  type="button"
-                  onClick={handleRemoveThumbnail}
-                  className="absolute top-2 right-2 p-1.5 rounded-full bg-red-500 hover:bg-red-600 transition-colors"
-                >
-                  <X className="h-4 w-4 text-white" />
-                </button>
               </div>
-            ) : (
-              <label
-                htmlFor="thumbnail"
-                className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-slate-600 rounded-lg cursor-pointer bg-[#131D37] hover:bg-[#16243F] transition-colors"
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={async (event) => {
+                const file = event.target.files?.[0]
+                event.target.value = ""
+                if (file) {
+                  await handleThumbnailUpload(file)
+                }
+              }}
+            />
+            <div className="flex flex-wrap gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="bg-[#131D37] text-white border-slate-600 hover:border-white"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingImage}
               >
-                <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  {isUploading ? (
-                    <Loader2 className="h-10 w-10 text-cyan-500 animate-spin mb-3" />
-                  ) : (
-                    <Upload className="h-10 w-10 text-slate-500 mb-3" />
-                  )}
-                  <p className="mb-2 text-sm text-slate-400">
-                    <span className="font-semibold">Clique para fazer upload</span> ou
-                    arraste e solte
-                  </p>
-                  <p className="text-xs text-slate-500">
-                    PNG, JPG ou WebP (máx. 5MB)
-                  </p>
-                </div>
-                <input
-                  id="thumbnail"
-                  type="file"
-                  className="hidden"
-                  accept="image/jpeg,image/jpg,image/png,image/webp"
-                  onChange={handleThumbnailChange}
-                  disabled={isUploading}
-                />
-              </label>
-            )}
-            {/* Aviso de dimensões ideais */}
-            <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/20 text-cyan-300 text-xs space-y-1">
-              <p className="font-semibold">💡 Dica para melhor qualidade:</p>
-              <ul className="space-y-1 list-disc list-inside">
-                <li>Dimensão ideal: <span className="font-semibold text-cyan-200">1280×720px</span> (proporção 16:9)</li>
-                <li>Tamanho ideal: <span className="font-semibold text-cyan-200">200-300KB</span> (use compressor online)</li>
-                <li>Formatos recomendados: <span className="font-semibold text-cyan-200">WebP, JPG ou PNG</span></li>
-              </ul>
+                {uploadingImage ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Enviando imagem
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud className="mr-2 h-4 w-4" />
+                    Enviar imagem
+                  </>
+                )}
+              </Button>
+              {thumbnailPreviewUrl && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="border border-white/20 text-white"
+                  onClick={handleThumbnailClear}
+                  disabled={uploadingImage}
+                >
+                  <X className="mr-2 h-4 w-4" />
+                  Remover
+                </Button>
+              )}
             </div>
-
-            {/* Informações de dimensão detectada */}
-            {imageDimensions && (
-              <div className="p-3 rounded-lg bg-slate-800/50 border border-slate-700 text-slate-300 text-xs">
-                <p className="font-semibold mb-2 text-slate-200">📊 Dimensões Detectadas:</p>
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-500">Resolução:</span>
-                    <span className="font-semibold text-white">
-                      {imageDimensions.width} × {imageDimensions.height}px
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-slate-500">Proporção:</span>
-                    <span className="font-semibold text-white">
-                      {imageDimensions.aspectRatio}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            )}
-            {errors.thumbnail && (
-              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
-                <p className="text-sm text-red-300 font-semibold mb-2">⚠️ Problema detectado:</p>
-                <div className="space-y-1 text-sm text-red-300">
-                  {errors.thumbnail.split(" | ").map((error, idx) => (
-                    <p key={idx} className="flex items-start gap-2">
-                      <span className="flex-shrink-0 mt-0.5">•</span>
-                      <span>{error}</span>
-                    </p>
-                  ))}
-                </div>
-                <p className="text-xs text-red-400 mt-2 italic">
-                  Você ainda pode fazer upload, mas a qualidade pode ser prejudicada.
-                </p>
-              </div>
+            <p className="text-xs text-slate-400">
+              O arquivo é enviado para o bucket `course-assets` e a URL pública já é preenchida automaticamente.
+            </p>
+            {errors.thumbnail_url && (
+              <p className="text-sm text-red-400">{errors.thumbnail_url}</p>
             )}
           </div>
 
@@ -548,14 +421,14 @@ export function CourseFormDialog({
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={isPending || isUploading}
+              disabled={isPending}
               className="border-slate-600 text-white hover:bg-slate-700"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
-              disabled={isPending || isUploading}
+              disabled={isPending}
               className="bg-cyan-600 hover:bg-cyan-700 text-white"
             >
               {isPending ? (

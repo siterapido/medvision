@@ -3,7 +3,10 @@ import next from 'eslint-config-next'
 import tseslint from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 
-export default [
+const config = [
+  {
+    ignores: ['v0-odonto-gpt-ui/**'],
+  },
   {
     files: ['**/*.{ts,tsx,js,jsx}'],
     languageOptions: {
@@ -18,3 +21,4 @@ export default [
   ...next,
 ]
 
+export default config

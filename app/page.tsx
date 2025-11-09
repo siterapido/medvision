@@ -186,7 +186,7 @@ export default function LandingPage() {
                   </div>
                   <div className="flex items-start gap-2">
                     <XCircle className="h-6 w-6 text-destructive shrink-0 mt-0.5" />
-                    <span>Assiste colegas com "contatos" ganharem as melhores vagas</span>
+                    <span>Assiste colegas com &quot;contatos&quot; ganharem as melhores vagas</span>
                   </div>
                 </div>
                 </CardContent>
@@ -580,8 +580,8 @@ export default function LandingPage() {
 
               <div className="space-y-4">
                 <p className="text-lg font-semibold text-white leading-relaxed border-l-4 border-primary pl-4 py-2 bg-primary/5">
-                  "Criei o Odonto GPT para ser o consultor que eu gostaria de ter tido durante minha formação -
-                  acessível 24/7, sem julgamentos, e com respostas fundamentadas na literatura que realmente importa."
+                  &quot;Criei o Odonto GPT para ser o consultor que eu gostaria de ter tido durante minha formação -
+                  acessível 24/7, sem julgamentos, e com respostas fundamentadas na literatura que realmente importa.&quot;
                 </p>
               </div>
 
@@ -606,8 +606,8 @@ export default function LandingPage() {
 
               <div className="pt-4">
                 <p className="text-sm text-muted-foreground italic">
-                  "Cada resposta que você recebe passa pela minha curadoria técnica, garantindo que 
-                  esteja sempre alinhada com as melhores práticas da odontologia moderna."
+                  &quot;Cada resposta que você recebe passa pela minha curadoria técnica, garantindo que 
+                  esteja sempre alinhada com as melhores práticas da odontologia moderna.&quot;
                 </p>
               </div>
             </div>

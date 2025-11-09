@@ -26,16 +26,51 @@ async function LessonsContent({ courseId }: { courseId: string }) {
     notFound()
   }
 
-  // Buscar aulas do curso
-  const { data: lessons, error: lessonsError } = await supabase
-    .from("lessons")
-    .select("*")
-    .eq("course_id", courseId)
-    .order("order_index", { ascending: true })
+  // Buscar módulos e aulas
+  const [modulesResult, lessonsResult] = await Promise.all([
+    supabase
+      .from("lesson_modules")
+      .select("id, title, description, order_index")
+      .eq("course_id", courseId)
+      .order("order_index", { ascending: true }),
+    supabase
+      .from("lessons")
+      .select(
+        "id, title, description, video_url, module_title, module_id, duration_minutes, order_index, materials, available_at"
+      )
+      .eq("course_id", courseId)
+      .order("order_index", { ascending: true }),
+  ])
 
-  if (lessonsError) {
-    console.error("Erro ao buscar aulas:", lessonsError)
+  if (modulesResult.error) {
+    console.error("Erro ao buscar módulos:", modulesResult.error)
   }
+  if (lessonsResult.error) {
+    console.error("Erro ao buscar aulas:", lessonsResult.error)
+  }
+
+  const lessons = lessonsResult.data || []
+  const modulesFromDb = modulesResult.data || []
+
+  const modulesWithLessons = modulesFromDb.map((module) => ({
+    ...module,
+    lessons: lessons.filter((lesson) => lesson.module_id === module.id),
+  }))
+
+  const unassignedLessons = lessons.filter((lesson) => !lesson.module_id)
+
+  const modulesPayload = unassignedLessons.length
+    ? [
+        {
+          id: null,
+          title: "Sem módulo",
+          description: "Aulas sem módulo definido",
+          order_index: -1,
+          lessons: unassignedLessons,
+        },
+        ...modulesWithLessons,
+      ]
+    : modulesWithLessons
 
   return (
     <div className="space-y-6">
@@ -57,7 +92,7 @@ async function LessonsContent({ courseId }: { courseId: string }) {
       <LessonManager
         courseId={course.id}
         courseTitle={course.title}
-        lessons={lessons || []}
+        modules={modulesPayload}
       />
     </div>
   )
@@ -74,16 +109,17 @@ function LoadingState() {
   )
 }
 
-export default function ManageLessonsPage({
+export default async function ManageLessonsPage({
   params,
 }: {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }) {
+  const { id } = await params
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#0F192F] via-[#131D37] to-[#0B1627] p-6">
       <div className="max-w-7xl mx-auto">
         <Suspense fallback={<LoadingState />}>
-          <LessonsContent courseId={params.id} />
+          <LessonsContent courseId={id} />
         </Suspense>
       </div>
     </div>

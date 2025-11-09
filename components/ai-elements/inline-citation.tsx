@@ -19,8 +19,8 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useState,
+  useSyncExternalStore,
 } from "react";
 
 export type InlineCitationProps = ComponentProps<"span">;
@@ -155,21 +155,31 @@ export const InlineCitationCarouselIndex = ({
   ...props
 }: InlineCitationCarouselIndexProps) => {
   const api = useCarouselApi();
-  const [current, setCurrent] = useState(0);
-  const [count, setCount] = useState(0);
 
-  useEffect(() => {
-    if (!api) {
-      return;
-    }
-
-    setCount(api.scrollSnapList().length);
-    setCurrent(api.selectedScrollSnap() + 1);
-
-    api.on("select", () => {
-      setCurrent(api.selectedScrollSnap() + 1);
-    });
-  }, [api]);
+  const snapshot = useSyncExternalStore(
+    useCallback(
+      (onStoreChange) => {
+        if (!api) {
+          return () => {};
+        }
+        api.on("select", onStoreChange);
+        return () => {
+          api.off("select", onStoreChange);
+        };
+      },
+      [api]
+    ),
+    () => {
+      if (!api) {
+        return { current: 0, count: 0 };
+      }
+      return {
+        current: api.selectedScrollSnap() + 1,
+        count: api.scrollSnapList().length,
+      };
+    },
+    () => ({ current: 0, count: 0 })
+  );
 
   return (
     <div
@@ -179,7 +189,7 @@ export const InlineCitationCarouselIndex = ({
       )}
       {...props}
     >
-      {children ?? `${current}/${count}`}
+      {children ?? `${snapshot.current}/${snapshot.count}`}
     </div>
   );
 };

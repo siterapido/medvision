@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useEffect, useState } from "react"
+import { useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -18,34 +18,29 @@ export function LoginForm() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [envReady, setEnvReady] = useState(true)
-
-  // Pré-checagem de variáveis públicas no bundle do cliente
-  useEffect(() => {
+  const envReady = useMemo(() => {
     const hasUrl = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL)
     const hasAnon = Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
     const validUrl = hasUrl && /^https?:\/\//.test(String(process.env.NEXT_PUBLIC_SUPABASE_URL))
-    const ok = hasUrl && hasAnon && validUrl
-    setEnvReady(ok)
-    if (!ok) {
-      setError(
-        "Configuração do Supabase ausente: defina NEXT_PUBLIC_SUPABASE_URL (com https://) e NEXT_PUBLIC_SUPABASE_ANON_KEY em .env.local e reinicie o servidor."
-      )
-    }
+    return hasUrl && hasAnon && validUrl
   }, [])
+  const missingEnvMessage = envReady
+    ? null
+    : "Configuração do Supabase ausente: defina NEXT_PUBLIC_SUPABASE_URL (com https://) e NEXT_PUBLIC_SUPABASE_ANON_KEY em .env.local e reinicie o servidor."
+
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(missingEnvMessage)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!envReady) {
+      return
+    }
+
     setIsLoading(true)
     setError(null)
 
     try {
-      if (!envReady) {
-        // Evita tentativa de login se env estiver ausente
-        return
-      }
       const supabase = createClient()
 
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
@@ -64,7 +59,6 @@ export function LoginForm() {
         } else {
           setError("Erro ao fazer login. Por favor, tente novamente.")
         }
-        setIsLoading(false)
         return
       }
 
@@ -94,6 +88,7 @@ export function LoginForm() {
       } else {
         setError("Erro inesperado. Por favor, tente novamente.")
       }
+    } finally {
       setIsLoading(false)
     }
   }

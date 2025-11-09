@@ -12,8 +12,10 @@ const nextConfig = {
     minimumCacheTTL: 60,
   },
   // Aumentar limite de tamanho de corpo para uploads (padrão: 1MB)
-  serverActions: {
-    bodySizeLimit: '50mb',
+  experimental: {
+    serverActions: {
+      bodySizeLimit: '50mb',
+    },
   },
   // Otimizações adicionais
   compress: true,

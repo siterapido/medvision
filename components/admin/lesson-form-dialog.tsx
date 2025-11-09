@@ -13,15 +13,25 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createLessonAction, updateLessonAction } from "@/app/actions/lesson-actions"
 import { Loader2 } from "lucide-react"
 import type { LessonFormData } from "@/lib/validations/lesson"
+
+const DEFAULT_MODULE_TITLE = "Sem módulo"
+
+type ModuleOption = {
+  id: string | null
+  title: string
+}
 
 interface LessonFormDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   mode: "create" | "edit"
   courseId: string
+  modules: ModuleOption[]
+  defaultModuleId?: string | null
   initialData?: {
     id?: string
     title?: string
@@ -29,6 +39,7 @@ interface LessonFormDialogProps {
     video_url?: string | null
     duration_minutes?: number | null
     module_title?: string
+    module_id?: string | null
     order_index?: number
   }
   onSuccess?: () => void
@@ -39,20 +50,35 @@ export function LessonFormDialog({
   onOpenChange,
   mode,
   courseId,
+  modules,
+  defaultModuleId,
   initialData,
   onSuccess,
 }: LessonFormDialogProps) {
   const [isPending, startTransition] = useTransition()
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const [formData, setFormData] = useState({
-    title: initialData?.title || "",
-    description: initialData?.description || "",
-    video_url: initialData?.video_url || "",
-    duration_minutes: initialData?.duration_minutes?.toString() || "",
-    module_title: initialData?.module_title || "Módulo 1",
-    order_index: initialData?.order_index?.toString() || "0",
-  })
+  const buildInitialFormData = () => {
+    const preferredModuleId =
+      initialData?.module_id ?? defaultModuleId ?? modules[0]?.id ?? ""
+    const moduleSelection =
+      modules.find((module) => (module.id ?? "") === preferredModuleId) ??
+      modules.find((module) => module.id === null)
+
+    return {
+      title: initialData?.title || "",
+      description: initialData?.description || "",
+      video_url: initialData?.video_url || "",
+      duration_minutes: initialData?.duration_minutes?.toString() || "",
+      module_id: moduleSelection ? moduleSelection.id ?? "" : preferredModuleId ?? "",
+      module_title: moduleSelection
+        ? moduleSelection.title
+        : initialData?.module_title || DEFAULT_MODULE_TITLE,
+      order_index: initialData?.order_index?.toString() || "0",
+    }
+  }
+
+  const [formData, setFormData] = useState(buildInitialFormData)
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -61,6 +87,27 @@ export function LessonFormDialog({
         const newErrors = { ...prev }
         delete newErrors[field]
         return newErrors
+      })
+    }
+  }
+
+  const handleModuleSelect = (value: string) => {
+    const normalizedValue = value || ""
+    const moduleSelection =
+      modules.find((module) => (module.id ?? "") === normalizedValue) ??
+      modules.find((module) => module.id === null)
+
+    setFormData((prev) => ({
+      ...prev,
+      module_id: normalizedValue,
+      module_title: moduleSelection?.title || DEFAULT_MODULE_TITLE,
+    }))
+
+    if (errors.module_title) {
+      setErrors((prev) => {
+        const next = { ...prev }
+        delete next.module_title
+        return next
       })
     }
   }
@@ -76,6 +123,7 @@ export function LessonFormDialog({
         description: formData.description || undefined,
         video_url: formData.video_url || undefined,
         duration_minutes: formData.duration_minutes ? parseInt(formData.duration_minutes) : undefined,
+        module_id: formData.module_id || undefined,
         module_title: formData.module_title,
         order_index: parseInt(formData.order_index),
         materials: [],
@@ -148,13 +196,27 @@ export function LessonFormDialog({
               <Label htmlFor="module_title" className="text-white">
                 Módulo <span className="text-red-400">*</span>
               </Label>
-              <Input
-                id="module_title"
-                value={formData.module_title}
-                onChange={(e) => handleInputChange("module_title", e.target.value)}
-                placeholder="Ex: Módulo 1 - Fundamentos"
-                className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500"
-              />
+              <Select
+                value={formData.module_id || ""}
+                onValueChange={handleModuleSelect}
+              >
+                <SelectTrigger className="bg-[#131D37] border-slate-600 text-white">
+                  <SelectValue placeholder="Selecione um módulo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {modules.map((module) => (
+                    <SelectItem
+                      key={module.id ?? "sem-modulo"}
+                      value={module.id ?? ""}
+                    >
+                      {module.title}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-slate-500">
+                Escolha um módulo existente (ou crie um novo módulo antes de adicionar a aula)
+              </p>
               {errors.module_title && (
                 <p className="text-sm text-red-400">{errors.module_title}</p>
               )}

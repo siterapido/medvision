@@ -1,3 +1,4 @@
+import Link from "next/link"
 import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCircle2 } from "lucide-react"
@@ -44,7 +45,7 @@ export default async function NotesPage() {
                   <p className="font-medium mb-2">Verifique:</p>
                   <ul className="list-disc list-inside space-y-1">
                     <li>Variáveis de ambiente em .env.local</li>
-                    <li>Tabela 'notes' criada no Supabase</li>
+                    <li>Tabela &apos;notes&apos; criada no Supabase</li>
                     <li>RLS policies configuradas corretamente</li>
                   </ul>
                 </div>
@@ -103,7 +104,7 @@ export default async function NotesPage() {
                 </p>
                 <div className="bg-slate-50 rounded-lg p-4 text-left max-w-2xl mx-auto">
                   <code className="text-xs text-slate-700">
-                    insert into notes (title) values ('Minha primeira nota!');
+                    insert into notes (title) values (&apos;Minha primeira nota!&apos;);
                   </code>
                 </div>
               </div>
@@ -129,12 +130,12 @@ export default async function NotesPage() {
         </Card>
 
         <div className="mt-6 text-center">
-          <a
+          <Link
             href="/"
             className="text-sm text-slate-400 hover:text-primary transition-colors"
           >
             ← Voltar para a página inicial
-          </a>
+          </Link>
         </div>
       </div>
     </div>

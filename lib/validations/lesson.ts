@@ -20,6 +20,7 @@ export const lessonFormSchema = z.object({
   description: z.string().optional(),
   video_url: z.string().url("URL do vídeo inválida").optional().or(z.literal("")),
   duration_minutes: z.number().int().positive("Duração deve ser maior que zero").optional(),
+  module_id: z.string().uuid("ID do módulo inválido").optional(),
   module_title: z.string().min(1, "Módulo é obrigatório"),
   order_index: z.number().int().nonnegative("Ordem inválida"),
   materials: z.array(lessonMaterialSchema).optional().default([]),

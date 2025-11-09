@@ -12,12 +12,101 @@ import {
   type BulkLessonsData,
   type ReorderLessonsData,
 } from "@/lib/validations/lesson"
+import {
+  moduleFormSchema,
+  moduleUpdateSchema,
+  type ModuleFormData,
+  type ModuleUpdateData,
+} from "@/lib/validations/module"
 
 export type ActionResult<T = void> = {
   success: boolean
   data?: T
   error?: string
   fieldErrors?: Record<string, string[]>
+}
+
+const DEFAULT_MODULE_TITLE = "Sem módulo"
+
+const DUPLICATE_MODULE_ERROR_CODES = new Set(["PGRST116", "23505"])
+
+async function resolveModuleReference(
+  supabase: ReturnType<typeof createClient>,
+  courseId: string,
+  moduleId: string | undefined,
+  moduleTitle: string | undefined
+): Promise<{ id: string | null; title: string }> {
+  const normalizedTitle = moduleTitle?.trim() || DEFAULT_MODULE_TITLE
+
+  if (moduleId) {
+    const { data, error } = await supabase
+      .from("lesson_modules")
+      .select("id, title")
+      .eq("id", moduleId)
+      .maybeSingle()
+
+    if (!error && data) {
+      return {
+        id: data.id,
+        title: data.title || normalizedTitle,
+      }
+    }
+  }
+
+  const { data: existing, error: existingError } = await supabase
+    .from("lesson_modules")
+    .select("id, title")
+    .eq("course_id", courseId)
+    .eq("title", normalizedTitle)
+    .maybeSingle()
+
+  if (!existingError && existing) {
+    return {
+      id: existing.id,
+      title: existing.title || normalizedTitle,
+    }
+  }
+
+  const { data: inserted, error: insertError } = await supabase
+    .from("lesson_modules")
+    .insert({
+      course_id: courseId,
+      title: normalizedTitle,
+      order_index: 0,
+    })
+    .select("id, title")
+    .single()
+
+  if (insertError) {
+    console.error("Erro ao criar módulo automático:", insertError)
+    const { data: fallback } = await supabase
+      .from("lesson_modules")
+      .select("id, title")
+      .eq("course_id", courseId)
+      .eq("title", normalizedTitle)
+      .maybeSingle()
+
+    if (fallback) {
+      return { id: fallback.id, title: fallback.title || normalizedTitle }
+    }
+
+    return {
+      id: null,
+      title: normalizedTitle,
+    }
+  }
+
+  if (!inserted) {
+    return {
+      id: null,
+      title: normalizedTitle,
+    }
+  }
+
+  return {
+    id: inserted.id,
+    title: inserted.title || normalizedTitle,
+  }
 }
 
 /**
@@ -54,6 +143,21 @@ export async function createLesson(
       }
     }
 
+    // Resolver módulo associado
+    const resolvedModule = await resolveModuleReference(
+      supabase,
+      courseId,
+      parsed.data.module_id,
+      parsed.data.module_title
+    )
+
+    if (!resolvedModule.id) {
+      return {
+        success: false,
+        error: "Não foi possível associar o módulo",
+      }
+    }
+
     // Inserir aula
     const { data, error } = await supabase
       .from("lessons")
@@ -63,7 +167,8 @@ export async function createLesson(
         description: parsed.data.description || null,
         video_url: parsed.data.video_url || null,
         duration_minutes: parsed.data.duration_minutes || null,
-        module_title: parsed.data.module_title,
+        module_title: resolvedModule.title,
+        module_id: resolvedModule.id,
         order_index: parsed.data.order_index,
         materials: parsed.data.materials || [],
         available_at: parsed.data.available_at || null,
@@ -133,13 +238,33 @@ export async function updateLesson(
       }
     }
 
+    let resolvedModule: { id: string | null; title: string } | null = null
+    if (parsed.data.module_title !== undefined || parsed.data.module_id !== undefined) {
+      resolvedModule = await resolveModuleReference(
+        supabase,
+        lesson.course_id,
+        parsed.data.module_id,
+        parsed.data.module_title
+      )
+
+      if (!resolvedModule.id) {
+        return {
+          success: false,
+          error: "Não foi possível associar o módulo",
+        }
+      }
+    }
+
     // Preparar dados para update (remover campos undefined)
     const updateData: any = {}
     if (parsed.data.title !== undefined) updateData.title = parsed.data.title
     if (parsed.data.description !== undefined) updateData.description = parsed.data.description || null
     if (parsed.data.video_url !== undefined) updateData.video_url = parsed.data.video_url || null
     if (parsed.data.duration_minutes !== undefined) updateData.duration_minutes = parsed.data.duration_minutes || null
-    if (parsed.data.module_title !== undefined) updateData.module_title = parsed.data.module_title
+    if (resolvedModule) {
+      updateData.module_title = resolvedModule.title
+      updateData.module_id = resolvedModule.id
+    }
     if (parsed.data.order_index !== undefined) updateData.order_index = parsed.data.order_index
     if (parsed.data.materials !== undefined) updateData.materials = parsed.data.materials || []
     if (parsed.data.available_at !== undefined) updateData.available_at = parsed.data.available_at || null
@@ -296,17 +421,35 @@ export async function createBulkLessons(
     }
 
     // Preparar dados para inserção
-    const lessonsToInsert = parsed.data.lessons.map((lesson) => ({
-      course_id: parsed.data.course_id,
-      title: lesson.title,
-      description: lesson.description || null,
-      video_url: lesson.video_url || null,
-      duration_minutes: lesson.duration_minutes || null,
-      module_title: lesson.module_title,
-      order_index: lesson.order_index,
-      materials: lesson.materials || [],
-      available_at: lesson.available_at || null,
-    }))
+    const lessonsToInsert: any[] = []
+    for (const lesson of parsed.data.lessons) {
+      const resolvedModule = await resolveModuleReference(
+        supabase,
+        parsed.data.course_id,
+        lesson.module_id,
+        lesson.module_title
+      )
+
+      if (!resolvedModule.id) {
+        return {
+          success: false,
+          error: "Não foi possível associar o módulo em uma das aulas",
+        }
+      }
+
+      lessonsToInsert.push({
+        course_id: parsed.data.course_id,
+        title: lesson.title,
+        description: lesson.description || null,
+        video_url: lesson.video_url || null,
+        duration_minutes: lesson.duration_minutes || null,
+        module_title: resolvedModule.title,
+        module_id: resolvedModule.id,
+        order_index: lesson.order_index,
+        materials: lesson.materials || [],
+        available_at: lesson.available_at || null,
+      })
+    }
 
     // Inserir aulas
     const { data, error } = await supabase
@@ -397,6 +540,189 @@ export async function reorderLessons(
     return {
       success: false,
       error: "Erro inesperado ao reordenar aulas",
+    }
+  }
+}
+
+/**
+ * Cria um módulo para um curso
+ */
+export async function createModule(
+  moduleData: ModuleFormData
+): Promise<ActionResult<{ id: string }>> {
+  try {
+    const parsed = moduleFormSchema.safeParse(moduleData)
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: "Dados inválidos",
+        fieldErrors: parsed.error.flatten().fieldErrors,
+      }
+    }
+
+    const supabase = await createClient()
+
+    const { data, error } = await supabase
+      .from("lesson_modules")
+      .insert({
+        course_id: parsed.data.course_id,
+        title: parsed.data.title.trim(),
+        description: parsed.data.description || null,
+        order_index: parsed.data.order_index ?? 0,
+      })
+      .select("id")
+      .single()
+
+    if (error) {
+      console.error("Erro ao criar módulo:", error)
+
+      if (error.code && DUPLICATE_MODULE_ERROR_CODES.has(error.code)) {
+        return {
+          success: false,
+          error: "Já existe um módulo com esse nome",
+          fieldErrors: {
+            title: ["Já existe um módulo com esse nome"],
+          },
+        }
+      }
+
+      return {
+        success: false,
+        error: "Erro ao criar módulo. Tente novamente.",
+      }
+    }
+
+    revalidatePath("/admin/cursos")
+    revalidatePath(`/admin/cursos/${parsed.data.course_id}`)
+    revalidatePath(`/admin/cursos/${parsed.data.course_id}/aulas`)
+
+    return {
+      success: true,
+      data: { id: data.id },
+    }
+  } catch (error) {
+    console.error("Erro inesperado ao criar módulo:", error)
+    return {
+      success: false,
+      error: "Erro inesperado ao criar módulo",
+    }
+  }
+}
+
+/**
+ * Atualiza um módulo existente
+ */
+export async function updateModule(
+  moduleData: ModuleUpdateData
+): Promise<ActionResult> {
+  try {
+    const parsed = moduleUpdateSchema.safeParse(moduleData)
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: "Dados inválidos",
+        fieldErrors: parsed.error.flatten().fieldErrors,
+      }
+    }
+
+    const supabase = await createClient()
+
+    const { data: module, error: moduleError } = await supabase
+      .from("lesson_modules")
+      .select("id, course_id")
+      .eq("id", parsed.data.id)
+      .single()
+
+    if (moduleError || !module) {
+      return {
+        success: false,
+        error: "Módulo não encontrado",
+      }
+    }
+
+    const updatePayload: Record<string, unknown> = {}
+    if (parsed.data.title !== undefined) updatePayload.title = parsed.data.title.trim()
+    if (parsed.data.description !== undefined) updatePayload.description = parsed.data.description || null
+    if (parsed.data.order_index !== undefined) updatePayload.order_index = parsed.data.order_index
+
+    if (Object.keys(updatePayload).length === 0) {
+      return { success: true }
+    }
+
+    const { error: updateError } = await supabase
+      .from("lesson_modules")
+      .update(updatePayload)
+      .eq("id", module.id)
+
+    if (updateError) {
+      console.error("Erro ao atualizar módulo:", updateError)
+      return {
+        success: false,
+        error: "Erro ao atualizar módulo. Tente novamente.",
+      }
+    }
+
+    revalidatePath("/admin/cursos")
+    revalidatePath(`/admin/cursos/${module.course_id}`)
+    revalidatePath(`/admin/cursos/${module.course_id}/aulas`)
+
+    return {
+      success: true,
+    }
+  } catch (error) {
+    console.error("Erro inesperado ao atualizar módulo:", error)
+    return {
+      success: false,
+      error: "Erro inesperado ao atualizar módulo",
+    }
+  }
+}
+
+/**
+ * Remove um módulo
+ */
+export async function deleteModule(moduleId: string): Promise<ActionResult> {
+  try {
+    const supabase = await createClient()
+
+    const { data: module, error: moduleError } = await supabase
+      .from("lesson_modules")
+      .select("id, course_id, title")
+      .eq("id", moduleId)
+      .single()
+
+    if (moduleError || !module) {
+      return {
+        success: false,
+        error: "Módulo não encontrado",
+      }
+    }
+
+    const { error } = await supabase
+      .from("lesson_modules")
+      .delete()
+      .eq("id", moduleId)
+
+    if (error) {
+      console.error("Erro ao deletar módulo:", error)
+      return {
+        success: false,
+        error: "Erro ao deletar módulo. Tente novamente.",
+      }
+    }
+
+    revalidatePath("/admin/cursos")
+    revalidatePath(`/admin/cursos/${module.course_id}`)
+    revalidatePath(`/admin/cursos/${module.course_id}/aulas`)
+
+    return {
+      success: true,
+    }
+  } catch (error) {
+    console.error("Erro inesperado ao deletar módulo:", error)
+    return {
+      success: false,
+      error: "Erro inesperado ao deletar módulo",
     }
   }
 }

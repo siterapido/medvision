@@ -1,6 +1,6 @@
 "use client"
 
-import { Fragment, useEffect, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 import type { ChatStatus } from "ai"
 import {
   Conversation,
@@ -41,6 +41,12 @@ export function ChatInterface() {
   ])
   const [status, setStatus] = useState<ChatStatus>("idle")
   const [input, setInput] = useState("")
+  const idCounterRef = useRef(0)
+
+  const nextMessageId = (label?: string) => {
+    idCounterRef.current += 1
+    return label ? `msg-${idCounterRef.current}-${label}` : `msg-${idCounterRef.current}`
+  }
 
   useEffect(() => {
     // noop - Conversation handles stick-to-bottom
@@ -50,7 +56,7 @@ export function ChatInterface() {
     if (!text.trim() || status === "submitted" || status === "streaming") return
 
     const userMessage: ChatMessage = {
-      id: `${Date.now()}`,
+      id: nextMessageId("user"),
       role: "user",
       content: text,
       timestamp: new Date(),
@@ -73,7 +79,7 @@ export function ChatInterface() {
       const data = await response.json()
 
       const assistantMessage: ChatMessage = {
-        id: `${Date.now()}-assistant`,
+        id: nextMessageId("assistant"),
         role: "assistant",
         content: data.reply || "Desculpe, não consegui processar sua mensagem.",
         timestamp: new Date(),
@@ -85,7 +91,7 @@ export function ChatInterface() {
       setMessages((prev) => [
         ...prev,
         {
-          id: `${Date.now()}-error`,
+          id: nextMessageId("error"),
           role: "assistant",
           content:
             "Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.",
@@ -121,7 +127,7 @@ export function ChatInterface() {
       const data = await response.json()
 
       const assistantMessage: ChatMessage = {
-        id: `${Date.now()}-assistant-regen`,
+        id: nextMessageId("assistant-regen"),
         role: "assistant",
         content: data.reply || "Desculpe, não consegui processar sua mensagem.",
         timestamp: new Date(),
@@ -133,7 +139,7 @@ export function ChatInterface() {
       setMessages((prev) => [
         ...prev,
         {
-          id: `${Date.now()}-error`,
+          id: nextMessageId("error"),
           role: "assistant",
           content:
             "Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.",
