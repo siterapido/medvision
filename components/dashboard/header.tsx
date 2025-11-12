@@ -100,7 +100,7 @@ export function DashboardHeader({
         {/* Mobile */}
         <div className="flex items-center gap-3 md:hidden">
           {renderMobileButton()}
-          <Link href="/dashboard/visao-geral" aria-label="Ir para visão geral" className="flex transition-opacity hover:opacity-80">
+          <Link href="/dashboard/cursos" aria-label="Ir para cursos" className="flex transition-opacity hover:opacity-80">
             <Logo width={120} height={28} variant="white" />
           </Link>
         </div>

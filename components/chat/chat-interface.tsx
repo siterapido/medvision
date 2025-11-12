@@ -1,29 +1,9 @@
 "use client"
 
-import { Fragment, useEffect, useRef, useState } from "react"
-import type { ChatStatus } from "ai"
-import clsx from "clsx"
-import { CopyIcon, RefreshCcwIcon, Share2Icon, Sparkles } from "lucide-react"
-import {
-  Conversation,
-  ConversationContent,
-  ConversationEmptyState,
-  ConversationScrollButton,
-} from "@/components/ai-elements/conversation"
-import { Message, MessageContent } from "@/components/ai-elements/message"
-import {
-  PromptInput,
-  PromptInputBody,
-  PromptInputTextarea,
-  PromptInputSubmit,
-  PromptInputFooter,
-} from "@/components/ai-elements/prompt-input"
-import { Response } from "@/components/ai-elements/response"
-import { Action, Actions } from "@/components/ai-elements/actions"
-import { Loader } from "@/components/ai-elements/loader"
-import { Button } from "@/components/ui/button"
+import { useEffect, useRef, useState } from "react"
+import { Send, Loader2, User, Bot, Copy, RotateCcw } from "lucide-react"
 
-type ChatMessage = {
+type Message = {
   id: string
   role: "user" | "assistant"
   content: string
@@ -31,48 +11,35 @@ type ChatMessage = {
 }
 
 export function ChatInterface() {
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: "welcome",
-      role: "assistant",
-      content:
-        "Olá! Sou o Odonto GPT, seu assistente de IA em odontologia. Como posso ajudar hoje?",
-      timestamp: new Date(),
-    },
-  ])
-  const [status, setStatus] = useState<ChatStatus>("idle")
+  const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState("")
-  const idCounterRef = useRef(0)
+  const [isLoading, setIsLoading] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  const nextMessageId = (label?: string) => {
-    idCounterRef.current += 1
-    return label ? `msg-${idCounterRef.current}-${label}` : `msg-${idCounterRef.current}`
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
   useEffect(() => {
-    // noop - Conversation handles stick-to-bottom
+    if (messages.length > 0) {
+      scrollToBottom()
+    }
   }, [messages])
 
-  useEffect(() => {
-    const className = "chat-scroll-lock"
-    document.body.classList.add(className)
-    return () => {
-      document.body.classList.remove(className)
-    }
-  }, [])
+  const sendMessage = async () => {
+    if (!input.trim() || isLoading) return
 
-  const sendMessage = async (text: string) => {
-    if (!text.trim() || status === "submitted" || status === "streaming") return
-
-    const userMessage: ChatMessage = {
-      id: nextMessageId("user"),
+    const userMessage: Message = {
+      id: Date.now().toString(),
       role: "user",
-      content: text,
+      content: input.trim(),
       timestamp: new Date(),
     }
+
     setMessages((prev) => [...prev, userMessage])
-    setStatus("submitted")
     setInput("")
+    setIsLoading(true)
 
     try {
       const response = await fetch("/api/chat", {
@@ -80,47 +47,53 @@ export function ChatInterface() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: "demo-user",
-          message: text,
+          message: userMessage.content,
           plan: "free",
         }),
       })
 
       const data = await response.json()
 
-      const assistantMessage: ChatMessage = {
-        id: nextMessageId("assistant"),
+      const assistantMessage: Message = {
+        id: (Date.now() + 1).toString(),
         role: "assistant",
         content: data.reply || "Desculpe, não consegui processar sua mensagem.",
         timestamp: new Date(),
       }
 
       setMessages((prev) => [...prev, assistantMessage])
-      setStatus("idle")
     } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: nextMessageId("error"),
-          role: "assistant",
-          content:
-            "Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.",
-          timestamp: new Date(),
-        },
-      ])
-      setStatus("error")
-      setTimeout(() => setStatus("idle"), 1200)
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        role: "assistant",
+        content: "Desculpe, ocorreu um erro. Tente novamente.",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const regenerateMessage = async (messageIndex: number) => {
-    if (status === "submitted" || status === "streaming") return
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      sendMessage()
+    }
+  }
 
-    const messageToRegenerate = messages[messageIndex - 1]
-    if (!messageToRegenerate || messageToRegenerate.role !== "user") return
+  const copyMessage = (content: string) => {
+    navigator.clipboard.writeText(content)
+  }
 
-    // Remove last assistant response
+  const regenerateLastMessage = async () => {
+    if (messages.length < 2 || isLoading) return
+
+    const lastUserMessage = [...messages].reverse().find(m => m.role === "user")
+    if (!lastUserMessage) return
+
     setMessages((prev) => prev.slice(0, -1))
-    setStatus("submitted")
+    setIsLoading(true)
 
     try {
       const response = await fetch("/api/chat", {
@@ -128,221 +101,193 @@ export function ChatInterface() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: "demo-user",
-          message: messageToRegenerate.content,
+          message: lastUserMessage.content,
           plan: "free",
         }),
       })
 
       const data = await response.json()
 
-      const assistantMessage: ChatMessage = {
-        id: nextMessageId("assistant-regen"),
+      const assistantMessage: Message = {
+        id: Date.now().toString(),
         role: "assistant",
         content: data.reply || "Desculpe, não consegui processar sua mensagem.",
         timestamp: new Date(),
       }
 
       setMessages((prev) => [...prev, assistantMessage])
-      setStatus("idle")
     } catch (error) {
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: nextMessageId("error"),
-          role: "assistant",
-          content:
-            "Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.",
-          timestamp: new Date(),
-        },
-      ])
-      setStatus("error")
-      setTimeout(() => setStatus("idle"), 1200)
-    }
-  }
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-  }
-
-  const copyAllMessages = () => {
-    const allText = messages
-      .map((m) => `${m.role === "user" ? "Você" : "Odonto GPT"}: ${m.content}`)
-      .join("\n\n")
-    navigator.clipboard.writeText(allText)
-  }
-
-  const shareChat = () => {
-    const allText = messages
-      .map((m) => `${m.role === "user" ? "Você" : "Odonto GPT"}: ${m.content}`)
-      .join("\n\n")
-    if (navigator.share) {
-      navigator.share({
-        title: "Conversa Odonto GPT",
-        text: allText,
-      })
+      const errorMessage: Message = {
+        id: Date.now().toString(),
+        role: "assistant",
+        content: "Desculpe, ocorreu um erro. Tente novamente.",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
     }
   }
 
   return (
-    <div className="chat-shell relative isolate grid h-full w-full grid-rows-[auto_minmax(0,_1fr)_auto] bg-gradient-to-b from-[#0F192F] via-[#101C34] to-[#0B1423] text-[#E6EDF7]">
-      {/* Header com botões de copiar e compartilhar */}
-      <div className="sticky top-0 z-20 relative overflow-hidden border-b border-[#1f2d4a] bg-gradient-to-r from-[#0F192F]/90 via-[#111B2D]/90 to-[#0B1423]/90 px-6 py-5 shadow-sm backdrop-blur-sm backdrop-saturate-150">
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 z-0">
-          <div className="absolute -left-8 top-5 h-32 w-32 rounded-full bg-[#2399B4]/30 blur-[70px]" />
-          <div className="absolute right-6 top-4 h-28 w-28 rounded-full bg-[#06b6d4]/30 blur-[60px]" />
-          <div className="absolute inset-x-6 bottom-2 h-16 rounded-full bg-[radial-gradient(circle,rgba(35,153,180,0.25),transparent_70%)] opacity-60 blur-[40px]" />
-        </div>
-        <div className="relative z-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="flex flex-col gap-2">
-            <div className="flex flex-col gap-2 text-white sm:flex-row sm:items-end sm:gap-4">
-              <Sparkles className="h-6 w-6 text-[#06b6d4]" aria-hidden="true" />
-              <div>
-                <h2 className="text-lg font-semibold uppercase tracking-[0.2em] text-white">
-                  Chat Odonto GPT
-                </h2>
+    <div className="flex flex-col h-full w-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      {/* Messages Area */}
+      <div className="flex-1 overflow-y-auto px-4 py-6">
+        <div className="max-w-4xl mx-auto space-y-6">
+          {/* Welcome State */}
+          {messages.length === 0 && (
+            <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-6 shadow-lg shadow-cyan-500/20">
+                <Bot className="w-9 h-9 text-white" />
+              </div>
+              <h1 className="text-3xl font-bold text-white mb-3">
+                Odonto GPT
+              </h1>
+              <p className="text-lg text-slate-400 mb-8 max-w-md">
+                Seu assistente inteligente de odontologia. Faça suas perguntas e obtenha respostas baseadas em conhecimento especializado.
+              </p>
+
+              {/* Suggestion Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
+                <button
+                  onClick={() => setInput("Quais são os principais sinais de periodontite?")}
+                  className="p-4 rounded-xl bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-500/80 hover:bg-slate-800 hover:shadow-lg hover:shadow-cyan-500/10 transition-all text-left group"
+                >
+                  <p className="text-sm text-slate-300 group-hover:text-cyan-400 font-medium">
+                    Quais são os principais sinais de periodontite?
+                  </p>
+                </button>
+                <button
+                  onClick={() => setInput("Como diagnosticar cárie profunda?")}
+                  className="p-4 rounded-xl bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-500/80 hover:bg-slate-800 hover:shadow-lg hover:shadow-cyan-500/10 transition-all text-left group"
+                >
+                  <p className="text-sm text-slate-300 group-hover:text-cyan-400 font-medium">
+                    Como diagnosticar cárie profunda?
+                  </p>
+                </button>
+                <button
+                  onClick={() => setInput("Protocolo de tratamento endodôntico")}
+                  className="p-4 rounded-xl bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-500/80 hover:bg-slate-800 hover:shadow-lg hover:shadow-cyan-500/10 transition-all text-left group"
+                >
+                  <p className="text-sm text-slate-300 group-hover:text-cyan-400 font-medium">
+                    Protocolo de tratamento endodôntico
+                  </p>
+                </button>
+                <button
+                  onClick={() => setInput("Orientações pós-operatórias para implante")}
+                  className="p-4 rounded-xl bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-500/80 hover:bg-slate-800 hover:shadow-lg hover:shadow-cyan-500/10 transition-all text-left group"
+                >
+                  <p className="text-sm text-slate-300 group-hover:text-cyan-400 font-medium">
+                    Orientações pós-operatórias para implante
+                  </p>
+                </button>
               </div>
             </div>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <Button
-              onClick={copyAllMessages}
-              variant="outline"
-              size="sm"
-              className="rounded-2xl border border-[#1f2d4a] bg-[#0F172A]/80 px-3 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-white shadow-[0_12px_30px_rgba(3,7,18,0.45)] transition-colors hover:border-[#06b6d4] hover:bg-[#091024] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/70"
+          )}
+
+          {/* Messages List */}
+          {messages.map((message) => (
+            <div
+              key={message.id}
+              className={`flex gap-4 ${message.role === "user" ? "justify-end" : "justify-start"}`}
             >
-              <CopyIcon className="mr-2 h-4 w-4" />
-              Copiar
-            </Button>
-            <Button
-              onClick={shareChat}
-              variant="outline"
-              size="sm"
-              className="rounded-2xl border border-[#1f2d4a] bg-[#0F172A]/80 px-3 py-2 text-xs font-semibold uppercase tracking-[0.28em] text-white shadow-[0_12px_30px_rgba(3,7,18,0.45)] transition-colors hover:border-[#06b6d4] hover:bg-[#091024] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary/70"
-            >
-              <Share2Icon className="mr-2 h-4 w-4" />
-              Compartilhar
-            </Button>
-          </div>
+              {message.role === "assistant" && (
+                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+              )}
+
+              <div className={`flex flex-col ${message.role === "user" ? "items-end" : "items-start"} max-w-[80%]`}>
+                <div
+                  className={`rounded-2xl px-6 py-4 ${
+                    message.role === "user"
+                      ? "bg-gradient-to-br from-cyan-600 to-blue-700 text-white shadow-lg shadow-cyan-500/20"
+                      : "bg-slate-800/80 border border-slate-700/50 text-slate-100 shadow-lg"
+                  }`}
+                >
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                    {message.content}
+                  </p>
+                </div>
+
+                {message.role === "assistant" && message.id === messages[messages.length - 1]?.id && !isLoading && (
+                  <div className="flex gap-2 mt-2">
+                    <button
+                      onClick={() => copyMessage(message.content)}
+                      className="p-2 rounded-lg hover:bg-slate-800/80 text-slate-400 hover:text-cyan-400 transition-colors"
+                      title="Copiar"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={regenerateLastMessage}
+                      className="p-2 rounded-lg hover:bg-slate-800/80 text-slate-400 hover:text-cyan-400 transition-colors"
+                      title="Regenerar"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {message.role === "user" && (
+                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
+                  <User className="w-5 h-5 text-white" />
+                </div>
+              )}
+            </div>
+          ))}
+
+          {/* Loading State */}
+          {isLoading && (
+            <div className="flex gap-4 justify-start">
+              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                <Bot className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex flex-col items-start">
+                <div className="rounded-2xl px-6 py-4 bg-slate-800/80 border border-slate-700/50 shadow-lg">
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
+                    <span className="text-sm text-slate-300">Pensando...</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <div ref={messagesEndRef} />
         </div>
       </div>
 
-      <div className="relative min-h-0 overflow-hidden">
-        <Conversation className="flex h-full flex-col overscroll-contain bg-transparent px-4 py-6 sm:px-6">
-        {messages.length === 0 ? (
-          <ConversationEmptyState
-            description="Envie sua primeira pergunta para começar"
-            title="Sem mensagens ainda"
-            className="text-slate-200"
-          />
-        ) : (
-          <ConversationContent className="mx-auto w-full max-w-4xl space-y-5 px-0">
-            {messages.map((message, index) => (
-              <Fragment key={message.id}>
-                <Message from={message.role} className="mb-1">
-                  <MessageContent
-                    className={clsx(
-                      "rounded-2xl border px-5 py-4 text-sm leading-relaxed max-w-[85%]",
-                      message.role === "user" ? "ml-auto border-[#1f8ab1]/40 bg-[#0F172A] text-white" : "mr-auto border-[#1f2d4a] bg-[#131F36] text-[#E6EDF7]"
-                    )}
-                  >
-                    <Response className="text-sm leading-relaxed">{message.content}</Response>
-                  </MessageContent>
-                </Message>
-
-                {message.role === "assistant" && index === messages.length - 1 && status === "idle" && (
-                  <Actions
-                    className="mt-2 mb-2 flex gap-2 text-[#E6EDF7]"
-                  >
-                    <Action
-                      onClick={() => regenerateMessage(index)}
-                      label="Regenerar"
-                      className={clsx(
-                        "flex h-9 w-9 items-center justify-center rounded-full border text-center transition-colors shadow-[0_15px_40px_rgba(15,23,42,0.12)]",
-                        "border-[#1f2d4a] bg-[#121c31] text-[#E6EDF7] hover:border-[#2399B4]"
-                      )}
-                    >
-                      <RefreshCcwIcon className="h-3.5 w-3.5 text-inherit" />
-                    </Action>
-                    <Action
-                      onClick={() => copyToClipboard(message.content)}
-                      label="Copiar"
-                      className={clsx(
-                        "flex h-9 w-9 items-center justify-center rounded-full border text-center transition-colors shadow-[0_15px_40px_rgba(15,23,42,0.12)]",
-                        "border-[#1f2d4a] bg-[#121c31] text-[#E6EDF7] hover:border-[#2399B4]"
-                      )}
-                    >
-                      <CopyIcon className="h-3.5 w-3.5 text-inherit" />
-                    </Action>
-                  </Actions>
-                )}
-              </Fragment>
-            ))}
-            {status === "submitted" && (
-              <div
-                className={clsx(
-                  "flex items-center gap-3 rounded-2xl border border-dashed px-4 py-3 border-[#1f2d4a] bg-[#121a30]/70"
-                )}
-              >
-                <div
-                  className={clsx(
-                    "flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border border-[#1f2d4a] bg-[#10192c]"
-                  )}
-                >
-                  <Sparkles className="h-4 w-4 text-[#06b6d4]" />
-                </div>
-                <Loader className="text-sm text-[#E6EDF7]" />
-              </div>
-            )}
-          </ConversationContent>
-        )}
-        <ConversationScrollButton
-          className={clsx(
-            "rounded-full border text-sm transition-colors shadow-[0_15px_35px_rgba(15,23,42,0.12)]",
-            "border-[#1f2d4a] bg-[#131f36] text-[#E6EDF7] hover:border-[#2399B4] hover:text-white"
-          )}
-        />
-      </Conversation>
-    </div>
-
-      <div
-        className={clsx(
-          "sticky bottom-0 z-20 border-t border-[#1f2d4a] bg-[#0F172A]/95 p-5 backdrop-blur"
-        )}
-      >
-        <div className="mx-auto w-full max-w-4xl">
-          <PromptInput
-            onSubmit={({ text }) => {
-              return sendMessage(text)
-            }}
-            className={clsx(
-              "rounded-2xl border transition-colors focus-within:ring-0 shadow-[0_20px_50px_rgba(15,23,42,0.08)] border-[#1f2d4a] bg-[#101a30] hover:border-[#2399B4]"
-            )}
-          >
-            <PromptInputBody className="p-4">
-              <PromptInputTextarea
-                placeholder="Digite sua dúvida clínica..."
-                className={clsx(
-                  "resize-none bg-transparent text-sm",
-                  "text-[#E6EDF7] placeholder:text-slate-400/70"
-                )}
+      {/* Input Area */}
+      <div className="flex-shrink-0 border-t border-slate-800/50 bg-slate-900/95 backdrop-blur-sm">
+        <div className="max-w-4xl mx-auto p-4">
+          <div className="flex gap-3 items-end">
+            <div className="flex-1 relative">
+              <textarea
+                ref={inputRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Digite sua pergunta..."
+                rows={1}
+                className="w-full px-4 py-3 pr-12 rounded-xl border-2 border-slate-700/50 focus:border-cyan-500/80 focus:outline-none resize-none bg-slate-800/80 text-slate-100 placeholder:text-slate-500 transition-colors"
+                style={{
+                  minHeight: "48px",
+                  maxHeight: "120px",
+                }}
               />
-            </PromptInputBody>
-            <PromptInputFooter className="flex items-center justify-end px-4 pb-4 pt-2">
-              <PromptInputSubmit
-                status={status === "idle" ? undefined : status}
-                disabled={!input.trim() && status === "idle"}
-                className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#0891b2] via-[#06b6d4] to-[#22d3ee] text-[#0B1627] transition-all hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
-              />
-            </PromptInputFooter>
-          </PromptInput>
-          <p
-            className={clsx(
-              "mt-3 text-center text-xs text-slate-400"
-            )}
-          >
-            Pressione Enter para enviar, Shift + Enter para nova linha
+            </div>
+            <button
+              onClick={sendMessage}
+              disabled={!input.trim() || isLoading}
+              className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:from-slate-700 disabled:to-slate-800 text-white flex items-center justify-center shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+            >
+              <Send className="w-5 h-5" />
+            </button>
+          </div>
+          <p className="text-xs text-slate-500 mt-2 text-center">
+            Pressione Enter para enviar • Shift + Enter para nova linha
           </p>
         </div>
       </div>

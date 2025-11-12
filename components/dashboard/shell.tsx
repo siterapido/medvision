@@ -186,7 +186,7 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
       <DashboardSidebar
         isVisible={isSidebarVisible}
       />
-      <div className="flex flex-1 flex-col min-h-0 overflow-hidden">
+      <div className={`flex flex-1 flex-col min-h-0 ${pathname === '/dashboard/chat' ? 'overflow-hidden' : ''}`}>
         <DashboardHeader
           user={user}
           profile={profile}
@@ -196,10 +196,10 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
           isLoggingOut={isLoggingOut}
           onLogout={handleLogout}
         />
-        <main className={`flex flex-1 flex-col overflow-hidden bg-[#eff4fb] min-h-0 ${pathname === '/dashboard/chat' ? 'p-0' : 'pt-4 px-4 pb-0 md:pt-6 md:px-6 md:pb-0 lg:pt-8 lg:px-8 lg:pb-0'}`}>
+        <main className={`flex flex-1 flex-col min-h-0 bg-[#eff4fb] ${pathname === '/dashboard/chat' ? 'p-0 overflow-hidden' : 'pt-4 px-4 md:pt-6 md:px-6 lg:pt-8 lg:px-8 overflow-y-auto'}`}>
           {children}
         </main>
-        <DashboardFooter />
+        {pathname !== '/dashboard/chat' && <DashboardFooter />}
       </div>
 
       <>

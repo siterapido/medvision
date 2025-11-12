@@ -96,39 +96,8 @@ export default async function CursosPage() {
 
   const hasRealCourses = dedupedCourses.length > 0
 
-  // Categorizar cursos
-  const inProgress = dedupedCourses.filter((c) => c.progress > 0 && c.progress < 100)
-  const notStarted = dedupedCourses.filter((c) => c.progress === 0)
-  const completed = dedupedCourses.filter((c) => c.progress === 100)
-
-  const displayedCourseIds = new Set<string>([
-    ...inProgress.map((course) => course.id),
-    ...notStarted.map((course) => course.id),
-    ...completed.map((course) => course.id),
-  ])
-
-  const curatedPool = dedupedCourses.filter((course) => !displayedCourseIds.has(course.id))
-
-  const curatedSections = [
-    {
-      id: "premium",
-      label: "Especializações premium",
-      title: "Domine procedimentos avançados",
-      description: "Coleções com cirurgia guiada, sedação consciente e fluxo digital completo.",
-      badge: "Premium",
-      badgeClassName: "border-[#06b6d4]/60 bg-[#06b6d4]/15 text-white",
-      courses: curatedPool.slice(0, 5),
-    },
-    {
-      id: "express",
-      label: "Trilhas intensivas",
-      title: "Bootcamps clínicos de alto impacto",
-      description: "Sprints com protocolos aplicáveis, checklists e materiais para a equipe.",
-      badge: "Express",
-      badgeClassName: "border-[#f97316]/50 bg-[#f97316]/15 text-[#fed7aa]",
-      courses: curatedPool.slice(5, 10),
-    },
-  ].filter((section) => section.courses.length > 0)
+  // Apenas novos cursos (não iniciados)
+  const novoCursos = dedupedCourses
 
   const getProgressLabel = (progress: number) => {
     if (progress >= 100) return "Curso concluído"
@@ -228,10 +197,6 @@ export default async function CursosPage() {
           </span>
           <div>
             <h1 className="text-3xl font-bold text-white md:text-4xl">Meus Cursos</h1>
-            <p className="mt-2 max-w-2xl text-base text-slate-200">
-              Continue seu aprendizado em uma experiência imersiva alinhada ao guia UI/UX: tema médico premium, tons teal
-              e progressos evidentes para cada jornada.
-            </p>
           </div>
         </div>
 
@@ -249,32 +214,11 @@ export default async function CursosPage() {
           </div>
         )}
 
-        {/* Cursos em Progresso */}
-        {inProgress.length > 0 && (
+        {/* Novos Cursos */}
+        {novoCursos.length > 0 && (
           <div className="space-y-4">
-            <div className="px-1 sm:px-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-white/80">
-                Em andamento
-              </span>
-              <h2 className="text-2xl font-semibold text-white">Continue Assistindo</h2>
-            </div>
-            <CourseCarousel ariaLabel="Cursos em andamento" className="px-1 sm:px-2">
-              {inProgress.map((course) => renderCourseCard(course))}
-            </CourseCarousel>
-          </div>
-        )}
-
-        {/* Cursos Novos */}
-        {notStarted.length > 0 && (
-          <div className="space-y-4">
-            <div className="px-1 sm:px-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-white/80">
-                Novidades
-              </span>
-              <h2 className="text-2xl font-semibold text-white">Explore Novos Cursos</h2>
-            </div>
-            <CourseCarousel ariaLabel="Novos cursos" className="px-1 sm:px-2">
-              {notStarted.map((course) =>
+            <CourseCarousel ariaLabel="Novos cursos">
+              {novoCursos.map((course) =>
                 renderCourseCard(course, {
                   badge: course.isDraft ? undefined : "Novo",
                   badgeClassName: course.isDraft ? undefined : "border-[#0891b2]/40 bg-[#0891b2]/15 text-[#06b6d4]",
@@ -283,51 +227,6 @@ export default async function CursosPage() {
             </CourseCarousel>
           </div>
         )}
-
-        {/* Cursos Concluídos */}
-        {completed.length > 0 && (
-          <div className="space-y-4">
-            <div className="px-1 sm:px-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-white/80">
-                Missões completas
-              </span>
-              <h2 className="text-2xl font-semibold text-white">Cursos Concluídos</h2>
-            </div>
-            <CourseCarousel ariaLabel="Cursos concluídos" className="px-1 sm:px-2">
-              {completed.map((course) =>
-                renderCourseCard(course, {
-                  badge: "Concluído",
-                  badgeClassName: "border-[#10b981]/40 bg-[#10b981]/15 text-[#34d399]",
-                }),
-              )}
-            </CourseCarousel>
-          </div>
-        )}
-
-        {/* Curated Sections */}
-        {curatedSections.map((section) => (
-          <div key={section.id} className="space-y-3">
-            <div className="px-1 sm:px-2">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-white/80">
-                {section.label}
-              </span>
-              <div className="mt-3 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <h2 className="text-2xl font-semibold text-white">{section.title}</h2>
-                  <p className="text-sm text-slate-300">{section.description}</p>
-                </div>
-              </div>
-            </div>
-            <CourseCarousel ariaLabel={section.title} className="px-1 sm:px-2">
-              {section.courses.map((course) =>
-                renderCourseCard(course, {
-                  badge: section.badge,
-                  badgeClassName: section.badgeClassName,
-                }),
-              )}
-            </CourseCarousel>
-          </div>
-        ))}
       </div>
       </section>
     </DashboardScrollArea>

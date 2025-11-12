@@ -33,13 +33,10 @@ export function CourseCarousel({ children, ariaLabel, className }: CourseCarouse
   return (
     <div className={cn("relative isolate", className)}>
       <div className="relative overflow-hidden rounded-[inherit]">
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-[#0F192F] via-[#0F192F]/70 to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-[#0F192F] via-[#0F192F]/70 to-transparent" />
-
         <div
           ref={scrollRef}
           aria-label={ariaLabel}
-          className="flex min-w-max gap-5 overflow-x-auto pb-4 px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="flex justify-center md:justify-start gap-5 overflow-x-auto pb-4 px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
         >
           {renderedItems}
         </div>

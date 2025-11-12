@@ -200,6 +200,12 @@
   }
   body {
     @apply bg-background text-foreground;
+    margin: 0;
+    padding: 0;
+  }
+  footer {
+    margin: 0;
+    padding: 0;
   }
 }
 
@@ -1447,7 +1453,10 @@ html,
 
 body {
   height: 100vh;
+  max-height: 100vh;
   overflow: hidden;
+  padding: 0;
+  margin: 0;
 }
 
 .app-shell {
@@ -1468,7 +1477,7 @@ body {
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding-bottom: max(2rem, env(safe-area-inset-bottom, 1.5rem));
+  padding-bottom: 0;
   scroll-behavior: smooth;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: contain;
@@ -1498,4 +1507,111 @@ body {
 
 .scrollbar-hidden::-webkit-scrollbar {
   display: none; /* Chrome, Safari and Opera */
+}
+
+/* ===== FIXED FOOTER STYLES ===== */
+.fixed-footer-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 50;
+  background: var(--background);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Suporte para safe areas em dispositivos móveis */
+@supports (padding: max(0px)) {
+  .fixed-footer-container {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom, 1rem));
+  }
+}
+
+/* Melhorias de acessibilidade para alto contraste */
+@media (prefers-contrast: high) {
+  .fixed-footer-container {
+    border-top-width: 2px;
+    background: var(--background) !important;
+    backdrop-filter: none !important;
+  }
+}
+
+/* Otimizações para dispositivos com telas muito pequenas */
+@media (max-width: 320px) {
+  .fixed-footer-container {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+/* Transição suave para evitar flickering */
+.fixed-footer-container {
+  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+/* Estado quando elementos estão se movendo (ex: teclado virtual) */
+.fixed-footer-container.moving {
+  transition: none;
+}
+
+/* Variante sticky para containers com scroll interno */
+.fixed-footer-container.sticky-variant {
+  position: sticky;
+  bottom: 0;
+}
+
+/* Garantir que o conteúdo seja legível mesmo com sobreposições */
+.fixed-footer-content {
+  max-width: 100vw;
+  margin: 0 auto;
+  padding: 0.75rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .fixed-footer-content {
+    padding: 1rem 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .fixed-footer-content {
+    padding: 1rem 2rem;
+    max-width: 1200px;
+  }
+}
+
+/* Prevenir que o rodapé fixo sobreponha outros elementos críticos */
+body.has-fixed-footer {
+  padding-bottom: 0;
+}
+
+@media (max-width: 768px) {
+  body.has-fixed-footer {
+    padding-bottom: 0;
+  }
+}
+
+/* Suporte para navegadores mais antigos */
+@supports not (backdrop-filter: blur(10px)) {
+  .fixed-footer-container {
+    background: var(--card);
+    opacity: 0.98;
+  }
+}
+
+/* Garantir que não há espaçamento após o footer do dashboard */
+footer {
+  display: block;
+  margin: 0 !important;
+}
+
+footer * {
+  margin-bottom: 0 !important;
+}
+
+main {
+  padding-bottom: 0 !important;
 }
