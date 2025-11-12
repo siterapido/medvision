@@ -22,7 +22,7 @@ type NavItem = {
 }
 
 export const dashboardNavigation: NavItem[] = [
-  { name: "Visão geral", href: "/dashboard", icon: LayoutDashboard },
+  { name: "Visão geral", href: "/dashboard/visao-geral", icon: LayoutDashboard },
   { name: "Chat de IA", href: "/dashboard/chat", icon: BotIcon },
   { name: "Cursos", href: "/dashboard/cursos", icon: GraduationCap },
   { name: "Materiais", href: "/dashboard/materiais", icon: BookOpen },
@@ -42,7 +42,7 @@ interface DashboardSidebarContentProps {
 export function DashboardSidebarTopBar({ onClose }: { onClose?: () => void }) {
   return (
     <div className="flex items-center justify-between px-4 pb-6 pt-8">
-      <Link href="/dashboard" aria-label="Dashboard" className="transition-opacity hover:opacity-80">
+      <Link href="/dashboard/visao-geral" aria-label="Dashboard" className="transition-opacity hover:opacity-80">
         <Logo width={120} height={32} variant="white" />
       </Link>
       {onClose && (
@@ -109,7 +109,7 @@ export function DashboardSidebar({
           : "md:opacity-0 md:-translate-x-full md:pointer-events-none"
       )}
     >
-      <DashboardSidebarTopBar />
+  <DashboardSidebarTopBar />
       <div className="flex flex-1 flex-col overflow-y-auto">
         <DashboardSidebarContent />
       </div>
