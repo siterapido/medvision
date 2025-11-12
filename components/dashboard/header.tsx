@@ -99,20 +99,12 @@ export function DashboardHeader({
       <div className="flex w-full items-center justify-between gap-3">
         {/* Mobile */}
         <div className="flex items-center gap-3 md:hidden">
-          {renderMobileButton()}
           <Link href="/dashboard/cursos" aria-label="Ir para cursos" className="flex transition-opacity hover:opacity-80">
             <Logo width={120} height={28} variant="white" />
           </Link>
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
-          <Link
-            href="/dashboard/perfil"
-            aria-label="Ver perfil"
-            className="group flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700/50 bg-slate-900/40 text-slate-400 backdrop-blur-sm transition-all duration-200 hover:border-primary/50 hover:bg-slate-800/50 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
-          >
-            <UserRound className="h-4 w-4 transition-transform group-hover:scale-110" />
-          </Link>
           {isLoggedIn && onLogout ? (
             <button
               type="button"
@@ -130,6 +122,7 @@ export function DashboardHeader({
               Login
             </Link>
           )}
+          {renderMobileButton()}
         </div>
 
         {/* Desktop */}

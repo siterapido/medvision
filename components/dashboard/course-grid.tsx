@@ -178,7 +178,7 @@ export function CourseGrid({ courses }: CourseGridProps) {
 
             return (
               <Link key={course.id} href={`/dashboard/cursos/${course.id}`} className="flex-shrink-0">
-                <Card className="group relative flex h-full w-[260px] flex-col overflow-hidden rounded-2xl border-2 border-[#0891b2]/20 bg-[#16243F] text-[#E6EDF7] transition-all duration-500 hover:-translate-y-2 hover:border-[#2399B4]/60 sm:w-[300px]">
+                <Card className="group relative flex h-full w-[260px] flex-col overflow-hidden rounded-2xl border-2 border-[#9dbbff] bg-gradient-to-b from-[#e7f3ff] via-[#d6e8ff] to-[#c5ddff] text-slate-900 shadow-[0_20px_40px_rgba(13,60,130,0.12)] transition-all duration-500 hover:-translate-y-1 hover:border-[#1c64f2]/70 hover:shadow-[0_30px_55px_rgba(13,60,130,0.24)] sm:w-[300px]">
                   <div className="relative h-48 w-full overflow-hidden">
                     <Image
                       src={course.thumbnail}
@@ -189,28 +189,28 @@ export function CourseGrid({ courses }: CourseGridProps) {
                       priority={false}
                       unoptimized
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-[#0B1627] via-[#0F192F]/80 to-transparent" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent" />
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 transition duration-500 group-hover:opacity-100">
-                      <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-xl">
-                        <PlayCircle className="h-8 w-8" />
+                      <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#8bc3ff]/70 bg-white/85 text-white backdrop-blur-xl shadow-lg shadow-[#1c64f2]/20">
+                        <PlayCircle className="h-8 w-8 text-[#cfe6ff]" />
                       </div>
                     </div>
                     {course.isNew && (
-                      <Badge className="absolute top-4 left-4 rounded-full border border-[#0891b2]/40 bg-[#0891b2]/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#06b6d4] shadow-lg backdrop-blur">
+                      <Badge className="absolute top-4 left-4 rounded-full border border-[#9ebeff] bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#5cbaff] shadow-lg backdrop-blur">
                         Novo
                       </Badge>
                     )}
                     {courseStatus === "completed" && (
-                      <Badge className="absolute top-4 left-4 rounded-full border border-[#10b981]/40 bg-[#10b981]/15 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#34d399] shadow-lg backdrop-blur">
+                      <Badge className="absolute top-4 left-4 rounded-full border border-[#9ebeff] bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-[#5cbaff] shadow-lg backdrop-blur">
                         Concluído
                       </Badge>
                     )}
                     <div className="absolute bottom-3 left-3 right-3">
-                      <div className="flex items-center justify-between text-[11px] font-medium text-slate-200">
+                      <div className="flex items-center justify-between text-[11px] font-medium text-[#dbefff]">
                         <span>{getProgressLabel(course.progress)}</span>
                         <span>{course.durationLabel}</span>
                       </div>
-                      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+                      <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-slate-200/70">
                         <div
                           className={`h-full rounded-full bg-gradient-to-r ${gradientClass}`}
                           style={{ width: `${course.progress}%` }}
@@ -220,16 +220,16 @@ export function CourseGrid({ courses }: CourseGridProps) {
                   </div>
                   <div className="flex flex-1 flex-col gap-3 p-5">
                     <div>
-                      <h3 className="text-lg font-semibold leading-tight line-clamp-2 text-white">{course.title}</h3>
-                      <p className="mt-2 text-sm text-slate-200/80 line-clamp-3">{course.description}</p>
+                      <h3 className="text-lg font-semibold leading-tight line-clamp-2 text-[#74b7ff]">{course.title}</h3>
+                      <p className="mt-2 text-sm text-[#2f4db3] line-clamp-3">{course.description}</p>
                     </div>
-                    <div className="mt-auto flex items-center gap-4 text-xs text-slate-200/80">
+                    <div className="mt-auto flex items-center gap-4 text-xs text-[#6db6ff]">
                       <span className="flex items-center gap-1">
-                        <PlayCircle className="h-3.5 w-3.5" />
+                        <PlayCircle className="h-3.5 w-3.5 text-[#8dc3ff]" />
                         {course.lessonsCount} aulas
                       </span>
                       <span className="flex items-center gap-1">
-                        <Clock className="h-3.5 w-3.5" />
+                        <Clock className="h-3.5 w-3.5 text-[#8dc3ff]" />
                         {course.durationLabel}
                       </span>
                     </div>

@@ -1,6 +1,6 @@
 # Aplicar Migrations do Supabase
 
-## Opção 1: Via Dashboard do Supabase (Recomendado)
+## Opção 1: Via Dashboard do Supabase (MCP - Migration Control Panel)
 
 1. Acesse: https://app.supabase.com/project/qphofwxpmmhfplylozsh/editor
 2. Vá para **SQL Editor**

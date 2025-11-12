@@ -1,0 +1,2 @@
+-- Placeholder para a versão remota 20251109041358
+-- Atualize com o script real caso esteja disponível futuramente.
