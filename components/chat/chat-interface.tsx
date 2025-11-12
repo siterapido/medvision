@@ -137,8 +137,8 @@ export function ChatInterface() {
           {/* Welcome State */}
           {messages.length === 0 && (
             <div className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center mb-6 shadow-lg shadow-cyan-500/20">
-                <Bot className="w-9 h-9 text-white" />
+              <div className="w-16 h-16 flex items-center justify-center mb-6">
+                <Bot className="w-12 h-12 text-slate-400" />
               </div>
               <h1 className="text-3xl font-bold text-white mb-3">
                 Odonto GPT
@@ -151,33 +151,33 @@ export function ChatInterface() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
                 <button
                   onClick={() => setInput("Quais são os principais sinais de periodontite?")}
-                  className="p-4 rounded-xl bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-500/80 hover:bg-slate-800 hover:shadow-lg hover:shadow-cyan-500/10 transition-all text-left group"
+                  className="p-4 rounded-xl bg-slate-900/40 border border-slate-700/50 hover:border-primary/50 hover:bg-slate-800/50 transition-all text-left group"
                 >
-                  <p className="text-sm text-slate-300 group-hover:text-cyan-400 font-medium">
+                  <p className="text-sm text-slate-300 group-hover:text-white font-medium">
                     Quais são os principais sinais de periodontite?
                   </p>
                 </button>
                 <button
                   onClick={() => setInput("Como diagnosticar cárie profunda?")}
-                  className="p-4 rounded-xl bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-500/80 hover:bg-slate-800 hover:shadow-lg hover:shadow-cyan-500/10 transition-all text-left group"
+                  className="p-4 rounded-xl bg-slate-900/40 border border-slate-700/50 hover:border-primary/50 hover:bg-slate-800/50 transition-all text-left group"
                 >
-                  <p className="text-sm text-slate-300 group-hover:text-cyan-400 font-medium">
+                  <p className="text-sm text-slate-300 group-hover:text-white font-medium">
                     Como diagnosticar cárie profunda?
                   </p>
                 </button>
                 <button
                   onClick={() => setInput("Protocolo de tratamento endodôntico")}
-                  className="p-4 rounded-xl bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-500/80 hover:bg-slate-800 hover:shadow-lg hover:shadow-cyan-500/10 transition-all text-left group"
+                  className="p-4 rounded-xl bg-slate-900/40 border border-slate-700/50 hover:border-primary/50 hover:bg-slate-800/50 transition-all text-left group"
                 >
-                  <p className="text-sm text-slate-300 group-hover:text-cyan-400 font-medium">
+                  <p className="text-sm text-slate-300 group-hover:text-white font-medium">
                     Protocolo de tratamento endodôntico
                   </p>
                 </button>
                 <button
                   onClick={() => setInput("Orientações pós-operatórias para implante")}
-                  className="p-4 rounded-xl bg-slate-800/50 border-2 border-slate-700/50 hover:border-cyan-500/80 hover:bg-slate-800 hover:shadow-lg hover:shadow-cyan-500/10 transition-all text-left group"
+                  className="p-4 rounded-xl bg-slate-900/40 border border-slate-700/50 hover:border-primary/50 hover:bg-slate-800/50 transition-all text-left group"
                 >
-                  <p className="text-sm text-slate-300 group-hover:text-cyan-400 font-medium">
+                  <p className="text-sm text-slate-300 group-hover:text-white font-medium">
                     Orientações pós-operatórias para implante
                   </p>
                 </button>
@@ -192,8 +192,8 @@ export function ChatInterface() {
               className={`flex gap-4 ${message.role === "user" ? "justify-end" : "justify-start"}`}
             >
               {message.role === "assistant" && (
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-                  <Bot className="w-5 h-5 text-white" />
+                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+                  <Bot className="w-6 h-6 text-slate-400" />
                 </div>
               )}
 
@@ -201,7 +201,7 @@ export function ChatInterface() {
                 <div
                   className={`rounded-2xl px-6 py-4 ${
                     message.role === "user"
-                      ? "bg-gradient-to-br from-cyan-600 to-blue-700 text-white shadow-lg shadow-cyan-500/20"
+                      ? "bg-[linear-gradient(135deg,#0891b2_0%,#06b6d4_100%)] text-white shadow-lg"
                       : "bg-slate-800/80 border border-slate-700/50 text-slate-100 shadow-lg"
                   }`}
                 >
@@ -214,14 +214,14 @@ export function ChatInterface() {
                   <div className="flex gap-2 mt-2">
                     <button
                       onClick={() => copyMessage(message.content)}
-                      className="p-2 rounded-lg hover:bg-slate-800/80 text-slate-400 hover:text-cyan-400 transition-colors"
+                      className="p-2 rounded-lg bg-slate-900/40 border border-slate-700/50 text-slate-400 hover:border-primary/50 hover:bg-slate-800/50 hover:text-white transition-all"
                       title="Copiar"
                     >
                       <Copy className="w-4 h-4" />
                     </button>
                     <button
                       onClick={regenerateLastMessage}
-                      className="p-2 rounded-lg hover:bg-slate-800/80 text-slate-400 hover:text-cyan-400 transition-colors"
+                      className="p-2 rounded-lg bg-slate-900/40 border border-slate-700/50 text-slate-400 hover:border-primary/50 hover:bg-slate-800/50 hover:text-white transition-all"
                       title="Regenerar"
                     >
                       <RotateCcw className="w-4 h-4" />
@@ -231,8 +231,8 @@ export function ChatInterface() {
               </div>
 
               {message.role === "user" && (
-                <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-purple-500/30">
-                  <User className="w-5 h-5 text-white" />
+                <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+                  <User className="w-6 h-6 text-slate-400" />
                 </div>
               )}
             </div>
@@ -241,8 +241,8 @@ export function ChatInterface() {
           {/* Loading State */}
           {isLoading && (
             <div className="flex gap-4 justify-start">
-              <div className="flex-shrink-0 w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/30">
-                <Bot className="w-5 h-5 text-white" />
+              <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
+                <Bot className="w-6 h-6 text-slate-400" />
               </div>
               <div className="flex flex-col items-start">
                 <div className="rounded-2xl px-6 py-4 bg-slate-800/80 border border-slate-700/50 shadow-lg">
@@ -262,7 +262,7 @@ export function ChatInterface() {
       {/* Input Area */}
       <div className="flex-shrink-0 border-t border-slate-800/50 bg-slate-900/95 backdrop-blur-sm">
         <div className="max-w-4xl mx-auto p-4">
-          <div className="flex gap-3 items-end">
+          <div className="flex gap-3 items-center">
             <div className="flex-1 relative">
               <textarea
                 ref={inputRef}
@@ -271,7 +271,7 @@ export function ChatInterface() {
                 onKeyDown={handleKeyDown}
                 placeholder="Digite sua pergunta..."
                 rows={1}
-                className="w-full px-4 py-3 pr-12 rounded-xl border-2 border-slate-700/50 focus:border-cyan-500/80 focus:outline-none resize-none bg-slate-800/80 text-slate-100 placeholder:text-slate-500 transition-colors"
+                className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-700/50 focus:border-primary/50 focus:outline-none resize-none bg-slate-800/80 text-slate-100 placeholder:text-slate-500 transition-all backdrop-blur-sm"
                 style={{
                   minHeight: "48px",
                   maxHeight: "120px",
@@ -281,7 +281,7 @@ export function ChatInterface() {
             <button
               onClick={sendMessage}
               disabled={!input.trim() || isLoading}
-              className="flex-shrink-0 w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-500 to-blue-600 hover:from-cyan-600 hover:to-blue-700 disabled:from-slate-700 disabled:to-slate-800 text-white flex items-center justify-center shadow-lg shadow-cyan-500/30 hover:shadow-cyan-500/50 transition-all disabled:cursor-not-allowed disabled:opacity-50 disabled:shadow-none"
+              className="flex-shrink-0 w-12 h-12 rounded-xl bg-[linear-gradient(135deg,#0891b2_0%,#06b6d4_100%)] hover:bg-[linear-gradient(135deg,#0e7490_0%,#0891b2_100%)] disabled:bg-slate-800 disabled:opacity-50 text-white flex items-center justify-center shadow-lg transition-all disabled:cursor-not-allowed active:scale-95"
             >
               <Send className="w-5 h-5" />
             </button>

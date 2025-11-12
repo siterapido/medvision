@@ -46,18 +46,18 @@ export function CourseCarousel({ children, ariaLabel, className }: CourseCarouse
         type="button"
         onClick={() => handleScroll("prev")}
         aria-label="Ver cursos anteriores"
-        className="group absolute left-0 top-1/2 z-40 -translate-y-1/2 -translate-x-1/2 rounded-full border border-white/30 bg-[#0B1627]/80 p-2 text-white shadow-2xl backdrop-blur transition hover:border-primary/80 hover:bg-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="group absolute left-0 top-1/2 z-40 -translate-y-1/2 -translate-x-1/2 rounded-full border border-slate-700/50 bg-slate-800/80 p-1.5 text-white shadow-2xl backdrop-blur transition hover:border-cyan-500/80 hover:bg-cyan-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
       >
-        <ChevronLeft className="h-5 w-5" />
+        <ChevronLeft className="h-4 w-4" />
       </button>
 
       <button
         type="button"
         onClick={() => handleScroll("next")}
         aria-label="Ver próximos cursos"
-        className="group absolute right-0 top-1/2 z-40 -translate-y-1/2 translate-x-1/2 rounded-full border border-white/30 bg-[#0B1627]/80 p-2 text-white shadow-2xl backdrop-blur transition hover:border-primary/80 hover:bg-primary/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="group absolute right-0 top-1/2 z-40 -translate-y-1/2 translate-x-1/2 rounded-full border border-slate-700/50 bg-slate-800/80 p-1.5 text-white shadow-2xl backdrop-blur transition hover:border-cyan-500/80 hover:bg-cyan-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-500"
       >
-        <ChevronRight className="h-5 w-5" />
+        <ChevronRight className="h-4 w-4" />
       </button>
     </div>
   )

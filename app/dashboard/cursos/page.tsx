@@ -118,39 +118,39 @@ export default async function CursosPage() {
     const resolvedBadge = badge ?? (course.isDraft ? "Rascunho" : undefined)
     const resolvedBadgeClassName =
       badgeClassName ??
-      (course.isDraft ? "border-amber-400/70 bg-amber-400/10 text-amber-100" : undefined)
+      (course.isDraft ? "border-cyan-400/70 bg-cyan-400/20 text-cyan-300" : "border-cyan-400/70 bg-cyan-400/20 text-cyan-300")
 
     const card = (
-      <Card className="group relative flex h-full w-[260px] flex-col overflow-hidden rounded-2xl border-2 border-[#0891b2]/20 bg-[#16243F] text-[#E6EDF7] transition-all duration-500 hover:-translate-y-2 hover:border-[#2399B4]/60 sm:w-[300px]">
-        <div className="relative h-48 w-full overflow-hidden">
+      <Card className="light group relative flex h-full w-[260px] flex-col overflow-hidden rounded-2xl border-2 border-primary/40 !bg-white text-slate-900 shadow-xl shadow-primary/20 transition-all duration-500 hover:-translate-y-2 hover:border-primary hover:shadow-2xl hover:shadow-primary/40 sm:w-[300px]">
+        <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
           <Image
             src={course.thumbnail}
             alt={course.title}
             fill
             sizes="(max-width: 768px) 100vw, 260px"
-            className="object-cover transition duration-[1200ms] ease-out group-hover:scale-110"
+            className="object-cover transition duration-[1200ms] ease-out group-hover:scale-110 opacity-80 mix-blend-multiply"
             priority={false}
             unoptimized
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0B1627] via-[#0F192F]/80 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-white/80 via-white/40 to-transparent" />
           <div className="absolute inset-0 flex items-center justify-center opacity-0 transition duration-500 group-hover:opacity-100">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur-xl">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-primary bg-gradient-to-br from-primary/90 to-primary text-white backdrop-blur-sm shadow-xl shadow-primary/50">
               <PlayCircle className="h-8 w-8" />
             </div>
           </div>
           {resolvedBadge && (
             <Badge
-              className={`absolute top-4 left-4 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] shadow-lg backdrop-blur ${resolvedBadgeClassName ?? ""}`}
+              className={`absolute top-4 left-4 rounded-full border-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] shadow-lg backdrop-blur ${resolvedBadgeClassName ?? ""}`}
             >
               {resolvedBadge}
             </Badge>
           )}
           <div className="absolute bottom-3 left-3 right-3">
-            <div className="flex items-center justify-between text-[11px] font-medium text-slate-200">
+            <div className="flex items-center justify-between text-[11px] font-semibold text-slate-800 drop-shadow-sm">
               <span>{getProgressLabel(course.progress)}</span>
               <span>{course.duration}</span>
             </div>
-            <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/10">
+            <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/60 backdrop-blur-sm">
               <div
                 className={`h-full rounded-full bg-gradient-to-r ${gradientClass}`}
                 style={{ width: `${course.progress}%` }}
@@ -160,10 +160,10 @@ export default async function CursosPage() {
         </div>
         <div className="flex flex-1 flex-col gap-3 p-5">
           <div>
-            <h3 className="text-lg font-semibold leading-tight line-clamp-2 text-white">{course.title}</h3>
-            <p className="mt-2 text-sm text-slate-200/80 line-clamp-3">{course.description}</p>
+            <h3 className="text-lg font-semibold leading-tight line-clamp-2 text-cyan-400">{course.title}</h3>
+            <p className="mt-2 text-sm text-white line-clamp-3">{course.description}</p>
           </div>
-          <div className="mt-auto flex items-center gap-4 text-xs text-slate-200/80">
+          <div className="mt-auto flex items-center gap-4 text-xs text-white font-medium">
             <span className="flex items-center gap-1">
               <PlayCircle className="h-3.5 w-3.5" />
               {course.lessons} aulas
@@ -185,14 +185,12 @@ export default async function CursosPage() {
   }
 
   return (
-    <DashboardScrollArea>
-      <section className="relative overflow-hidden rounded-[32px] border border-[#24324F] bg-gradient-to-b from-[#0F192F] via-[#131D37] to-[#0B1627] px-4 py-6 text-white sm:px-8 lg:px-10">
-      <div className="pointer-events-none absolute -top-20 right-10 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(35,153,180,0.25)_0%,_transparent_70%)] blur-3xl" />
-      <div className="pointer-events-none absolute -bottom-16 left-4 h-80 w-80 rounded-full bg-[radial-gradient(circle,_rgba(8,145,178,0.18)_0%,_transparent_70%)] blur-3xl" />
+    <DashboardScrollArea className="!px-0 !pt-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+      <section className="relative overflow-hidden px-4 py-6 text-white sm:px-8 lg:px-10">
       <div className="relative space-y-10">
         {/* Header */}
         <div className="space-y-4">
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-white">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-cyan-400">
             Hub IA + Educação
           </span>
           <div>
@@ -201,13 +199,13 @@ export default async function CursosPage() {
         </div>
 
         {!hasRealCourses && (
-          <div className="rounded-2xl border border-[#24324F] bg-[#16243F]/70 px-6 py-4 text-center text-sm text-slate-300 backdrop-blur">
+          <div className="rounded-2xl border border-slate-600/40 bg-slate-800/90 px-6 py-4 text-center text-sm text-slate-200 backdrop-blur">
             <p className="max-w-xl mx-auto">
               Ainda não há cursos cadastrados. Acesse o painel de administração para registrar o primeiro curso e ele aparecerá aqui.
             </p>
             <Link
               href="/admin/cursos"
-              className="mt-4 inline-flex items-center justify-center rounded-full border border-transparent bg-cyan-500/90 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white transition hover:bg-cyan-500"
+              className="mt-4 inline-flex items-center justify-center rounded-xl border border-primary/30 bg-[linear-gradient(135deg,#0891b2_0%,#06b6d4_100%)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white transition hover:shadow-xl hover:shadow-primary/30 active:scale-95"
             >
               Ir para Administração de Cursos
             </Link>
@@ -221,7 +219,7 @@ export default async function CursosPage() {
               {novoCursos.map((course) =>
                 renderCourseCard(course, {
                   badge: course.isDraft ? undefined : "Novo",
-                  badgeClassName: course.isDraft ? undefined : "border-[#0891b2]/40 bg-[#0891b2]/15 text-[#06b6d4]",
+                  badgeClassName: course.isDraft ? undefined : "border-primary/60 bg-primary/10 text-primary",
                 }),
               )}
             </CourseCarousel>
