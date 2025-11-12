@@ -2,11 +2,11 @@ import type React from "react"
 import type { Metadata } from "next"
 
 import { Analytics } from "@vercel/analytics/next"
+import { Inter } from 'next/font/google'
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import EnvWarning from "@/components/env-warning"
-
-import { Inter } from 'next/font/google'
+import { SiteFrame } from "@/components/layout/site-frame"
 
 // Sentry must be imported in the root layout
 import * as Sentry from "@sentry/nextjs"
@@ -43,7 +43,7 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://images.converteai.net" />
         <link rel="dns-prefetch" href="https://api.vturb.com.br" />
       </head>
-      <body className={`${inter.className} font-sans antialiased`}>
+      <body className={`${inter.className} font-sans antialiased app-shell`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="system"
@@ -51,9 +51,9 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <EnvWarning />
-          <div className="min-h-screen bg-session-landing">
+          <SiteFrame>
             {children}
-          </div>
+          </SiteFrame>
         </ThemeProvider>
         <Analytics />
       </body>

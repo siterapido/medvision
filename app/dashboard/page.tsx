@@ -5,6 +5,7 @@ import { LiveEventsSection } from "@/components/dashboard/live-events"
 import { Button } from "@/components/ui/button"
 import type { LiveEvent } from "@/lib/dashboard/events"
 import { CourseOverview, formatDurationLabel, isCourseNew } from "@/lib/dashboard/overview"
+import { DashboardScrollArea } from "@/components/layout/dashboard-scroll-area"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -254,12 +255,14 @@ export default async function DashboardPage() {
   const reminderIds = (remindersResult.data || []).map((reminder) => reminder.event_id)
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 pb-8">
-      <CourseGrid courses={courses} />
+    <DashboardScrollArea>
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8">
+        <CourseGrid courses={courses} />
 
-      <section className="grid gap-6">
-        <LiveEventsSection initialEvents={liveEvents} initialReminders={reminderIds} />
-      </section>
-    </div>
+        <section className="grid gap-6 pb-6">
+          <LiveEventsSection initialEvents={liveEvents} initialReminders={reminderIds} />
+        </section>
+      </div>
+    </DashboardScrollArea>
   )
 }

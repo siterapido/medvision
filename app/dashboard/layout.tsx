@@ -1,7 +1,8 @@
 import type React from "react"
-import { DashboardSidebar } from "@/components/dashboard/sidebar"
+import { DashboardLayoutShell } from "@/components/dashboard/shell"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
+import type { DashboardProfile } from "@/components/dashboard/types"
 
 export default async function DashboardLayout({
   children,
@@ -18,16 +19,15 @@ export default async function DashboardLayout({
     redirect("/login")
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single<DashboardProfile>()
 
   return (
-    <div className="flex min-h-screen bg-muted/60">
-      <DashboardSidebar user={user} profile={profile} />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <main className="flex flex-1 flex-col overflow-y-auto bg-[#eff4fb] px-4 py-6 md:px-8">
-          {children}
-        </main>
-      </div>
-    </div>
+    <DashboardLayoutShell user={user} profile={profile}>
+      {children}
+    </DashboardLayoutShell>
   )
 }

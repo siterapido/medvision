@@ -25,6 +25,7 @@
 - Admin (fundo claro, painéis escuros): a rota `app/admin` usa `bg-slate-50` com painéis em degradê azul claro (`from-sky-800 via-sky-700 to-sky-800`) e glows `sky`.
 - O blocão “Central de cursos” é azul: use painel com degradê azul escuro (`linear-gradient(135deg, #0f3a63 0%, #124a78 100%)`) e textos claros; botões principais podem ser brancos para alto contraste.
 - Cadastro de cursos: o painel em `app/admin/cursos` lista os cursos existentes e o botão “Novo Curso” abre um dialog em etapas com área escura e cards colapsáveis (“acordeão”).
+- Cabeçalho fixo da landing page: a nova barra superior usa `backdrop-blur`, borda clara e mantém links âncora (`#como-funciona`, `#beneficios`, `#planos`, `#faq`) + CTA “Garantir Acesso” visíveis independentemente da rolagem.
 - Cards de estatísticas são claros (`bg-white` + `border-slate-200`) para não “escurecer tudo”. Detalhes (badges, ícones, headers) mantêm acentos teal.
 
 ### Acentos com degradês azul escuro (vida/ênfase)
@@ -51,6 +52,20 @@ O design do Odonto GPT segue uma estética **profissional médica** com tons de 
 - Seriedade científica
 
 O sistema utiliza **tema escuro predominante** em todas as seções da landing page para criar uma experiência premium e moderna, com toques de IA através de texturas sutis e gradientes animados.
+
+A visão geral também precisa refletir o conteúdo real que os alunos encontram assim que chegam à plataforma, especialmente nos principais blocos de destaque do hero e do dashboard:
+
+- **Últimos cursos liberados** — O catálogo concentra atualmente os lançamentos "Implantodontia Básica", "Endodontia Avançada" e "Ortodontia Digital", cada um com trilhas práticas e videoaulas comentadas (cf. `supabase/migrations/002_courses_and_chat.sql`). Esses títulos estão posicionados como painéis hero que destacam procedimentos e protocolos imediatos.
+- **Lives ao vivo** — A agenda apresenta sessões semanais todas as quartas-feiras, às 20h (horário de Brasília), com perguntas e respostas ao vivo, certificado mensal e foco em protocolos de segurança clínica (ideal complementar dos módulos do hero; veja os bullets de planos na landing page `app/page.tsx`).
+- **Materiais complementares** — A biblioteca centralizada oferece e-books como `gestao-clinica.pdf`, `marketing-clinico.pdf` e `protocolos-seguranca.pdf` (armazenados em `public/ebooks`), além de checklists e templates que aparecem nos painéis do dashboard de materiais (`app/dashboard/materiais/page.tsx`).
+
+### Visão Geral do Dashboard
+
+- **Aulas Disponíveis** — Cards em grid exibem thumbnail, título, duração, nível e progresso, mantendo badges “Novo” e “Concluído” com contraste mínimo de WCAG AA; filtros por especialidade (campo `area`), nível (`difficulty`) e status (não iniciado / em andamento / concluído) ficam acima da grid para facilitar descobertas.
+- **Lives Próximas** — Lista horizontal com imagens, nome da live, horários em formato `pt-BR`, professor e CTA “Lembrete”; lives iniciando em menos de 24h recebem borda/emissão verde e indicação textual para chamar atenção sem depender só de cor.
+- **Agenda de Lives** — Calendário mensal mostra marcadores nos dias com eventos, com alternância para visualização semanal e diária. O card de sincronização oferece download `.ics` e links para Google/Outlook, além de garantir foco e contraste nos controles de navegação.
+- **Interações e animações** — Transições suaves (`transition-all duration-300`, hover com `scale` leve) reforçam o feeling premium enquanto mantém estados focus-visible bem definidos e indicadores de conteúdo novo/não visto através de glow azul-teal ou badges claras.
+- **Atualização em tempo real** — A seção de lives consome websockets/Supabase Realtime, exibindo “Atualização em tempo real” (badge) e respondendo instantaneamente a mudanças de status em `live_events` sem comprometer acessibilidade.
 
 ---
 

@@ -9,6 +9,7 @@ import { resolveUserRole } from "@/lib/auth/roles"
 import { createClient } from "@/lib/supabase/client"
 import {
   BookOpen,
+  FileText,
   LayoutDashboard,
   LogOut,
   type LucideIcon,
@@ -37,6 +38,7 @@ type NavItem = {
 const navigation: NavItem[] = [
   { name: "Visão geral", href: "/admin", icon: LayoutDashboard },
   { name: "Gerenciar Cursos", href: "/admin/cursos", icon: BookOpen },
+  { name: "Materiais", href: "/admin/materiais", icon: FileText },
 ]
 
 export function AdminSidebar({ user, profile }: AdminSidebarProps) {

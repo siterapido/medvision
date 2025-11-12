@@ -178,7 +178,7 @@ export function CourseGrid({ courses }: CourseGridProps) {
 
             return (
               <Link key={course.id} href={`/dashboard/cursos/${course.id}`} className="flex-shrink-0">
-                <Card className="group relative flex h-full w-[260px] flex-col overflow-hidden rounded-2xl border-2 border-[#0891b2]/20 bg-[#16243F] text-[#E6EDF7] shadow-[0_25px_70px_rgba(8,17,35,0.55)] transition-all duration-500 hover:-translate-y-2 hover:border-[#2399B4]/60 hover:shadow-[0_40px_110px_rgba(6,18,40,0.75)] sm:w-[300px]">
+                <Card className="group relative flex h-full w-[260px] flex-col overflow-hidden rounded-2xl border-2 border-[#0891b2]/20 bg-[#16243F] text-[#E6EDF7] transition-all duration-500 hover:-translate-y-2 hover:border-[#2399B4]/60 sm:w-[300px]">
                   <div className="relative h-48 w-full overflow-hidden">
                     <Image
                       src={course.thumbnail}

@@ -9,6 +9,9 @@
   },
   "include": [
     "lib/course/helpers.ts",
-    "tests/course-helpers.test.ts"
+    "lib/dashboard/overview.ts",
+    "components/layout/**/*.tsx",
+    "tests/*.test.ts",
+    "tests/*.test.tsx"
   ]
 }

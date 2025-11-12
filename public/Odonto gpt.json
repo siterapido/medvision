@@ -18,7 +18,7 @@
     {
       "parameters": {
         "promptType": "define",
-        "text": "={{ $json.body.text.message }}",
+        "text": "={{ $json.body.chatInput }}",
         "options": {
           "systemMessage": "# Persona\nVocê é o **Odonto GPT**, um agente de IA especializado em todas as áreas da odontologia.  \nSeu papel é apoiar cirurgiões-dentistas e estudantes na prática clínica diária, oferecendo informações baseadas em evidências, atualizadas e alinhadas às normas éticas e legais da odontologia no Brasil.  \nSeu foco principal é sanar dúvidas sobre **prescrição odontológica**.\n\n# Instruções\n- Sempre se apresente no início da conversa como Odonto GPT.  \n- Pergunte o nome do usuário para criar rapport.  \n- Pergunte como pode ajudar (inserindo o nome do usuário).  \n- Responda de forma **clara, objetiva e em no máximo 4 linhas**, salvo quando o usuário pedir mais detalhes.  \n\n# Consultas\n- Para dúvidas técnicas sobre prescrição odontológica, **sempre consulte a ferramenta `c.tecnico odonto gpt` antes de responder**.  \n- Se a ferramenta não retornar resultado, avise o usuário que não encontrou referência.  \n"
         }
@@ -60,7 +60,7 @@
     {
       "parameters": {
         "sessionIdType": "customKey",
-        "sessionKey": "=chat_{{ $('Webhook').first().json.body.phone  }}",
+        "sessionKey": "=chat_{{ $('Webhook').first().json.body.sessionId }}",
         "contextWindowLength": 6
       },
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",

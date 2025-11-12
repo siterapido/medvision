@@ -1,13 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { DashboardHeader } from "@/components/dashboard/header"
 import {
   DashboardSidebar,
   DashboardSidebarContent,
   DashboardSidebarTopBar,
 } from "@/components/dashboard/sidebar"
+import { DashboardFooter } from "@/components/dashboard/footer"
+import { createClient } from "@/lib/supabase/client"
 import { resolveUserRole } from "@/lib/auth/roles"
 import type { DashboardProfile } from "@/components/dashboard/types"
 import type { User } from "@supabase/supabase-js"
@@ -158,30 +160,46 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
 
   const closeDrawer = () => setIsDrawerOpen(false)
 
+  const router = useRouter()
+  const supabase = createClient()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
   const planLabel = ((user.user_metadata ?? {}) as { plan?: string }).plan || "Free"
-  const resolvedRole = resolveUserRole(profile?.role, user)
-  const roleLabel = resolvedRole === "admin" ? "Administrador" : "Cliente"
+  const resolvedUserRole = resolveUserRole(profile?.role, user)
+  const roleLabel = resolvedUserRole === "admin" ? "Administrador" : "Membro"
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true)
+      await supabase.auth.signOut()
+      setIsDrawerOpen(false)
+      router.replace("/login")
+    } catch (error) {
+      console.error("[dashboard] Failed to logout user", error)
+    } finally {
+      setIsLoggingOut(false)
+    }
+  }
 
   return (
-    <div className="min-h-screen flex flex-col bg-muted/60">
-      <DashboardHeader
-        user={user}
-        profile={profile}
-        isSidebarVisible={isSidebarVisible}
-        onToggleSidebar={handleToggleSidebar}
+    <div className="min-h-screen h-screen flex bg-slate-50 overflow-hidden">
+      <DashboardSidebar
+        isVisible={isSidebarVisible}
       />
-
-      <div className="flex flex-1 gap-0 pb-6 pt-0 md:gap-0 md:pb-8">
-        <DashboardSidebar
-          isVisible={isSidebarVisible}
-          planLabel={planLabel}
-          roleLabel={roleLabel}
+      <div className="flex flex-1 flex-col min-h-0 overflow-hidden">
+        <DashboardHeader
+          user={user}
+          profile={profile}
+          isSidebarVisible={isSidebarVisible}
+          isDrawerOpen={isDrawerOpen}
+          onToggleSidebar={handleToggleSidebar}
+          isLoggingOut={isLoggingOut}
+          onLogout={handleLogout}
         />
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <main className="flex flex-1 flex-col overflow-y-auto bg-[#eff4fb] px-4 pb-6 pt-6 md:px-8 md:pb-8 md:pt-8">
-            {children}
-          </main>
-        </div>
+        <main className={`flex flex-1 flex-col overflow-hidden bg-[#eff4fb] min-h-0 ${pathname === '/dashboard/chat' ? 'p-0' : 'pt-4 px-4 pb-0 md:pt-6 md:px-6 md:pb-0 lg:pt-8 lg:px-8 lg:pb-0'}`}>
+          {children}
+        </main>
+        <DashboardFooter />
       </div>
 
       <>
@@ -193,7 +211,7 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
           onClick={closeDrawer}
         />
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[80vw] transform overflow-hidden transition-transform duration-300 md:hidden ${
+          className={`fixed inset-y-0 left-0 z-50 w-[200px] max-w-[80vw] transform overflow-hidden transition-transform duration-300 md:hidden ${
             isDrawerOpen ? "translate-x-0" : "-translate-x-full"
           }`}
           role="dialog"
@@ -206,8 +224,6 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
               <DashboardSidebarContent
                 onClose={closeDrawer}
                 className="px-6 pb-8"
-                planLabel={planLabel}
-                roleLabel={roleLabel}
               />
             </div>
           </div>

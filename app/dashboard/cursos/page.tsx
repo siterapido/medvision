@@ -6,6 +6,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { createClient } from "@/lib/supabase/server"
 import { PlayCircle, Clock } from "lucide-react"
+import { DashboardScrollArea } from "@/components/layout/dashboard-scroll-area"
 
 type CourseWithProgress = {
   id: string
@@ -151,7 +152,7 @@ export default async function CursosPage() {
       (course.isDraft ? "border-amber-400/70 bg-amber-400/10 text-amber-100" : undefined)
 
     const card = (
-      <Card className="group relative flex h-full w-[260px] flex-col overflow-hidden rounded-2xl border-2 border-[#0891b2]/20 bg-[#16243F] text-[#E6EDF7] shadow-[0_25px_70px_rgba(8,17,35,0.55)] transition-all duration-500 hover:-translate-y-2 hover:border-[#2399B4]/60 hover:shadow-[0_40px_110px_rgba(6,18,40,0.75)] sm:w-[300px]">
+      <Card className="group relative flex h-full w-[260px] flex-col overflow-hidden rounded-2xl border-2 border-[#0891b2]/20 bg-[#16243F] text-[#E6EDF7] transition-all duration-500 hover:-translate-y-2 hover:border-[#2399B4]/60 sm:w-[300px]">
         <div className="relative h-48 w-full overflow-hidden">
           <Image
             src={course.thumbnail}
@@ -215,7 +216,8 @@ export default async function CursosPage() {
   }
 
   return (
-    <section className="relative overflow-hidden rounded-[32px] border border-[#24324F] bg-gradient-to-b from-[#0F192F] via-[#131D37] to-[#0B1627] px-4 py-6 text-white shadow-[0_40px_120px_rgba(4,10,30,0.65)] sm:px-8 lg:px-10">
+    <DashboardScrollArea>
+      <section className="relative overflow-hidden rounded-[32px] border border-[#24324F] bg-gradient-to-b from-[#0F192F] via-[#131D37] to-[#0B1627] px-4 py-6 text-white sm:px-8 lg:px-10">
       <div className="pointer-events-none absolute -top-20 right-10 h-72 w-72 rounded-full bg-[radial-gradient(circle,_rgba(35,153,180,0.25)_0%,_transparent_70%)] blur-3xl" />
       <div className="pointer-events-none absolute -bottom-16 left-4 h-80 w-80 rounded-full bg-[radial-gradient(circle,_rgba(8,145,178,0.18)_0%,_transparent_70%)] blur-3xl" />
       <div className="relative space-y-10">
@@ -234,7 +236,7 @@ export default async function CursosPage() {
         </div>
 
         {!hasRealCourses && (
-          <div className="rounded-2xl border border-[#24324F] bg-[#16243F]/70 px-6 py-4 text-center text-sm text-slate-300 shadow-[0_20px_60px_rgba(3,8,20,0.45)] backdrop-blur">
+          <div className="rounded-2xl border border-[#24324F] bg-[#16243F]/70 px-6 py-4 text-center text-sm text-slate-300 backdrop-blur">
             <p className="max-w-xl mx-auto">
               Ainda não há cursos cadastrados. Acesse o painel de administração para registrar o primeiro curso e ele aparecerá aqui.
             </p>
@@ -327,6 +329,7 @@ export default async function CursosPage() {
           </div>
         ))}
       </div>
-    </section>
+      </section>
+    </DashboardScrollArea>
   )
 }

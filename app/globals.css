@@ -417,10 +417,9 @@ html {
 /* Backgrounds específicos para cada sessão */
 .bg-session-landing {
   background: linear-gradient(135deg, 
-    rgba(8, 145, 178, 0.05) 0%, 
-    rgba(6, 182, 212, 0.08) 25%, 
-    rgba(248, 250, 252, 0.9) 50%, 
-    rgba(255, 255, 255, 1) 100%
+    rgba(15, 23, 42, 0.95) 0%, 
+    rgba(30, 41, 59, 0.92) 50%, 
+    rgba(15, 23, 42, 1) 100%
   );
   position: relative;
   overflow: hidden;
@@ -435,9 +434,9 @@ html {
   inset: 0;
   background: radial-gradient(
     circle at 20% 20%,
-    rgba(8, 145, 178, 0.08) 0%,
-    rgba(6, 182, 212, 0.05) 25%,
-    transparent 55%
+    rgba(6, 182, 212, 0.08) 0%,
+    rgba(34, 211, 238, 0.05) 25%,
+    transparent 50%
   );
   /* Otimizações para reduzir reflow/CLS durante animações */
   will-change: transform;
@@ -451,9 +450,9 @@ html {
 
 .bg-session-chat {
   background: linear-gradient(135deg, 
-    rgba(248, 250, 252, 0.95) 0%, 
-    rgba(241, 245, 249, 0.98) 50%, 
-    rgba(255, 255, 255, 1) 100%
+    rgba(30, 41, 59, 0.95) 0%, 
+    rgba(15, 23, 42, 0.98) 50%, 
+    rgba(15, 23, 42, 1) 100%
   );
   position: relative;
   overflow: hidden;
@@ -474,9 +473,9 @@ html {
 
 .bg-session-dashboard {
   background: linear-gradient(135deg, 
-    rgba(248, 250, 252, 0.98) 0%, 
-    rgba(241, 245, 249, 0.95) 50%, 
-    rgba(255, 255, 255, 1) 100%
+    rgba(30, 41, 59, 0.97) 0%, 
+    rgba(15, 23, 42, 0.95) 50%, 
+    rgba(15, 23, 42, 1) 100%
   );
   position: relative;
   overflow: hidden;
@@ -497,9 +496,9 @@ html {
 
 .bg-session-courses {
   background: linear-gradient(135deg, 
-    rgba(248, 250, 252, 0.97) 0%, 
-    rgba(241, 245, 249, 0.94) 50%, 
-    rgba(255, 255, 255, 1) 100%
+    rgba(30, 41, 59, 0.96) 0%, 
+    rgba(15, 23, 42, 0.94) 50%, 
+    rgba(15, 23, 42, 1) 100%
   );
   position: relative;
   overflow: hidden;
@@ -513,8 +512,8 @@ html {
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(circle at 30% 40%, rgba(8, 145, 178, 0.015) 0%, transparent 60%),
-    radial-gradient(circle at 70% 60%, rgba(6, 182, 212, 0.01) 0%, transparent 60%);
+    radial-gradient(circle at 30% 40%, rgba(6, 182, 212, 0.02) 0%, transparent 60%),
+    radial-gradient(circle at 70% 60%, rgba(34, 211, 238, 0.015) 0%, transparent 60%);
   z-index: -1;
 }
 
@@ -1382,4 +1381,121 @@ html {
   background: 
     linear-gradient(30deg, rgba(6, 182, 212, 0.035) 0%, transparent 50%),
     linear-gradient(150deg, rgba(34, 211, 238, 0.025) 0%, transparent 50%);
+}
+
+.chat-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(14, 165, 233, 0.9) rgba(15, 23, 42, 0.45);
+  scrollbar-gutter: stable both-edges;
+}
+
+.chat-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.4);
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(14, 165, 233, 0.9);
+  border-radius: 999px;
+}
+
+.chat-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(14, 165, 233, 1);
+}
+
+body.chat-scroll-lock {
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  background: #050d1a;
+}
+
+@supports (height: 100dvh) {
+  body.chat-scroll-lock {
+    min-height: 100dvh;
+    height: 100dvh;
+  }
+}
+
+body.chat-scroll-lock main {
+  overflow: hidden;
+  min-height: 100vh;
+  max-height: 100vh;
+  height: 100vh;
+  padding: 0;
+  padding-inline: 0;
+  background: linear-gradient(180deg, #0F192F 0%, #0B1423 100%);
+}
+
+@supports (height: 100dvh) {
+  body.chat-scroll-lock main {
+    min-height: 100dvh;
+    max-height: 100dvh;
+    height: 100dvh;
+    background: linear-gradient(180deg, #0F192F 0%, #0B1423 100%);
+  }
+}
+
+:root,
+html,
+#\__next {
+  height: 100%;
+}
+
+body {
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-frame {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.app-scroll-region {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: max(2rem, env(safe-area-inset-bottom, 1.5rem));
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-scroll-region {
+    scroll-behavior: auto;
+  }
+}
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.site-footer {
+  z-index: 40;
+}
+
+/* Hide scrollbar while keeping scroll functionality */
+.scrollbar-hidden {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+  display: none; /* Chrome, Safari and Opera */
 }

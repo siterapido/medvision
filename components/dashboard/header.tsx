@@ -1,31 +1,34 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
 import type { User } from "@supabase/supabase-js"
-import { Menu } from "lucide-react"
+import { Menu, UserRound } from "lucide-react"
+import { Logo } from "@/components/logo"
 import { cn } from "@/lib/utils"
 import type { DashboardProfile } from "@/components/dashboard/types"
-import { dashboardNavigation } from "@/components/dashboard/sidebar"
 
 interface DashboardHeaderProps {
   user: User
   profile: DashboardProfile | null
   isSidebarVisible?: boolean
+  isDrawerOpen?: boolean
   onToggleSidebar?: () => void
+  isLoggingOut?: boolean
+  onLogout?: () => void
 }
-
-const essentialNavigation = dashboardNavigation.slice(0, 3)
 
 export function DashboardHeader({
   user,
   profile,
   isSidebarVisible,
+  isDrawerOpen,
   onToggleSidebar,
+  isLoggingOut,
+  onLogout,
 }: DashboardHeaderProps) {
   const displayName = profile?.name || user.email?.split("@")[0] || "Usuário"
   const firstName = displayName.split(" ")[0]
-  const pathname = usePathname()
+  const isLoggedIn = Boolean(user)
 
   const getGreeting = () => {
     const hour = new Date().getHours()
@@ -34,55 +37,128 @@ export function DashboardHeader({
     return "Boa noite"
   }
 
+  const desktopToggleLabel = isSidebarVisible ? "Ocultar menu lateral" : "Mostrar menu lateral"
+  const mobileToggleLabel = isDrawerOpen ? "Fechar menu lateral" : "Abrir menu lateral"
+  const mobileMenuOpen = Boolean(isDrawerOpen)
+  const desktopMenuOpen = Boolean(isSidebarVisible)
+
+  const renderDesktopButton = () => {
+    if (!onToggleSidebar) {
+      return null
+    }
+
+    return (
+      <button
+        type="button"
+        onClick={onToggleSidebar}
+        aria-label={desktopToggleLabel}
+        aria-controls="dashboard-sidebar"
+        aria-expanded={desktopMenuOpen}
+        title="Alternar menu lateral"
+        className="group flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700/50 bg-slate-900/40 text-slate-400 backdrop-blur-sm transition-all duration-200 hover:border-primary/50 hover:bg-slate-800/50 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+      >
+        <Menu className="h-4 w-4 transition-transform group-hover:scale-110" />
+      </button>
+    )
+  }
+
+  const renderMobileButton = () => {
+    if (!onToggleSidebar) {
+      return null
+    }
+
+    return (
+      <button
+        type="button"
+        onClick={onToggleSidebar}
+        aria-label={mobileToggleLabel}
+        aria-controls="dashboard-sidebar"
+        aria-expanded={mobileMenuOpen}
+        title="Alternar menu lateral"
+        className={cn(
+          "group flex h-10 w-10 items-center justify-center rounded-xl border backdrop-blur-sm transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+          mobileMenuOpen
+            ? "border-primary/50 bg-slate-800/50 text-primary"
+            : "border-slate-700/50 bg-slate-900/40 text-slate-400 hover:border-primary/30 hover:bg-slate-800/40 hover:text-white",
+        )}
+      >
+        <Menu
+          className={cn(
+            "h-5 w-5",
+            "transition-all duration-300",
+            mobileMenuOpen ? "rotate-90 scale-110" : "rotate-0 group-hover:scale-110",
+          )}
+        />
+        <span className="sr-only">{mobileToggleLabel}</span>
+      </button>
+    )
+  }
+
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/90 px-4 py-3 shadow-[0_1px_0_rgba(15,23,42,0.7)] backdrop-blur-sm backdrop-saturate-150 transition-colors duration-200 md:px-6">
-      <div className="flex w-full flex-col gap-3 md:flex-row md:items-center">
-        <div className="flex items-center gap-3">
-          {onToggleSidebar && (
+    <header className="border-b border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-4 py-2 shadow-lg transition-colors duration-200 md:px-6">
+      <div className="flex w-full items-center justify-between gap-3">
+        {/* Mobile */}
+        <div className="flex items-center gap-3 md:hidden">
+          {renderMobileButton()}
+          <Link href="/dashboard" aria-label="Ir para dashboard" className="flex transition-opacity hover:opacity-80">
+            <Logo width={120} height={28} variant="white" />
+          </Link>
+        </div>
+
+        <div className="flex items-center gap-2 md:hidden">
+          <Link
+            href="/dashboard/perfil"
+            aria-label="Ver perfil"
+            className="group flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700/50 bg-slate-900/40 text-slate-400 backdrop-blur-sm transition-all duration-200 hover:border-primary/50 hover:bg-slate-800/50 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+          >
+            <UserRound className="h-4 w-4 transition-transform group-hover:scale-110" />
+          </Link>
+          {isLoggedIn && onLogout ? (
             <button
               type="button"
-              onClick={onToggleSidebar}
-              aria-label={isSidebarVisible ? "Ocultar menu lateral" : "Mostrar menu lateral"}
-              aria-controls="dashboard-sidebar"
-              aria-expanded={Boolean(isSidebarVisible)}
-              title="Alternar menu lateral"
-              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/40 text-slate-200 transition hover:border-slate-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+              onClick={onLogout}
+              disabled={isLoggingOut}
+              className="rounded-lg border border-slate-700/50 bg-slate-900/40 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-300 backdrop-blur-sm transition-all duration-200 hover:border-red-500/50 hover:bg-red-950/30 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              <Menu className="h-5 w-5" />
+              {isLoggingOut ? "Saindo..." : "Logout"}
             </button>
+          ) : (
+            <Link
+              href="/login"
+              className="rounded-lg border border-slate-700/50 bg-slate-900/40 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-300 backdrop-blur-sm transition-all duration-200 hover:border-primary/50 hover:bg-slate-800/50 hover:text-white"
+            >
+              Login
+            </Link>
           )}
-          <p className="text-sm font-semibold text-slate-100 md:text-base">
-            {getGreeting()}, {firstName}
+        </div>
+
+        {/* Desktop */}
+        <div className="hidden items-center gap-3 md:flex">
+          {renderDesktopButton()}
+          <p className="text-sm font-medium text-slate-300">
+            {getGreeting()}, <span className="font-semibold text-white">{firstName}</span>
           </p>
         </div>
 
-        <nav
-          aria-label="Navegação essencial"
-          className="flex flex-1 flex-wrap items-center justify-start gap-2 md:justify-center md:gap-3"
-        >
-          {essentialNavigation.map((item) => {
-            const Icon = item.icon
-            const isActive = pathname === item.href
-
-            return (
-              <Link
-                key={item.name}
-                href={item.href}
-                aria-label={item.name}
-                aria-current={isActive ? "page" : undefined}
-                className={cn(
-                  "flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-all duration-200",
-                  isActive
-                    ? "border-primary bg-primary/10 text-white shadow-lg shadow-primary/10"
-                    : "border-transparent text-slate-400 hover:border-slate-700 hover:text-slate-100",
-                )}
-              >
-                <Icon className={cn("h-4 w-4 flex-shrink-0", isActive ? "text-primary" : "text-slate-400")} />
-                <span className="hidden md:inline">{item.name}</span>
-              </Link>
-            )
-          })}
-        </nav>
+        <div className="hidden items-center gap-2 md:flex">
+          {isLoggedIn && onLogout ? (
+            <button
+              type="button"
+              onClick={onLogout}
+              disabled={isLoggingOut}
+              className="rounded-lg border border-slate-700/50 bg-slate-900/40 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-300 backdrop-blur-sm transition-all duration-200 hover:border-red-500/50 hover:bg-red-950/30 hover:text-red-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {isLoggingOut ? "Saindo..." : "Logout"}
+            </button>
+          ) : (
+            <Link
+              href="/login"
+              className="rounded-lg border border-slate-700/50 bg-slate-900/40 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-300 backdrop-blur-sm transition-all duration-200 hover:border-primary/50 hover:bg-slate-800/50 hover:text-white"
+            >
+              Login
+            </Link>
+          )}
+        </div>
       </div>
     </header>
   )

@@ -2,6 +2,7 @@ import { ProfileForm } from "@/components/profile/profile-form"
 import { createClient } from "@/lib/supabase/server"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
+import { DashboardScrollArea } from "@/components/layout/dashboard-scroll-area"
 
 export default async function PerfilPage() {
   const supabase = await createClient()
@@ -40,7 +41,8 @@ export default async function PerfilPage() {
     : "Recente"
 
   return (
-    <div className="relative mx-auto max-w-5xl space-y-8 px-4 py-6 lg:px-0">
+    <DashboardScrollArea className="px-0">
+      <div className="relative mx-auto max-w-5xl space-y-8 px-4 py-6 lg:px-0">
       <div className="space-y-2">
         <p className="text-sm uppercase tracking-[0.2em] text-slate-500">Área do profissional</p>
         <h1 className="text-3xl font-semibold text-slate-900">Seu perfil no Odonto GPT</h1>
@@ -92,5 +94,6 @@ export default async function PerfilPage() {
         }}
       />
     </div>
+    </DashboardScrollArea>
   )
 }

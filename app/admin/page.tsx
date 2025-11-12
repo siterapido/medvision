@@ -8,7 +8,7 @@ import {
   CardTitle,
 } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { BarChart3, BookOpen, Users, ArrowUpRight } from "lucide-react"
+import { ArrowUpRight, BarChart3, BookOpen, FileText, Users } from "lucide-react"
 
 export default async function AdminPage() {
   const supabase = await createClient()
@@ -85,7 +85,7 @@ export default async function AdminPage() {
         ))}
       </section>
 
-      <section className="grid gap-6 lg:grid-cols-2">
+      <section className="grid gap-6 lg:grid-cols-3">
         <Card className="border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800">
           <CardHeader>
             <CardTitle className="text-slate-100">Gerenciar Cursos</CardTitle>
@@ -119,6 +119,24 @@ export default async function AdminPage() {
               <Link href="/api/admin/users">
                 <Users className="mr-2 h-4 w-4" />
                 Documentação da API
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800">
+          <CardHeader>
+            <CardTitle className="text-slate-100">Gerenciar Materiais</CardTitle>
+            <CardDescription className="text-slate-400">
+              Faça upload de e-books, checklists e arquivos de referência
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild className="w-full rounded-xl">
+              <Link href="/admin/materiais">
+                <FileText className="mr-2 h-4 w-4" />
+                Abrir biblioteca
+                <ArrowUpRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
           </CardContent>

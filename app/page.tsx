@@ -30,8 +30,10 @@ const LazyVideoWrapper = dynamic(() => import("@/components/video/lazy-video-wra
 const vturbEmbedHtml = `<vturb-smartplayer id="vid-690ddf3e19eaa3a949e81a16" style="display: block; margin: 0 auto; width: 100%; "></vturb-smartplayer> <script type="text/javascript"> var s=document.createElement("script"); s.src="https://scripts.converteai.net/b4d52743-082a-47bd-a232-f61795447a53/players/690ddf3e19eaa3a949e81a16/v4/player.js", s.async=!0,document.head.appendChild(s); </script>`
 
 export default function LandingPage() {
+  const showTestimonials = false // Temporariamente escondemos a seção até ser reativada
   return (
-    <div className="relative min-h-screen bg-gradient-to-b from-background via-cyan-50/30 to-background">
+    <main className="relative">
+      <div className="relative min-h-screen bg-gradient-to-b from-background via-cyan-50/30 to-background">
 
 
       {/* Decorative animated background */}
@@ -99,19 +101,10 @@ export default function LandingPage() {
                 className="group shadow-primary/25 w-full sm:w-auto"
                 asChild
               >
-                <a href="https://pay.kiwify.com.br/PQH9KhD" target="_blank" rel="noopener noreferrer">
+                <Link href="#planos">
                   Assinar agora
                   <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
-                </a>
-              </Button>
-              <Button
-                size="xl"
-                variant="outline"
-                aria-label="Ver Planos"
-                className="w-full sm:w-auto"
-                asChild
-              >
-                <Link href="#planos">Ver Planos</Link>
+                </Link>
               </Button>
             </div>
 
@@ -245,124 +238,126 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Video Testimonials Section */}
-      <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-testimonials-section">
-        <div className="container mx-auto max-w-6xl space-y-12 md:space-y-16">
-          <SectionHeader
-            label="Histórias Reais de Sucesso"
-            icon={Video}
-            title="Resultados Reais: Segurança, Velocidade e Acertos"
-            description="Veja como o Odonto GPT está transformando a jornada acadêmica de estudantes que já estão colhendo os frutos"
-            align="center"
-          />
+      {/* Video Testimonials Section (desativada temporariamente) */}
+      {showTestimonials && (
+        <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-testimonials-section">
+          <div className="container mx-auto max-w-6xl space-y-12 md:space-y-16">
+            <SectionHeader
+              label="Histórias Reais de Sucesso"
+              icon={Video}
+              title="Resultados Reais: Segurança, Velocidade e Acertos"
+              description="Veja como o Odonto GPT está transformando a jornada acadêmica de estudantes que já estão colhendo os frutos"
+              align="center"
+            />
 
-          <div className="grid md:grid-cols-3 gap-8 items-start">
-            {/* Video 1 */}
-            <Card className="h-full text-center bg-transparent border-0 shadow-none">
-              <CardContent className="p-0 space-y-3">
-                <div className="relative mx-auto w-full max-w-[300px]">
-                  <LazyVideoWrapper
-                    threshold={0.2}
-                    rootMargin="100px"
-                    placeholder={
-                      <div className="aspect-[9/16] bg-gray-900 rounded-3xl flex items-center justify-center border-2 border-[#2399B4]">
-                        <div className="text-white/40 text-sm">Carregando...</div>
-                      </div>
-                    }
-                  >
-                    <YouTubePlayer
-                      videoId="loPD53clzR4"
-                      title="Depoimento Dr. Carlos Silva - Odonto GPT"
-                      aspect="portrait"
-                      className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
-                      controls={0}
-                    />
-                  </LazyVideoWrapper>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-lg">Dr. Carlos Silva</h3>
-                  <p className="text-sm text-muted-foreground">Cirurgião-Dentista</p>
-                  <div className="flex justify-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                    ))}
+            <div className="grid md:grid-cols-3 gap-8 items-start">
+              {/* Video 1 */}
+              <Card className="h-full text-center bg-transparent border-0 shadow-none">
+                <CardContent className="p-0 space-y-3">
+                  <div className="relative mx-auto w-full max-w-[300px]">
+                    <LazyVideoWrapper
+                      threshold={0.2}
+                      rootMargin="100px"
+                      placeholder={
+                        <div className="aspect-[9/16] bg-gray-900 rounded-3xl flex items-center justify-center border-2 border-[#2399B4]">
+                          <div className="text-white/40 text-sm">Carregando...</div>
+                        </div>
+                      }
+                    >
+                      <YouTubePlayer
+                        videoId="loPD53clzR4"
+                        title="Depoimento Dr. Carlos Silva - Odonto GPT"
+                        aspect="portrait"
+                        className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
+                        controls={0}
+                      />
+                    </LazyVideoWrapper>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg">Dr. Carlos Silva</h3>
+                    <p className="text-sm text-muted-foreground">Cirurgião-Dentista</p>
+                    <div className="flex justify-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* Video 2 */}
-            <Card className="h-full text-center bg-transparent border-0 shadow-none">
-              <CardContent className="p-0 space-y-3">
-                <div className="relative mx-auto w-full max-w-[300px]">
-                  <LazyVideoWrapper
-                    threshold={0.2}
-                    rootMargin="100px"
-                    placeholder={
-                      <div className="aspect-[9/16] bg-gray-900 rounded-3xl flex items-center justify-center border-2 border-[#2399B4]">
-                        <div className="text-white/40 text-sm">Carregando...</div>
-                      </div>
-                    }
-                  >
-                    <YouTubePlayer
-                      videoId="loPD53clzR4"
-                      title="Depoimento Dra. Ana Oliveira - Odonto GPT"
-                      aspect="portrait"
-                      className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
-                      controls={0}
-                    />
-                  </LazyVideoWrapper>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-lg">Dra. Ana Oliveira</h3>
-                  <p className="text-sm text-muted-foreground">8º Período</p>
-                  <div className="flex justify-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                    ))}
+              {/* Video 2 */}
+              <Card className="h-full text-center bg-transparent border-0 shadow-none">
+                <CardContent className="p-0 space-y-3">
+                  <div className="relative mx-auto w-full max-w-[300px]">
+                    <LazyVideoWrapper
+                      threshold={0.2}
+                      rootMargin="100px"
+                      placeholder={
+                        <div className="aspect-[9/16] bg-gray-900 rounded-3xl flex items-center justify-center border-2 border-[#2399B4]">
+                          <div className="text-white/40 text-sm">Carregando...</div>
+                        </div>
+                      }
+                    >
+                      <YouTubePlayer
+                        videoId="loPD53clzR4"
+                        title="Depoimento Dra. Ana Oliveira - Odonto GPT"
+                        aspect="portrait"
+                        className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
+                        controls={0}
+                      />
+                    </LazyVideoWrapper>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg">Dra. Ana Oliveira</h3>
+                    <p className="text-sm text-muted-foreground">8º Período</p>
+                    <div className="flex justify-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* Video 3 */}
-            <Card className="h-full text-center bg-transparent border-0 shadow-none">
-              <CardContent className="p-0 space-y-3">
-                <div className="relative mx-auto w-full max-w-[300px]">
-                  <LazyVideoWrapper
-                    threshold={0.2}
-                    rootMargin="100px"
-                    placeholder={
-                      <div className="aspect-[9/16] bg-gray-900 rounded-3xl flex items-center justify-center border-2 border-[#2399B4]">
-                        <div className="text-white/40 text-sm">Carregando...</div>
-                      </div>
-                    }
-                  >
-                    <YouTubePlayer
-                      videoId="loPD53clzR4"
-                      title="Depoimento Dr. Rodrigo Santos - Odonto GPT"
-                      aspect="portrait"
-                      className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
-                      controls={0}
-                    />
-                  </LazyVideoWrapper>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-semibold text-lg">Dr. Rodrigo Santos</h3>
-                  <p className="text-sm text-muted-foreground">Residente</p>
-                  <div className="flex justify-center gap-1">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                    ))}
+              {/* Video 3 */}
+              <Card className="h-full text-center bg-transparent border-0 shadow-none">
+                <CardContent className="p-0 space-y-3">
+                  <div className="relative mx-auto w-full max-w-[300px]">
+                    <LazyVideoWrapper
+                      threshold={0.2}
+                      rootMargin="100px"
+                      placeholder={
+                        <div className="aspect-[9/16] bg-gray-900 rounded-3xl flex items-center justify-center border-2 border-[#2399B4]">
+                          <div className="text-white/40 text-sm">Carregando...</div>
+                        </div>
+                      }
+                    >
+                      <YouTubePlayer
+                        videoId="loPD53clzR4"
+                        title="Depoimento Dr. Rodrigo Santos - Odonto GPT"
+                        aspect="portrait"
+                        className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
+                        controls={0}
+                      />
+                    </LazyVideoWrapper>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg">Dr. Rodrigo Santos</h3>
+                    <p className="text-sm text-muted-foreground">Residente</p>
+                    <div className="flex justify-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="h-4 w-4 fill-primary text-primary" />
+                      ))}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Removed 'Ver mais depoimentos' button per request */}
           </div>
-
-          {/* Removed 'Ver mais depoimentos' button per request */}
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* What is Odonto GPT */}
       <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-how-it-works-section">
@@ -473,7 +468,7 @@ export default function LandingPage() {
           </div>
 
           <div className="text-center pt-8">
-            <a href="https://pay.kiwify.com.br/PQH9KhD" target="_blank" rel="noopener noreferrer">
+            <a href="https://pay.cakto.com.br/sx9y8uk_642731" target="_blank" rel="noopener noreferrer">
               <Button size="lg" aria-label="Abrir planos" variant="cta">
                 Pronto para começar?
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -639,14 +634,15 @@ export default function LandingPage() {
                   <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">ESCOLHA INTELIGENTE</span>
                 </div>
                 <h3 className="text-xl font-bold mb-1">Plano Anual</h3>
-                <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-xs md:text-sm text-muted-foreground line-through">Valor normal: R$ 359,88/ano</span>
+                <div className="flex flex-col items-center gap-1">
+                  <span className="text-xs md:text-sm text-muted-foreground line-through">Valor original: R$ 480/ano</span>
+                  <span className="text-xs md:text-sm font-semibold tracking-wide text-accent">Black Friday • 50% OFF</span>
                 </div>
                 <div className="flex items-baseline justify-center gap-1">
                   <span className="text-3xl md:text-4xl font-extrabold text-primary">R$ 240</span>
                   <span className="text-muted-foreground">/ano</span>
                 </div>
-                <div className="mt-2 text-xs md:text-sm font-medium text-primary">Economize R$ 119,88 • Equivale a R$ 20/mês</div>
+                <div className="mt-2 text-xs md:text-sm font-medium text-primary">Preço de lançamento • Economize R$ 240 (equivalente a R$ 20/mês)</div>
               </div>
 
               <ul className="space-y-3 mb-6">
@@ -702,7 +698,7 @@ export default function LandingPage() {
                 </li>
               </ul>
 
-              <a href="https://pay.kiwify.com.br/PQH9KhD" target="_blank" rel="noopener noreferrer" className="block">
+          <a href="https://pay.cakto.com.br/sx9y8uk_642731" target="_blank" rel="noopener noreferrer" className="block">
                 <Button className="w-full shadow-lg" size="lg" variant="cta">
                   Garantir Meu Acesso Anual
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -763,7 +759,7 @@ export default function LandingPage() {
             description="Junte-se aos profissionais que já estão usando IA especializada na rotina clínica e acadêmica."
             align="center"
           />
-          <a href="https://pay.kiwify.com.br/PQH9KhD" target="_blank" rel="noopener noreferrer">
+          <a href="https://pay.cakto.com.br/sx9y8uk_642731" target="_blank" rel="noopener noreferrer">
             <Button
               size="xl"
               aria-label="Começar Agora"
@@ -843,84 +839,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t bg-footer">
-        <div className="container mx-auto py-12">
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3">
-                <Logo width={180} height={40} className="footer-logo-white" />
-                <span className="sr-only">Odonto GPT</span>
-              </div>
-              <p className="text-sm text-slate-400">Inteligência Artificial especializada em Odontologia</p>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-semibold text-white">Produto</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li>
-                  <Link href="#como-funciona" className="hover:text-primary transition-colors">
-                    Como Funciona
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#beneficios" className="hover:text-primary transition-colors">
-                    Benefícios
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#planos" className="hover:text-primary transition-colors">
-                    Planos
-                  </Link>
-                </li>
-                <li>
-                  <Link href="#faq" className="hover:text-primary transition-colors">
-                    FAQ
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-semibold text-white">Legal</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li>
-                  <Link href="/termos" className="hover:text-primary transition-colors">
-                    Termos de Uso
-                  </Link>
-                </li>
-                <li>
-                  <Link href="/privacidade" className="hover:text-primary transition-colors">
-                    Política de Privacidade
-                  </Link>
-                </li>
-              </ul>
-            </div>
-
-            <div className="space-y-4">
-              <h4 className="font-semibold text-white">Suporte</h4>
-              <ul className="space-y-2 text-sm text-slate-400">
-                <li>
-                  <a
-                    href="https://wa.me/5511999999999"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:text-primary transition-colors flex items-center gap-2"
-                  >
-                    <MessageSquare className="h-4 w-4" />
-                    Suporte via WhatsApp
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-12 pt-8 border-t border-slate-700 text-center text-sm text-slate-400">
-            <p>© 2025 Odonto GPT. Todos os direitos reservados.</p>
-          </div>
-        </div>
-      </footer>
     </div>
+    </main>
   )
- 
 }
