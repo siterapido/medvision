@@ -1,38 +1,31 @@
 "use client"
 
-import { Badge } from "@/components/ui/badge"
-import { resolveUserRole } from "@/lib/auth/roles"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
 import type { User } from "@supabase/supabase-js"
-
-interface Profile {
-  id: string
-  name: string | null
-  email: string | null
-  avatar_url: string | null
-  role: string | null
-}
+import { Menu } from "lucide-react"
+import { cn } from "@/lib/utils"
+import type { DashboardProfile } from "@/components/dashboard/types"
+import { dashboardNavigation } from "@/components/dashboard/sidebar"
 
 interface DashboardHeaderProps {
   user: User
-  profile: Profile | null
+  profile: DashboardProfile | null
+  isSidebarVisible?: boolean
+  onToggleSidebar?: () => void
 }
 
-export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
+const essentialNavigation = dashboardNavigation.slice(0, 3)
+
+export function DashboardHeader({
+  user,
+  profile,
+  isSidebarVisible,
+  onToggleSidebar,
+}: DashboardHeaderProps) {
   const displayName = profile?.name || user.email?.split("@")[0] || "Usuário"
   const firstName = displayName.split(" ")[0]
-  const resolvedRole = resolveUserRole(profile?.role, user)
-  const roleLabel = resolvedRole === "admin" ? "Administrador" : "Cliente"
-
-  // Get initials for avatar
-  const getInitials = (name: string) => {
-    const parts = name.split(" ")
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase()
-    }
-    return name.substring(0, 2).toUpperCase()
-  }
-
-  const initials = getInitials(displayName)
+  const pathname = usePathname()
 
   const getGreeting = () => {
     const hour = new Date().getHours()
@@ -42,31 +35,54 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
   }
 
   return (
-    <header className="border-b border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-6 py-4 shadow-lg md:px-10">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold text-slate-100">
+    <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/90 px-4 py-3 shadow-[0_1px_0_rgba(15,23,42,0.7)] backdrop-blur-sm backdrop-saturate-150 transition-colors duration-200 md:px-6">
+      <div className="flex w-full flex-col gap-3 md:flex-row md:items-center">
+        <div className="flex items-center gap-3">
+          {onToggleSidebar && (
+            <button
+              type="button"
+              onClick={onToggleSidebar}
+              aria-label={isSidebarVisible ? "Ocultar menu lateral" : "Mostrar menu lateral"}
+              aria-controls="dashboard-sidebar"
+              aria-expanded={Boolean(isSidebarVisible)}
+              title="Alternar menu lateral"
+              className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-800 bg-slate-900/40 text-slate-200 transition hover:border-slate-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            >
+              <Menu className="h-5 w-5" />
+            </button>
+          )}
+          <p className="text-sm font-semibold text-slate-100 md:text-base">
             {getGreeting()}, {firstName}
-          </h1>
-          <p className="text-sm text-slate-400">
-            Acompanhe suas conversas com IA, progresso nos cursos e recomendações personalizadas.
           </p>
-          <Badge variant="outline" className="border-primary/30 text-primary">
-            {roleLabel}
-          </Badge>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="hidden items-center gap-3 rounded-full border border-slate-700 bg-slate-800 px-3 py-1.5 md:flex">
-            <div className="h-8 w-8 rounded-full bg-primary/20 text-xs font-semibold uppercase text-primary ring-1 ring-primary/30">
-              <div className="flex h-full w-full items-center justify-center">{initials}</div>
-            </div>
-            <div className="text-left">
-              <p className="text-sm font-medium text-slate-100">{displayName}</p>
-              <p className="text-xs text-slate-500">{profile?.email || user.email}</p>
-            </div>
-          </div>
-        </div>
+        <nav
+          aria-label="Navegação essencial"
+          className="flex flex-1 flex-wrap items-center justify-start gap-2 md:justify-center md:gap-3"
+        >
+          {essentialNavigation.map((item) => {
+            const Icon = item.icon
+            const isActive = pathname === item.href
+
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                aria-label={item.name}
+                aria-current={isActive ? "page" : undefined}
+                className={cn(
+                  "flex items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.25em] transition-all duration-200",
+                  isActive
+                    ? "border-primary bg-primary/10 text-white shadow-lg shadow-primary/10"
+                    : "border-transparent text-slate-400 hover:border-slate-700 hover:text-slate-100",
+                )}
+              >
+                <Icon className={cn("h-4 w-4 flex-shrink-0", isActive ? "text-primary" : "text-slate-400")} />
+                <span className="hidden md:inline">{item.name}</span>
+              </Link>
+            )
+          })}
+        </nav>
       </div>
     </header>
   )

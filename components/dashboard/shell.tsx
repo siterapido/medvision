@@ -1,0 +1,218 @@
+"use client"
+
+import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
+import { DashboardHeader } from "@/components/dashboard/header"
+import {
+  DashboardSidebar,
+  DashboardSidebarContent,
+  DashboardSidebarTopBar,
+} from "@/components/dashboard/sidebar"
+import { resolveUserRole } from "@/lib/auth/roles"
+import type { DashboardProfile } from "@/components/dashboard/types"
+import type { User } from "@supabase/supabase-js"
+
+interface DashboardLayoutShellProps {
+  user: User
+  profile: DashboardProfile | null
+  children: React.ReactNode
+}
+
+export function DashboardLayoutShell({ user, profile, children }: DashboardLayoutShellProps) {
+  const SIDEBAR_STORAGE_KEY = "dashboard-sidebar-visible"
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
+  const [isSidebarVisible, setIsSidebarVisible] = useState(() => {
+    if (typeof window === "undefined") {
+      return true
+    }
+    const storedValue = window.localStorage.getItem(SIDEBAR_STORAGE_KEY)
+    if (storedValue === "false") {
+      return false
+    }
+    return true
+  })
+  const [isDesktop, setIsDesktop] = useState(() => {
+    if (typeof window === "undefined") {
+      return false
+    }
+    return window.matchMedia("(min-width: 768px)").matches
+  })
+  const pathname = usePathname()
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return undefined
+    }
+
+    const mediaQuery = window.matchMedia("(min-width: 768px)")
+    const handleMediaChange = (event: MediaQueryListEvent) => {
+      setIsDesktop(event.matches)
+    }
+
+    mediaQuery.addEventListener("change", handleMediaChange)
+    return () => {
+      mediaQuery.removeEventListener("change", handleMediaChange)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return
+    }
+
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(isSidebarVisible))
+  }, [isSidebarVisible])
+
+  useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setIsDrawerOpen(false)
+    }, 0)
+
+    return () => {
+      window.clearTimeout(timeout)
+    }
+  }, [pathname])
+
+  useEffect(() => {
+    if (!isDrawerOpen) {
+      return undefined
+    }
+
+    const originalOverflow = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = originalOverflow
+    }
+  }, [isDrawerOpen])
+
+  useEffect(() => {
+    const handleEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsDrawerOpen(false)
+      }
+    }
+
+    document.addEventListener("keydown", handleEscape)
+    return () => {
+      document.removeEventListener("keydown", handleEscape)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (!(isDesktop && isDrawerOpen)) {
+      return undefined
+    }
+
+    const timeout = window.setTimeout(() => {
+      setIsDrawerOpen(false)
+    }, 0)
+
+    return () => {
+      window.clearTimeout(timeout)
+    }
+  }, [isDesktop, isDrawerOpen])
+
+  useEffect(() => {
+    if (!isDrawerOpen || isDesktop) {
+      return undefined
+    }
+
+    let startX: number | null = null
+    const handleTouchStart = (event: TouchEvent) => {
+      startX = event.touches[0].clientX
+    }
+
+    const handleTouchMove = (event: TouchEvent) => {
+      if (startX === null) {
+        return
+      }
+      const currentX = event.touches[0].clientX
+      if (startX - currentX > 60) {
+        setIsDrawerOpen(false)
+        startX = null
+      }
+    }
+
+    const handleTouchEnd = () => {
+      startX = null
+    }
+
+    document.addEventListener("touchstart", handleTouchStart)
+    document.addEventListener("touchmove", handleTouchMove)
+    document.addEventListener("touchend", handleTouchEnd)
+
+    return () => {
+      document.removeEventListener("touchstart", handleTouchStart)
+      document.removeEventListener("touchmove", handleTouchMove)
+      document.removeEventListener("touchend", handleTouchEnd)
+    }
+  }, [isDrawerOpen, isDesktop])
+
+  const handleToggleSidebar = () => {
+    if (isDesktop) {
+      setIsSidebarVisible((prev) => !prev)
+    } else {
+      setIsDrawerOpen((prev) => !prev)
+    }
+  }
+
+  const closeDrawer = () => setIsDrawerOpen(false)
+
+  const planLabel = ((user.user_metadata ?? {}) as { plan?: string }).plan || "Free"
+  const resolvedRole = resolveUserRole(profile?.role, user)
+  const roleLabel = resolvedRole === "admin" ? "Administrador" : "Cliente"
+
+  return (
+    <div className="min-h-screen flex flex-col bg-muted/60">
+      <DashboardHeader
+        user={user}
+        profile={profile}
+        isSidebarVisible={isSidebarVisible}
+        onToggleSidebar={handleToggleSidebar}
+      />
+
+      <div className="flex flex-1 gap-0 pb-6 pt-0 md:gap-0 md:pb-8">
+        <DashboardSidebar
+          isVisible={isSidebarVisible}
+          planLabel={planLabel}
+          roleLabel={roleLabel}
+        />
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <main className="flex flex-1 flex-col overflow-y-auto bg-[#eff4fb] px-4 pb-6 pt-6 md:px-8 md:pb-8 md:pt-8">
+            {children}
+          </main>
+        </div>
+      </div>
+
+      <>
+        <div
+          className={`fixed inset-0 z-40 bg-slate-950/75 transition-opacity duration-300 md:hidden ${
+            isDrawerOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          }`}
+          aria-hidden={!isDrawerOpen}
+          onClick={closeDrawer}
+        />
+        <aside
+          className={`fixed inset-y-0 left-0 z-50 w-72 max-w-[80vw] transform overflow-hidden transition-transform duration-300 md:hidden ${
+            isDrawerOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Navegação da dashboard"
+        >
+          <div className="flex h-full flex-col divide-y divide-slate-900 border-r border-slate-800 bg-gradient-to-b from-slate-950 to-slate-900 shadow-2xl">
+            <DashboardSidebarTopBar onClose={closeDrawer} />
+            <div className="flex flex-1 flex-col overflow-y-auto">
+              <DashboardSidebarContent
+                onClose={closeDrawer}
+                className="px-6 pb-8"
+                planLabel={planLabel}
+                roleLabel={roleLabel}
+              />
+            </div>
+          </div>
+        </aside>
+      </>
+    </div>
+  )
+}

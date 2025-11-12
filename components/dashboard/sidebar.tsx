@@ -1,35 +1,21 @@
 "use client"
 
-import { useState } from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
+import { useState } from "react"
 import { cn } from "@/lib/utils"
-import { Logo } from "@/components/logo"
-import { resolveUserRole } from "@/lib/auth/roles"
 import { createClient } from "@/lib/supabase/client"
+import { Logo } from "@/components/logo"
 import {
   BotIcon,
+  BookOpen,
   GraduationCap,
   LayoutDashboard,
-  LogOut,
   Sparkles,
   UserRound,
+  X,
   type LucideIcon,
 } from "lucide-react"
-import type { User } from "@supabase/supabase-js"
-
-interface Profile {
-  id: string
-  name: string | null
-  email: string | null
-  avatar_url: string | null
-  role: string | null
-}
-
-interface DashboardSidebarProps {
-  user: User
-  profile: Profile | null
-}
 
 type NavItem = {
   name: string
@@ -37,28 +23,66 @@ type NavItem = {
   icon: LucideIcon
 }
 
-const navigation: NavItem[] = [
+export const dashboardNavigation: NavItem[] = [
   { name: "Visão geral", href: "/dashboard", icon: LayoutDashboard },
   { name: "Chat de IA", href: "/dashboard/chat", icon: BotIcon },
   { name: "Cursos", href: "/dashboard/cursos", icon: GraduationCap },
+  { name: "Materiais", href: "/dashboard/materiais", icon: BookOpen },
   { name: "Perfil", href: "/dashboard/perfil", icon: UserRound },
   { name: "Assinatura", href: "/dashboard/assinatura", icon: Sparkles },
 ]
 
-export function DashboardSidebar({ user, profile }: DashboardSidebarProps) {
+interface DashboardSidebarProps {
+  isVisible?: boolean
+  planLabel: string
+  roleLabel?: string
+  isLoggingOut?: boolean
+  onLogout?: () => void
+}
+
+interface DashboardSidebarContentProps {
+  onClose?: () => void
+  className?: string
+  planLabel: string
+  roleLabel: string
+}
+
+export function DashboardSidebarTopBar({ onClose }: { onClose?: () => void }) {
+  return (
+    <div className="flex items-center justify-between px-6 pb-6 pt-10">
+      <Link href="/dashboard" aria-label="Dashboard">
+        <Logo width={140} height={36} variant="white" />
+      </Link>
+      {onClose && (
+        <button
+          type="button"
+          onClick={onClose}
+          className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-700 bg-slate-900 text-slate-200 transition hover:border-slate-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
+          <X className="h-5 w-5" />
+          <span className="sr-only">Fechar menu</span>
+        </button>
+      )}
+    </div>
+  )
+}
+
+export function DashboardSidebarContent({
+  onClose,
+  className,
+  planLabel,
+  roleLabel,
+}: DashboardSidebarContentProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-  const userEmail = profile?.email || user.email || ""
-  const userName = profile?.name || user.email?.split("@")[0] || "Usuário"
-  const resolvedRole = resolveUserRole(profile?.role, user)
-  const userRoleLabel = resolvedRole === "admin" ? "Administrador" : "Cliente"
 
   const handleLogout = async () => {
     try {
       setIsLoggingOut(true)
       await supabase.auth.signOut()
+      onClose?.()
       router.replace("/login")
     } catch (error) {
       console.error("[dashboard] Failed to logout user", error)
@@ -68,15 +92,9 @@ export function DashboardSidebar({ user, profile }: DashboardSidebarProps) {
   }
 
   return (
-    <aside className="hidden min-h-screen w-72 flex-col border-r border-slate-800 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 shadow-2xl md:flex">
-      <div className="flex flex-col gap-3 px-6 pb-6 pt-10">
-        <Link href="/dashboard" aria-label="Dashboard" className="flex items-center gap-2">
-          <Logo width={140} height={36} variant="white" />
-        </Link>
-      </div>
-
-      <nav className="flex-1 space-y-1.5 px-4">
-        {navigation.map((item) => {
+    <div className={cn("flex h-full flex-1 flex-col px-4 pb-6", className)}>
+      <nav aria-label="Navegação da dashboard" className="flex-1 space-y-1.5">
+        {dashboardNavigation.map((item) => {
           const Icon = item.icon
           const isActive = pathname === item.href
 
@@ -84,6 +102,7 @@ export function DashboardSidebar({ user, profile }: DashboardSidebarProps) {
             <Link
               key={item.name}
               href={item.href}
+              onClick={() => onClose?.()}
               className={cn(
                 "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
                 isActive
@@ -98,31 +117,49 @@ export function DashboardSidebar({ user, profile }: DashboardSidebarProps) {
         })}
       </nav>
 
-      <div className="space-y-3 px-4 pb-8">
-        <div className="rounded-xl border border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900 px-4 py-3 shadow-lg">
-          <p className="text-sm font-semibold text-white truncate mb-1" title={userName}>
-            {userName}
-          </p>
-          <p className="text-xs text-slate-400 truncate mb-2" title={userEmail}>
-            {userEmail}
-          </p>
-          <div className="text-sm text-slate-200 pt-2 border-t border-slate-700">
-            Plano: <span className="font-semibold text-white">Free</span>
-          </div>
-          <div className="text-xs text-slate-400">
-            Função: <span className="font-semibold text-white">{userRoleLabel}</span>
-          </div>
+      <div className="mt-auto border-t border-slate-900 px-4 pt-6 text-left">
+        <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.3em] text-slate-500">
+          <span>Plano</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white">
+            {planLabel}
+          </span>
         </div>
-
+        <div className="mt-3 flex items-center justify-between text-[10px] uppercase tracking-[0.3em] text-slate-500">
+          <span>Função</span>
+          <span className="text-[11px] font-semibold uppercase tracking-[0.2em] text-white">
+            {roleLabel}
+          </span>
+        </div>
         <button
           type="button"
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm font-medium text-slate-300 transition-all hover:bg-slate-700 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+          className="mt-4 w-full rounded-lg border border-slate-800 bg-slate-900/70 px-4 py-2 text-[11px] font-semibold uppercase tracking-[0.24em] text-white transition hover:border-slate-500 hover:bg-slate-900/80 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <LogOut className="h-4 w-4" />
           {isLoggingOut ? "Saindo..." : "Sair"}
         </button>
+      </div>
+    </div>
+  )
+}
+
+export function DashboardSidebar({ isVisible = true, planLabel, roleLabel = "Membro" }: DashboardSidebarProps) {
+  const visibilityClasses = isVisible
+    ? "md:w-72 md:opacity-100 md:translate-x-0 md:pointer-events-auto"
+    : "md:w-0 md:opacity-0 md:-translate-x-full md:pointer-events-none"
+
+  return (
+    <aside
+      id="dashboard-sidebar"
+      aria-hidden={!isVisible}
+      className={cn(
+        "hidden flex-col border-r border-slate-800 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 shadow-2xl transition-all duration-300 ease-in-out md:flex md:sticky md:top-14 md:h-[calc(100dvh-3.5rem)] md:min-h-[calc(100dvh-3.5rem)] md:overflow-y-auto",
+        visibilityClasses,
+      )}
+    >
+      <DashboardSidebarTopBar />
+      <div className="flex flex-1 flex-col overflow-y-auto">
+        <DashboardSidebarContent planLabel={planLabel} roleLabel={roleLabel} />
       </div>
     </aside>
   )

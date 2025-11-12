@@ -1,60 +1,54 @@
 import { type NextRequest, NextResponse } from "next/server"
 
+const DEFAULT_N8N_WEBHOOK =
+  "https://devthierryc.app.n8n.cloud/webhook/f9f4b9a0-6775-41f4-bd82-a859d38620d8/chat"
+
+type ChatRequestBody = {
+  message?: string
+  user?: string
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { userId, message, plan } = body
+    const { message, user } = (await request.json()) as ChatRequestBody
 
-    // Get N8N webhook URL from environment variables
-    const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL
-
-    if (!n8nWebhookUrl) {
-      console.error("N8N_WEBHOOK_URL not configured")
+    if (!message) {
       return NextResponse.json(
-        { error: "Webhook não configurado. Verifique as variáveis de ambiente." },
-        { status: 500 }
+        { error: "Mensagem não informada." },
+        { status: 400 }
       )
     }
 
-    // Call N8N webhook with the chat message
-    console.log("Calling N8N webhook:", n8nWebhookUrl)
+    const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL ?? DEFAULT_N8N_WEBHOOK
+    console.log("Enviando mensagem para o webhook N8N:", n8nWebhookUrl)
 
-    const n8nResponse = await fetch(n8nWebhookUrl, {
+    const response = await fetch(n8nWebhookUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        action: "sendMessage",
-        sessionId: userId || "demo-user",
-        chatInput: message,
-        metadata: {
-          plan: plan || "free",
-          timestamp: new Date().toISOString(),
+        phone: user || "demo-user",
+        text: {
+          message,
         },
       }),
     })
 
-    if (!n8nResponse.ok) {
-      const errorText = await n8nResponse.text()
-      console.error("N8N webhook error:", n8nResponse.status, errorText)
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error("Erro na chamada ao webhook N8N:", response.status, errorText)
       return NextResponse.json(
-        { error: `Erro ao processar mensagem: ${n8nResponse.statusText}` },
-        { status: n8nResponse.status }
+        { error: `Falha ao enviar mensagem: ${response.statusText}` },
+        { status: response.status }
       )
     }
 
-    const n8nData = await n8nResponse.json()
-    console.log("N8N response:", n8nData)
-
-    // Extract the AI response from N8N
-    // The response structure may vary depending on your N8N workflow
-    const reply = n8nData.output || n8nData.reply || n8nData.message || n8nData.response ||
-                  "Desculpe, não consegui processar sua mensagem no momento."
-
-    return NextResponse.json({ reply })
+    const n8nData = await response.json()
+    console.log("Resposta do N8N:", n8nData)
+    return NextResponse.json(n8nData)
   } catch (error) {
-    console.error("Chat API error:", error)
+    console.error("Erro interno na rota de chat:", error)
     return NextResponse.json(
       { error: "Erro ao processar mensagem. Tente novamente." },
       { status: 500 }
