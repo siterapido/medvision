@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -13,12 +13,17 @@ import {
   Clock,
   Download,
   FileText,
+  FileArchive,
+  FileSpreadsheet,
+  FileType,
   FolderDown,
+  Image as ImageIcon,
   Link2,
   PlayCircle,
   ShieldCheck,
   Video,
 } from "lucide-react"
+import { kindFromMime } from "@/lib/attachments/mime"
 
 export type CourseResourceType = "pdf" | "slides" | "checklist" | "link" | "video" | "template" | "outro"
 
@@ -253,6 +258,22 @@ export function CoursePlayer({
 
   const normalizedVideoUrl = normalizeVideoUrl(currentLesson?.video_url)
 
+  const [attachments, setAttachments] = useState<Array<{ id: string; file_name: string; mime_type: string; size_bytes: number; created_at: string }>>([])
+  useEffect(() => {
+    const run = async () => {
+      const id = currentLesson?.id
+      if (!id) return
+      try {
+        const res = await fetch(`/api/lessons/${id}/attachments`, { cache: "no-store" })
+        const json = await res.json().catch(() => ({}))
+        setAttachments(Array.isArray(json.attachments) ? json.attachments : [])
+      } catch (e) {
+        setAttachments([])
+      }
+    }
+    void run()
+  }, [currentLesson?.id])
+
   const handleMarkComplete = async () => {
     if (!currentLesson) return
 
@@ -485,6 +506,78 @@ export function CoursePlayer({
               </div>
             ) : (
               <p className="mt-4 text-sm text-slate-300">Nenhum material anexado para esta aula.</p>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-white">Arquivos da aula</h3>
+                <p className="text-xs text-slate-300">Anexos com acesso seguro</p>
+              </div>
+              <span className="text-xs text-white/50">{attachments.length} arquivos</span>
+            </div>
+            {attachments.length > 0 ? (
+              <div className="mt-4 space-y-3">
+                {attachments.map((att) => (
+                  <div key={att.id} className="flex items-center gap-4 rounded-xl border border-white/10 bg-[#111b2f] p-4">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5">
+                      {(() => {
+                        const kind = kindFromMime(att.mime_type)
+                        const cls = "h-4 w-4"
+                        switch (kind) {
+                          case "pdf":
+                            return <FileText className={cls} />
+                          case "doc":
+                            return <FileType className={cls} />
+                          case "ppt":
+                            return <FileText className={cls} />
+                          case "xls":
+                            return <FileSpreadsheet className={cls} />
+                          case "image":
+                            return <ImageIcon className={cls} />
+                          case "zip":
+                            return <FileArchive className={cls} />
+                          default:
+                            return <FileText className={cls} />
+                        }
+                      })()}
+                    </div>
+                    <div className="flex-1 space-y-1">
+                      <p className="text-sm font-semibold text-white">{att.file_name}</p>
+                      <p className="text-xs text-slate-300">{(att.size_bytes / (1024 * 1024)).toFixed(1)} MB • {new Date(att.created_at).toLocaleDateString("pt-BR")}</p>
+                      <p className="text-xs text-white/40">{att.mime_type}</p>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        className="text-white/70 hover:bg-white/10"
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(`/api/lessons/${currentLesson?.id}/attachments/${att.id}/download`)
+                            const json = await res.json().catch(() => ({}))
+                            const url = json.url
+                            if (typeof url === "string") {
+                              const a = document.createElement("a")
+                              a.href = url
+                              a.rel = "noopener"
+                              a.target = "_blank"
+                              document.body.appendChild(a)
+                              a.click()
+                              document.body.removeChild(a)
+                            }
+                          } catch {}
+                        }}
+                      >
+                        <Download className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="mt-4 text-sm text-slate-300">Nenhum arquivo anexado para esta aula.</p>
             )}
           </div>
         </div>

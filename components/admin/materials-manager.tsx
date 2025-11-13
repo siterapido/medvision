@@ -9,8 +9,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
+import { Checkbox } from "@/components/ui/checkbox"
 import { createClient } from "@/lib/supabase/client"
-import { createMaterial, type MaterialActionResult } from "@/app/actions/materials"
+import { createMaterial, deleteMaterial, updateMaterial, type MaterialActionResult } from "@/app/actions/materials"
 import type { MaterialFormData } from "@/lib/validations/material"
 import { materialResourceOptions } from "@/lib/validations/material"
 import { Loader2, UploadCloud } from "lucide-react"
@@ -24,6 +27,8 @@ export type AdminMaterialRow = {
   resource_type: MaterialFormData["resource_type"]
   file_url: string
   created_at: string
+  updated_at?: string | null
+  is_available?: boolean
 }
 
 interface MaterialsManagerProps {
@@ -274,40 +279,153 @@ export function MaterialsManager({ materials }: MaterialsManagerProps) {
           ) : (
             <div className="flex flex-col gap-4">
               {materials.map((material) => (
-                <div key={material.id} className="space-y-2 rounded-2xl border border-white/10 bg-[#131C2F] p-4">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <p className="text-lg font-semibold text-white truncate">{material.title}</p>
-                    <Badge className="text-[11px] uppercase tracking-[0.3em]">{material.resource_type}</Badge>
-                  </div>
-                  {material.description && (
-                    <p className="text-sm text-slate-300 line-clamp-2">{material.description}</p>
-                  )}
-                  {material.tags && material.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2">
-                      {material.tags.map((tag) => (
-                        <Badge key={`${material.id}-${tag}`} variant="outline" className="text-xs">
-                          {tag}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
-                  <div className="flex items-center justify-between text-xs text-slate-400">
-                    <span>{material.pages} página{material.pages === 1 ? "" : "s"}</span>
-                    <a
-                      href={material.file_url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-primary font-semibold"
-                    >
-                      Abrir material
-                    </a>
-                  </div>
-                </div>
+                <MaterialRowItem key={material.id} row={material} onSaved={() => router.refresh()} />
               ))}
             </div>
           )}
         </CardContent>
       </Card>
+    </div>
+  )
+}
+
+function MaterialRowItem({ row, onSaved }: { row: AdminMaterialRow; onSaved: () => void }) {
+  const router = useRouter()
+  const [isPending, startTransition] = useTransition()
+  const [openEdit, setOpenEdit] = useState(false)
+  const [openDelete, setOpenDelete] = useState(false)
+  const [local, setLocal] = useState<MaterialFormData>({
+    title: row.title,
+    description: row.description ?? "",
+    pages: row.pages,
+    tags: (row.tags ?? []).join(", "),
+    file_url: row.file_url,
+    resource_type: row.resource_type,
+    is_available: row.is_available ?? true,
+  })
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [status, setStatus] = useState<StatusMessage | null>(null)
+
+  const handleSave = () => {
+    setFieldErrors({})
+    setStatus(null)
+    startTransition(async () => {
+      const result = await updateMaterial(row.id, local)
+      if (result.success) {
+        setStatus({ type: "success", message: "Material atualizado." })
+        setOpenEdit(false)
+        onSaved()
+        return
+      }
+      if (result.fieldErrors) {
+        const flattened: Record<string, string> = {}
+        Object.entries(result.fieldErrors).forEach(([field, messages]) => {
+          if (messages.length) flattened[field] = messages[0]
+        })
+        setFieldErrors(flattened)
+      }
+      if (result.error && !result.fieldErrors) {
+        setStatus({ type: "error", message: result.error })
+      }
+    })
+  }
+
+  const handleDelete = () => {
+    setStatus(null)
+    startTransition(async () => {
+      const result = await deleteMaterial(row.id)
+      if (result.success) {
+        setOpenDelete(false)
+        onSaved()
+        return
+      }
+      if (result.error) setStatus({ type: "error", message: result.error })
+    })
+  }
+
+  return (
+    <div className="space-y-2 rounded-2xl border border-white/10 bg-[#131C2F] p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-lg font-semibold text-white truncate">{row.title}</p>
+        <Badge className="text-[11px] uppercase tracking-[0.3em]">{row.resource_type}</Badge>
+      </div>
+      {row.description && (
+        <p className="text-sm text-slate-300 line-clamp-2">{row.description}</p>
+      )}
+      {row.tags && row.tags.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {row.tags.map((tag) => (
+            <Badge key={`${row.id}-${tag}`} variant="outline" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+        </div>
+      )}
+      <div className="flex items-center justify-between text-xs text-slate-400">
+        <span>{row.pages} página{row.pages === 1 ? "" : "s"}</span>
+        <a href={row.file_url} target="_blank" rel="noreferrer" className="text-primary font-semibold">Abrir material</a>
+      </div>
+
+      <div className="flex items-center justify-between border-t border-white/10 pt-3 mt-2">
+        <div className="text-xs text-slate-400">{row.created_at ? `Criado: ${new Date(row.created_at).toLocaleDateString()}` : null} {row.updated_at ? `• Atualizado: ${new Date(row.updated_at).toLocaleDateString()}` : null}</div>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={() => setOpenEdit(true)} disabled={isPending}>Editar</Button>
+          <Button size="sm" variant="destructive" onClick={() => setOpenDelete(true)} disabled={isPending}>Excluir</Button>
+        </div>
+      </div>
+
+      {status && (
+        <Alert variant={status.type === "success" ? "default" : "destructive"}>
+          <AlertTitle>{status.type === "success" ? "Sucesso" : "Erro"}</AlertTitle>
+          <AlertDescription>{status.message}</AlertDescription>
+        </Alert>
+      )}
+
+      <Dialog open={openEdit} onOpenChange={setOpenEdit}>
+        <DialogContent className="bg-[#16243F] border border-slate-800 text-white">
+          <DialogHeader>
+            <DialogTitle>Editar material</DialogTitle>
+            <DialogDescription>Atualize os campos necessários e salve.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input value={local.title} onChange={(e) => setLocal({ ...local, title: e.target.value })} className="bg-[#16243F] border border-slate-800 text-white" placeholder="Título" />
+            {fieldErrors.title && <p className="text-xs text-rose-400">{fieldErrors.title}</p>}
+            <Textarea value={local.description as string} onChange={(e) => setLocal({ ...local, description: e.target.value })} className="bg-[#16243F] border border-slate-800 text-white" rows={3} placeholder="Descrição" />
+            <Input type="number" min={0} value={String(local.pages)} onChange={(e) => setLocal({ ...local, pages: Number(e.target.value || 0) })} className="bg-[#16243F] border border-slate-800 text-white" placeholder="Páginas" />
+            <Select value={local.resource_type} onValueChange={(value) => setLocal({ ...local, resource_type: value as MaterialFormData["resource_type"] })}>
+              <SelectTrigger className="bg-[#16243F] border border-slate-800 text-white"><SelectValue placeholder="Tipo" /></SelectTrigger>
+              <SelectContent>
+                {materialResourceOptions.map((option) => (
+                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input value={local.tags as string} onChange={(e) => setLocal({ ...local, tags: e.target.value })} className="bg-[#16243F] border border-slate-800 text-white" placeholder="Tags (vírgulas)" />
+            <Input value={local.file_url} onChange={(e) => setLocal({ ...local, file_url: e.target.value })} className="bg-[#16243F] border border-slate-800 text-white" placeholder="Link do arquivo" />
+            <div className="flex items-center gap-2 text-sm">
+              <Checkbox checked={local.is_available ?? true} onCheckedChange={(v) => setLocal({ ...local, is_available: Boolean(v) })} />
+              <span>Disponível</span>
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setOpenEdit(false)}>Cancelar</Button>
+              <Button onClick={handleSave} disabled={isPending}>{isPending ? "Salvando..." : "Salvar"}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={openDelete} onOpenChange={setOpenDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir material?</AlertDialogTitle>
+            <AlertDialogDescription>Esta ação não pode ser desfeita.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} disabled={isPending}>Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import type React from 'react'
+import React from 'react'
 
 interface FixedFooterProps {
   /**

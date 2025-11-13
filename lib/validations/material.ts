@@ -26,6 +26,7 @@ export const materialFormSchema = z.object({
   resource_type: z.enum(materialResourceTypes, {
     required_error: "Selecione o tipo de material",
   }),
+  is_available: z.coerce.boolean().optional(),
 })
 
 export type MaterialFormData = z.infer<typeof materialFormSchema>

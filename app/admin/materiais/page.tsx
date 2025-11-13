@@ -10,7 +10,7 @@ export default async function AdminMaterialsPage() {
   const supabase = await createClient()
   const { data: materials } = await supabase
     .from("materials")
-    .select("id, title, description, pages, tags, resource_type, file_url, created_at")
+    .select("id, title, description, pages, tags, resource_type, file_url, created_at, updated_at, is_available")
     .order("created_at", { ascending: false })
 
   const preparedMaterials: AdminMaterialRow[] = (materials ?? []).map((material) => ({
@@ -22,6 +22,8 @@ export default async function AdminMaterialsPage() {
     resource_type: material.resource_type,
     file_url: material.file_url,
     created_at: material.created_at,
+    updated_at: material.updated_at,
+    is_available: material.is_available,
   }))
 
   return (
