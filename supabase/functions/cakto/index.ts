@@ -458,31 +458,45 @@ async function createUserAccount(userData: {
   phone?: string;
   cpf?: string;
 }) {
-  // Gera uma senha temporária segura
-  const tempPassword = generateSecurePassword();
+  // Verifica se o usuário já existe
+  const { data: { users }, error: listError } = await supabase.auth.admin.listUsers();
+  const existingUser = users?.find(u => u.email?.toLowerCase() === userData.email.toLowerCase());
 
-  // Cria o usuário no Supabase Auth
-  const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-    email: userData.email,
-    password: tempPassword,
-    email_confirm: true,
-    user_metadata: {
-      name: userData.name,
-      phone: userData.phone,
-      cpf: userData.cpf
+  let userId: string;
+
+  if (existingUser) {
+    // Usuário já existe, usa o ID existente
+    console.log('Usuário já existe, usando ID existente:', existingUser.id);
+    userId = existingUser.id;
+  } else {
+    // Gera uma senha temporária segura
+    const tempPassword = generateSecurePassword();
+
+    // Cria o usuário no Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email: userData.email,
+      password: tempPassword,
+      email_confirm: true,
+      user_metadata: {
+        name: userData.name,
+        phone: userData.phone,
+        cpf: userData.cpf
+      }
+    });
+
+    if (authError || !authData.user) {
+      console.error('Erro ao criar usuário:', authError);
+      throw new Error(`Falha ao criar usuário: ${authError?.message || 'Erro desconhecido'}`);
     }
-  });
 
-  if (authError || !authData.user) {
-    console.error('Erro ao criar usuário:', authError);
-    throw new Error(`Falha ao criar usuário: ${authError?.message || 'Erro desconhecido'}`);
+    userId = authData.user.id;
   }
 
   // Atualiza ou cria o perfil
   const { error: profileError } = await supabase
     .from('profiles')
     .upsert({
-      id: authData.user.id,
+      id: userId,
       email: userData.email,
       name: userData.name,
       phone: userData.phone,
@@ -494,20 +508,23 @@ async function createUserAccount(userData: {
 
   if (profileError) {
     console.error('Erro ao criar perfil:', profileError);
+    throw new Error(`Falha ao criar perfil: ${profileError.message}`);
   }
 
-  // Envia e-mail de redefinição de senha
-  try {
-    await supabase.auth.admin.generateLink({
-      type: 'magiclink',
-      email: userData.email
-    });
-  } catch (linkError) {
-    console.error('Erro ao gerar link de acesso:', linkError);
+  // Envia e-mail de redefinição de senha (apenas se for novo usuário)
+  if (!existingUser) {
+    try {
+      await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: userData.email
+      });
+    } catch (linkError) {
+      console.error('Erro ao gerar link de acesso:', linkError);
+    }
   }
 
   return {
-    id: authData.user.id,
+    id: userId,
     email: userData.email,
     name: userData.name,
     planType: planTypes.FREE,
@@ -534,100 +551,34 @@ async function sendWelcomeEmail(params: {
   name: string;
   isNewUser: boolean;
 }) {
-  const subject = params.isNewUser
-    ? 'Bem-vindo ao OdontoGPT - Sua conta premium foi ativada!'
-    : 'Sua assinatura premium foi ativada!';
-
-  const htmlContent = `
-    <!DOCTYPE html>
-    <html>
-      <head>
-        <meta charset="utf-8">
-        <style>
-          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-          .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-          .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-          .button { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-          .features { background: white; padding: 20px; border-radius: 5px; margin: 20px 0; }
-          .feature-item { margin: 10px 0; padding-left: 25px; position: relative; }
-          .feature-item:before { content: "✓"; position: absolute; left: 0; color: #667eea; font-weight: bold; }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>🦷 OdontoGPT Premium</h1>
-          </div>
-          <div class="content">
-            <h2>Olá ${params.name || 'Dentista'}!</h2>
-
-            ${params.isNewUser ? `
-              <p>Bem-vindo ao OdontoGPT! Sua conta foi criada com sucesso e seu plano anual premium já está ativo.</p>
-
-              <p><strong>Como acessar sua conta:</strong></p>
-              <ol>
-                <li>Acesse <a href="${APP_URL}">${APP_URL}</a></li>
-                <li>Clique em "Entrar"</li>
-                <li>Use a opção "Esqueci minha senha" com o e-mail: ${params.email}</li>
-                <li>Você receberá um link para criar sua senha</li>
-              </ol>
-            ` : `
-              <p>Parabéns! Sua assinatura premium anual foi ativada com sucesso.</p>
-              <p>Acesse sua conta em <a href="${APP_URL}">${APP_URL}</a></p>
-            `}
-
-            <div class="features">
-              <h3>O que você tem acesso agora:</h3>
-              <div class="feature-item">Chat de IA odontológica ilimitado</div>
-              <div class="feature-item">Todos os cursos e materiais premium</div>
-              <div class="feature-item">Certificados de conclusão</div>
-              <div class="feature-item">Acesso prioritário a novos conteúdos</div>
-              <div class="feature-item">Suporte prioritário</div>
-              <div class="feature-item">Sessões de mentoria exclusivas</div>
-              <div class="feature-item">Material complementar em PDF</div>
-            </div>
-
-            <center>
-              <a href="${APP_URL}" class="button">Acessar minha conta</a>
-            </center>
-
-            <p style="margin-top: 30px; font-size: 14px; color: #666;">
-              Se você tiver alguma dúvida, responda este e-mail ou entre em contato com nosso suporte.
-            </p>
-
-            <p style="font-size: 12px; color: #999; margin-top: 20px;">
-              Este é um e-mail automático, por favor não responda.
-            </p>
-          </div>
-        </div>
-      </body>
-    </html>
-  `;
-
   try {
-    // Usa o Supabase para enviar e-mail via função nativa
-    const { data, error } = await supabase.auth.admin.inviteUserByEmail(params.email, {
-      data: {
-        name: params.name,
-        welcome_email_sent: true
-      },
-      redirectTo: APP_URL
-    });
+    console.log('Enviando email de boas-vindas para:', params.email);
 
-    if (error) {
-      console.error('Erro ao enviar convite via Supabase:', error);
-      throw error;
+    // Para novos usuários, gera um magic link
+    if (params.isNewUser) {
+      const { data, error } = await supabase.auth.admin.generateLink({
+        type: 'magiclink',
+        email: params.email,
+        options: {
+          redirectTo: APP_URL
+        }
+      });
+
+      if (error) {
+        console.error('Erro ao gerar magic link:', error);
+        throw error;
+      }
+
+      console.log('Magic link gerado para:', params.email);
+      return data;
+    } else {
+      console.log('Email de atualização de assinatura enviado para:', params.email);
+      return { email: params.email };
     }
-
-    console.log('E-mail de convite enviado com sucesso via Supabase:', data);
-
-    // Alternativamente, podemos usar uma Edge Function dedicada para envio de e-mails
-    // ou configurar um webhook para serviço externo
-    return data;
   } catch (error) {
-    console.error('Erro ao enviar e-mail via Supabase:', error);
-    throw error;
+    console.error('Erro ao processar envio de email:', error);
+    // Não lançar erro aqui - o email é apenas notificação
+    // O webhook deve continuar mesmo se falhar
   }
 }
 

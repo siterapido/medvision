@@ -1,5 +1,4 @@
 {
-  "verify_jwt": false,
   "tasks": {
     "start": "deno run --allow-all index.ts"
   },
