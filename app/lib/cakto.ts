@@ -1,10 +1,29 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 
-const CAKTO_PRODUCT_ID =
-  process.env.NEXT_PUBLIC_CAKTO_PRODUCT_ID ?? process.env.CAKTO_PRODUCT_ID ?? "sx9y8uk_642731"
+function extractProductId(input?: string) {
+  const value = (input ?? "").trim()
+  if (!value) return "3263gsd_647430"
+  if (value.startsWith("http://") || value.startsWith("https://")) {
+    try {
+      const url = new URL(value)
+      const parts = url.pathname.split("/").filter(Boolean)
+      const last = parts[parts.length - 1] ?? ""
+      return /^[A-Za-z0-9_]+$/.test(last) ? last : "3263gsd_647430"
+    } catch {
+      return "3263gsd_647430"
+    }
+  }
+  return /^[A-Za-z0-9_]+$/.test(value) ? value : "3263gsd_647430"
+}
+
+const CAKTO_PRODUCT_ID = extractProductId(
+  process.env.NEXT_PUBLIC_CAKTO_PRODUCT_ID ?? process.env.CAKTO_PRODUCT_ID,
+)
 const CAKTO_BASE_URL = `https://pay.cakto.com.br/${CAKTO_PRODUCT_ID}`
 
-const ADMIN_CLIENT = createAdminClient()
+function getAdminClient() {
+  return createAdminClient()
+}
 
 type UserSummary = {
   id: string
@@ -59,11 +78,19 @@ async function findUserByEmail(email: string): Promise<UserSummary | null> {
     return null
   }
 
-  const { data: profile, error: profileError } = await ADMIN_CLIENT
+  const admin = getAdminClient()
+  const { data: profile, error: profileError } = await admin
     .from("profiles")
     .select("id, email, name, plan_type, subscription_status, expires_at")
     .eq("email", normalizedEmail)
-    .maybeSingle()
+    .maybeSingle<{
+      id: string
+      email: string | null
+      name: string | null
+      plan_type: string | null
+      subscription_status: string | null
+      expires_at: string | null
+    }>()
 
   if (profileError) {
     console.error("[cakto] falha ao buscar profile:", profileError)
@@ -80,27 +107,28 @@ async function findUserByEmail(email: string): Promise<UserSummary | null> {
     }
   }
 
-  const { data: adminData, error: adminError } = await ADMIN_CLIENT.auth.admin.getUserByEmail(
-    normalizedEmail,
-  )
-
-  if (adminError) {
-    console.error("[cakto] falha ao buscar auth.user:", adminError)
-    return null
-  }
-
-  const user = adminData?.user
-  if (!user) {
-    return null
-  }
+  try {
+    const { data: { users }, error: adminError } = await admin.auth.admin.listUsers()
+    if (adminError) {
+      console.error("[cakto] falha ao buscar auth.users:", adminError)
+      return null
+    }
+    const user = users?.find((u) => u.email?.toLowerCase() === normalizedEmail) || null
+    if (!user) {
+      return null
+    }
 
   return {
-    id: user.id,
-    email: user.email ?? normalizedEmail,
-    name: user.user_metadata?.name ?? null,
+    id: user!.id,
+    email: user!.email ?? normalizedEmail,
+    name: user!.user_metadata?.name ?? null,
     planType: "free",
     subscriptionStatus: "free",
     expiresAt: null,
+  }
+  } catch (error) {
+    console.error("[cakto] erro ao buscar usuário:", error)
+    return null
   }
 }
 
@@ -108,6 +136,10 @@ export function generateCheckoutUrl(userEmail: string, customData: Record<string
   const normalizedEmail = normalizeEmail(userEmail)
   if (!normalizedEmail) {
     throw new Error("E-mail inválido para gerar checkout")
+  }
+
+  if (!/^[A-Za-z0-9_]+$/.test(CAKTO_PRODUCT_ID)) {
+    throw new Error("ID de produto Cakto inválido")
   }
 
   const params = new URLSearchParams({
@@ -144,7 +176,8 @@ export async function getUserPaymentHistory(
     return { success: false, message: "Usuário não encontrado" }
   }
 
-  const { data, error } = await ADMIN_CLIENT
+  const admin = getAdminClient()
+  const { data, error } = await admin
     .from("payment_history")
     .select(
       "transaction_id, amount, currency, status, payment_method, webhook_data, created_at",

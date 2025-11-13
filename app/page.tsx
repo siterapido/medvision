@@ -468,7 +468,7 @@ export default function LandingPage() {
           </div>
 
           <div className="text-center pt-8">
-            <a href="https://pay.cakto.com.br/sx9y8uk_642731" target="_blank" rel="noopener noreferrer">
+            <a href="https://pay.cakto.com.br/3263gsd_647430" target="_blank" rel="noopener noreferrer">
               <Button size="lg" aria-label="Abrir planos" variant="cta">
                 Pronto para começar?
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -698,7 +698,7 @@ export default function LandingPage() {
                 </li>
               </ul>
 
-          <a href="https://pay.cakto.com.br/sx9y8uk_642731" target="_blank" rel="noopener noreferrer" className="block">
+          <a href="https://pay.cakto.com.br/3263gsd_647430" target="_blank" rel="noopener noreferrer" className="block">
                 <Button className="w-full shadow-lg" size="lg" variant="cta">
                   Garantir Meu Acesso Anual
                   <ArrowRight className="ml-2 h-5 w-5" />
@@ -759,7 +759,7 @@ export default function LandingPage() {
             description="Junte-se aos profissionais que já estão usando IA especializada na rotina clínica e acadêmica."
             align="center"
           />
-          <a href="https://pay.cakto.com.br/sx9y8uk_642731" target="_blank" rel="noopener noreferrer">
+          <a href="https://pay.cakto.com.br/3263gsd_647430" target="_blank" rel="noopener noreferrer">
             <Button
               size="xl"
               aria-label="Começar Agora"

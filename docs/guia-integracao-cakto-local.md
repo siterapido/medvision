@@ -1,6 +1,6 @@
 # Guia Rápido: Integração Cakto em Ambiente Local
 
-> Plano desenhado para rodar tudo localmente via **Supabase Edge Function** (nome `cakto`), usando o produto **`sx9y8uk_642731`** e o secret de webhook **`c34363bd-8c50-44bc-90f6-d3873b3f54a5`**.
+> Plano desenhado para rodar tudo localmente via **Supabase Edge Function** (nome `cakto`), usando o produto **`3263gsd_647430`** e o secret de webhook **(fornecido)**.
 
 ## 1. Pré-requisitos
 
@@ -30,8 +30,8 @@ Arquivo `supabase/.env` (ou um `.env` usado apenas para funções) deve conter:
 ```env
 SUPABASE_URL=<sua_url_supabase>
 SUPABASE_SERVICE_ROLE_KEY=<service_role_key>
-CAKTO_PRODUCT_ID=sx9y8uk_642731
-CAKTO_WEBHOOK_SECRET=c34363bd-8c50-44bc-90f6-d3873b3f54a5
+CAKTO_PRODUCT_ID=3263gsd_647430
+CAKTO_WEBHOOK_SECRET=<seu_secret_fornecido>
 PORT=54322
 ```
 
@@ -40,7 +40,7 @@ Arquivo `.env.local` do Next.js deve conter ao menos:
 ```env
 NEXT_PUBLIC_SUPABASE_URL=<sua_url_supabase>
 NEXT_PUBLIC_SUPABASE_ANON_KEY=<anon_key>
-NEXT_PUBLIC_CAKTO_PRODUCT_ID=sx9y8uk_642731
+NEXT_PUBLIC_CAKTO_PRODUCT_ID=3263gsd_647430
 ```
 
 ## 4. Dependências e execução da Edge Function
@@ -67,7 +67,7 @@ supabase functions serve cakto --port 54322
    - Caso a assinatura falhe, permita fallback pelo campo `secret` do payload.
    - Execute os três handlers principais (`purchase_approved`, `refund`, `subscription_cancelled`) já atualizando `profiles` e inserindo em `payment_history`, com logging mínimo.
    - Reveja utilitários auxiliares como `findUser`, `updateProfile` e `upsertPaymentHistory` para reutilização.
-   - Opcionalmente, gere a URL de checkout via `https://pay.cakto.com.br/sx9y8uk_642731?email=<email>` dentro de uma API separada (a lógica pode residir neste mesmo arquivo ou numa rota Next).
+   - Opcionalmente, gere a URL de checkout via `https://pay.cakto.com.br/3263gsd_647430?email=<email>` dentro de uma API separada (a lógica pode residir neste mesmo arquivo ou numa rota Next).
 
 ## 6. Supabase ("só adicionar os planos")
 
@@ -101,17 +101,17 @@ CREATE TABLE IF NOT EXISTS payment_history (
 
 ## 7. Configuração no Painel Cakto
 
-1. Localize o produto já existente com URL `https://pay.cakto.com.br/sx9y8uk_642731` e confirme que o ID (`sx9y8uk_642731`) está ativo.
+1. Localize o produto já existente com URL `https://pay.cakto.com.br/3263gsd_647430` e confirme que o ID (`3263gsd_647430`) está ativo.
 2. Em **Configurações → Webhooks**:
   - URL: `https://<seu-ngrok>.ngrok-free.app/` (ou domínio real onde a função `cakto` esteja disponível).
    - Eventos: habilite `purchase_approved`, `refund`, `subscription_cancelled`.
-   - Secret: `c34363bd-8c50-44bc-90f6-d3873b3f54a5` (copiar exatamente).
+  - Secret: use o secret fornecido e mantenha-o apenas em variáveis de ambiente.
 3. Salve e utilize o botão de “Enviar teste” para validar o endpoint local.
 
 ## 8. Fluxo de Checkout
 
 - No dashboard Next.js, exponha um CTA **“Assinar Plano Premium”** que chama uma Server Action ou API route para gerar a URL via `generateCheckoutUrl`.
-- Redirecione o usuário autenticado para `https://pay.cakto.com.br/sx9y8uk_642731?email=<email>&plan=premium`.
+- Redirecione o usuário autenticado para `https://pay.cakto.com.br/3263gsd_647430?email=<email>&plan=premium`.
 - Após o pagamento, o webhook atualiza o plano e o front pode consultar `/api/me/subscription` (rota interna) para refletir o novo status.
 
 ## 9. Testes Locais
@@ -135,7 +135,7 @@ CREATE TABLE IF NOT EXISTS payment_history (
 - [ ] `.env` preenchido com secret/product exatos.
 - [ ] Migrations de planos aplicadas e RLS revisada.
 - [ ] Webhook configurado no painel Cakto (URL ngrok + secret).
-- [ ] Fluxo de checkout do front apontando para o produto `sx9y8uk_642731`.
+- [ ] Fluxo de checkout do front apontando para o produto `3263gsd_647430`.
 - [ ] Teste manual concluído (webhook de teste + atualização no banco).
 
 Com esses passos o ambiente local replica fielmente o fluxo de assinatura Cakto, permitindo validar planos antes do deploy em produção.
