@@ -18,6 +18,8 @@ type CourseWithProgress = {
   materials: number
   duration: string
   isDraft: boolean
+  comingSoon?: boolean
+  availableAt?: string | null
 }
 
 const formatDurationLabel = (durationText?: string | null, durationMinutes?: number | null) => {
@@ -63,7 +65,9 @@ export default async function CursosPage() {
       lessons_count,
       duration,
       duration_minutes,
-      is_published
+      is_published,
+      coming_soon,
+      available_at
     `)
     .order("created_at", { ascending: false })
 
@@ -108,6 +112,8 @@ export default async function CursosPage() {
         materials: materialsCountMap.get(course.id ?? "") ?? 0,
         duration: formatDurationLabel(course.duration, course.duration_minutes),
         isDraft: course.is_published !== true,
+        comingSoon: course.coming_soon || false,
+        availableAt: course.available_at,
       })
 
       return acc
@@ -117,8 +123,9 @@ export default async function CursosPage() {
 
   const hasRealCourses = dedupedCourses.length > 0
 
-  // Apenas novos cursos (não iniciados)
-  const novoCursos = dedupedCourses
+  // Separar cursos em breve dos demais
+  const cursosEmBreve = dedupedCourses.filter(c => c.comingSoon && c.availableAt && new Date(c.availableAt) > new Date())
+  const novoCursos = dedupedCourses.filter(c => !(c.comingSoon && c.availableAt && new Date(c.availableAt) > new Date()))
 
   const getProgressLabel = (progress: number) => {
     if (progress >= 100) return "Curso concluído"
@@ -136,12 +143,19 @@ export default async function CursosPage() {
         ? "from-[#10b981] via-[#34d399] to-[#059669]"
         : "from-[#0891b2] via-[#06b6d4] to-[#22d3ee]"
 
-    const resolvedBadge = badge ?? (course.isDraft ? "Rascunho" : undefined)
-    const resolvedBadgeClassName =
+    const isComingSoon = course.comingSoon && course.availableAt && new Date(course.availableAt) > new Date()
+
+    let resolvedBadge = badge ?? (course.isDraft ? "Rascunho" : undefined)
+    let resolvedBadgeClassName =
       badgeClassName ??
       (course.isDraft
         ? "border-[#9ebeff] bg-white/70 text-[#5cbaff]"
         : "border-[#9ebeff] bg-white/85 text-[#5cbaff]")
+
+    if (isComingSoon) {
+      resolvedBadge = "Em Breve"
+      resolvedBadgeClassName = "border-amber-500/50 bg-amber-500/20 text-amber-300"
+    }
 
     const card = (
       <Card className="light group relative flex h-full w-[260px] flex-col overflow-hidden rounded-2xl border-2 border-[#9bbfff] !bg-gradient-to-br from-[#e4f2ff] via-[#d6e8ff] to-[#c8dfff] text-[#0c4a6e] shadow-[0_25px_45px_rgba(13,60,130,0.15)] transition-all duration-500 hover:-translate-y-2 hover:border-[#1c64f2]/60 hover:shadow-[0_30px_55px_rgba(13,60,130,0.25)] sm:w-[300px]">
@@ -185,22 +199,33 @@ export default async function CursosPage() {
             <div>
               <h3 className="text-lg font-semibold leading-tight line-clamp-2 text-[#74b7ff]">{course.title}</h3>
               <p className="mt-2 text-sm text-[#2f4db3] line-clamp-3">{course.description}</p>
+              {isComingSoon && course.availableAt && (
+                <div className="mt-2 text-xs text-amber-600 font-medium">
+                  Disponível em: {new Date(course.availableAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "2-digit" })}
+                </div>
+              )}
             </div>
           <div className="mt-auto flex items-center gap-4 text-xs text-[#6db6ff] font-medium">
-            <span className="flex items-center gap-1">
-              <PlayCircle className="h-3.5 w-3.5 text-[#8dc3ff]" />
-              {course.lessons} aulas
-            </span>
-            {course.materials > 0 && (
-              <span className="flex items-center gap-1">
-                <UploadCloud className="h-3.5 w-3.5 text-[#8dc3ff]" />
-                {course.materials} materiais
-              </span>
+            {!isComingSoon ? (
+              <>
+                <span className="flex items-center gap-1">
+                  <PlayCircle className="h-3.5 w-3.5 text-[#8dc3ff]" />
+                  {course.lessons} aulas
+                </span>
+                {course.materials > 0 && (
+                  <span className="flex items-center gap-1">
+                    <UploadCloud className="h-3.5 w-3.5 text-[#8dc3ff]" />
+                    {course.materials} materiais
+                  </span>
+                )}
+                <span className="flex items-center gap-1">
+                  <Clock className="h-3.5 w-3.5 text-[#8dc3ff]" />
+                  {course.duration}
+                </span>
+              </>
+            ) : (
+              <span className="text-amber-600 font-semibold">Em Breve</span>
             )}
-            <span className="flex items-center gap-1">
-              <Clock className="h-3.5 w-3.5 text-[#8dc3ff]" />
-              {course.duration}
-            </span>
           </div>
         </div>
       </Card>
@@ -227,23 +252,31 @@ export default async function CursosPage() {
           </div>
         </div>
 
-        {!hasRealCourses && (
-          <div className="rounded-2xl border border-slate-600/40 bg-slate-800/90 px-6 py-4 text-center text-sm text-slate-200 backdrop-blur">
-            <p className="max-w-xl mx-auto">
-              Ainda não há cursos cadastrados. Acesse o painel de administração para registrar o primeiro curso e ele aparecerá aqui.
-            </p>
-            <Link
-              href="/admin/cursos"
-              className="mt-4 inline-flex items-center justify-center rounded-xl border border-primary/30 bg-[linear-gradient(135deg,#0891b2_0%,#06b6d4_100%)] px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-white transition hover:shadow-xl hover:shadow-primary/30 active:scale-95"
-            >
-              Ir para Administração de Cursos
-            </Link>
+
+        {/* Cursos Em Breve */}
+        {cursosEmBreve.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-amber-400">
+                ⏳ Em Breve
+              </span>
+            </div>
+            <CourseCarousel ariaLabel="Cursos em breve">
+              {cursosEmBreve.map((course) =>
+                renderCourseCard(course)
+              )}
+            </CourseCarousel>
           </div>
         )}
 
         {/* Novos Cursos */}
         {novoCursos.length > 0 && (
           <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-cyan-400">
+                ✨ Meus Cursos
+              </span>
+            </div>
             <CourseCarousel ariaLabel="Novos cursos">
               {novoCursos.map((course) =>
                 renderCourseCard(course, {

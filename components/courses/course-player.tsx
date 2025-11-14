@@ -58,6 +58,8 @@ export type CoursePlayerCourse = {
   area?: string | null
   tags?: string | null
   updated_at?: string | null
+  coming_soon?: boolean | null
+  available_at?: string | null
   lessons?: CoursePlayerLesson[] | null
 }
 
@@ -88,6 +90,22 @@ const formatUpdatedLabel = (value?: string | null) => {
   } catch {
     return "Atualizado recentemente"
   }
+}
+
+const formatAvailableAtLabel = (value?: string | null) => {
+  if (!value) return null
+  try {
+    const date = new Date(value)
+    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
+  } catch {
+    return null
+  }
+}
+
+const isComingSoon = (course: CoursePlayerCourse) => {
+  if (!course.coming_soon) return false
+  if (!course.available_at) return true
+  return new Date(course.available_at) > new Date()
 }
 
 const getLessonProgressLabel = (progress: number) => {
@@ -318,6 +336,78 @@ export function CoursePlayer({
   const updatedLabel = formatUpdatedLabel(course.updated_at)
   const summaryBadge = course.area ?? course.difficulty
   const hasLessons = lessons.length > 0
+  const comingSoon = isComingSoon(course)
+  const availableAtLabel = formatAvailableAtLabel(course.available_at)
+
+  if (comingSoon) {
+    return (
+      <section className="space-y-8 rounded-[28px] border border-white/5 bg-[#0b1424] px-4 py-6 text-white shadow-[0_25px_60px_rgba(3,6,15,0.45)] sm:px-8 sm:py-8">
+        <header className="border-b border-white/5 pb-5">
+          <p className="text-xs uppercase tracking-[0.35em] text-white/40">Academia Odonto GPT</p>
+          <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+            <div className="space-y-1">
+              <div className="flex items-center gap-3">
+                <h1 className="text-2xl font-semibold text-white md:text-3xl">{course.title}</h1>
+                <span className="inline-flex items-center rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-amber-300 border border-amber-500/30">
+                  Em Breve
+                </span>
+              </div>
+              <p className="text-sm text-slate-300">{course.description || "Descrição em breve."}</p>
+              <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-slate-300">
+                {summaryBadge && (
+                  <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs uppercase tracking-[0.35em] text-white/70">
+                    {summaryBadge}
+                  </span>
+                )}
+                <span className="text-xs uppercase tracking-[0.3em] text-white/50">
+                  {course.difficulty ?? "Nível"}
+                </span>
+                <span className="text-xs uppercase tracking-[0.3em] text-white/50">{courseDurationLabel}</span>
+              </div>
+              {course.tags && (
+                <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-300">
+                  {course.tags
+                    .split(",")
+                    .map((tag) => tag.trim())
+                    .filter(Boolean)
+                    .map((tag) => (
+                      <span
+                        key={tag}
+                        className="rounded-full border border-white/10 px-3 py-1 uppercase tracking-[0.3em] text-white/70"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </header>
+
+        <div className="flex items-center justify-center rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-orange-500/5 px-6 py-16 text-center">
+          <div className="space-y-6 max-w-md">
+            <div className="space-y-2">
+              <h2 className="text-3xl font-semibold text-white">Em Breve</h2>
+              <p className="text-base text-slate-300">
+                Este curso estará disponível em <span className="font-semibold text-amber-300">{availableAtLabel}</span>
+              </p>
+            </div>
+            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+              <p className="text-sm text-amber-200">
+                Fique atento! Em breve você terá acesso a este conteúdo exclusivo e poderá iniciar sua jornada de aprendizado.
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              className="rounded-full border-amber-500/50 text-amber-300 hover:bg-amber-500/10 mx-auto"
+            >
+              Notifique-me quando disponível
+            </Button>
+          </div>
+        </div>
+      </section>
+    )
+  }
 
   return (
     <section className="space-y-8 rounded-[28px] border border-white/5 bg-[#0b1424] px-4 py-6 text-white shadow-[0_25px_60px_rgba(3,6,15,0.45)] sm:px-8 sm:py-8">

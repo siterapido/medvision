@@ -59,6 +59,8 @@ interface Course {
   lessons_count: number
   created_at: string
   updated_at?: string
+  coming_soon?: boolean
+  available_at?: string | null
 }
 
 interface CoursesTableProps {
@@ -369,6 +371,8 @@ export function CoursesTable({
             tags: courseToEdit.tags || "",
             duration: courseToEdit.duration || "",
             thumbnail_url: courseToEdit.thumbnail_url || "",
+            coming_soon: courseToEdit.coming_soon || false,
+            available_at: courseToEdit.available_at || null,
           }}
         />
       )}

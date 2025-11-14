@@ -51,6 +51,8 @@ interface Course {
   lessons_count: number
   created_at: string
   updated_at?: string
+  coming_soon?: boolean
+  available_at?: string | null
 }
 
 interface CourseManagementProps {

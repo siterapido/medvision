@@ -23,6 +23,8 @@ export const courseFormSchema = z.object({
   tags: z.string().optional(),
   duration: z.string().optional(),
   thumbnail_url: z.string().optional(),
+  coming_soon: z.boolean().optional(),
+  available_at: z.string().optional().nullable(),
 })
 
 export type CourseFormData = z.infer<typeof courseFormSchema>

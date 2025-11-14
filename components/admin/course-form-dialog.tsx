@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   Select,
   SelectContent,
@@ -55,6 +56,9 @@ export function CourseFormDialog({
     duration: initialData?.duration || "",
     thumbnail_url: initialData?.thumbnail_url || "",
   })
+
+  const [comingSoon, setComingSoon] = useState(initialData?.coming_soon || false)
+  const [availableAt, setAvailableAt] = useState(initialData?.available_at || "")
 
   const supabase = createClient()
   const fileInputRef = useRef<HTMLInputElement | null>(null)
@@ -116,19 +120,32 @@ export function CourseFormDialog({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("📋 [handleSubmit] Formulário submetido", { mode, formData })
+
+    // Validar que se coming_soon estiver ativo, available_at é obrigatório
+    if (comingSoon && !availableAt) {
+      setErrors({ available_at: "Data de disponibilidade é obrigatória quando o curso está marcado como 'Em Breve'" })
+      return
+    }
+
+    console.log("📋 [handleSubmit] Formulário submetido", { mode, formData, comingSoon, availableAt })
     setErrors({})
 
     startTransition(async () => {
       let result
       console.log("🔄 [handleSubmit] Iniciando transição server action", { mode })
 
+      const submitData = {
+        ...formData,
+        coming_soon: comingSoon,
+        available_at: availableAt || null,
+      }
+
       if (mode === "create") {
-        console.log("🚀 [handleSubmit] Chamando createCourse com dados:", formData)
-        result = await createCourse(formData)
+        console.log("🚀 [handleSubmit] Chamando createCourse com dados:", submitData)
+        result = await createCourse(submitData as any)
       } else if (mode === "edit" && initialData?.id) {
-        console.log("✏️ [handleSubmit] Chamando updateCourse com dados:", formData)
-        result = await updateCourse(initialData.id, formData)
+        console.log("✏️ [handleSubmit] Chamando updateCourse com dados:", submitData)
+        result = await updateCourse(initialData.id, submitData as any)
       }
 
       console.log("📝 [handleSubmit] Resultado recebido:", result)
@@ -414,6 +431,50 @@ export function CourseFormDialog({
             {errors.thumbnail_url && (
               <p className="text-sm text-red-400">{errors.thumbnail_url}</p>
             )}
+          </div>
+
+          {/* Status "Em Breve" */}
+          <div className="border-t border-slate-600 pt-6">
+            <div className="space-y-4">
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="coming_soon"
+                  checked={comingSoon}
+                  onCheckedChange={(checked) => setComingSoon(checked as boolean)}
+                  className="border-slate-600 data-[state=checked]:bg-amber-500 data-[state=checked]:border-amber-500"
+                />
+                <div className="flex-1">
+                  <Label htmlFor="coming_soon" className="text-white cursor-pointer">
+                    Marcar como "Em Breve"
+                  </Label>
+                  <p className="text-xs text-slate-400 mt-1">
+                    Ativa o status "Em Breve" no curso, bloqueando o acesso até a data especificada
+                  </p>
+                </div>
+              </div>
+
+              {comingSoon && (
+                <div className="space-y-2 bg-amber-500/10 border border-amber-500/30 rounded-lg p-4">
+                  <Label htmlFor="available_at" className="text-white">
+                    Data de Disponibilidade <span className="text-red-400">*</span>
+                  </Label>
+                  <Input
+                    id="available_at"
+                    type="datetime-local"
+                    value={availableAt}
+                    onChange={(e) => setAvailableAt(e.target.value)}
+                    className="bg-[#131D37] border-slate-600 text-white"
+                    required={comingSoon}
+                  />
+                  <p className="text-xs text-amber-200">
+                    O curso ficará acessível a partir dessa data e hora
+                  </p>
+                  {errors.available_at && (
+                    <p className="text-sm text-red-400">{errors.available_at}</p>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
 
           <DialogFooter>

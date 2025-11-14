@@ -104,6 +104,8 @@ export async function createCourse(
       thumbnail_url: parsed.data.thumbnail_url || null,
       is_published: false,
       lessons_count: 0,
+      coming_soon: parsed.data.coming_soon || false,
+      available_at: parsed.data.available_at || null,
     }
 
     console.log("📝 [createCourse] Dados prontos para inserção", {
@@ -268,6 +270,8 @@ export async function updateCourse(
       tags: parsedTags,
       duration_minutes: parsedDuration,
       thumbnail_url: parsed.data.thumbnail_url || null,
+      coming_soon: parsed.data.coming_soon || false,
+      available_at: parsed.data.available_at || null,
     }
 
     console.log("📝 [updateCourse] Dados prontos para atualização", {

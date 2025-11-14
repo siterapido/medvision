@@ -30,9 +30,9 @@ export default async function PerfilPage() {
     .join("") || "OG"
 
   const planType =
-    subscription?.plan === "monthly"
+    subscription?.plan_type === "monthly"
       ? "Plano Mensal Pro"
-      : subscription?.plan === "annual"
+      : subscription?.plan_type === "annual"
         ? "Plano Anual Pro"
         : "Plano Free"
 
