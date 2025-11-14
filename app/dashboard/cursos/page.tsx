@@ -149,90 +149,102 @@ export default async function CursosPage() {
     let resolvedBadgeClassName =
       badgeClassName ??
       (course.isDraft
-        ? "border-[#9ebeff] bg-white/70 text-[#5cbaff]"
-        : "border-[#9ebeff] bg-white/85 text-[#5cbaff]")
+        ? "border-amber-400/50 bg-amber-400/10 text-amber-100"
+        : "border-[#0891b2]/60 bg-[#0891b2]/10 text-[#7de3ff]")
 
     if (isComingSoon) {
       resolvedBadge = "Em Breve"
       resolvedBadgeClassName = "border-amber-500/50 bg-amber-500/20 text-amber-300"
     }
 
+    const normalizedProgress = Math.min(Math.max(course.progress, 0), 100)
+
     const card = (
-      <Card className="light group relative flex h-full w-[260px] flex-col overflow-hidden rounded-2xl border-2 border-[#9bbfff] !bg-gradient-to-br from-[#e4f2ff] via-[#d6e8ff] to-[#c8dfff] text-[#0c4a6e] shadow-[0_25px_45px_rgba(13,60,130,0.15)] transition-all duration-500 hover:-translate-y-2 hover:border-[#1c64f2]/60 hover:shadow-[0_30px_55px_rgba(13,60,130,0.25)] sm:w-[300px]">
-        <div className="relative h-48 w-full overflow-hidden bg-gradient-to-br from-[#cbe3ff] via-[#b8d5ff] to-[#a5c7ff]">
+      <Card className="interactive-card group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#0891b2]/25 bg-[radial-gradient(circle_at_top,#16243f,_#0f192f_70%)] text-white shadow-[0_24px_55px_rgba(3,7,18,0.6)] transition-all duration-500 hover:-translate-y-1 hover:border-[#2399B4]/60 hover:shadow-[0_30px_70px_rgba(8,145,178,0.35)]">
+        <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#2399b4,transparent_60%)] opacity-40 blur-3xl" />
+        </div>
+        <div className="relative h-40 w-full overflow-hidden">
           <Image
             src={course.thumbnail}
             alt={course.title}
             fill
-            sizes="(max-width: 768px) 100vw, 260px"
-            className="object-cover transition duration-[1200ms] ease-out group-hover:scale-110 opacity-80 mix-blend-multiply"
+            sizes="(max-width: 768px) 100vw, 230px"
+            className="object-cover opacity-60 mix-blend-luminosity transition duration-[1200ms] ease-out group-hover:scale-110"
             priority={false}
             unoptimized
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-white/90 via-white/60 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0a1629]/90 via-[#0c1f38]/70 to-transparent" />
+          <div className="absolute inset-x-4 bottom-4 space-y-1.5">
+            <div className="flex items-center justify-between text-[10px] font-semibold text-slate-200">
+              <span className="text-cyan-100">{getProgressLabel(course.progress)}</span>
+              <span className="text-slate-300">{course.duration}</span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/15">
+              <div
+                className={`h-full rounded-full bg-gradient-to-r ${gradientClass}`}
+                style={{ width: `${normalizedProgress}%` }}
+              />
+            </div>
+          </div>
           <div className="absolute inset-0 flex items-center justify-center opacity-0 transition duration-500 group-hover:opacity-100">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border-2 border-[#7bbaff]/60 bg-gradient-to-br from-[#87c3ff]/70 to-[#4e8ff5]/90 text-[#cfe6ff] backdrop-blur-sm shadow-xl shadow-primary/50">
-              <PlayCircle className="h-8 w-8 text-[#cfe6ff]" />
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur">
+              <PlayCircle className="h-8 w-8" />
             </div>
           </div>
           {resolvedBadge && (
             <Badge
-              className={`absolute top-4 left-4 rounded-full border-2 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] shadow-lg backdrop-blur ${resolvedBadgeClassName ?? ""}`}
+              className={`absolute top-4 left-4 flex items-center gap-1 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/90 backdrop-blur ${resolvedBadgeClassName ?? ""}`}
             >
               {resolvedBadge}
             </Badge>
           )}
-          <div className="absolute bottom-3 left-3 right-3">
-            <div className="flex items-center justify-between text-[11px] font-semibold text-[#dbefff] drop-shadow-sm">
-              <span>{getProgressLabel(course.progress)}</span>
-              <span>{course.duration}</span>
-            </div>
-            <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-white/60 backdrop-blur-sm">
-              <div
-                className={`h-full rounded-full bg-gradient-to-r ${gradientClass}`}
-                style={{ width: `${course.progress}%` }}
-              />
-            </div>
-          </div>
         </div>
-          <div className="flex flex-1 flex-col gap-3 p-5">
-            <div>
-              <h3 className="text-lg font-semibold leading-tight line-clamp-2 text-[#74b7ff]">{course.title}</h3>
-              <p className="mt-2 text-sm text-[#2f4db3] line-clamp-3">{course.description}</p>
-              {isComingSoon && course.availableAt && (
-                <div className="mt-2 text-xs text-amber-600 font-medium">
-                  Disponível em: {new Date(course.availableAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "2-digit" })}
-                </div>
-              )}
-            </div>
-          <div className="mt-auto flex items-center gap-4 text-xs text-[#6db6ff] font-medium">
-            {!isComingSoon ? (
-              <>
-                <span className="flex items-center gap-1">
-                  <PlayCircle className="h-3.5 w-3.5 text-[#8dc3ff]" />
+        <div className="flex flex-1 flex-col gap-3 p-4">
+          <div className="space-y-2">
+            <h3 className="text-base font-semibold leading-snug text-white line-clamp-2">{course.title}</h3>
+            <p className="text-xs text-slate-300/90 line-clamp-2">{course.description}</p>
+            {isComingSoon && course.availableAt && (
+              <div className="text-xs font-medium text-amber-300">
+                Disponível em: {new Date(course.availableAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "2-digit" })}
+              </div>
+            )}
+          </div>
+          {!isComingSoon && (
+            <div className="space-y-1">
+              <div className="flex flex-wrap gap-1.5 text-[11px] text-slate-200">
+                <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 font-medium tracking-wide text-cyan-100/90">
+                  <PlayCircle className="h-3.5 w-3.5 text-[#06b6d4]" />
                   {course.lessons} aulas
                 </span>
                 {course.materials > 0 && (
-                  <span className="flex items-center gap-1">
-                    <UploadCloud className="h-3.5 w-3.5 text-[#8dc3ff]" />
+                  <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 font-medium tracking-wide text-cyan-100/90">
+                    <UploadCloud className="h-3.5 w-3.5 text-[#06b6d4]" />
                     {course.materials} materiais
                   </span>
                 )}
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5 text-[#8dc3ff]" />
+                <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 font-medium tracking-wide text-cyan-100/90">
+                  <Clock className="h-3.5 w-3.5 text-[#06b6d4]" />
                   {course.duration}
                 </span>
-              </>
-            ) : (
-              <span className="text-amber-600 font-semibold">Em Breve</span>
-            )}
-          </div>
+              </div>
+            </div>
+          )}
+          {isComingSoon && (
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-200">
+              Em breve
+            </div>
+          )}
         </div>
       </Card>
     )
 
     return (
-      <Link key={course.id} href={`/dashboard/cursos/${course.id}`} className="flex-shrink-0">
+      <Link
+        key={course.id}
+        href={`/dashboard/cursos/${course.id}`}
+        className="flex-shrink-0 block w-[clamp(200px,15vw,220px)]"
+      >
         {card}
       </Link>
     )
@@ -255,18 +267,18 @@ export default async function CursosPage() {
 
         {/* Cursos Em Breve */}
         {cursosEmBreve.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-amber-400">
-                ⏳ Em Breve
-              </span>
+          <section className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-amber-400">
+                  ⏳ Em Breve
+                </span>
+              </div>
             </div>
             <CourseCarousel ariaLabel="Cursos em breve">
-              {cursosEmBreve.map((course) =>
-                renderCourseCard(course)
-              )}
+              {cursosEmBreve.map((course) => renderCourseCard(course))}
             </CourseCarousel>
-          </div>
+          </section>
         )}
 
         {/* Novos Cursos */}
