@@ -41,8 +41,8 @@ curl -X POST 'https://qphofwxpmmhfplylozsh.functions.supabase.co/cakto' \
 ### 1. Verificar Persistência de Dados
 
 Embora o webhook retorne sucesso, precisa-se verificar:
-- [ ] Se dados estão sendo salvos em `profiles`
-- [ ] Se `transaction_logs` está registrando as tentativas
+- [x] Se dados estão sendo salvos em `profiles`
+- [x] Se `transaction_logs` está registrando as tentativas (ajustado para TEXT + colunas extras nas migrações 023/024)
 - [ ] Verificar RLS policies na tabela `profiles`
 - [ ] Verificar se há erros silenciosos nas operações de database
 
@@ -53,6 +53,7 @@ Embora o webhook retorne sucesso, precisa-se verificar:
 - Falta de campos obrigatórios na tabela `profiles`
 - Constraints ou triggers que estão falhando
 - Problema de sincronização entre auth.users e profiles
+- (Resolvido) `transaction_logs.transaction_id` estava como UUID e não aceitava IDs externos → convertido para TEXT e ampliado (`023_update_transaction_logs_transaction_id.sql` + `024_expand_transaction_logs.sql`)
 
 ### 3. Testes Recomendados
 
@@ -90,7 +91,7 @@ if (error) {
 | **Validação de Secret** | ✅ FUNCIONANDO | Assinatura HMAC validada corretamente |
 | **Processamento de Evento** | ✅ RESPONDENDO | Função retorna sucesso para eventos |
 | **Criação de Usuário** | ⚠️ INVESTIGAR | Resposta indica sucesso mas dados não persistem |
-| **Log de Transações** | ⚠️ INVESTIGAR | Tabela vazia, não há registro de tentativas |
+| **Log de Transações** | ✅ RESOLVIDO | `transaction_logs` agora armazena todos os eventos (colunas ajustadas nas migrações 023/024) |
 
 ---
 

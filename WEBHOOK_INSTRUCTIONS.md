@@ -79,6 +79,15 @@ ORDER BY created_at DESC
 LIMIT 10;
 ```
 
+### Verificar Eventos Registrados (idempotência)
+
+```sql
+SELECT event_id, event_type, created_at
+FROM webhook_events
+ORDER BY created_at DESC
+LIMIT 10;
+```
+
 ### Verificar Erros
 
 ```sql

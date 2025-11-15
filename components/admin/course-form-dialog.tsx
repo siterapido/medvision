@@ -4,6 +4,7 @@ import { useRef, useState, useTransition } from "react"
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 import { createClient } from "@/lib/supabase/client"
+import { toCanonicalDifficulty } from "@/lib/course/helpers"
 import {
   Dialog,
   DialogContent,
@@ -49,7 +50,7 @@ export function CourseFormDialog({
     title: initialData?.title || "",
     description: initialData?.description || "",
     area: initialData?.area || "",
-    difficulty: initialData?.difficulty || "Iniciante",
+    difficulty: toCanonicalDifficulty(initialData?.difficulty) || "Iniciante",
     course_type: (initialData?.course_type as "Ondonto GPT" | "Premium") || "Ondonto GPT",
     price: initialData?.price || "",
     tags: initialData?.tags || "",
@@ -445,10 +446,10 @@ export function CourseFormDialog({
                 />
                 <div className="flex-1">
                   <Label htmlFor="coming_soon" className="text-white cursor-pointer">
-                    Marcar como "Em Breve"
+                    Marcar como &quot;Em Breve&quot;
                   </Label>
                   <p className="text-xs text-slate-400 mt-1">
-                    Ativa o status "Em Breve" no curso, bloqueando o acesso até a data especificada
+                    Ativa o status &quot;Em Breve&quot; no curso, bloqueando o acesso até a data especificada
                   </p>
                 </div>
               </div>

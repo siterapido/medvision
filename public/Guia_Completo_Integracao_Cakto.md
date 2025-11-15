@@ -329,9 +329,11 @@ Essas rotas são implementadas no Next.js (`app/api/cakto/…`) para manter o fr
 1. **Acesse o painel do Cakto**
 2. **Vá em Configurações > Webhooks**
 3. **Adicione novo webhook:**
-   - **URL**: `https://<seu-projeto>.functions.supabase.co/cakto` (ou o domínio que você estiver usando para proxy/deploy)
+   - **URL**: `https://qphofwxpmmhfplylozsh.functions.supabase.co/cakto` (a URL oficial exposta pelo Supabase; só altere se estiver usando um proxy customizado ou domínio próprio)
    - **Eventos**: Selecione todos (`purchase_approved`, `refund`, `subscription_cancelled`)
-   - **Secret**: Gere um secret seguro e adicione no `.env`
+   - **Secret**: `25031965-ab73-495c-84c0-affd56d5d531` (sincronize essa chave com `CAKTO_WEBHOOK_SECRET` na Edge Function ou no `.env` da CLI)
+
+> Ao promover o fluxo para produção, garanta que a função `cakto` esteja implantada (`npx supabase functions deploy cakto --no-verify-jwt`) e verifique os logs da função no painel do Supabase. Um erro 404 ao enviar o teste indica que o webhook ainda aponta para outra URL ou que a função não foi implantada corretamente; atualize o webhook no Cakto para o link acima e confirme a resposta 200 antes de seguir.
 
 ### 6.2 Eventos Suportados
 

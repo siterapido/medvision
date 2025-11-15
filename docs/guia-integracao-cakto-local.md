@@ -35,6 +35,8 @@ CAKTO_WEBHOOK_SECRET=<seu_secret_fornecido>
 PORT=54322
 ```
 
+> Você pode usar tanto o `short_id` (`AckhQ75`) quanto o `id` completo com hífens (`ff3fdf61-e88f-43b5-982a-32d50f112414`) ou até colar a URL inteira do checkout (`https://pay.cakto.com.br/<id>`). O webhook agora normaliza todas essas variações automaticamente, evitando falsos positivos de `404 Produto não encontrado`.
+
 Arquivo `.env.local` do Next.js deve conter ao menos:
 
 ```env
@@ -103,10 +105,12 @@ CREATE TABLE IF NOT EXISTS payment_history (
 
 1. Localize o produto já existente com URL `https://pay.cakto.com.br/3263gsd_647430` e confirme que o ID (`3263gsd_647430`) está ativo.
 2. Em **Configurações → Webhooks**:
-  - URL: `https://<seu-ngrok>.ngrok-free.app/` (ou domínio real onde a função `cakto` esteja disponível).
+   - URL: `https://<seu-ngrok>.ngrok-free.app/` (ou domínio real onde a função `cakto` esteja disponível).
    - Eventos: habilite `purchase_approved`, `refund`, `subscription_cancelled`.
-  - Secret: use o secret fornecido e mantenha-o apenas em variáveis de ambiente.
+   - Secret: use o secret fornecido e mantenha-o apenas em variáveis de ambiente.
 3. Salve e utilize o botão de “Enviar teste” para validar o endpoint local.
+
+> Quando a integração for promovida para produção, a função `cakto` do Supabase já está exposta em `https://qphofwxpmmhfplylozsh.functions.supabase.co/cakto` e usa o secret `25031965-ab73-495c-84c0-affd56d5d531`. Antes de alterar o webhook no painel Cakto, execute `npx supabase functions deploy cakto --no-verify-jwt` (para keeps o 401 desativado) e confirme nos logs da função que o endpoint está online. Um erro 404 na hora de enviar o teste normalmente significa que o webhook ainda aponta para uma URL antiga ou que a função não foi implantada nesse projeto.
 
 ## 8. Fluxo de Checkout
 
@@ -128,6 +132,7 @@ CREATE TABLE IF NOT EXISTS payment_history (
 ```
 
 5. Confirme no Supabase que `profiles.plan_type = 'premium'` e que existe registro em `payment_history`.
+6. Verifique a idempotência na tabela `webhook_events` (`SELECT * FROM webhook_events ORDER BY created_at DESC LIMIT 5;`) para garantir que cada evento seja registrado apenas uma vez.
 
 - ## 10. Checklist Rápido
 

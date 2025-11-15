@@ -243,7 +243,7 @@ export default async function CursosPage() {
       <Link
         key={course.id}
         href={`/dashboard/cursos/${course.id}`}
-        className="flex-shrink-0 block w-[clamp(200px,15vw,220px)]"
+        className="flex-shrink-0 block w-[min(280px,82vw)] min-w-[240px]"
       >
         {card}
       </Link>

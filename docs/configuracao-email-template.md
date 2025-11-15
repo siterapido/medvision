@@ -16,6 +16,13 @@
 3. Cole o conteúdo do arquivo `supabase-email-template-invite.html`
 4. Clique em **Save** para salvar as alterações
 
+### Passo 3: Configurar o Template "Magic Link"
+
+1. Ainda em **Email Templates**, selecione **"Magic Link"**
+2. Cole o conteúdo do arquivo `docs/supabase-email-template-magic-link.html`
+3. Ajuste os textos de contato (WhatsApp, email) caso necessário
+4. Salve a alteração – o Supabase usará esse template sempre que enviar o link mágico
+
 ### Variáveis Disponíveis no Template
 
 O Supabase fornece estas variáveis que você pode usar no template:
@@ -26,7 +33,7 @@ O Supabase fornece estas variáveis que você pode usar no template:
 - `{{ .Token }}` - Token de confirmação (se precisar usar manualmente)
 - `{{ .TokenHash }}` - Hash do token
 
-### Passo 3: Configurar URL de Redirecionamento
+### Passo 4: Configurar URL de Redirecionamento
 
 1. Ainda em **Authentication**, vá em **URL Configuration**
 2. Configure o **Site URL** para: `https://seu-dominio.com`
@@ -34,7 +41,7 @@ O Supabase fornece estas variáveis que você pode usar no template:
    - `https://seu-dominio.com/**`
    - `http://localhost:3000/**` (para desenvolvimento)
 
-### Passo 4: Testar o Template
+### Passo 5: Testar o Template
 
 Você pode testar o template enviando um convite de teste:
 

@@ -3,7 +3,32 @@ import { createClient } from '@/lib/supabase/server';
 import crypto from 'crypto';
 
 const CAKTO_WEBHOOK_SECRET = process.env.CAKTO_WEBHOOK_SECRET || '';
-const CAKTO_PRODUCT_ID = process.env.CAKTO_PRODUCT_ID || '3263gsd_647430';
+const DEFAULT_CAKTO_PRODUCT_ID = '3263gsd_647430';
+const CAKTO_PRODUCT_ID = extractProductId(
+  process.env.CAKTO_PRODUCT_ID ?? process.env.NEXT_PUBLIC_CAKTO_PRODUCT_ID ?? DEFAULT_CAKTO_PRODUCT_ID
+);
+
+function extractProductId(input?: string | null) {
+  const value = (input ?? '').trim();
+  if (!value) {
+    return DEFAULT_CAKTO_PRODUCT_ID;
+  }
+  if (value.startsWith('http://') || value.startsWith('https://')) {
+    try {
+      const url = new URL(value);
+      const parts = url.pathname.split('/').filter(Boolean);
+      const last = parts[parts.length - 1] ?? '';
+      return isValidProductId(last) ? last : DEFAULT_CAKTO_PRODUCT_ID;
+    } catch {
+      return DEFAULT_CAKTO_PRODUCT_ID;
+    }
+  }
+  return isValidProductId(value) ? value : DEFAULT_CAKTO_PRODUCT_ID;
+}
+
+function isValidProductId(candidate: string) {
+  return /^[A-Za-z0-9_-]+$/.test(candidate);
+}
 
 export async function POST(request: NextRequest) {
   try {

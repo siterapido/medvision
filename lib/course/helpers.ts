@@ -4,6 +4,21 @@ export const normalizeDifficulty = (value: string) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
 
+export const DIFFICULTY_VALUES = ["Iniciante", "Intermediário", "Avançado"] as const
+export type DifficultyValue = (typeof DIFFICULTY_VALUES)[number]
+
+const DIFFICULTY_CANONICAL_MAP: Record<string, DifficultyValue> = {
+  iniciante: "Iniciante",
+  intermediario: "Intermediário",
+  avancado: "Avançado",
+}
+
+export const toCanonicalDifficulty = (value?: string | null): DifficultyValue | undefined => {
+  if (!value) return undefined
+  const normalized = normalizeDifficulty(value)
+  return DIFFICULTY_CANONICAL_MAP[normalized]
+}
+
 export const parsePrice = (price?: string) => {
   if (!price) {
     return null

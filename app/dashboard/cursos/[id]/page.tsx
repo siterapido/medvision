@@ -64,6 +64,8 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
       area,
       tags,
       updated_at,
+      coming_soon,
+      available_at,
       lessons (
         id,
         title,
@@ -150,6 +152,8 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
     area: courseData.area,
     tags: courseData.tags,
     updated_at: courseData.updated_at,
+    coming_soon: courseData.coming_soon,
+    available_at: courseData.available_at,
     lessons: normalizedLessons,
   }
 

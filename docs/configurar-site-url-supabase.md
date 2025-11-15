@@ -46,6 +46,15 @@ Para verificar se está funcionando corretamente:
 1. Faça um teste de compra via Cakto
 2. Receba o email com Magic Link
 3. Verifique se o link aponta para `https://odontogpt.vercel.app` em vez de `localhost`
+4. Confirme que o link contém o caminho `/auth/callback?next=/dashboard` (ou outro `next` permitido)
+5. Abra o link e valide se você é redirecionado para a dashboard autenticada
+
+### Checklist rápido antes do deploy
+
+- [ ] Variáveis `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` presentes no `.env.local`
+- [ ] Rota `app/auth/callback/route.ts` publicada (rodar `npm run build` localmente ajuda a detectar faltas)
+- [ ] URLs de redirect atualizadas no painel do Supabase conforme lista acima
+- [ ] Flow manual de login com Magic Link validado após cada mudança crítica no auth
 
 ## Status Atual
 

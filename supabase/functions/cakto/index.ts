@@ -4,7 +4,8 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const CAKTO_WEBHOOK_SECRET = Deno.env.get('CAKTO_WEBHOOK_SECRET') ?? '';
-const RAW_CAKTO_PRODUCT_ID = Deno.env.get('CAKTO_PRODUCT_ID') ?? '3263gsd_647430';
+const DEFAULT_CAKTO_PRODUCT_ID = '3263gsd_647430';
+const RAW_CAKTO_PRODUCT_ID = Deno.env.get('CAKTO_PRODUCT_ID') ?? DEFAULT_CAKTO_PRODUCT_ID;
 const APP_URL = Deno.env.get('APP_URL') ?? 'https://odontogpt.com';
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -20,24 +21,26 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
 
 function extractProductId(input: string) {
   const v = input.trim();
-  if (!v) return '3263gsd_647430';
+  if (!v) return DEFAULT_CAKTO_PRODUCT_ID;
   if (v.startsWith('http://') || v.startsWith('https://')) {
     try {
       const u = new URL(v);
       const parts = u.pathname.split('/').filter(Boolean);
       const last = parts[parts.length - 1] ?? '';
-      return /^[A-Za-z0-9_]+$/.test(last) ? last : '3263gsd_647430';
+      return isValidProductId(last) ? last : DEFAULT_CAKTO_PRODUCT_ID;
     } catch {
-      return '3263gsd_647430';
+      return DEFAULT_CAKTO_PRODUCT_ID;
     }
   }
-  return /^[A-Za-z0-9_]+$/.test(v) ? v : '3263gsd_647430';
+  return isValidProductId(v) ? v : DEFAULT_CAKTO_PRODUCT_ID;
+}
+
+function isValidProductId(candidate: string) {
+  return /^[A-Za-z0-9_-]+$/.test(candidate);
 }
 
 const CAKTO_PRODUCT_ID = extractProductId(RAW_CAKTO_PRODUCT_ID);
-const CHECKOUT_BASE_URL = `https://pay.cakto.com.br/${CAKTO_PRODUCT_ID}`;
 const encoder = new TextEncoder();
-const decoder = new TextDecoder();
 
 const planTypes = {
   FREE: 'free',
@@ -179,6 +182,16 @@ async function handlePurchaseApproved(payload: Record<string, unknown>) {
   const amount = Number(data.amount ?? 0);
   const paymentMethod = String(data.paymentMethod || 'desconhecido');
 
+  if (await isEventProcessed(transactionId)) {
+    return {
+      success: true,
+      event: 'purchase_approved',
+      transactionId,
+      amount,
+      idempotent: true
+    };
+  }
+
   // Log da transação
   await logTransaction({
     transactionId,
@@ -290,6 +303,7 @@ async function handlePurchaseApproved(payload: Record<string, unknown>) {
     }
   }
 
+  await markEventProcessed(transactionId, 'purchase_approved');
   return {
     success: true,
     event: 'purchase_approved',
@@ -310,8 +324,13 @@ async function handleRefund(payload: Record<string, unknown>) {
   const amount = Number(data.amount ?? 0);
   const paymentMethod = String(data.paymentMethod || 'desconhecido');
 
+  if (await isEventProcessed(transactionId)) {
+    return { success: true, event: 'refund', transactionId, idempotent: true };
+  }
+
   const user = await findUser(customerEmail);
   if (!user) {
+    await markEventProcessed(transactionId, 'refund');
     return { success: false, reason: 'USER_NOT_FOUND', transactionId, email: customerEmail };
   }
 
@@ -332,6 +351,7 @@ async function handleRefund(payload: Record<string, unknown>) {
     webhookData: data
   });
 
+  await markEventProcessed(transactionId, 'refund');
   return { success: true, event: 'refund', transactionId, userId: user.id };
 }
 
@@ -342,8 +362,13 @@ async function handleCancellation(payload: Record<string, unknown>) {
   const customerEmail = String(customer?.email || '').toLowerCase();
   const transactionId = String(data.id || data.transactionId || '');
 
+  if (await isEventProcessed(transactionId)) {
+    return { success: true, event: 'subscription_cancelled', transactionId, idempotent: true };
+  }
+
   const user = await findUser(customerEmail);
   if (!user) {
+    await markEventProcessed(transactionId, 'subscription_cancelled');
     return { success: false, reason: 'USER_NOT_FOUND', transactionId, email: customerEmail };
   }
 
@@ -364,6 +389,7 @@ async function handleCancellation(payload: Record<string, unknown>) {
     webhookData: data
   });
 
+  await markEventProcessed(transactionId, 'subscription_cancelled');
   return { success: true, event: 'subscription_cancelled', transactionId, userId: user.id };
 }
 
@@ -449,6 +475,35 @@ async function upsertPaymentHistory(entry: {
 
   if (error) {
     console.error('Erro ao registrar payment_history:', error);
+  }
+}
+
+async function isEventProcessed(eventId: string) {
+  if (!eventId) return false;
+  const { data, error } = await supabase
+    .from('webhook_events')
+    .select('event_id')
+    .eq('event_id', eventId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Erro ao verificar webhook_events:', error);
+    return false;
+  }
+
+  return Boolean(data);
+}
+
+async function markEventProcessed(eventId: string, type: string) {
+  if (!eventId) return;
+  const { error } = await supabase.from('webhook_events').insert({
+    event_id: eventId,
+    event_type: type,
+    created_at: new Date().toISOString()
+  });
+
+  if (error) {
+    console.error('Erro ao registrar webhook_events:', error);
   }
 }
 

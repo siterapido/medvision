@@ -1,25 +1,29 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 
+const DEFAULT_CAKTO_PRODUCT_ID = "3263gsd_647430"
+const PRODUCT_ID_PATTERN = /^[A-Za-z0-9_-]+$/
+
 function extractProductId(input?: string) {
   const value = (input ?? "").trim()
-  if (!value) return "3263gsd_647430"
+  if (!value) return DEFAULT_CAKTO_PRODUCT_ID
   if (value.startsWith("http://") || value.startsWith("https://")) {
     try {
       const url = new URL(value)
       const parts = url.pathname.split("/").filter(Boolean)
       const last = parts[parts.length - 1] ?? ""
-      return /^[A-Za-z0-9_]+$/.test(last) ? last : "3263gsd_647430"
+      return PRODUCT_ID_PATTERN.test(last) ? last : DEFAULT_CAKTO_PRODUCT_ID
     } catch {
-      return "3263gsd_647430"
+      return DEFAULT_CAKTO_PRODUCT_ID
     }
   }
-  return /^[A-Za-z0-9_]+$/.test(value) ? value : "3263gsd_647430"
+  return PRODUCT_ID_PATTERN.test(value) ? value : DEFAULT_CAKTO_PRODUCT_ID
 }
 
-const CAKTO_PRODUCT_ID = extractProductId(
-  process.env.NEXT_PUBLIC_CAKTO_PRODUCT_ID ?? process.env.CAKTO_PRODUCT_ID,
-)
-const CAKTO_BASE_URL = `https://pay.cakto.com.br/${CAKTO_PRODUCT_ID}`
+function resolveProductId() {
+  return extractProductId(
+    process.env.NEXT_PUBLIC_CAKTO_PRODUCT_ID ?? process.env.CAKTO_PRODUCT_ID ?? DEFAULT_CAKTO_PRODUCT_ID,
+  )
+}
 
 function getAdminClient() {
   return createAdminClient()
@@ -138,7 +142,8 @@ export function generateCheckoutUrl(userEmail: string, customData: Record<string
     throw new Error("E-mail inválido para gerar checkout")
   }
 
-  if (!/^[A-Za-z0-9_]+$/.test(CAKTO_PRODUCT_ID)) {
+  const productId = resolveProductId()
+  if (!PRODUCT_ID_PATTERN.test(productId)) {
     throw new Error("ID de produto Cakto inválido")
   }
 
@@ -147,7 +152,8 @@ export function generateCheckoutUrl(userEmail: string, customData: Record<string
     ...customData,
   })
 
-  return `${CAKTO_BASE_URL}?${params.toString()}`
+  const baseUrl = `https://pay.cakto.com.br/${productId}`
+  return `${baseUrl}?${params.toString()}`
 }
 
 export async function checkUserSubscription(email: string): Promise<SubscriptionStatusResponse> {

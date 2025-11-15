@@ -1,4 +1,9 @@
 import { z } from "zod"
+import { DIFFICULTY_VALUES, toCanonicalDifficulty } from "@/lib/course/helpers"
+
+const difficultyEnum = z.enum(DIFFICULTY_VALUES, {
+  required_error: "Selecione o nível de dificuldade",
+})
 
 // Schema para criação/edição de curso
 export const courseFormSchema = z.object({
@@ -13,9 +18,12 @@ export const courseFormSchema = z.object({
     .optional()
     .or(z.literal("")),
   area: z.string().min(1, "A área é obrigatória"),
-  difficulty: z.enum(["Iniciante", "Intermediário", "Avançado"], {
-    required_error: "Selecione o nível de dificuldade",
-  }).describe("Nível de dificuldade do curso"),
+  difficulty: z
+    .preprocess(
+      (value) => (typeof value === "string" ? toCanonicalDifficulty(value) ?? value : value),
+      difficultyEnum
+    )
+    .describe("Nível de dificuldade do curso"),
   course_type: z.enum(["Ondonto GPT", "Premium"], {
     required_error: "Selecione o tipo de curso",
   }),
