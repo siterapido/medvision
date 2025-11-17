@@ -99,6 +99,13 @@ serve(async (req) => {
   }
 
   const event = String(payload.event || '');
+  const data = payload.data as Record<string, unknown> | undefined;
+  const product = data?.product as Record<string, unknown> | undefined;
+  const productId = String(product?.id || '');
+  const shortId = String(product?.short_id || '');
+  if (product && (productId !== CAKTO_PRODUCT_ID && shortId !== CAKTO_PRODUCT_ID)) {
+    return jsonResponse({ error: 'Product not found' }, 404);
+  }
   try {
     switch (event) {
       case 'purchase_approved':
@@ -160,7 +167,7 @@ function safeCompareHex(expected: string, provided: string) {
 
 function isTestEmail(email?: string) {
   if (!email) return false;
-  return /(test|example\.com|demo|fake)/i.test(email);
+  return /(test|demo|fake)/i.test(email);
 }
 
 async function handlePurchaseApproved(payload: Record<string, unknown>) {
@@ -329,7 +336,26 @@ async function handleRefund(payload: Record<string, unknown>) {
   }
 
   const user = await findUser(customerEmail);
+  await logTransaction({
+    transactionId,
+    eventType: 'refund',
+    userId: user?.id,
+    customerEmail,
+    customerName: String(customer?.name || ''),
+    amount,
+    status: 'processing',
+    webhookPayload: data
+  });
   if (!user) {
+    await logTransaction({
+      transactionId,
+      eventType: 'refund',
+      customerEmail,
+      amount,
+      status: 'error',
+      errorMessage: 'USER_NOT_FOUND',
+      webhookPayload: data
+    });
     await markEventProcessed(transactionId, 'refund');
     return { success: false, reason: 'USER_NOT_FOUND', transactionId, email: customerEmail };
   }
@@ -352,6 +378,15 @@ async function handleRefund(payload: Record<string, unknown>) {
   });
 
   await markEventProcessed(transactionId, 'refund');
+  await logTransaction({
+    transactionId,
+    eventType: 'refund',
+    userId: user.id,
+    customerEmail,
+    amount,
+    status: 'success',
+    webhookPayload: data
+  });
   return { success: true, event: 'refund', transactionId, userId: user.id };
 }
 
@@ -367,7 +402,25 @@ async function handleCancellation(payload: Record<string, unknown>) {
   }
 
   const user = await findUser(customerEmail);
+  await logTransaction({
+    transactionId,
+    eventType: 'subscription_cancelled',
+    userId: user?.id,
+    customerEmail,
+    customerName: String(customer?.name || ''),
+    amount: Number(data.amount ?? 0),
+    status: 'processing',
+    webhookPayload: data
+  });
   if (!user) {
+    await logTransaction({
+      transactionId,
+      eventType: 'subscription_cancelled',
+      customerEmail,
+      status: 'error',
+      errorMessage: 'USER_NOT_FOUND',
+      webhookPayload: data
+    });
     await markEventProcessed(transactionId, 'subscription_cancelled');
     return { success: false, reason: 'USER_NOT_FOUND', transactionId, email: customerEmail };
   }
@@ -390,6 +443,14 @@ async function handleCancellation(payload: Record<string, unknown>) {
   });
 
   await markEventProcessed(transactionId, 'subscription_cancelled');
+  await logTransaction({
+    transactionId,
+    eventType: 'subscription_cancelled',
+    userId: user.id,
+    customerEmail,
+    status: 'success',
+    webhookPayload: data
+  });
   return { success: true, event: 'subscription_cancelled', transactionId, userId: user.id };
 }
 
