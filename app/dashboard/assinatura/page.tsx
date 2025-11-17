@@ -86,21 +86,25 @@ export default async function AssinaturaPage() {
               <Card
                 key={plan.id}
                 className={
-                  "relative overflow-hidden border-2 transition-all" +
-                  (plan.highlight
-                    ? " border-primary"
-                    : " border-border")
+                  plan.highlight
+                    ? "relative overflow-hidden p-8 md:p-10 transition-all border-2 border-primary shadow-2xl md:scale-[1.04] bg-gradient-to-b from-primary/10 to-transparent"
+                    : "relative overflow-hidden border-2 border-border transition-all"
                 }
               >
                 {plan.highlight && (
-                  <div className="absolute right-4 top-4 rounded-full border border-[#06b6d4]/30 bg-[#06b6d4]/10 px-3 py-1 text-xs font-medium text-[#7dd7e9]">
-                    <Crown className="mr-1 inline h-3.5 w-3.5" /> Mais indicado
+                  <div className="pointer-events-none absolute -right-14 top-6 rotate-45 z-10">
+                    <span className="bg-accent text-accent-foreground px-16 py-1 text-xs font-semibold shadow-md">Oferta Especial</span>
                   </div>
                 )}
-                <CardContent className="p-6 space-y-4">
-                  <div>
-                    <h3 className="text-2xl font-bold">{plan.name}</h3>
-                    <div className="mt-3 flex items-baseline gap-1">
+                <CardContent className={plan.highlight ? "space-y-4 p-0" : "p-6 space-y-4"}>
+                  <div className={plan.highlight ? "px-8 md:px-10" : undefined}>
+                    {plan.highlight && (
+                      <div className="flex justify-center mb-3">
+                        <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">ESCOLHA INTELIGENTE</span>
+                      </div>
+                    )}
+                    <h3 className="text-2xl font-bold text-center md:text-left">{plan.name}</h3>
+                    <div className="mt-3 flex items-baseline gap-1 justify-center md:justify-start">
                       <span className="text-4xl font-extrabold text-primary">{plan.price}</span>
                       <span className="text-muted-foreground">{plan.cadence}</span>
                     </div>

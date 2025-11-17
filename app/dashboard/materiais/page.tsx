@@ -48,8 +48,12 @@ export default async function MateriaisPage() {
     error,
   } = await supabase
     .from("materials")
-    .select("id, title, description, pages, tags, resource_type, file_url, created_at, updated_at, is_available")
+    .select("*")
     .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("[Materiais] Falha ao carregar materiais", { message: error.message, details: (error as any)?.details, hint: (error as any)?.hint })
+  }
 
   const library: DashboardMaterial[] = (materials ?? []).map((material) => ({
     id: material.id,
@@ -60,10 +64,14 @@ export default async function MateriaisPage() {
     resource_type: material.resource_type,
     file_url: material.file_url,
     created_at: material.created_at,
-    updated_at: material.updated_at,
-    is_available: material.is_available,
+    updated_at: material.updated_at ?? material.created_at,
+    is_available: ("is_available" in material ? material.is_available : true),
   }))
 
+  const relationMissing = !!error && (
+    (typeof error.message === "string" && error.message.includes("Could not find the table")) ||
+    (typeof (error as any)?.hint === "string" && (error as any).hint.includes("Perhaps you meant"))
+  )
   const hasMaterials = library.length > 0
 
   return (
@@ -79,19 +87,14 @@ export default async function MateriaisPage() {
         </div>
 
         {/* Erro ao carregar */}
-        {error ? (
+        {error && !relationMissing ? (
           <div className="rounded-2xl border-2 border-dashed border-rose-300 bg-rose-50 p-8 text-center">
             <p className="text-sm text-rose-700">Não foi possível carregar os materiais. Tente novamente mais tarde.</p>
           </div>
         ) : !hasMaterials ? (
           <div className="rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 p-8 text-center">
             <FileText className="mx-auto h-12 w-12 text-slate-400" />
-            <p className="mt-4 text-sm text-slate-600">
-              Nenhum material disponível no momento.{" "}
-              <Link className="font-semibold text-primary hover:underline" href="/admin/materiais">
-                Cadastre novos materiais
-              </Link>
-            </p>
+            <p className="mt-4 text-sm text-slate-600">Nenhum material disponível no momento.</p>
           </div>
         ) : (
           <div className="space-y-8">
