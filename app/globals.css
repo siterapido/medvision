@@ -1508,18 +1508,21 @@ body {
   display: none; /* Chrome, Safari and Opera */
 }
 
-/* ===== FIXED FOOTER STYLES ===== */
+/* ===== FLUID FOOTER STYLES ===== */
 .fixed-footer-container {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
+  position: relative;
   width: 100%;
-  z-index: 50;
+  z-index: 30;
   background: var(--background);
   border-top: 1px solid var(--border);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
+  margin-top: auto;
+  transition:
+    margin-top 0.3s ease-in-out,
+    padding 0.3s ease-in-out,
+    background 0.3s ease-in-out,
+    border-color 0.3s ease-in-out;
 }
 
 /* Suporte para safe areas em dispositivos móveis */
@@ -1546,23 +1549,7 @@ body {
   }
 }
 
-/* Transição suave para evitar flickering */
-.fixed-footer-container {
-  transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
-}
-
-/* Estado quando elementos estão se movendo (ex: teclado virtual) */
-.fixed-footer-container.moving {
-  transition: none;
-}
-
-/* Variante sticky para containers com scroll interno */
-.fixed-footer-container.sticky-variant {
-  position: sticky;
-  bottom: 0;
-}
-
-/* Garantir que o conteúdo seja legível mesmo com sobreposições */
+/* Conteúdo interno com limites previsíveis */
 .fixed-footer-content {
   max-width: 100vw;
   margin: 0 auto;
@@ -1579,17 +1566,6 @@ body {
   .fixed-footer-content {
     padding: 1rem 2rem;
     max-width: 1200px;
-  }
-}
-
-/* Prevenir que o rodapé fixo sobreponha outros elementos críticos */
-body.has-fixed-footer {
-  padding-bottom: 0;
-}
-
-@media (max-width: 768px) {
-  body.has-fixed-footer {
-    padding-bottom: 0;
   }
 }
 

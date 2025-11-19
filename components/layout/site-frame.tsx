@@ -3,7 +3,6 @@
 import { usePathname } from "next/navigation"
 import type React from "react"
 
-import { FloatingChat } from "@/components/chat/floating-chat"
 import { AppScrollArea } from "./app-scroll-area"
 import { LandingFooter } from "./landing-footer"
 import { LandingHeader } from "./landing-header"
@@ -21,7 +20,6 @@ export function SiteFrame({ children }: SiteFrameProps) {
       {showLandingShell ? <LandingHeader /> : null}
       <AppScrollArea>
         {children}
-        <FloatingChat />
       </AppScrollArea>
       {showLandingShell ? <LandingFooter /> : null}
     </div>

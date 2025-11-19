@@ -29,6 +29,7 @@ describe("AppScrollArea", () => {
     assert.equal(appScrollAreaTabIndex, -1)
     assert(appScrollAreaClassName.includes("app-scroll-region"))
     assert(appScrollAreaClassName.includes("scroll-smooth"))
+    assert(appScrollAreaClassName.includes("flex-1"))
     assert.equal(appScrollAreaStyle.WebkitOverflowScrolling, "touch")
     assert.equal(appScrollAreaLabel, "Conteúdo principal do site")
     assert.equal(appScrollAreaTestId, "app-scroll-area")

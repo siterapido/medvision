@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-export const appScrollAreaClassName = "app-scroll-region scroll-smooth"
+export const appScrollAreaClassName = "app-scroll-region scroll-smooth flex-1 w-full"
 export const appScrollAreaRole = "region"
 export const appScrollAreaLabel = "Conteúdo principal do site"
 export const appScrollAreaTabIndex = -1

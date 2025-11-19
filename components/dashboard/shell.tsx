@@ -182,6 +182,9 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
     }
   }
 
+  const showFooter = pathname !== "/dashboard/chat" && pathname !== "/dashboard/cursos"
+  const isProfileRoute = pathname === "/dashboard/perfil"
+
   return (
     <div className={`min-h-screen h-screen flex overflow-hidden ${pathname === '/dashboard/chat' || pathname === '/dashboard/cursos' ? 'bg-slate-950' : 'bg-slate-50'}`}>
       <DashboardSidebar
@@ -197,11 +200,18 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
           isLoggingOut={isLoggingOut}
           onLogout={handleLogout}
         />
-        <main className={`flex flex-1 flex-col min-h-0 ${pathname === '/dashboard/chat' || pathname === '/dashboard/cursos' ? 'bg-transparent p-0 overflow-hidden' : 'bg-[#eff4fb] pt-4 px-4 md:pt-6 md:px-6 lg:pt-8 lg:px-8 overflow-y-auto'}`}>
+        <main
+          className={`flex flex-1 flex-col min-h-0 ${
+            pathname === "/dashboard/chat" || pathname === "/dashboard/cursos"
+              ? "bg-transparent p-0 overflow-hidden"
+              : "bg-[#eff4fb] pt-4 px-4 md:pt-6 md:px-6 lg:pt-8 lg:px-8 overflow-y-auto"
+          }`}
+        >
           {children}
+          {showFooter && isProfileRoute && <DashboardFooter />}
         </main>
         <FloatingChat />
-        {pathname !== '/dashboard/chat' && pathname !== '/dashboard/cursos' && <DashboardFooter />}
+        {showFooter && !isProfileRoute && <DashboardFooter />}
       </div>
 
       <>

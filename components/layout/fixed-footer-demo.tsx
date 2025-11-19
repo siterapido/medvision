@@ -1,23 +1,17 @@
 'use client'
 
-import { FixedFooter, useFixedFooterOffset } from './fixed-footer'
+import { Send } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Send } from 'lucide-react'
+import { FixedFooter } from './fixed-footer'
 
 /**
- * Exemplo de implementação de um rodapé fixo para chat
- * Este componente demonstra como usar o FixedFooter na prática
+ * Exemplo de implementação de um rodapé fluido para chat.
  */
 export function ChatFixedFooterDemo() {
-  // Usar o hook para calcular offset automático se houver outros elementos fixos
-  const offset = useFixedFooterOffset()
-
   return (
     <FixedFooter
-      offset={offset}
       className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 border-t border-slate-700"
-      addBodyPadding={true}
     >
       <div className="flex w-full items-center gap-3">
         <Input
@@ -36,13 +30,12 @@ export function ChatFixedFooterDemo() {
 }
 
 /**
- * Exemplo de rodapé fixo para ações importantes
+ * Exemplo de rodapé fluido para ações importantes.
  */
 export function ActionFixedFooterDemo() {
   return (
     <FixedFooter
       className="bg-background border-t"
-      addBodyPadding={true}
     >
       <div className="flex w-full items-center justify-between">
         <div className="text-sm text-muted-foreground">
@@ -62,17 +55,15 @@ export function ActionFixedFooterDemo() {
 }
 
 /**
- * Exemplo de rodapé fixo sticky para uso em containers com scroll
+ * Exemplo de rodapé fluido.
  */
 export function StickyFooterDemo() {
   return (
     <FixedFooter
-      useSticky={true}
       className="bg-muted border-t"
-      addBodyPadding={false}
     >
       <div className="text-center text-sm text-muted-foreground">
-        Este rodapé fica sticky dentro do container
+        Este rodapé acompanha o conteúdo normalmente dentro do container
       </div>
     </FixedFooter>
   )
