@@ -51,7 +51,7 @@ export default async function PerfilPage() {
         </p>
       </div>
 
-      <section className="relative overflow-hidden rounded-3xl border border-[#24324F]/50 bg-[#0F192F] px-6 py-8 text-white shadow-2xl">
+      <section className="relative overflow-hidden rounded-3xl border border-[#24324F]/50 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 px-6 py-8 text-white shadow-2xl">
         <div className="absolute inset-0 opacity-60">
           <div className="absolute inset-0 bg-[radial-gradient(75%_65%_at_15%_20%,rgba(8,145,178,0.35),transparent),radial-gradient(60%_60%_at_85%_30%,rgba(6,182,212,0.25),transparent)]" />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent)] mix-blend-screen" />

@@ -154,7 +154,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
 
   return (
     <div className="space-y-8">
-      <Card className="relative overflow-hidden border-[#24324F]/60 bg-[#131D37] text-white shadow-2xl shadow-[#0B1627]/40">
+      <Card className="relative overflow-hidden border-[#24324F]/60 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white shadow-2xl shadow-[#0B1627]/40">
         <div className="pointer-events-none absolute inset-0 opacity-70">
           <div className="absolute inset-0 bg-[radial-gradient(75%_60%_at_20%_0%,rgba(8,145,178,0.22),transparent),radial-gradient(55%_45%_at_85%_25%,rgba(6,182,212,0.18),transparent)]" />
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent)] mix-blend-screen" />
@@ -283,7 +283,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
         </CardContent>
       </Card>
 
-      <Card className="relative overflow-hidden border-[#24324F]/60 bg-[#0F192F] text-white shadow-2xl shadow-[#060d1d]/50">
+      <Card className="relative overflow-hidden border-[#24324F]/60 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white shadow-2xl shadow-[#060d1d]/50">
         <div className="pointer-events-none absolute inset-0 opacity-60">
           <div className="absolute inset-0 bg-[radial-gradient(65%_60%_at_10%_0%,rgba(35,153,180,0.28),transparent),radial-gradient(45%_45%_at_80%_40%,rgba(8,145,178,0.18),transparent)]" />
           <div className="absolute inset-0 bg-[linear-gradient(145deg,rgba(255,255,255,0.06),transparent)] mix-blend-screen" />

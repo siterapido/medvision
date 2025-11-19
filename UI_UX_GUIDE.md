@@ -1408,3 +1408,62 @@ var(--shadow-color)
 Para dúvidas ou sugestões sobre este design system, entre em contato com o time de desenvolvimento.
 
 **Desenvolvido para Odonto GPT** 🦷
+
+## Mini-chat Flutuante (UI Interna)
+
+```
+/* Botão flutuante (toggle) */
+size: 60px (desktop) | 50px (mobile)
+shape: circular (full)
+background: #0F192F (Dark Base)
+border: 2px solid rgba(8, 145, 178, 1)
+icon/logo: versão branca
+
+/* States */
+hover: background #131D37 (Dark Mid)
+focus-visible: outline 2px #0891b2; outline-offset: 2px
+active: scale(0.95)
+
+/* Painel do chat */
+container: 300x400 (desktop) | 280x380 (mobile)
+background: linear-gradient(135deg, #0F192F 0%, #131D37 35%, #1A2847 65%, #131D37 100%)
+border: 1px solid #24324F
+radius: 12px (rounded-xl)
+shadow: 2xl
+
+/* Header */
+background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)
+text: white
+divider: 1px #24324F
+
+/* Área de mensagens */
+text-default: white
+scroll: thin; scrollbar-color: #24324F #0F192F
+gap: space-y-3; padding: 16px
+
+/* Bubbles */
+user: background linear-gradient(135deg, #0891b2 → #06b6d4); text white; padding 8px–12px
+assistant: background #16243F; border #24324F; text white; padding 8px–12px
+
+/* Input */
+background: #131D37; text: white; placeholder: slate-300
+border: #24324F; focus: ring 2px #0891b2
+padding: 16px (p-4); gap ao redor: 12px (gap-3)
+
+/* Interações & animações */
+transition: opacity/transform (200ms ease-out)
+open: opacity 100%, translateY(0), scale(1)
+close: opacity 0, translateY(8px), scale(0.95)
+
+/* Envio */
+sem botão de enviar; pressionar Enter (sem Shift) dispara o envio
+```
+
+**Acessibilidade**
+- `role="dialog"` no painel, `aria-expanded` no botão, `aria-live="polite"` nas mensagens.
+- Contraste: texto branco em planos escuros; bolha do usuário mantém legibilidade.
+- Navegável via teclado (Enter para envio, foco ring teal).
+
+**Responsividade**
+- Posicionamento fixo `bottom-right` consistente.
+- Tamanhos e offsets adaptados em mobile/desktop.

@@ -15,7 +15,7 @@ export const plans: Plan[] = [
     period: "/mês",
     description: "Perfeito para começar sua jornada",
     features: [
-      "Acesso ao Chat de IA",
+      "Acesso ao Odonto GPT",
       "Todos os cursos disponíveis",
       "Certificados de conclusão",
       "Suporte por email",

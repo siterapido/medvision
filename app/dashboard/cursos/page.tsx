@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { CourseCarousel } from "@/components/courses/course-carousel"
+import { ContentTypeSections } from "@/components/dashboard/content-type-filter"
 import { sanitizeCourseId } from "@/lib/course/helpers"
 import Link from "next/link"
 import Image from "next/image"
@@ -20,6 +21,15 @@ type CourseWithProgress = {
   isDraft: boolean
   comingSoon?: boolean
   availableAt?: string | null
+}
+
+type LiveItem = {
+  id: string
+  title: string
+  description: string
+  thumbnail: string
+  scheduledAt: string
+  status: "agendada" | "realizada" | "cancelada"
 }
 
 const formatDurationLabel = (durationText?: string | null, durationMinutes?: number | null) => {
@@ -127,6 +137,22 @@ export default async function CursosPage() {
   const cursosEmBreve = dedupedCourses.filter(c => c.comingSoon && c.availableAt && new Date(c.availableAt) > new Date())
   const novoCursos = dedupedCourses.filter(c => !(c.comingSoon && c.availableAt && new Date(c.availableAt) > new Date()))
 
+  const { data: livesRaw } = await supabase
+    .from("lives")
+    .select("id,title,description,thumbnail_url,scheduled_at,status,is_published")
+    .order("scheduled_at", { ascending: true })
+
+  const livesAgendadas: LiveItem[] = (livesRaw ?? [])
+    .filter((l) => l.status === "agendada" && l.scheduled_at && new Date(l.scheduled_at) > new Date())
+    .map((l) => ({
+      id: l.id,
+      title: l.title,
+      description: l.description || "Descrição em breve",
+      thumbnail: l.thumbnail_url || "/placeholder.svg?height=200&width=400",
+      scheduledAt: l.scheduled_at,
+      status: "agendada",
+    }))
+
   const getProgressLabel = (progress: number) => {
     if (progress >= 100) return "Curso concluído"
     if (progress <= 0) return "Pronto para iniciar"
@@ -160,17 +186,17 @@ export default async function CursosPage() {
     const normalizedProgress = Math.min(Math.max(course.progress, 0), 100)
 
     const card = (
-      <Card className="interactive-card group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-[#0891b2]/25 bg-[radial-gradient(circle_at_top,#16243f,_#0f192f_70%)] text-white shadow-[0_24px_55px_rgba(3,7,18,0.6)] transition-all duration-500 hover:-translate-y-1 hover:border-[#2399B4]/60 hover:shadow-[0_30px_70px_rgba(8,145,178,0.35)]">
+      <Card className="interactive-card group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border-0 p-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white shadow-[0_16px_45px_rgba(12,31,56,0.36),0_24px_55px_rgba(12,31,56,0.6)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_30px_70px_rgba(12,31,56,0.62)]">
         <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#2399b4,transparent_60%)] opacity-40 blur-3xl" />
         </div>
-        <div className="relative h-40 w-full overflow-hidden">
+        <div className="relative w-full overflow-hidden" style={{ aspectRatio: "4 / 3" }}>
           <Image
             src={course.thumbnail}
             alt={course.title}
             fill
             sizes="(max-width: 768px) 100vw, 230px"
-            className="object-cover opacity-60 mix-blend-luminosity transition duration-[1200ms] ease-out group-hover:scale-110"
+            className="object-cover object-top opacity-60 mix-blend-luminosity transition duration-[1200ms] ease-out group-hover:scale-110"
             priority={false}
             unoptimized
           />
@@ -250,6 +276,49 @@ export default async function CursosPage() {
     )
   }
 
+  const renderLiveCard = (live: LiveItem) => {
+    const card = (
+      <Card className="interactive-card group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border-0 p-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white shadow-[0_16px_45px_rgba(12,31,56,0.36),0_24px_55px_rgba(12,31,56,0.6)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_30px_70px_rgba(12,31,56,0.62)]">
+        <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#2399b4,transparent_60%)] opacity-40 blur-3xl" />
+        </div>
+        <div className="relative w-full overflow-hidden" style={{ aspectRatio: "4 / 3" }}>
+          <Image
+            src={live.thumbnail}
+            alt={live.title}
+            fill
+            sizes="(max-width: 768px) 100vw, 230px"
+            className="object-cover object-top opacity-60 mix-blend-luminosity transition duration-[1200ms] ease-out group-hover:scale-110"
+            priority={false}
+            unoptimized
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0a1629]/90 via-[#0c1f38]/70 to-transparent" />
+          <div className="absolute top-4 left-4">
+            <Badge className="flex items-center gap-1 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/90 backdrop-blur border-[#0891b2]/60 bg-[#0891b2]/10 text-[#7de3ff]">Live</Badge>
+          </div>
+        </div>
+        <div className="flex flex-1 flex-col gap-3 p-4">
+          <div className="space-y-2">
+            <h3 className="text-base font-semibold leading-snug text-white line-clamp-2">{live.title}</h3>
+            <p className="text-xs text-slate-300/90 line-clamp-2">{live.description}</p>
+            {live.scheduledAt && (
+              <div className="text-xs font-medium text-cyan-200 flex items-center gap-1">
+                <Clock className="h-3.5 w-3.5 text-[#06b6d4]" />
+                {new Date(live.scheduledAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+              </div>
+            )}
+          </div>
+        </div>
+      </Card>
+    )
+
+    return (
+      <div key={live.id} className="flex-shrink-0 block w-[min(280px,82vw)] min-w-[240px]">
+        {card}
+      </div>
+    )
+  }
+
   return (
     <DashboardScrollArea className="!px-0 !pt-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <section className="relative overflow-hidden px-4 py-6 text-white sm:px-8 lg:px-10">
@@ -265,40 +334,16 @@ export default async function CursosPage() {
         </div>
 
 
-        {/* Cursos Em Breve */}
-        {cursosEmBreve.length > 0 && (
-          <section className="space-y-4">
-            <div className="space-y-2">
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-amber-400">
-                  ⏳ Em Breve
-                </span>
-              </div>
-            </div>
-            <CourseCarousel ariaLabel="Cursos em breve">
-              {cursosEmBreve.map((course) => renderCourseCard(course))}
-            </CourseCarousel>
-          </section>
-        )}
-
-        {/* Novos Cursos */}
-        {novoCursos.length > 0 && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-cyan-400">
-                ✨ Meus Cursos
-              </span>
-            </div>
-            <CourseCarousel ariaLabel="Novos cursos">
-              {novoCursos.map((course) =>
-                renderCourseCard(course, {
-                  badge: course.isDraft ? undefined : "Novo",
-                  badgeClassName: course.isDraft ? undefined : "border-primary/60 bg-primary/10 text-primary",
-                }),
-              )}
-            </CourseCarousel>
-          </div>
-        )}
+        <ContentTypeSections
+          cursosEmBreveCards={cursosEmBreve.map((course) => renderCourseCard(course))}
+          novoCursosCards={novoCursos.map((course) =>
+            renderCourseCard(course, {
+              badge: course.isDraft ? undefined : "Novo",
+              badgeClassName: course.isDraft ? undefined : "border-primary/60 bg-primary/10 text-primary",
+            }),
+          )}
+          livesAgendadasCards={livesAgendadas.map((live) => renderLiveCard(live))}
+        />
       </div>
       </section>
     </DashboardScrollArea>

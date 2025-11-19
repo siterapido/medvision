@@ -178,18 +178,17 @@ export function CourseGrid({ courses }: CourseGridProps) {
 
             return (
               <Link key={course.id} href={`/dashboard/cursos/${course.id}`} className="flex-shrink-0">
-                <Card className="group relative flex h-full w-[260px] flex-col overflow-hidden rounded-2xl border-2 border-[#9dbbff] bg-gradient-to-b from-[#e7f3ff] via-[#d6e8ff] to-[#c5ddff] text-slate-900 shadow-[0_20px_40px_rgba(13,60,130,0.12)] transition-all duration-500 hover:-translate-y-1 hover:border-[#1c64f2]/70 hover:shadow-[0_30px_55px_rgba(13,60,130,0.24)] sm:w-[300px]">
-                  <div className="relative h-48 w-full overflow-hidden">
+                <Card className="group relative flex h-full w-[260px] flex-col overflow-hidden rounded-2xl border-0 p-0 bg-gradient-to-b from-[#e7f3ff] via-[#d6e8ff] to-[#c5ddff] text-slate-900 shadow-[0_14px_38px_rgba(8,145,178,0.22),0_20px_44px_rgba(13,60,130,0.12)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_30px_55px_rgba(13,60,130,0.24)] sm:w-[300px]">
+                  <div className="relative w-full overflow-hidden" style={{ aspectRatio: "4 / 3" }}>
                     <Image
                       src={course.thumbnail}
                       alt={course.title}
                       fill
                       sizes="(max-width: 768px) 100vw, 260px"
-                      className="object-cover transition duration-[1200ms] ease-out group-hover:scale-110"
+                      className="object-cover object-top transition duration-[1200ms] ease-out group-hover:scale-110"
                       priority={false}
                       unoptimized
                     />
-                    <div className="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent" />
                     <div className="absolute inset-0 flex items-center justify-center opacity-0 transition duration-500 group-hover:opacity-100">
                       <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[#8bc3ff]/70 bg-white/85 text-white backdrop-blur-xl shadow-lg shadow-[#1c64f2]/20">
                         <PlayCircle className="h-8 w-8 text-[#cfe6ff]" />

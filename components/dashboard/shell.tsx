@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
+import { FloatingChat } from "@/components/chat/floating-chat"
 import { DashboardHeader } from "@/components/dashboard/header"
 import {
   DashboardSidebar,
@@ -199,6 +200,7 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
         <main className={`flex flex-1 flex-col min-h-0 ${pathname === '/dashboard/chat' || pathname === '/dashboard/cursos' ? 'bg-transparent p-0 overflow-hidden' : 'bg-[#eff4fb] pt-4 px-4 md:pt-6 md:px-6 lg:pt-8 lg:px-8 overflow-y-auto'}`}>
           {children}
         </main>
+        <FloatingChat />
         {pathname !== '/dashboard/chat' && pathname !== '/dashboard/cursos' && <DashboardFooter />}
       </div>
 

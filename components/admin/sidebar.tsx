@@ -12,6 +12,7 @@ import {
   FileText,
   LayoutDashboard,
   LogOut,
+  Calendar,
   type LucideIcon,
 } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
@@ -39,6 +40,7 @@ const navigation: NavItem[] = [
   { name: "Visão geral", href: "/admin", icon: LayoutDashboard },
   { name: "Gerenciar Cursos", href: "/admin/cursos", icon: BookOpen },
   { name: "Materiais", href: "/admin/materiais", icon: FileText },
+  { name: "Cadastrar Lives", href: "/admin/lives", icon: Calendar },
 ]
 
 export function AdminSidebar({ user, profile }: AdminSidebarProps) {

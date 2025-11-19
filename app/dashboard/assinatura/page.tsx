@@ -87,8 +87,8 @@ export default async function AssinaturaPage() {
                 key={plan.id}
                 className={
                   plan.highlight
-                    ? "relative overflow-hidden p-8 md:p-10 transition-all border-2 border-primary shadow-2xl md:scale-[1.04] bg-gradient-to-b from-primary/10 to-transparent"
-                    : "relative overflow-hidden border-2 border-border transition-all"
+                    ? "relative overflow-hidden p-8 md:p-10 transition-all border-2 border-primary shadow-2xl md:scale-[1.04] bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white"
+                    : "relative overflow-hidden border-2 border-border transition-all bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white"
                 }
               >
                 {plan.highlight && (
@@ -96,7 +96,7 @@ export default async function AssinaturaPage() {
                     <span className="bg-accent text-accent-foreground px-16 py-1 text-xs font-semibold shadow-md">Oferta Especial</span>
                   </div>
                 )}
-                <CardContent className={plan.highlight ? "space-y-4 p-0" : "p-6 space-y-4"}>
+                <CardContent className={plan.highlight ? "space-y-4 p-0" : "px-5 pt-5 pb-3 space-y-3"}>
                   <div className={plan.highlight ? "px-8 md:px-10" : undefined}>
                     {plan.highlight && (
                       <div className="flex justify-center mb-3">
