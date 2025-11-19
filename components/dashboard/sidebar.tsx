@@ -35,6 +35,9 @@ interface DashboardSidebarProps {
 interface DashboardSidebarContentProps {
   onClose?: () => void
   className?: string
+  onLogout?: (() => void) | null
+  isLoggingOut?: boolean
+  isLoggedIn?: boolean
 }
 
 export function DashboardSidebarTopBar({ onClose }: { onClose?: () => void }) {
@@ -60,8 +63,13 @@ export function DashboardSidebarTopBar({ onClose }: { onClose?: () => void }) {
 export function DashboardSidebarContent({
   onClose,
   className,
+  onLogout,
+  isLoggingOut = false,
+  isLoggedIn,
 }: DashboardSidebarContentProps) {
   const pathname = usePathname()
+  const isAuthenticated = Boolean(isLoggedIn)
+  const showLogoutButton = isAuthenticated && Boolean(onLogout)
 
   return (
     <div className={cn("flex h-full flex-1 flex-col px-3 pb-6", className)}>
@@ -81,13 +89,36 @@ export function DashboardSidebarContent({
                   ? "bg-gradient-to-r from-primary/20 to-primary/5 text-white border border-primary/30 shadow-md shadow-primary/5"
                   : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-100 border border-transparent hover:border-slate-700/50",
               )}
-            >
-              <Icon className={cn("h-4 w-4 transition-transform group-hover:scale-110", isActive && "text-primary")} />
-              <span className="text-xs">{item.name}</span>
-            </Link>
-          )
-        })}
+              >
+                <Icon className={cn("h-4 w-4 transition-transform group-hover:scale-110", isActive && "text-primary")} />
+                <span className="text-xs">{item.name}</span>
+              </Link>
+            )
+          })}
       </nav>
+      <div className="mt-5 flex flex-col gap-2 px-3 md:hidden">
+        {showLogoutButton ? (
+          <button
+            type="button"
+            onClick={() => {
+              onClose?.()
+              onLogout?.()
+            }}
+            disabled={isLoggingOut}
+            className="w-full rounded-lg border border-slate-700/50 bg-slate-900/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-300 backdrop-blur-sm transition-all duration-200 hover:border-red-500/50 hover:bg-red-950/30 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            {isLoggingOut ? "Saindo..." : "Logout"}
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            onClick={() => onClose?.()}
+            className="w-full rounded-lg border border-slate-700/50 bg-slate-900/40 px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-300 backdrop-blur-sm transition-all duration-200 hover:border-primary/50 hover:bg-slate-800/50 hover:text-white"
+          >
+            Login
+          </Link>
+        )}
+      </div>
     </div>
   )
 }
@@ -107,7 +138,7 @@ export function DashboardSidebar({
           : "md:opacity-0 md:-translate-x-full md:pointer-events-none"
       )}
     >
-  <DashboardSidebarTopBar />
+      <DashboardSidebarTopBar />
       <div className="flex flex-1 flex-col overflow-y-auto">
         <DashboardSidebarContent />
       </div>

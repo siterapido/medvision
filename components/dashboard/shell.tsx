@@ -226,6 +226,9 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
               <DashboardSidebarContent
                 onClose={closeDrawer}
                 className="px-6 pb-8"
+                isLoggedIn={Boolean(user)}
+                isLoggingOut={isLoggingOut}
+                onLogout={handleLogout}
               />
             </div>
           </div>

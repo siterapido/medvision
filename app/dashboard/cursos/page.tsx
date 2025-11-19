@@ -1,6 +1,5 @@
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { CourseCarousel } from "@/components/courses/course-carousel"
 import { ContentTypeSections } from "@/components/dashboard/content-type-filter"
 import { sanitizeCourseId } from "@/lib/course/helpers"
 import Link from "next/link"
@@ -186,10 +185,7 @@ export default async function CursosPage() {
     const normalizedProgress = Math.min(Math.max(course.progress, 0), 100)
 
     const card = (
-      <Card className="interactive-card group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border-0 p-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white shadow-[0_16px_45px_rgba(12,31,56,0.36),0_24px_55px_rgba(12,31,56,0.6)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_30px_70px_rgba(12,31,56,0.62)]">
-        <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#2399b4,transparent_60%)] opacity-40 blur-3xl" />
-        </div>
+      <Card className="interactive-card group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-950/80 text-white transition duration-300 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-xl">
         <div className="relative w-full overflow-hidden" style={{ aspectRatio: "4 / 3" }}>
           <Image
             src={course.thumbnail}
@@ -200,7 +196,7 @@ export default async function CursosPage() {
             priority={false}
             unoptimized
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0a1629]/90 via-[#0c1f38]/70 to-transparent" />
+          <div className="absolute inset-0 bg-slate-950/40" />
           <div className="absolute inset-x-4 bottom-4 space-y-1.5">
             <div className="flex items-center justify-between text-[10px] font-semibold text-slate-200">
               <span className="text-cyan-100">{getProgressLabel(course.progress)}</span>
@@ -278,10 +274,7 @@ export default async function CursosPage() {
 
   const renderLiveCard = (live: LiveItem) => {
     const card = (
-      <Card className="interactive-card group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border-0 p-0 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white shadow-[0_16px_45px_rgba(12,31,56,0.36),0_24px_55px_rgba(12,31,56,0.6)] transition-all duration-500 hover:-translate-y-1 hover:shadow-[0_30px_70px_rgba(12,31,56,0.62)]">
-        <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,#2399b4,transparent_60%)] opacity-40 blur-3xl" />
-        </div>
+      <Card className="interactive-card group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-950/80 text-white transition duration-300 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-xl">
         <div className="relative w-full overflow-hidden" style={{ aspectRatio: "4 / 3" }}>
           <Image
             src={live.thumbnail}
@@ -292,7 +285,7 @@ export default async function CursosPage() {
             priority={false}
             unoptimized
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-[#0a1629]/90 via-[#0c1f38]/70 to-transparent" />
+          <div className="absolute inset-0 bg-slate-950/40" />
           <div className="absolute top-4 left-4">
             <Badge className="flex items-center gap-1 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/90 backdrop-blur border-[#0891b2]/60 bg-[#0891b2]/10 text-[#7de3ff]">Live</Badge>
           </div>

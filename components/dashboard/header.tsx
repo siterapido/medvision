@@ -105,23 +105,6 @@ export function DashboardHeader({
         </div>
 
         <div className="flex items-center gap-2 md:hidden">
-          {isLoggedIn && onLogout ? (
-            <button
-              type="button"
-              onClick={onLogout}
-              disabled={isLoggingOut}
-              className="rounded-lg border border-slate-700/50 bg-slate-900/40 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-300 backdrop-blur-sm transition-all duration-200 hover:border-red-500/50 hover:bg-red-950/30 hover:text-red-300 disabled:cursor-not-allowed disabled:opacity-50"
-            >
-              {isLoggingOut ? "Saindo..." : "Logout"}
-            </button>
-          ) : (
-            <Link
-              href="/login"
-              className="rounded-lg border border-slate-700/50 bg-slate-900/40 px-3 py-1.5 text-[9px] font-semibold uppercase tracking-[0.15em] text-slate-300 backdrop-blur-sm transition-all duration-200 hover:border-primary/50 hover:bg-slate-800/50 hover:text-white"
-            >
-              Login
-            </Link>
-          )}
           {renderMobileButton()}
         </div>
 

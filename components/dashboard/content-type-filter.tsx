@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { CourseCarousel } from "@/components/courses/course-carousel"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 type Props = {
@@ -71,11 +72,9 @@ export function ContentTypeSections({ cursosEmBreveCards, novoCursosCards, lives
               ✨ Meus Cursos
             </span>
           </div>
-          <div className="relative overflow-hidden rounded-[inherit]">
-            <div className="flex justify-center md:justify-start gap-5 overflow-x-auto pb-4 px-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {novoCursosCards}
-            </div>
-          </div>
+          <CourseCarousel ariaLabel="Meus cursos" className="rounded-[inherit]">
+            {novoCursosCards}
+          </CourseCarousel>
         </section>
       )}
     </div>

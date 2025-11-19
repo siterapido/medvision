@@ -22,8 +22,8 @@ export function SiteFrame({ children }: SiteFrameProps) {
       <AppScrollArea>
         {children}
         <FloatingChat />
-        {showLandingShell ? <LandingFooter /> : null}
       </AppScrollArea>
+      {showLandingShell ? <LandingFooter /> : null}
     </div>
   )
 }
