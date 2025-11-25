@@ -371,14 +371,14 @@ export function LessonFormDialog({
           {/* URL do vídeo */}
           <div className="space-y-2">
             <Label htmlFor="video_url" className="text-white">
-              URL do Vídeo (YouTube, Vimeo, etc)
+              URL do Vídeo (YouTube, Vimeo, Bunny)
             </Label>
             <Input
               id="video_url"
               type="url"
               value={formData.video_url}
               onChange={(e) => handleInputChange("video_url", e.target.value)}
-              placeholder="https://www.youtube.com/watch?v=..."
+              placeholder="https://iframe.mediadelivery.net/embed/... ou https://{zona}.b-cdn.net/..."
               className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500"
             />
             {errors.video_url && (

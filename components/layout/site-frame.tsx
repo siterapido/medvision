@@ -18,7 +18,7 @@ export function SiteFrame({ children }: SiteFrameProps) {
   return (
     <div className="app-frame flex min-h-screen flex-col bg-session-landing text-white">
       {showLandingShell ? <LandingHeader /> : null}
-      <AppScrollArea>
+      <AppScrollArea className={showLandingShell ? "" : "flex-1"}>
         {children}
       </AppScrollArea>
       {showLandingShell ? <LandingFooter /> : null}

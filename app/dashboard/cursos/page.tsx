@@ -4,9 +4,12 @@ import { ContentTypeSections } from "@/components/dashboard/content-type-filter"
 import { sanitizeCourseId } from "@/lib/course/helpers"
 import Link from "next/link"
 import Image from "next/image"
+import { Logo } from "@/components/logo"
+import { CourseSparkline } from "@/components/dashboard/course-sparkline"
 import { createClient } from "@/lib/supabase/server"
 import { PlayCircle, Clock, UploadCloud } from "lucide-react"
 import { DashboardScrollArea } from "@/components/layout/dashboard-scroll-area"
+import { CourseThumbnail } from "@/components/dashboard/course-thumbnail"
 
 type CourseWithProgress = {
   id: string
@@ -115,7 +118,7 @@ export default async function CursosPage() {
         id,
         title: course.title,
         description: course.description || "Descrição em breve",
-        thumbnail: course.thumbnail_url || "/placeholder.svg?height=200&width=400",
+        thumbnail: course.thumbnail_url ?? "",
         progress: progress?.progress || 0,
         lessons: course.lessons_count ?? 0,
         materials: materialsCountMap.get(course.id ?? "") ?? 0,
@@ -165,8 +168,8 @@ export default async function CursosPage() {
     const { badge, badgeClassName } = options
     const gradientClass =
       course.progress >= 100
-        ? "from-[#10b981] via-[#34d399] to-[#059669]"
-        : "from-[#0891b2] via-[#06b6d4] to-[#22d3ee]"
+        ? "from-emerald-500 via-emerald-400 to-emerald-500"
+        : "from-cyan-500 via-cyan-400 to-cyan-500"
 
     const isComingSoon = course.comingSoon && course.availableAt && new Date(course.availableAt) > new Date()
 
@@ -174,87 +177,98 @@ export default async function CursosPage() {
     let resolvedBadgeClassName =
       badgeClassName ??
       (course.isDraft
-        ? "border-amber-400/50 bg-amber-400/10 text-amber-100"
-        : "border-[#0891b2]/60 bg-[#0891b2]/10 text-[#7de3ff]")
+        ? "border-amber-500/30 bg-amber-500/10 text-amber-200"
+        : "border-cyan-500/30 bg-cyan-500/10 text-cyan-200")
 
     if (isComingSoon) {
       resolvedBadge = "Em Breve"
-      resolvedBadgeClassName = "border-amber-500/50 bg-amber-500/20 text-amber-300"
+      resolvedBadgeClassName = "border-amber-500/30 bg-amber-500/10 text-amber-200"
     }
 
     const normalizedProgress = Math.min(Math.max(course.progress, 0), 100)
 
     const card = (
-      <Card className="interactive-card group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-950/80 text-white transition duration-300 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-xl">
-        <div className="relative w-full overflow-hidden" style={{ aspectRatio: "4 / 3" }}>
-          <Image
+      <Card className="group relative flex h-full w-full flex-col overflow-hidden rounded-3xl border border-white/5 bg-slate-900/40 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:border-cyan-500/20 hover:bg-slate-900/60 hover:shadow-2xl hover:shadow-cyan-900/10">
+        {/* Thumbnail Container */}
+        <div className="relative w-full overflow-hidden aspect-[16/9]">
+          <CourseThumbnail
             src={course.thumbnail}
             alt={course.title}
-            fill
-            sizes="(max-width: 768px) 100vw, 230px"
-            className="object-cover object-top opacity-60 mix-blend-luminosity transition duration-[1200ms] ease-out group-hover:scale-110"
+            className="object-cover transition-transform duration-700 will-change-transform group-hover:scale-105"
             priority={false}
-            unoptimized
           />
-          <div className="absolute inset-0 bg-slate-950/40" />
-          <div className="absolute inset-x-4 bottom-4 space-y-1.5">
-            <div className="flex items-center justify-between text-[10px] font-semibold text-slate-200">
-              <span className="text-cyan-100">{getProgressLabel(course.progress)}</span>
-              <span className="text-slate-300">{course.duration}</span>
-            </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/15">
-              <div
-                className={`h-full rounded-full bg-gradient-to-r ${gradientClass}`}
-                style={{ width: `${normalizedProgress}%` }}
-              />
+
+          {/* Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-60 transition-opacity duration-500 group-hover:opacity-40" />
+
+          {/* Play Button Overlay */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-100 scale-90">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-cyan-500 text-white shadow-lg shadow-cyan-500/30 transition-transform duration-300 hover:scale-110 hover:bg-cyan-400">
+              <PlayCircle className="h-6 w-6 fill-current" />
             </div>
           </div>
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 transition duration-500 group-hover:opacity-100">
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white backdrop-blur">
-              <PlayCircle className="h-8 w-8" />
-            </div>
-          </div>
+
+          {/* Badges */}
           {resolvedBadge && (
-            <Badge
-              className={`absolute top-4 left-4 flex items-center gap-1 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/90 backdrop-blur ${resolvedBadgeClassName ?? ""}`}
-            >
-              {resolvedBadge}
-            </Badge>
+            <div className="absolute top-3 left-3">
+              <Badge
+                className={`rounded-full border px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md ${resolvedBadgeClassName ?? ""}`}
+              >
+                {resolvedBadge}
+              </Badge>
+            </div>
           )}
         </div>
-        <div className="flex flex-1 flex-col gap-3 p-4">
-          <div className="space-y-2">
-            <h3 className="text-base font-semibold leading-snug text-white line-clamp-2">{course.title}</h3>
-            <p className="text-xs text-slate-300/90 line-clamp-2">{course.description}</p>
+
+        {/* Content */}
+        <div className="flex flex-1 flex-col p-5">
+          <div className="flex-1 space-y-3">
+            <h3 className="text-lg font-bold leading-tight text-white line-clamp-2 group-hover:text-cyan-400 transition-colors duration-300">
+              {course.title}
+            </h3>
+
+            <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed">
+              {course.description}
+            </p>
+
             {isComingSoon && course.availableAt && (
-              <div className="text-xs font-medium text-amber-300">
-                Disponível em: {new Date(course.availableAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "2-digit" })}
+              <div className="flex items-center gap-2 text-xs font-medium text-amber-300/90 bg-amber-500/10 px-3 py-2 rounded-lg border border-amber-500/20">
+                <Clock className="h-3.5 w-3.5" />
+                <span>Disponível em {new Date(course.availableAt).toLocaleDateString("pt-BR", { day: "2-digit", month: "short" })}</span>
               </div>
             )}
           </div>
+
+          {/* Footer / Meta */}
           {!isComingSoon && (
-            <div className="space-y-1">
-              <div className="flex flex-wrap gap-1.5 text-[11px] text-slate-200">
-                <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 font-medium tracking-wide text-cyan-100/90">
-                  <PlayCircle className="h-3.5 w-3.5 text-[#06b6d4]" />
-                  {course.lessons} aulas
-                </span>
-                {course.materials > 0 && (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 font-medium tracking-wide text-cyan-100/90">
-                    <UploadCloud className="h-3.5 w-3.5 text-[#06b6d4]" />
-                    {course.materials} materiais
-                  </span>
-                )}
-                <span className="inline-flex items-center gap-1 rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 font-medium tracking-wide text-cyan-100/90">
-                  <Clock className="h-3.5 w-3.5 text-[#06b6d4]" />
-                  {course.duration}
-                </span>
+            <div className="mt-5 space-y-4">
+              {/* Metadata Pills */}
+              <div className="flex flex-wrap gap-2 text-[11px] font-medium text-slate-300">
+                <div className="flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-1.5 border border-white/5">
+                  <PlayCircle className="h-3.5 w-3.5 text-cyan-400" />
+                  <span>{course.lessons} aulas</span>
+                </div>
+                <div className="flex items-center gap-1.5 rounded-md bg-white/5 px-2.5 py-1.5 border border-white/5">
+                  <Clock className="h-3.5 w-3.5 text-cyan-400" />
+                  <span>{course.duration}</span>
+                </div>
               </div>
-            </div>
-          )}
-          {isComingSoon && (
-            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.2em] text-amber-200">
-              Em breve
+
+              {/* Progress Section */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className={course.progress >= 100 ? "text-emerald-400 font-medium" : "text-cyan-400 font-medium"}>
+                    {getProgressLabel(course.progress)}
+                  </span>
+                  <span className="text-slate-500 font-medium">{Math.round(normalizedProgress)}%</span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-800">
+                  <div
+                    className={`h-full rounded-full bg-gradient-to-r ${gradientClass} transition-all duration-1000 ease-out`}
+                    style={{ width: `${normalizedProgress}%` }}
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -265,7 +279,7 @@ export default async function CursosPage() {
       <Link
         key={course.id}
         href={`/dashboard/cursos/${course.id}`}
-        className="flex-shrink-0 block w-[min(280px,82vw)] min-w-[240px]"
+        className="flex-shrink-0 block w-full sm:w-[300px] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 rounded-3xl"
       >
         {card}
       </Link>
@@ -276,14 +290,11 @@ export default async function CursosPage() {
     const card = (
       <Card className="interactive-card group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-950/80 text-white transition duration-300 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-xl">
         <div className="relative w-full overflow-hidden" style={{ aspectRatio: "4 / 3" }}>
-          <Image
+          <CourseThumbnail
             src={live.thumbnail}
             alt={live.title}
-            fill
-            sizes="(max-width: 768px) 100vw, 230px"
             className="object-cover object-top opacity-60 mix-blend-luminosity transition duration-[1200ms] ease-out group-hover:scale-110"
             priority={false}
-            unoptimized
           />
           <div className="absolute inset-0 bg-slate-950/40" />
           <div className="absolute top-4 left-4">
@@ -315,29 +326,29 @@ export default async function CursosPage() {
   return (
     <DashboardScrollArea className="!px-0 !pt-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
       <section className="relative overflow-hidden px-4 py-6 text-white sm:px-8 lg:px-10">
-      <div className="relative space-y-10">
-        {/* Header */}
-        <div className="space-y-4">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-cyan-400">
-            Hub IA + Educação
-          </span>
-          <div>
-            <h1 className="text-3xl font-bold text-white md:text-4xl">Meus Cursos</h1>
+        <div className="relative space-y-10">
+          {/* Header */}
+          <div className="space-y-4">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-cyan-400">
+              Hub IA + Educação
+            </span>
+            <div>
+              <h1 className="text-3xl font-bold text-white md:text-4xl">Meus Cursos</h1>
+            </div>
           </div>
+
+
+          <ContentTypeSections
+            cursosEmBreveCards={cursosEmBreve.map((course) => renderCourseCard(course))}
+            novoCursosCards={novoCursos.map((course) =>
+              renderCourseCard(course, {
+                badge: course.isDraft ? undefined : "Novo",
+                badgeClassName: course.isDraft ? undefined : "border-primary/60 bg-primary/10 text-primary",
+              }),
+            )}
+            livesAgendadasCards={livesAgendadas.map((live) => renderLiveCard(live))}
+          />
         </div>
-
-
-        <ContentTypeSections
-          cursosEmBreveCards={cursosEmBreve.map((course) => renderCourseCard(course))}
-          novoCursosCards={novoCursos.map((course) =>
-            renderCourseCard(course, {
-              badge: course.isDraft ? undefined : "Novo",
-              badgeClassName: course.isDraft ? undefined : "border-primary/60 bg-primary/10 text-primary",
-            }),
-          )}
-          livesAgendadasCards={livesAgendadas.map((live) => renderLiveCard(live))}
-        />
-      </div>
       </section>
     </DashboardScrollArea>
   )

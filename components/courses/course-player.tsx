@@ -1,11 +1,14 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
+ 
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { cn } from "@/lib/utils"
 import type { LucideIcon } from "lucide-react"
+import { normalizeVideoUrl, isVideoFile } from "@/lib/video/normalize"
 import {
   BookMarked,
   CheckCircle2,
@@ -22,6 +25,12 @@ import {
   PlayCircle,
   ShieldCheck,
   Video,
+  ChevronRight,
+  Menu,
+  X,
+  FileIcon,
+  Layout,
+  Paperclip
 } from "lucide-react"
 import { kindFromMime } from "@/lib/attachments/mime"
 
@@ -40,6 +49,7 @@ export type CoursePlayerLesson = {
   title: string
   description?: string | null
   module_title?: string | null
+  module_id?: string | null
   video_url?: string | null
   duration_minutes?: number | null
   materials?: LessonMaterial[] | null
@@ -63,14 +73,21 @@ export type CoursePlayerCourse = {
   lessons?: CoursePlayerLesson[] | null
 }
 
+export type CoursePlayerModule = {
+  id?: string | null
+  title: string
+  description?: string | null
+  order_index?: number | null
+}
+
 const resourceTypeConfig: Record<CourseResourceType, { label: string; icon: LucideIcon; accent: string }> = {
-  pdf: { label: "PDF", icon: FileText, accent: "text-[#fbbf24]" },
-  slides: { label: "Slides", icon: FolderDown, accent: "text-[#38bdf8]" },
-  checklist: { label: "Checklist", icon: ClipboardList, accent: "text-[#8be7fd]" },
-  template: { label: "Template", icon: BookMarked, accent: "text-[#fed7aa]" },
-  video: { label: "Vídeo extra", icon: Video, accent: "text-[#f87171]" },
-  link: { label: "Link externo", icon: Link2, accent: "text-[#34d399]" },
-  outro: { label: "Outro", icon: ShieldCheck, accent: "text-[#c084fc]" },
+  pdf: { label: "PDF", icon: FileText, accent: "text-amber-400" },
+  slides: { label: "Slides", icon: FolderDown, accent: "text-blue-400" },
+  checklist: { label: "Checklist", icon: ClipboardList, accent: "text-cyan-400" },
+  template: { label: "Template", icon: BookMarked, accent: "text-orange-300" },
+  video: { label: "Vídeo extra", icon: Video, accent: "text-red-400" },
+  link: { label: "Link externo", icon: Link2, accent: "text-emerald-400" },
+  outro: { label: "Outro", icon: ShieldCheck, accent: "text-purple-400" },
 }
 
 const formatMinutesLabel = (minutes?: number | null) => {
@@ -83,113 +100,13 @@ const formatMinutesLabel = (minutes?: number | null) => {
   return parts.join(" ")
 }
 
-const formatUpdatedLabel = (value?: string | null) => {
-  if (!value) return "Atualizado recentemente"
-  try {
-    return new Date(value).toLocaleDateString("pt-BR", { month: "short", year: "numeric" })
-  } catch {
-    return "Atualizado recentemente"
-  }
-}
-
-const formatAvailableAtLabel = (value?: string | null) => {
-  if (!value) return null
-  try {
-    const date = new Date(value)
-    return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "long", year: "numeric" })
-  } catch {
-    return null
-  }
-}
-
 const isComingSoon = (course: CoursePlayerCourse) => {
   if (!course.coming_soon) return false
   if (!course.available_at) return true
   return new Date(course.available_at) > new Date()
 }
 
-const getLessonProgressLabel = (progress: number) => {
-  if (progress >= 100) return "Trilha concluída"
-  if (progress <= 0) return "Pronto para iniciar"
-  return `${progress}% concluído`
-}
-
-const extractUrlFromString = (value?: string | null): string | null => {
-  if (!value) return null
-  const trimmed = value.trim()
-  if (trimmed.length === 0) return null
-
-  const matches = trimmed.match(/https?:\/\/[^\s"']+/g)
-  if (matches && matches.length > 0) {
-    return matches[0]
-  }
-
-  return trimmed
-}
-
-const trimDuplicateProtocol = (value: string) => {
-  const protocols = ["https://", "http://"]
-  let secondIndex = -1
-  const baseIndex = Math.min(
-    ...protocols
-      .map((proto) => value.indexOf(proto))
-      .filter((idx) => idx !== -1),
-  )
-
-  if (baseIndex === Infinity || baseIndex === -1) {
-    return value
-  }
-
-  protocols.forEach((proto) => {
-    const nextIndex = value.indexOf(proto, baseIndex + proto.length)
-    if (nextIndex > -1) {
-      secondIndex = secondIndex === -1 ? nextIndex : Math.min(secondIndex, nextIndex)
-    }
-  })
-
-  if (secondIndex > -1) {
-    return value.slice(0, secondIndex)
-  }
-
-  return value
-}
-
-const normalizeVideoUrl = (value?: string | null): string | null => {
-  const urlCandidate = extractUrlFromString(value)
-  if (!urlCandidate) return null
-
-  const sanitizedUrl = trimDuplicateProtocol(urlCandidate)
-
-  try {
-    const parsed = new URL(sanitizedUrl)
-    const hostname = parsed.hostname.replace(/^www\./, "").toLowerCase()
-
-    if (hostname === "youtu.be") {
-      const videoId = parsed.pathname.replace(/^\//, "")
-      if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}`
-      }
-    }
-
-    if (hostname === "youtube.com" || hostname === "youtube-nocookie.com") {
-      const videoId = parsed.searchParams.get("v")
-      if (videoId) {
-        return `https://www.youtube.com/embed/${videoId}`
-      }
-    }
-
-    if (hostname.includes("vimeo.com")) {
-      const videoId = parsed.pathname.split("/").filter(Boolean).pop()
-      if (videoId) {
-        return `https://player.vimeo.com/video/${videoId}`
-      }
-    }
-
-    return urlCandidate
-  } catch {
-    return urlCandidate
-  }
-}
+ 
 
 const persistLessonCompletion = async (courseId: string, lessonId: string) => {
   try {
@@ -217,23 +134,34 @@ type CoursePlayerLessonState = CoursePlayerLesson & { completed: boolean }
 
 export function CoursePlayer({
   course,
+  modules = [],
   progress = 0,
 }: {
   course: CoursePlayerCourse
+  modules?: CoursePlayerModule[]
   progress?: number
 }) {
+  const getLessonFromUrl = () => {
+    if (typeof window === "undefined") return ""
+    try {
+      const u = new URL(window.location.href)
+      return u.searchParams.get("lesson") || ""
+    } catch {
+      return ""
+    }
+  }
   const normalizedLessons = useMemo<CoursePlayerLessonState[]>(() => {
     const seenLessonIds = new Set<string>()
     const uniqueLessons: CoursePlayerLesson[] = []
-    ;(course.lessons ?? []).forEach((lesson) => {
-      if (lesson.id) {
-        if (seenLessonIds.has(lesson.id)) {
-          return
+      ; (course.lessons ?? []).forEach((lesson) => {
+        if (lesson.id) {
+          if (seenLessonIds.has(lesson.id)) {
+            return
+          }
+          seenLessonIds.add(lesson.id)
         }
-        seenLessonIds.add(lesson.id)
-      }
-      uniqueLessons.push(lesson)
-    })
+        uniqueLessons.push(lesson)
+      })
     const items = [...uniqueLessons]
     items.sort((a, b) => {
       if (a.order_index != null && b.order_index != null) {
@@ -255,7 +183,17 @@ export function CoursePlayer({
   }, [course.lessons, progress])
 
   const [completedOverrides, setCompletedOverrides] = useState<Set<string>>(() => new Set())
-  const [currentLessonId, setCurrentLessonId] = useState(normalizedLessons[0]?.id ?? "")
+  const [currentLessonId, setCurrentLessonId] = useState(() => {
+    const fromUrl = getLessonFromUrl()
+    return fromUrl || (normalizedLessons[0]?.id ?? "")
+  })
+
+  useEffect(() => {
+    const idFromUrl = getLessonFromUrl()
+    if (idFromUrl && idFromUrl !== currentLessonId) {
+      setCurrentLessonId(idFromUrl)
+    }
+  }, [])
 
   const lessons = useMemo(
     () =>
@@ -271,12 +209,87 @@ export function CoursePlayer({
   const completedCount = lessons.filter((lesson) => lesson.completed).length
   const progressValue = lessons.length ? Math.round((completedCount / lessons.length) * 100) : 0
   const allCompleted = lessons.length > 0 && completedCount === lessons.length
-  const upcomingLesson =
-    lessons.find((lesson, index) => index > currentLessonIndex && !lesson.completed) ?? null
 
   const normalizedVideoUrl = normalizeVideoUrl(currentLesson?.video_url)
+  const withBunnyResponsive = (u?: string | null) => {
+    if (!u) return u ?? null
+    try {
+      const url = new URL(u)
+      url.searchParams.set("responsive", "true")
+      url.searchParams.set("preload", "true")
+      url.searchParams.set("autoplay", "false")
+      url.searchParams.set("muted", "false")
+      url.searchParams.set("loop", "false")
+      return url.toString()
+    } catch {
+      return u
+    }
+  }
+  const videoRef = useRef<HTMLVideoElement | null>(null)
+  const [hlsInstance, setHlsInstance] = useState<any>(null)
+  const isHlsStream = useMemo(() => {
+    const u = normalizedVideoUrl ?? ""
+    return u.toLowerCase().includes(".m3u8")
+  }, [normalizedVideoUrl])
+
+  useEffect(() => {
+    if (!isHlsStream) {
+      if (hlsInstance) {
+        try { hlsInstance.destroy() } catch { }
+        setHlsInstance(null)
+      }
+      return
+    }
+
+    const video = videoRef.current
+    if (!video || !normalizedVideoUrl) return
+
+    const canNativePlay = video.canPlayType("application/vnd.apple.mpegurl")
+    if (canNativePlay) {
+      video.src = normalizedVideoUrl
+      return
+    }
+
+    let cancelled = false
+    const loadHls = async () => {
+      if (typeof window === "undefined") return
+      const existing = (window as any).Hls
+      const bootstrap = async () => {
+        if (existing) return existing
+        await new Promise<void>((resolve, reject) => {
+          const script = document.createElement("script")
+          script.src = "https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"
+          script.async = true
+          script.onload = () => resolve()
+          script.onerror = () => reject(new Error("failed to load hls.js"))
+          document.head.appendChild(script)
+        })
+        return (window as any).Hls
+      }
+
+      try {
+        const HlsCtor = await bootstrap()
+        if (cancelled || !HlsCtor) return
+        const hls = new HlsCtor({ enableWorker: true })
+        hls.attachMedia(video)
+        hls.loadSource(normalizedVideoUrl)
+        setHlsInstance(hls)
+      } catch { }
+    }
+
+    loadHls()
+
+    return () => {
+      cancelled = true
+      if (hlsInstance) {
+        try { hlsInstance.destroy() } catch { }
+        setHlsInstance(null)
+      }
+    }
+  }, [isHlsStream, normalizedVideoUrl])
 
   const [attachments, setAttachments] = useState<Array<{ id: string; file_name: string; mime_type: string; size_bytes: number; created_at: string }>>([])
+
   useEffect(() => {
     const run = async () => {
       const id = currentLesson?.id
@@ -306,7 +319,13 @@ export function CoursePlayer({
 
     const currentIndex = lessons.findIndex((lesson) => lesson.id === currentLesson.id)
     if (currentIndex > -1 && currentIndex < lessons.length - 1) {
-      setCurrentLessonId(lessons[currentIndex + 1].id)
+      const nextId = lessons[currentIndex + 1].id
+      setCurrentLessonId(nextId)
+      if (typeof window !== "undefined") {
+        const url = new URL(window.location.href)
+        url.searchParams.set("lesson", nextId)
+        window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`)
+      }
     }
 
     if (course.id && currentLesson.id) {
@@ -317,428 +336,451 @@ export function CoursePlayer({
   const handleDocumentAction = (resource: LessonMaterial, action: "view" | "download") => {
     if (typeof window === "undefined") return
 
-    if (action === "view") {
-      window.open(resource.url, "_blank", "noopener,noreferrer")
-      return
-    }
+    try {
+      const parsed = new URL(resource.url)
+      const proto = parsed.protocol
+      if (proto !== "http:" && proto !== "https:") return
 
-    const link = document.createElement("a")
-    link.href = resource.url
-    link.download = resource.title
-    link.target = "_blank"
-    link.rel = "noopener"
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+      if (action === "view") {
+        window.open(parsed.toString(), "_blank", "noopener,noreferrer")
+        return
+      }
+
+      const link = document.createElement("a")
+      link.href = parsed.toString()
+      link.download = resource.title
+      link.target = "_blank"
+      link.rel = "noopener"
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    } catch { }
   }
 
-  const courseDurationLabel = formatMinutesLabel(course.duration_minutes)
-  const updatedLabel = formatUpdatedLabel(course.updated_at)
-  const summaryBadge = course.area ?? course.difficulty
-  const hasLessons = lessons.length > 0
-  const comingSoon = isComingSoon(course)
-  const availableAtLabel = formatAvailableAtLabel(course.available_at)
+  const groupedByModules = useMemo(() => {
+    if (!lessons.length) {
+      return [] as Array<{ module: CoursePlayerModule; lessons: CoursePlayerLessonState[] }>
+    }
 
-  if (comingSoon) {
+    if (modules.length > 0) {
+      const byModuleId: Record<string, CoursePlayerLessonState[]> = {}
+      lessons.forEach((l) => {
+        const key = l.module_id ?? "__none__"
+          ; (byModuleId[key] = byModuleId[key] || []).push(l)
+      })
+
+      const groups: Array<{ module: CoursePlayerModule; lessons: CoursePlayerLessonState[] }> = []
+
+      const noneLessons = byModuleId["__none__"] || []
+      if (noneLessons.length) {
+        groups.push({ module: { id: null, title: "Aulas Extras", description: "Aulas sem módulo", order_index: -1 }, lessons: noneLessons })
+      }
+
+      modules.forEach((m) => {
+        const items = byModuleId[m.id ?? ""] || []
+        items.sort((a, b) => {
+          if (a.order_index != null && b.order_index != null) return a.order_index - b.order_index
+          if (a.order_index != null) return -1
+          if (b.order_index != null) return 1
+          return 0
+        })
+        groups.push({ module: m, lessons: items })
+      })
+
+      groups.sort((a, b) => {
+        const ao = a.module.order_index ?? 0
+        const bo = b.module.order_index ?? 0
+        if (ao !== bo) return ao - bo
+        return a.module.title.localeCompare(b.module.title, "pt-BR")
+      })
+
+      return groups
+    }
+
+    const byTitle: Record<string, CoursePlayerLessonState[]> = {}
+    lessons.forEach((l) => {
+      const key = (l.module_title ?? "Geral").trim() || "Geral"
+        ; (byTitle[key] = byTitle[key] || []).push(l)
+    })
+    return Object.entries(byTitle)
+      .map(([title, items]) => ({
+        module: { id: null, title, order_index: title === "Geral" ? -1 : 0 }, lessons: items.sort((a, b) => {
+          if (a.order_index != null && b.order_index != null) return a.order_index - b.order_index
+          if (a.order_index != null) return -1
+          if (b.order_index != null) return 1
+          return 0
+        })
+      }))
+      .sort((a, b) => {
+        const ao = a.module.order_index ?? 0
+        const bo = b.module.order_index ?? 0
+        if (ao !== bo) return ao - bo
+        return a.module.title.localeCompare(b.module.title, "pt-BR")
+      })
+  }, [lessons, modules])
+
+  const [activeTab, setActiveTab] = useState<"overview" | "materials" | "files">("overview")
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  if (isComingSoon(course)) {
     return (
-      <section className="space-y-8 rounded-[28px] border border-white/5 bg-[#0b1424] px-4 py-6 text-white shadow-[0_25px_60px_rgba(3,6,15,0.45)] sm:px-8 sm:py-8">
-        <header className="border-b border-white/5 pb-5">
-          <p className="text-xs uppercase tracking-[0.35em] text-white/40">Academia Odonto GPT</p>
-          <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-semibold text-white md:text-3xl">{course.title}</h1>
-                <span className="inline-flex items-center rounded-full bg-amber-500/20 px-3 py-1 text-xs font-semibold uppercase tracking-[0.35em] text-amber-300 border border-amber-500/30">
-                  Em Breve
-                </span>
-              </div>
-              <p className="text-sm text-slate-300">{course.description || "Descrição em breve."}</p>
-              <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-slate-300">
-                {summaryBadge && (
-                  <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs uppercase tracking-[0.35em] text-white/70">
-                    {summaryBadge}
-                  </span>
-                )}
-                <span className="text-xs uppercase tracking-[0.3em] text-white/50">
-                  {course.difficulty ?? "Nível"}
-                </span>
-                <span className="text-xs uppercase tracking-[0.3em] text-white/50">{courseDurationLabel}</span>
-              </div>
-              {course.tags && (
-                <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-300">
-                  {course.tags
-                    .split(",")
-                    .map((tag) => tag.trim())
-                    .filter(Boolean)
-                    .map((tag) => (
-                      <span
-                        key={tag}
-                        className="rounded-full border border-white/10 px-3 py-1 uppercase tracking-[0.3em] text-white/70"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
-
-        <div className="flex items-center justify-center rounded-2xl border border-amber-500/20 bg-gradient-to-br from-amber-500/5 to-orange-500/5 px-6 py-16 text-center">
-          <div className="space-y-6 max-w-md">
-            <div className="space-y-2">
-              <h2 className="text-3xl font-semibold text-white">Em Breve</h2>
-              <p className="text-base text-slate-300">
-                Este curso estará disponível em <span className="font-semibold text-amber-300">{availableAtLabel}</span>
-              </p>
-            </div>
-            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3">
-              <p className="text-sm text-amber-200">
-                Fique atento! Em breve você terá acesso a este conteúdo exclusivo e poderá iniciar sua jornada de aprendizado.
-              </p>
-            </div>
-            <Button
-              variant="outline"
-              className="rounded-full border-amber-500/50 text-amber-300 hover:bg-amber-500/10 mx-auto"
-            >
-              Notifique-me quando disponível
-            </Button>
-          </div>
+      <div className="flex h-full items-center justify-center p-8 text-center">
+        <div className="max-w-md space-y-4">
+          <h1 className="text-2xl font-bold text-white">Em Breve</h1>
+          <p className="text-slate-400">Este curso estará disponível em breve.</p>
         </div>
-      </section>
+      </div>
     )
   }
 
   return (
-    <section className="space-y-8 rounded-[28px] border border-white/5 bg-[#0b1424] px-4 py-6 text-white shadow-[0_25px_60px_rgba(3,6,15,0.45)] sm:px-8 sm:py-8">
-      <header className="border-b border-white/5 pb-5">
-        <p className="text-xs uppercase tracking-[0.35em] text-white/40">Academia Odonto GPT</p>
-        <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold text-white md:text-3xl">{course.title}</h1>
-            <p className="text-sm text-slate-300">{course.description || "Descrição em breve."}</p>
-            <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-slate-300">
-              {summaryBadge && (
-                <span className="rounded-full border border-white/10 px-2 py-0.5 text-xs uppercase tracking-[0.35em] text-white/70">
-                  {summaryBadge}
-                </span>
-              )}
-              <span className="text-xs uppercase tracking-[0.3em] text-white/50">
-                {course.difficulty ?? "Nível"}
-              </span>
-              <span className="text-xs uppercase tracking-[0.3em] text-white/50">{courseDurationLabel}</span>
-            </div>
-            {course.tags && (
-              <div className="mt-2 flex flex-wrap gap-2 text-xs text-slate-300">
-                {course.tags
-                  .split(",")
-                  .map((tag) => tag.trim())
-                  .filter(Boolean)
-                  .map((tag) => (
-                    <span
-                      key={tag}
-                      className="rounded-full border border-white/10 px-3 py-1 uppercase tracking-[0.3em] text-white/70"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-              </div>
-            )}
-          </div>
-          <div className="flex flex-col gap-2 text-right text-sm text-slate-300">
-            <div>
-              <p className="text-3xl font-semibold text-white">{progressValue}%</p>
-              <p className="text-xs uppercase tracking-[0.3em] text-white/40">{getLessonProgressLabel(progressValue)}</p>
-            </div>
-            <p>
-              {(lessons.length || course.lessons_count || 0).toString()} aulas • {courseDurationLabel}
-            </p>
-            <p className="text-xs text-white/50">Atualizado {updatedLabel}</p>
-          </div>
-        </div>
-      </header>
-
-      <div className="flex flex-col gap-6 lg:flex-row">
-        <div className="flex-1 space-y-5">
-          <div className="overflow-hidden rounded-2xl border border-white/5 bg-black">
-            <div className="aspect-video w-full">
-              {hasLessons && normalizedVideoUrl ? (
-                <iframe
-                  src={normalizedVideoUrl}
-                  title={currentLesson?.title ?? "Vídeo do curso"}
-                  className="h-full w-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
+    <div className="flex flex-col lg:flex-row h-full gap-6 overflow-hidden p-4 lg:p-6">
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto lg:overflow-visible pr-2">
+        {/* Video Player Container */}
+        <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/10 group">
+          {normalizedVideoUrl ? (
+            isVideoFile(normalizedVideoUrl) ? (
+              isHlsStream ? (
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-contain"
+                  controls
+                  controlsList="nodownload"
                 />
               ) : (
-                <div className="flex h-full items-center justify-center text-sm text-slate-300">
-                  Nenhuma aula com vídeo disponível.
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm">
-            {currentLesson ? (
-              <div className="space-y-3">
-                <div className="flex flex-wrap items-center gap-3 text-xs uppercase tracking-[0.25em] text-white/60">
-                  <span>
-                    Aula {currentLessonIndex + 1} de {lessons.length || course.lessons_count || 0}
-                  </span>
-                  {currentLesson.duration_minutes != null && (
-                    <span className="inline-flex items-center gap-1">
-                      <Clock className="h-3.5 w-3.5" />
-                      {formatMinutesLabel(currentLesson.duration_minutes)}
-                    </span>
-                  )}
-                  {currentLesson.module_title && <span>{currentLesson.module_title}</span>}
-                  {currentLesson.available_at && (
-                    <span>
-                      Disponível {new Date(currentLesson.available_at).toLocaleDateString("pt-BR")}
-                    </span>
-                  )}
-                </div>
-                <h2 className="text-2xl font-semibold text-white">{currentLesson.title}</h2>
-                <p className="text-sm text-slate-200">{currentLesson.description || "Sem descrição adicional."}</p>
-                <div className="mt-4 flex flex-wrap gap-3">
-                  {!currentLesson.completed ? (
-                    <Button
-                      size="sm"
-                      className="rounded-full bg-white text-[#0b1424] hover:bg-slate-100"
-                      onClick={handleMarkComplete}
-                    >
-                      <CheckCircle2 className="h-4 w-4" />
-                      Marcar como concluída
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="rounded-full border-white/20 text-white hover:bg-white/10"
-                    >
-                      <PlayCircle className="h-4 w-4" />
-                      Reassistir aula
-                    </Button>
-                  )}
-                  {allCompleted && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="rounded-full text-slate-200 hover:bg-white/10"
-                    >
-                      <ShieldCheck className="h-4 w-4" />
-                      Gerar certificado
-                    </Button>
-                  )}
-                </div>
-                <p className="mt-4 text-xs uppercase tracking-[0.25em] text-white/40">
-                  Próxima: {upcomingLesson ? upcomingLesson.title : "Trilha concluída"}
-                </p>
-              </div>
+                <video
+                  src={normalizedVideoUrl}
+                  className="w-full h-full object-contain"
+                  controls
+                  controlsList="nodownload"
+                />
+              )
             ) : (
-              <p className="text-sm text-slate-300">Nenhuma aula publicada ainda para este curso.</p>
-            )}
-          </div>
+              (() => {
+                const isBunny = (normalizedVideoUrl ?? "").includes("mediadelivery.net")
+                const src = isBunny ? withBunnyResponsive(normalizedVideoUrl) ?? normalizedVideoUrl : normalizedVideoUrl
+                return (
+                  <div className="relative w-full h-full overflow-hidden">
+                    <iframe
+                      src={src ?? ""}
+                      title={currentLesson?.title ?? "Vídeo do curso"}
+                      className={isBunny ? "absolute inset-0 w-full h-full block" : "w-full h-full block"}
+                      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                      allowFullScreen
+                      frameBorder="0"
+                      style={isBunny ? { border: 0, position: "absolute", top: 0, left: 0, width: "100%", height: "100%", margin: 0, padding: 0, transform: "scale(2)", transformOrigin: "center" } : undefined}
+                    />
+                  </div>
+                )
+              })()
+            )
+          ) : (
+            <div className="flex h-full flex-col items-center justify-center gap-4 text-slate-200">
+              <Video className="h-12 w-12 opacity-20" />
+              <p>Selecione uma aula para assistir</p>
+            </div>
+          )}
+        </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-white">Materiais da aula</h3>
-                <p className="text-xs text-slate-300">Disponíveis para a equipe</p>
+        {/* Lesson Info & Controls */}
+        <div className="mt-6 space-y-6 px-1">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-white">
+                <span>Aula {currentLessonIndex + 1}</span>
+                <span className="h-1 w-1 rounded-full bg-white/20" />
+                <span>{currentLesson?.module_title || "Módulo Geral"}</span>
               </div>
-              <span className="text-xs text-white/50">
-                {currentLesson?.materials?.length ?? 0} arquivos
-              </span>
+              <h1 className="text-2xl font-bold text-white leading-tight">{currentLesson?.title}</h1>
             </div>
 
-            {currentLesson?.materials && currentLesson.materials.length > 0 ? (
-              <div className="mt-4 space-y-3">
-                {currentLesson.materials.map((resource, index) => {
-                  const config = resourceTypeConfig[resource.type]
-                  const Icon = config.icon
+            <div className="flex items-center gap-3 shrink-0">
+              <Button
+                size="sm"
+                variant={currentLesson?.completed ? "secondary" : "default"}
+                className={cn(
+                  "gap-2 rounded-full font-medium transition-all",
+                  currentLesson?.completed
+                    ? "bg-green-500/20 text-white hover:bg-green-500/30 border border-green-500/30"
+                    : "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20"
+                )}
+                onClick={handleMarkComplete}
+                aria-label={currentLesson?.completed ? "Aula marcada como concluída" : "Marcar aula como vista"}
+              >
+                {currentLesson?.completed ? (
+                  <>
+                    <CheckCircle2 className="h-4 w-4" />
+                    Concluída
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="h-4 w-4" />
+                    Marcar como vista
+                  </>
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                className="lg:hidden rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                aria-label={sidebarOpen ? "Fechar lista de aulas" : "Abrir lista de aulas"}
+              >
+                <Menu className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
 
-                  return (
-                    <div
-                      key={`${resource.title}-${index}`}
-                      className="flex items-start gap-4 rounded-xl border border-white/10 bg-[#111b2f] p-4"
-                    >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5">
-                        <Icon className={cn("h-4 w-4", config.accent)} />
-                      </div>
-                      <div className="flex-1 space-y-1">
-                        <p className="text-sm font-semibold text-white">{resource.title}</p>
-                        <p className="text-xs text-slate-300 line-clamp-2">
-                          {resource.description || "Sem descrição"}
-                        </p>
-                        <p className="text-xs text-white/40">{config.label}</p>
-                      </div>
-                      <div className="flex flex-col gap-2">
+          {/* Tabs Navigation */}
+          <div className="border-b border-white/10">
+            <div className="flex gap-6">
+              <button
+                onClick={() => setActiveTab("overview")}
+                className={cn(
+                  "pb-3 text-sm font-medium transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:rounded-md",
+                  activeTab === "overview" ? "text-white" : "text-slate-200 hover:text-white"
+                )}
+              >
+                Visão Geral
+                {activeTab === "overview" && (
+                  <span className="absolute bottom-0 left-0 h-0.5 w-full bg-blue-500 rounded-t-full" />
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab("materials")}
+                className={cn(
+                  "pb-3 text-sm font-medium transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:rounded-md",
+                  activeTab === "materials" ? "text-white" : "text-slate-200 hover:text-white"
+                )}
+              >
+                Materiais Complementares
+                {currentLesson?.materials && currentLesson.materials.length > 0 && (
+                  <span className="ml-2 rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-white/70">
+                    {currentLesson.materials.length}
+                  </span>
+                )}
+                {activeTab === "materials" && (
+                  <span className="absolute bottom-0 left-0 h-0.5 w-full bg-blue-500 rounded-t-full" />
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab("files")}
+                className={cn(
+                  "pb-3 text-sm font-medium transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:rounded-md",
+                  activeTab === "files" ? "text-white" : "text-slate-200 hover:text-white"
+                )}
+              >
+                Arquivos Anexados
+                {attachments.length > 0 && (
+                  <span className="ml-2 rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-white/70">
+                    {attachments.length}
+                  </span>
+                )}
+                {activeTab === "files" && (
+                  <span className="absolute bottom-0 left-0 h-0.5 w-full bg-blue-500 rounded-t-full" />
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Tab Content */}
+          <div className="py-2">
+            {activeTab === "overview" && (
+              <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <p className="text-slate-200 leading-relaxed">
+                  {currentLesson?.description || "Nenhuma descrição disponível para esta aula."}
+                </p>
+                {currentLesson?.duration_minutes && (
+                  <div className="flex items-center gap-2 text-sm text-slate-300">
+                    <Clock className="h-4 w-4" />
+                    <span>Duração estimada: {formatMinutesLabel(currentLesson.duration_minutes)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {activeTab === "materials" && (
+              <div className="grid gap-3 sm:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                {currentLesson?.materials && currentLesson.materials.length > 0 ? (
+                  currentLesson.materials.map((resource, idx) => {
+                    const config = resourceTypeConfig[resource.type]
+                    const Icon = config.icon
+                    return (
+                      <div
+                        key={idx}
+                        className="group flex items-start gap-3 rounded-xl border border-white/5 bg-white/5 p-3 transition hover:border-white/10 hover:bg-white/[0.07]"
+                      >
+                        <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-black/20", config.accent)}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="truncate text-sm font-medium text-white">{resource.title}</p>
+                          <p className="text-xs text-slate-400">{config.label}</p>
+                        </div>
                         <Button
                           variant="ghost"
-                          size="icon-sm"
-                          className="text-white/70 hover:bg-white/10"
+                          size="icon"
+                          className="h-8 w-8 text-slate-400 hover:text-white"
                           onClick={() => handleDocumentAction(resource, "view")}
+                          aria-label={`Abrir material: ${resource.title}`}
                         >
                           <Link2 className="h-4 w-4" />
                         </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-white/70 hover:bg-white/10"
-                          onClick={() => handleDocumentAction(resource, "download")}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
                       </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })
+                ) : (
+                  <div className="col-span-full py-8 text-center text-slate-300">
+                    <Layout className="mx-auto h-8 w-8 opacity-20 mb-2" />
+                    <p>Nenhum material complementar disponível.</p>
+                  </div>
+                )}
               </div>
-            ) : (
-              <p className="mt-4 text-sm text-slate-300">Nenhum material anexado para esta aula.</p>
             )}
-          </div>
 
-          <div className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-white">Arquivos da aula</h3>
-                <p className="text-xs text-slate-300">Anexos com acesso seguro</p>
-              </div>
-              <span className="text-xs text-white/50">{attachments.length} arquivos</span>
-            </div>
-            {attachments.length > 0 ? (
-              <div className="mt-4 space-y-3">
-                {attachments.map((att) => (
-                  <div key={att.id} className="flex items-center gap-4 rounded-xl border border-white/10 bg-[#111b2f] p-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-white/10 bg-white/5">
-                      {(() => {
-                        const kind = kindFromMime(att.mime_type)
-                        const cls = "h-4 w-4"
-                        switch (kind) {
-                          case "pdf":
-                            return <FileText className={cls} />
-                          case "doc":
-                            return <FileType className={cls} />
-                          case "ppt":
-                            return <FileText className={cls} />
-                          case "xls":
-                            return <FileSpreadsheet className={cls} />
-                          case "image":
-                            return <ImageIcon className={cls} />
-                          case "zip":
-                            return <FileArchive className={cls} />
-                          default:
-                            return <FileText className={cls} />
-                        }
-                      })()}
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <p className="text-sm font-semibold text-white">{att.file_name}</p>
-                      <p className="text-xs text-slate-300">{(att.size_bytes / (1024 * 1024)).toFixed(1)} MB • {new Date(att.created_at).toLocaleDateString("pt-BR")}</p>
-                      <p className="text-xs text-white/40">{att.mime_type}</p>
-                    </div>
-                    <div className="flex flex-col gap-2">
+            {activeTab === "files" && (
+              <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                {attachments.length > 0 ? (
+                  attachments.map((att) => (
+                    <div key={att.id} className="flex items-center gap-4 rounded-xl border border-white/5 bg-white/5 p-3 transition hover:border-white/10 hover:bg-white/[0.07]">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-black/20 text-slate-300">
+                        <Paperclip className="h-5 w-5" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="truncate text-sm font-medium text-white">{att.file_name}</p>
+                        <p className="text-xs text-slate-400">
+                          {(att.size_bytes / (1024 * 1024)).toFixed(1)} MB • {att.mime_type}
+                        </p>
+                      </div>
                       <Button
                         variant="ghost"
-                        size="icon-sm"
-                        className="text-white/70 hover:bg-white/10"
+                        size="icon"
+                        className="h-8 w-8 text-slate-400 hover:text-white"
                         onClick={async () => {
                           try {
                             const res = await fetch(`/api/lessons/${currentLesson?.id}/attachments/${att.id}/download`)
                             const json = await res.json().catch(() => ({}))
-                            const url = json.url
-                            if (typeof url === "string") {
-                              const a = document.createElement("a")
-                              a.href = url
-                              a.rel = "noopener"
-                              a.target = "_blank"
-                              document.body.appendChild(a)
-                              a.click()
-                              document.body.removeChild(a)
-                            }
-                          } catch {}
+                            if (json.url) window.open(json.url, "_blank")
+                          } catch { }
                         }}
+                        aria-label={`Baixar anexo: ${att.file_name}`}
                       >
                         <Download className="h-4 w-4" />
                       </Button>
                     </div>
+                  ))
+                ) : (
+                  <div className="py-8 text-center text-slate-300">
+                    <FileIcon className="mx-auto h-8 w-8 opacity-20 mb-2" />
+                    <p>Nenhum arquivo anexado.</p>
                   </div>
-                ))}
+                )}
               </div>
-            ) : (
-              <p className="mt-4 text-sm text-slate-300">Nenhum arquivo anexado para esta aula.</p>
             )}
           </div>
         </div>
+      </div>
 
-        <aside className="w-full space-y-4 rounded-2xl border border-white/10 bg-[#0d172a] p-4 lg:max-w-sm">
-          <div>
-            <div className="flex items-center justify-between text-sm text-slate-300">
-              <span>Trilha do curso</span>
-              <span>{progressValue}%</span>
+      {/* Sidebar - Lesson List */}
+      <div
+        className={cn(
+          "fixed inset-y-0 right-0 z-50 w-80 transform bg-[#0b1424] transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:w-96 lg:bg-transparent lg:border-l lg:border-white/5",
+          sidebarOpen ? "translate-x-0 shadow-2xl" : "translate-x-full lg:translate-x-0"
+        )}
+      >
+        <div className="flex h-full flex-col bg-[#0d172a] lg:rounded-2xl lg:border lg:border-white/10 overflow-hidden">
+          <div className="flex items-center justify-between border-b border-white/10 p-4">
+            <div>
+              <h3 className="font-semibold text-white">Conteúdo do Curso</h3>
+              <p className="text-xs text-slate-400">{progressValue}% concluído</p>
             </div>
-            <Progress value={progressValue} className="mt-2 h-1.5 rounded-full bg-white/10" />
-            <p className="mt-1 text-xs text-white/40">
-              {completedCount}/{lessons.length || course.lessons_count || 0} aulas concluídas
-            </p>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden text-slate-400"
+              onClick={() => setSidebarOpen(false)}
+            >
+              <X className="h-4 w-4" />
+            </Button>
           </div>
 
-          <ScrollArea className="h-[65vh] pr-2">
-            <div className="space-y-2">
-              {lessons.length > 0 ? (
-                lessons.map((lesson, index) => (
-                  <button
-                    key={lesson.id}
-                    onClick={() => setCurrentLessonId(lesson.id)}
-                    className={cn(
-                      "w-full rounded-xl border px-3 py-3 text-left transition",
-                      lesson.id === currentLesson?.id
-                        ? "border-white/20 bg-white/10"
-                        : "border-transparent hover:border-white/10 hover:bg-white/5",
-                    )}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={cn(
-                          "flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-full text-xs font-semibold",
-                          lesson.completed
-                            ? "bg-white/10 text-emerald-300"
-                            : lesson.id === currentLesson?.id
-                              ? "bg-white text-[#0b1424]"
-                              : "bg-white/5 text-white/70",
-                        )}
-                      >
-                        {lesson.completed ? (
-                          <CheckCircle2 className="h-4 w-4" />
-                        ) : (
-                          index + 1
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-sm font-semibold text-white line-clamp-2">{lesson.title}</p>
-                        <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                          {lesson.duration_minutes != null && (
-                            <span className="inline-flex items-center gap-1">
-                              <Clock className="h-3.5 w-3.5" />
-                              {formatMinutesLabel(lesson.duration_minutes)}
-                            </span>
+          <div className="px-4 pt-4 pb-2">
+            <Progress value={progressValue} className="h-1.5 bg-white/10" />
+          </div>
+
+          <ScrollArea className="flex-1">
+            <Accordion type="multiple" defaultValue={groupedByModules.map(g => g.module.id || g.module.title)} className="w-full">
+              {groupedByModules.map((group, i) => (
+                <AccordionItem key={i} value={group.module.id || group.module.title} className="border-white/5">
+                  <AccordionTrigger className="px-4 py-3 text-sm font-medium text-slate-200 hover:text-white hover:no-underline data-[state=open]:bg-white/5">
+                    <span className="truncate text-left">{group.module.title}</span>
+                  </AccordionTrigger>
+                  <AccordionContent className="pt-0 pb-0">
+                    <div className="flex flex-col">
+                      {group.lessons.map((lesson) => (
+                        <button
+                          key={lesson.id}
+                          onClick={() => {
+                            setCurrentLessonId(lesson.id)
+                            if (typeof window !== "undefined") {
+                              const url = new URL(window.location.href)
+                              url.searchParams.set("lesson", lesson.id)
+                              window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`)
+                            }
+                            setSidebarOpen(false)
+                          }}
+                          className={cn(
+                            "flex items-start gap-3 border-l-2 px-4 py-3 text-left transition-colors hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                            currentLessonId === lesson.id
+                              ? "border-blue-500 bg-blue-500/5"
+                              : "border-transparent"
                           )}
-                          {lesson.module_title && <span>{lesson.module_title}</span>}
-                        </div>
-                      </div>
+                        >
+                          <div className={cn(
+                            "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px]",
+                            lesson.completed
+                              ? "border-green-500 bg-green-500 text-white"
+                              : currentLessonId === lesson.id
+                                ? "border-blue-500 text-blue-500"
+                                : "border-slate-600 text-slate-600"
+                          )}>
+                            {lesson.completed ? <CheckCircle2 className="h-3 w-3" /> : (lesson.order_index ?? 0) + 1}
+                          </div>
+                          <div className="space-y-1">
+                            <p className={cn(
+                              "text-sm font-medium leading-tight",
+                              currentLessonId === lesson.id ? "text-blue-400" : "text-slate-200"
+                            )}>
+                              {lesson.title}
+                            </p>
+                            <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                              {lesson.duration_minutes && (
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3 w-3" />
+                                  {formatMinutesLabel(lesson.duration_minutes)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </button>
+                      ))}
                     </div>
-                  </button>
-                ))
-              ) : (
-                <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-sm text-slate-300">
-                  Nenhuma aula cadastrada no momento.
-                </div>
-              )}
-            </div>
+                  </AccordionContent>
+                </AccordionItem>
+              ))}
+            </Accordion>
           </ScrollArea>
-        </aside>
+        </div>
       </div>
-    </section>
+
+      {/* Mobile Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+    </div>
   )
 }

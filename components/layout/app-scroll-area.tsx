@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-export const appScrollAreaClassName = "app-scroll-region scroll-smooth flex-1 w-full"
+export const appScrollAreaClassName = "app-scroll-region scroll-smooth w-full flex-1"
 export const appScrollAreaRole = "region"
 export const appScrollAreaLabel = "Conteúdo principal do site"
 export const appScrollAreaTabIndex = -1
@@ -13,12 +13,17 @@ export const appScrollAreaStyle: React.CSSProperties = {
 
 interface AppScrollAreaProps {
   children: React.ReactNode
+  className?: string
 }
 
-export function AppScrollArea({ children }: AppScrollAreaProps) {
+export function AppScrollArea({ children, className }: AppScrollAreaProps) {
+  const combinedClassName = className
+    ? `${appScrollAreaClassName} ${className}`
+    : appScrollAreaClassName
+
   return (
     <div
-      className={appScrollAreaClassName}
+      className={combinedClassName}
       role={appScrollAreaRole}
       aria-label={appScrollAreaLabel}
       tabIndex={appScrollAreaTabIndex}

@@ -201,11 +201,10 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
           onLogout={handleLogout}
         />
         <main
-          className={`flex flex-1 flex-col min-h-0 ${
-            pathname === "/dashboard/chat" || pathname === "/dashboard/cursos"
+          className={`flex flex-1 flex-col min-h-0 ${pathname === "/dashboard/chat" || pathname?.startsWith("/dashboard/cursos")
               ? "bg-transparent p-0 overflow-hidden"
               : "bg-[#eff4fb] pt-4 px-4 md:pt-6 md:px-6 lg:pt-8 lg:px-8 overflow-y-auto"
-          }`}
+            }`}
         >
           {children}
           {showFooter && isProfileRoute && <DashboardFooter />}
@@ -216,16 +215,14 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
 
       <>
         <div
-          className={`fixed inset-0 z-40 bg-slate-950/75 transition-opacity duration-300 md:hidden ${
-            isDrawerOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-          }`}
+          className={`fixed inset-0 z-40 bg-slate-950/75 transition-opacity duration-300 md:hidden ${isDrawerOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+            }`}
           aria-hidden={!isDrawerOpen}
           onClick={closeDrawer}
         />
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-[200px] max-w-[80vw] transform overflow-hidden transition-transform duration-300 md:hidden ${
-            isDrawerOpen ? "translate-x-0" : "-translate-x-full"
-          }`}
+          className={`fixed inset-y-0 left-0 z-50 w-[200px] max-w-[80vw] transform overflow-hidden transition-transform duration-300 md:hidden ${isDrawerOpen ? "translate-x-0" : "-translate-x-full"
+            }`}
           role="dialog"
           aria-modal="true"
           aria-label="Navegação da dashboard"

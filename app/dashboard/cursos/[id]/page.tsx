@@ -1,8 +1,9 @@
 import Link from "next/link"
 
-import { CoursePlayer, type CoursePlayerCourse, type CoursePlayerLesson, type LessonMaterial } from "@/components/courses/course-player"
+import { CoursePlayer, type CoursePlayerCourse, type CoursePlayerLesson, type LessonMaterial, type CoursePlayerModule } from "@/components/courses/course-player"
 import { createClient } from "@/lib/supabase/server"
 import { sanitizeCourseId } from "@/lib/course/helpers"
+import { getLessonModuleSupport, isLessonModulesTableMissingError, isLessonsModuleIdColumnMissingError } from "@/lib/lesson-module-support"
 
 const COURSE_UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -25,11 +26,11 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
     const providedId = (rawCourseId ?? "").trim() || "indefinido"
     return (
       <div className="flex h-full min-h-[400px] flex-col items-center justify-center gap-3">
-        <p className="text-sm text-slate-300">
+        <p className="text-sm text-slate-200">
           Não foi possível carregar este curso. Verifique se o link está correto e tente novamente.
         </p>
-        <p className="text-xs uppercase tracking-[0.25em] text-slate-400/70">
-          ID informado: <span className="font-mono text-slate-200">{providedId}</span>
+        <p className="text-xs uppercase tracking-[0.25em] text-slate-200">
+          ID informado: <span className="font-mono text-white">{providedId}</span>
         </p>
         <Link
           href="/dashboard/cursos"
@@ -65,17 +66,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
       tags,
       updated_at,
       coming_soon,
-      available_at,
-      lessons (
-        id,
-        title,
-        description,
-        module_title,
-        video_url,
-        duration_minutes,
-        available_at,
-        order_index
-      )
+      available_at
     `)
     .eq("id", courseId)
     .maybeSingle()
@@ -84,7 +75,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
     console.error("Erro ao buscar curso:", error)
     return (
       <div className="flex h-full min-h-[400px] items-center justify-center">
-        <p className="text-sm text-slate-300">
+        <p className="text-sm text-slate-200">
           Não foi possível carregar o curso no momento. ({error.message})
         </p>
       </div>
@@ -94,7 +85,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
   if (!courseData) {
     return (
       <div className="flex h-full min-h-[400px] items-center justify-center">
-        <p className="text-sm text-slate-300">Curso não encontrado.</p>
+        <p className="text-sm text-slate-200">Curso não encontrado.</p>
       </div>
     )
   }
@@ -129,11 +120,63 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
     resourcesByLesson.set(resource.lesson_id, lessonMaterials)
   })
 
-  const normalizedLessons: CoursePlayerLesson[] = (courseData.lessons ?? []).map((lesson) => ({
+  const moduleSupport = await getLessonModuleSupport(supabase)
+
+  let modules: CoursePlayerModule[] = []
+  let lessonsRaw: Array<any> = []
+
+  if (moduleSupport.lessonModulesTable) {
+    const { data: modulesData, error: modulesError } = await supabase
+      .from("lesson_modules")
+      .select("id, title, description, order_index")
+      .eq("course_id", courseId)
+      .order("order_index", { ascending: true })
+
+    if (!modulesError && modulesData) {
+      modules = modulesData.map((m) => ({ id: m.id, title: m.title, description: m.description, order_index: m.order_index }))
+    } else if (modulesError && isLessonModulesTableMissingError(modulesError)) {
+      modules = []
+    }
+  }
+
+  const buildLessonSelectFields = (includeModuleId: boolean) => [
+    "id",
+    "title",
+    "description",
+    "video_url",
+    "module_title",
+    ...(includeModuleId ? ["module_id"] : []),
+    "duration_minutes",
+    "available_at",
+    "order_index",
+  ].join(", ")
+
+  let includeModuleId = moduleSupport.lessonsModuleIdColumn && moduleSupport.lessonModulesTable
+  let lessonSelectFields = buildLessonSelectFields(includeModuleId)
+  let lessonsResult = await supabase
+    .from("lessons")
+    .select(lessonSelectFields)
+    .eq("course_id", courseId)
+    .order("order_index", { ascending: true })
+
+  if (lessonsResult.error && isLessonsModuleIdColumnMissingError(lessonsResult.error)) {
+    includeModuleId = false
+    lessonSelectFields = buildLessonSelectFields(includeModuleId)
+    lessonsResult = await supabase
+      .from("lessons")
+      .select(lessonSelectFields)
+      .eq("course_id", courseId)
+      .order("order_index", { ascending: true })
+  }
+
+  lessonsRaw = lessonsResult.data ?? []
+
+  const normalizedLessons: CoursePlayerLesson[] = lessonsRaw.map((lesson) => ({
     id: lesson.id,
     title: lesson.title,
     description: lesson.description,
-    module_title: lesson.module_title,
+    module_title: lesson.module_title ?? (lesson.module_id ? modules.find((m) => m.id === lesson.module_id)?.title ?? null : null),
+    module_id: includeModuleId ? (lesson.module_id ?? null) : null,
     video_url: lesson.video_url,
     duration_minutes: lesson.duration_minutes,
     materials: resourcesByLesson.get(lesson.id) ?? [],
@@ -157,5 +200,5 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
     lessons: normalizedLessons,
   }
 
-  return <CoursePlayer key={course.id} course={course} progress={userProgress?.progress ?? 0} />
+  return <CoursePlayer key={course.id} course={course} modules={modules} progress={userProgress?.progress ?? 0} />
 }

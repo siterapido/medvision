@@ -334,7 +334,7 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
     }
   }
 
-  const normalizeYouTubeUrl = (url: string) => {
+  const normalizeVideoUrl = (url: string) => {
     const trimmed = url.trim()
     const short = trimmed.match(/^https?:\/\/youtu\.be\/([A-Za-z0-9_-]{6,})/)
     if (short) return `https://www.youtube.com/watch?v=${short[1]}`
@@ -342,6 +342,8 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
     if (watch) return `https://www.youtube.com/watch?v=${watch[1]}`
     const shorts = trimmed.match(/youtube\.com\/shorts\/([A-Za-z0-9_-]{6,})/)
     if (shorts) return `https://www.youtube.com/watch?v=${shorts[1]}`
+    if (/\bvimeo\.com\b/i.test(trimmed)) return trimmed
+    if (/\bmediadelivery\.net\b/i.test(trimmed) || /\bb-cdn\.net\b/i.test(trimmed)) return trimmed
     return trimmed
   }
 
@@ -611,16 +613,16 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                         </div>
                       </div>
                       <div className="mt-3 space-y-2">
-                        <label className="text-xs uppercase tracking-wide text-slate-400">Link do vídeo (YouTube)</label>
+                        <label className="text-xs uppercase tracking-wide text-slate-400">Link do vídeo (YouTube, Vimeo, Bunny)</label>
                         <div className="flex items-center gap-2">
                           <Video className="h-4 w-4 text-[#0891b2]" />
                           <Input
                             value={lesson.videoUrl}
                             onChange={(event) => updateLesson(module.id, lesson.id, { videoUrl: event.target.value })}
                             onBlur={(event) =>
-                              updateLesson(module.id, lesson.id, { videoUrl: normalizeYouTubeUrl(event.target.value) })
+                              updateLesson(module.id, lesson.id, { videoUrl: normalizeVideoUrl(event.target.value) })
                             }
-                            placeholder="Cole o link do YouTube (watch, youtu.be ou shorts)"
+                            placeholder="Cole YouTube/Vimeo ou Bunny (iframe.mediadelivery.net / *.b-cdn.net)"
                             className={darkFieldClass}
                           />
                         </div>
