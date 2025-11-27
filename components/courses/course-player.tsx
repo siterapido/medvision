@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useRef, useState } from "react"
- 
+
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
@@ -106,7 +106,7 @@ const isComingSoon = (course: CoursePlayerCourse) => {
   return new Date(course.available_at) > new Date()
 }
 
- 
+
 
 const persistLessonCompletion = async (courseId: string, lessonId: string) => {
   try {
@@ -426,8 +426,8 @@ export function CoursePlayer({
     return (
       <div className="flex h-full items-center justify-center p-8 text-center">
         <div className="max-w-md space-y-4">
-          <h1 className="text-2xl font-bold text-white">Em Breve</h1>
-          <p className="text-slate-400">Este curso estará disponível em breve.</p>
+          <h1 className="text-2xl font-bold text-slate-900">Em Breve</h1>
+          <p className="text-slate-500">Este curso estará disponível em breve.</p>
         </div>
       </div>
     )
@@ -438,7 +438,7 @@ export function CoursePlayer({
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto lg:overflow-visible pr-2">
         {/* Video Player Container */}
-        <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-white/10 group">
+        <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-slate-200 group">
           {normalizedVideoUrl ? (
             isVideoFile(normalizedVideoUrl) ? (
               isHlsStream ? (
@@ -476,7 +476,7 @@ export function CoursePlayer({
               })()
             )
           ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-4 text-slate-200">
+            <div className="flex h-full flex-col items-center justify-center gap-4 text-slate-400">
               <Video className="h-12 w-12 opacity-20" />
               <p>Selecione uma aula para assistir</p>
             </div>
@@ -487,12 +487,12 @@ export function CoursePlayer({
         <div className="mt-6 space-y-6 px-1">
           <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
             <div className="space-y-2">
-              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-white">
+              <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-[#0891b2]">
                 <span>Aula {currentLessonIndex + 1}</span>
-                <span className="h-1 w-1 rounded-full bg-white/20" />
+                <span className="h-1 w-1 rounded-full bg-[#0891b2]/20" />
                 <span>{currentLesson?.module_title || "Módulo Geral"}</span>
               </div>
-              <h1 className="text-2xl font-bold text-white leading-tight">{currentLesson?.title}</h1>
+              <h1 className="text-2xl font-bold text-[#0f172a] leading-tight">{currentLesson?.title}</h1>
             </div>
 
             <div className="flex items-center gap-3 shrink-0">
@@ -502,8 +502,8 @@ export function CoursePlayer({
                 className={cn(
                   "gap-2 rounded-full font-medium transition-all",
                   currentLesson?.completed
-                    ? "bg-green-500/20 text-white hover:bg-green-500/30 border border-green-500/30"
-                    : "bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-900/20"
+                    ? "bg-green-100 text-green-700 hover:bg-green-200 border border-green-200"
+                    : "bg-[#0891b2] hover:bg-[#0e7490] text-white shadow-lg shadow-[#0891b2]/20"
                 )}
                 onClick={handleMarkComplete}
                 aria-label={currentLesson?.completed ? "Aula marcada como concluída" : "Marcar aula como vista"}
@@ -523,7 +523,7 @@ export function CoursePlayer({
               <Button
                 variant="outline"
                 size="icon"
-                className="lg:hidden rounded-full border-white/10 bg-white/5 text-white hover:bg-white/10"
+                className="lg:hidden rounded-full border-slate-200 bg-white text-slate-700 hover:bg-slate-50"
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 aria-label={sidebarOpen ? "Fechar lista de aulas" : "Abrir lista de aulas"}
               >
@@ -533,52 +533,52 @@ export function CoursePlayer({
           </div>
 
           {/* Tabs Navigation */}
-          <div className="border-b border-white/10">
+          <div className="border-b border-slate-200">
             <div className="flex gap-6">
               <button
                 onClick={() => setActiveTab("overview")}
                 className={cn(
-                  "pb-3 text-sm font-medium transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:rounded-md",
-                  activeTab === "overview" ? "text-white" : "text-slate-200 hover:text-white"
+                  "pb-3 text-sm font-medium transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:rounded-md",
+                  activeTab === "overview" ? "text-[#0891b2]" : "text-slate-500 hover:text-slate-800"
                 )}
               >
                 Visão Geral
                 {activeTab === "overview" && (
-                  <span className="absolute bottom-0 left-0 h-0.5 w-full bg-blue-500 rounded-t-full" />
+                  <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#0891b2] rounded-t-full" />
                 )}
               </button>
               <button
                 onClick={() => setActiveTab("materials")}
                 className={cn(
-                  "pb-3 text-sm font-medium transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:rounded-md",
-                  activeTab === "materials" ? "text-white" : "text-slate-200 hover:text-white"
+                  "pb-3 text-sm font-medium transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:rounded-md",
+                  activeTab === "materials" ? "text-[#0891b2]" : "text-slate-500 hover:text-slate-800"
                 )}
               >
                 Materiais Complementares
                 {currentLesson?.materials && currentLesson.materials.length > 0 && (
-                  <span className="ml-2 rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-white/70">
+                  <span className="ml-2 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">
                     {currentLesson.materials.length}
                   </span>
                 )}
                 {activeTab === "materials" && (
-                  <span className="absolute bottom-0 left-0 h-0.5 w-full bg-blue-500 rounded-t-full" />
+                  <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#0891b2] rounded-t-full" />
                 )}
               </button>
               <button
                 onClick={() => setActiveTab("files")}
                 className={cn(
-                  "pb-3 text-sm font-medium transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:rounded-md",
-                  activeTab === "files" ? "text-white" : "text-slate-200 hover:text-white"
+                  "pb-3 text-sm font-medium transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:rounded-md",
+                  activeTab === "files" ? "text-[#0891b2]" : "text-slate-500 hover:text-slate-800"
                 )}
               >
                 Arquivos Anexados
                 {attachments.length > 0 && (
-                  <span className="ml-2 rounded-full bg-white/10 px-1.5 py-0.5 text-[10px] text-white/70">
+                  <span className="ml-2 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">
                     {attachments.length}
                   </span>
                 )}
                 {activeTab === "files" && (
-                  <span className="absolute bottom-0 left-0 h-0.5 w-full bg-blue-500 rounded-t-full" />
+                  <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#0891b2] rounded-t-full" />
                 )}
               </button>
             </div>
@@ -588,11 +588,11 @@ export function CoursePlayer({
           <div className="py-2">
             {activeTab === "overview" && (
               <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                <p className="text-slate-200 leading-relaxed">
+                <p className="text-slate-700 leading-relaxed">
                   {currentLesson?.description || "Nenhuma descrição disponível para esta aula."}
                 </p>
                 {currentLesson?.duration_minutes && (
-                  <div className="flex items-center gap-2 text-sm text-slate-300">
+                  <div className="flex items-center gap-2 text-sm text-slate-500">
                     <Clock className="h-4 w-4" />
                     <span>Duração estimada: {formatMinutesLabel(currentLesson.duration_minutes)}</span>
                   </div>
@@ -609,19 +609,19 @@ export function CoursePlayer({
                     return (
                       <div
                         key={idx}
-                        className="group flex items-start gap-3 rounded-xl border border-white/5 bg-white/5 p-3 transition hover:border-white/10 hover:bg-white/[0.07]"
+                        className="group flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-[#0891b2] hover:bg-[#0891b2]/5"
                       >
-                        <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-black/20", config.accent)}>
+                        <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100", config.accent)}>
                           <Icon className="h-5 w-5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="truncate text-sm font-medium text-white">{resource.title}</p>
-                          <p className="text-xs text-slate-400">{config.label}</p>
+                          <p className="truncate text-sm font-medium text-slate-900">{resource.title}</p>
+                          <p className="text-xs text-slate-500">{config.label}</p>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 text-slate-400 hover:text-white"
+                          className="h-8 w-8 text-slate-400 hover:text-[#0891b2]"
                           onClick={() => handleDocumentAction(resource, "view")}
                           aria-label={`Abrir material: ${resource.title}`}
                         >
@@ -631,7 +631,7 @@ export function CoursePlayer({
                     )
                   })
                 ) : (
-                  <div className="col-span-full py-8 text-center text-slate-300">
+                  <div className="col-span-full py-8 text-center text-slate-500">
                     <Layout className="mx-auto h-8 w-8 opacity-20 mb-2" />
                     <p>Nenhum material complementar disponível.</p>
                   </div>
@@ -643,20 +643,20 @@ export function CoursePlayer({
               <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 {attachments.length > 0 ? (
                   attachments.map((att) => (
-                    <div key={att.id} className="flex items-center gap-4 rounded-xl border border-white/5 bg-white/5 p-3 transition hover:border-white/10 hover:bg-white/[0.07]">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-black/20 text-slate-300">
+                    <div key={att.id} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-[#0891b2] hover:bg-[#0891b2]/5">
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
                         <Paperclip className="h-5 w-5" />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="truncate text-sm font-medium text-white">{att.file_name}</p>
-                        <p className="text-xs text-slate-400">
+                        <p className="truncate text-sm font-medium text-slate-900">{att.file_name}</p>
+                        <p className="text-xs text-slate-500">
                           {(att.size_bytes / (1024 * 1024)).toFixed(1)} MB • {att.mime_type}
                         </p>
                       </div>
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-white"
+                        className="h-8 w-8 text-slate-400 hover:text-[#0891b2]"
                         onClick={async () => {
                           try {
                             const res = await fetch(`/api/lessons/${currentLesson?.id}/attachments/${att.id}/download`)
@@ -671,7 +671,7 @@ export function CoursePlayer({
                     </div>
                   ))
                 ) : (
-                  <div className="py-8 text-center text-slate-300">
+                  <div className="py-8 text-center text-slate-500">
                     <FileIcon className="mx-auto h-8 w-8 opacity-20 mb-2" />
                     <p>Nenhum arquivo anexado.</p>
                   </div>
@@ -685,20 +685,20 @@ export function CoursePlayer({
       {/* Sidebar - Lesson List */}
       <div
         className={cn(
-          "fixed inset-y-0 right-0 z-50 w-80 transform bg-[#0b1424] transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:w-96 lg:bg-transparent lg:border-l lg:border-white/5",
+          "fixed inset-y-0 right-0 z-50 w-80 transform bg-[#0f172a] transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:w-96 lg:bg-transparent lg:border-l lg:border-[#334155]",
           sidebarOpen ? "translate-x-0 shadow-2xl" : "translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="flex h-full flex-col bg-[#0d172a] lg:rounded-2xl lg:border lg:border-white/10 overflow-hidden">
-          <div className="flex items-center justify-between border-b border-white/10 p-4">
+        <div className="flex h-full flex-col bg-gradient-to-b from-[#1e293b] to-[#0f172a] lg:rounded-2xl lg:border lg:border-[#334155] overflow-hidden">
+          <div className="flex items-center justify-between border-b border-[#334155] p-4">
             <div>
               <h3 className="font-semibold text-white">Conteúdo do Curso</h3>
-              <p className="text-xs text-slate-400">{progressValue}% concluído</p>
+              <p className="text-xs text-[#94a3b8]">{progressValue}% concluído</p>
             </div>
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden text-slate-400"
+              className="lg:hidden text-[#94a3b8] hover:text-white hover:bg-[#334155]"
               onClick={() => setSidebarOpen(false)}
             >
               <X className="h-4 w-4" />
@@ -706,14 +706,14 @@ export function CoursePlayer({
           </div>
 
           <div className="px-4 pt-4 pb-2">
-            <Progress value={progressValue} className="h-1.5 bg-white/10" />
+            <Progress value={progressValue} className="h-1.5 bg-[#334155]" />
           </div>
 
           <ScrollArea className="flex-1">
             <Accordion type="multiple" defaultValue={groupedByModules.map(g => g.module.id || g.module.title)} className="w-full">
               {groupedByModules.map((group, i) => (
-                <AccordionItem key={i} value={group.module.id || group.module.title} className="border-white/5">
-                  <AccordionTrigger className="px-4 py-3 text-sm font-medium text-slate-200 hover:text-white hover:no-underline data-[state=open]:bg-white/5">
+                <AccordionItem key={i} value={group.module.id || group.module.title} className="border-[#334155]">
+                  <AccordionTrigger className="px-4 py-3 text-sm font-medium text-[#f1f5f9] hover:text-white hover:no-underline data-[state=open]:bg-[#334155]/30">
                     <span className="truncate text-left">{group.module.title}</span>
                   </AccordionTrigger>
                   <AccordionContent className="pt-0 pb-0">
@@ -731,30 +731,30 @@ export function CoursePlayer({
                             setSidebarOpen(false)
                           }}
                           className={cn(
-                            "flex items-start gap-3 border-l-2 px-4 py-3 text-left transition-colors hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500",
+                            "flex items-start gap-3 border-l-2 px-4 py-3 text-left transition-colors hover:bg-[#334155]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#06b6d4]",
                             currentLessonId === lesson.id
-                              ? "border-blue-500 bg-blue-500/5"
+                              ? "border-[#06b6d4] bg-[#334155]/50"
                               : "border-transparent"
                           )}
                         >
                           <div className={cn(
                             "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px]",
                             lesson.completed
-                              ? "border-green-500 bg-green-500 text-white"
+                              ? "border-green-400 bg-green-500 text-white"
                               : currentLessonId === lesson.id
-                                ? "border-blue-500 text-blue-500"
-                                : "border-slate-600 text-slate-600"
+                                ? "border-[#06b6d4] text-[#06b6d4]"
+                                : "border-[#475569] text-[#94a3b8]"
                           )}>
                             {lesson.completed ? <CheckCircle2 className="h-3 w-3" /> : (lesson.order_index ?? 0) + 1}
                           </div>
                           <div className="space-y-1">
                             <p className={cn(
                               "text-sm font-medium leading-tight",
-                              currentLessonId === lesson.id ? "text-blue-400" : "text-slate-200"
+                              currentLessonId === lesson.id ? "text-white" : "text-[#f1f5f9]"
                             )}>
                               {lesson.title}
                             </p>
-                            <div className="flex items-center gap-2 text-[10px] text-slate-500">
+                            <div className="flex items-center gap-2 text-[10px] text-[#94a3b8]">
                               {lesson.duration_minutes && (
                                 <span className="flex items-center gap-1">
                                   <Clock className="h-3 w-3" />
