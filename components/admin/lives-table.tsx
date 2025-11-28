@@ -9,20 +9,19 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { LiveFormDialog } from "./live-form-dialog"
-import { deleteLive, togglePublishLive } from "@/app/actions/lives"
+import { deleteLive } from "@/app/actions/lives"
 import { MoreVertical, Edit, Trash2, Eye, CalendarClock, Loader2 } from "lucide-react"
 import Link from "next/link"
-import type { LiveFormData } from "@/lib/validations/live"
 
 interface Live {
   id: string
   title: string
   description: string | null
-  instructor: string | null
+  instructor_name: string | null
   thumbnail_url: string | null
-  status: "agendada" | "realizada" | "cancelada"
-  is_published: boolean
-  scheduled_at: string
+  status: "scheduled" | "live" | "completed"
+  start_at: string
+  duration_minutes: number | null
   created_at: string
   updated_at?: string
 }
@@ -36,7 +35,6 @@ interface LivesTableProps {
 export function LivesTable({ lives, selectedIds, onSelectChange }: LivesTableProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [loadingId, setLoadingId] = useState<string | null>(null)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [liveToDelete, setLiveToDelete] = useState<string | null>(null)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
@@ -53,15 +51,6 @@ export function LivesTable({ lives, selectedIds, onSelectChange }: LivesTablePro
   const handleSelectOne = (liveId: string, checked: boolean) => {
     if (checked) onSelectChange([...selectedIds, liveId])
     else onSelectChange(selectedIds.filter((id) => id !== liveId))
-  }
-
-  const handleTogglePublish = async (live: Live) => {
-    setLoadingId(live.id)
-    startTransition(async () => {
-      const result = await togglePublishLive(live.id, live.is_published)
-      setLoadingId(null)
-      if (result.success) router.refresh()
-    })
   }
 
   const handleDeleteClick = (liveId: string) => {
@@ -149,21 +138,23 @@ export function LivesTable({ lives, selectedIds, onSelectChange }: LivesTablePro
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/10 text-cyan-400">{live.instructor || "—"}</Badge>
+                      <Badge variant="outline" className="border-cyan-500/30 bg-cyan-500/10 text-cyan-400">{live.instructor_name || "—"}</Badge>
                     </TableCell>
                     <TableCell>
-                      <span className="text-slate-300">{new Date(live.scheduled_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
+                      <span className="text-slate-300">{new Date(live.start_at).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}</span>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Button variant="ghost" size="sm" onClick={() => handleTogglePublish(live)} disabled={loadingId === live.id} className="h-auto p-0 hover:bg-transparent">
-                        {loadingId === live.id ? (
-                          <Loader2 className="h-4 w-4 animate-spin text-slate-500" />
-                        ) : live.is_published ? (
-                          <Badge className="bg-green-500/20 text-green-400 border-green-500/30 hover:bg-green-500/30 cursor-pointer">Publicada</Badge>
-                        ) : (
-                          <Badge variant="outline" className="border-slate-600 text-slate-400 hover:bg-slate-700 cursor-pointer">Rascunho</Badge>
-                        )}
-                      </Button>
+                      <Badge
+                        className={
+                          live.status === "live"
+                            ? "bg-red-500/15 text-red-300 border-red-500/40"
+                            : live.status === "scheduled"
+                              ? "bg-amber-500/15 text-amber-200 border-amber-500/40"
+                              : "bg-slate-500/15 text-slate-200 border-slate-500/40"
+                        }
+                      >
+                        {live.status === "live" ? "Ao vivo" : live.status === "scheduled" ? "Agendada" : "Encerrada"}
+                      </Badge>
                     </TableCell>
                     <TableCell className="text-center">
                       <DropdownMenu>
@@ -221,11 +212,11 @@ export function LivesTable({ lives, selectedIds, onSelectChange }: LivesTablePro
             id: liveToEdit.id,
             title: liveToEdit.title,
             description: liveToEdit.description || "",
-            instructor: liveToEdit.instructor || "",
+            instructor_name: liveToEdit.instructor_name || "",
             thumbnail_url: liveToEdit.thumbnail_url || "",
-            scheduled_at: liveToEdit.scheduled_at,
+            start_at: liveToEdit.start_at,
+            duration_minutes: liveToEdit.duration_minutes ?? 60,
             status: liveToEdit.status,
-            is_published: liveToEdit.is_published,
           }}
         />
       )}

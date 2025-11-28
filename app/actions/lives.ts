@@ -35,16 +35,19 @@ export async function createLive(
 
     const supabase = await createClient()
 
+    const startAtIso = new Date(parsed.data.start_at).toISOString()
+
     const { data, error } = await supabase
-      .from("lives")
+      .from("live_events")
       .insert({
         title: parsed.data.title,
         description: parsed.data.description || null,
-        instructor: parsed.data.instructor,
+        instructor_name: parsed.data.instructor_name,
         thumbnail_url: parsed.data.thumbnail_url || null,
-        scheduled_at: parsed.data.scheduled_at,
+        start_at: startAtIso,
+        duration_minutes: parsed.data.duration_minutes ?? 60,
         status: parsed.data.status,
-        is_published: parsed.data.is_published ?? true,
+        is_featured: parsed.data.is_featured ?? false,
       })
       .select("id")
       .single()
@@ -83,16 +86,19 @@ export async function updateLive(
 
     const supabase = await createClient()
 
+    const startAtIso = new Date(parsed.data.start_at).toISOString()
+
     const { error } = await supabase
-      .from("lives")
+      .from("live_events")
       .update({
         title: parsed.data.title,
         description: parsed.data.description || null,
-        instructor: parsed.data.instructor,
+        instructor_name: parsed.data.instructor_name,
         thumbnail_url: parsed.data.thumbnail_url || null,
-        scheduled_at: parsed.data.scheduled_at,
+        start_at: startAtIso,
+        duration_minutes: parsed.data.duration_minutes ?? 60,
         status: parsed.data.status,
-        is_published: parsed.data.is_published ?? true,
+        is_featured: parsed.data.is_featured ?? false,
       })
       .eq("id", liveId)
 
@@ -113,29 +119,7 @@ export async function updateLive(
 export async function deleteLive(liveId: string): Promise<ActionResult> {
   try {
     const supabase = await createClient()
-    const { error } = await supabase.from("lives").delete().eq("id", liveId)
-    if (error) {
-      return { success: false, error: error.message }
-    }
-    revalidatePath("/admin/lives")
-    revalidatePath("/dashboard/cursos")
-    return { success: true }
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error)
-    return { success: false, error: message }
-  }
-}
-
-export async function togglePublishLive(
-  liveId: string,
-  currentStatus: boolean
-): Promise<ActionResult> {
-  try {
-    const supabase = await createClient()
-    const { error } = await supabase
-      .from("lives")
-      .update({ is_published: !currentStatus })
-      .eq("id", liveId)
+    const { error } = await supabase.from("live_events").delete().eq("id", liveId)
     if (error) {
       return { success: false, error: error.message }
     }
@@ -164,13 +148,7 @@ export async function bulkActionLives(
     let error: any = null
     switch (action) {
       case "delete":
-        error = (await supabase.from("lives").delete().in("id", liveIds)).error
-        break
-      case "publish":
-        error = (await supabase.from("lives").update({ is_published: true }).in("id", liveIds)).error
-        break
-      case "unpublish":
-        error = (await supabase.from("lives").update({ is_published: false }).in("id", liveIds)).error
+        error = (await supabase.from("live_events").delete().in("id", liveIds)).error
         break
     }
 

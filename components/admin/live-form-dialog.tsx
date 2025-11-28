@@ -33,14 +33,23 @@ export function LiveFormDialog({ open, onOpenChange, mode, initialData }: LiveFo
   const [isPending, startTransition] = useTransition()
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  const toDatetimeLocal = (value?: string) => {
+    if (!value) return ""
+    const date = new Date(value)
+    if (Number.isNaN(date.getTime())) return ""
+    const offset = date.getTimezoneOffset() * 60000
+    return new Date(date.getTime() - offset).toISOString().slice(0, 16)
+  }
+
   const [formData, setFormData] = useState<LiveFormData>({
     title: initialData?.title || "",
     description: initialData?.description || "",
-    instructor: initialData?.instructor || "",
+    instructor_name: initialData?.instructor_name || "",
     thumbnail_url: initialData?.thumbnail_url || "",
-    scheduled_at: (initialData?.scheduled_at as string) || "",
-    status: (initialData?.status as any) || "agendada",
-    is_published: initialData?.is_published ?? true,
+    start_at: toDatetimeLocal(initialData?.start_at as string) || "",
+    duration_minutes: initialData?.duration_minutes ?? 60,
+    status: (initialData?.status as any) || "scheduled",
+    is_featured: initialData?.is_featured ?? false,
   })
 
   const supabase = createClient()
@@ -86,7 +95,7 @@ export function LiveFormDialog({ open, onOpenChange, mode, initialData }: LiveFo
     })
   }
 
-  const handleInputChange = (field: keyof LiveFormData, value: string | boolean) => {
+  const handleInputChange = (field: keyof LiveFormData, value: string | boolean | number) => {
     setFormData((prev) => ({ ...prev, [field]: value as any }))
     if (errors[field as string]) {
       setErrors((prev) => {
@@ -158,41 +167,44 @@ export function LiveFormDialog({ open, onOpenChange, mode, initialData }: LiveFo
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="instructor" className="text-white">Instrutor <span className="text-red-400">*</span></Label>
-              <Input id="instructor" value={formData.instructor} onChange={(e) => handleInputChange("instructor", e.target.value)} placeholder="Ex: Dr. João Silva" className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500" />
-              {errors.instructor && <p className="text-sm text-red-400">{errors.instructor}</p>}
+              <Input id="instructor" value={formData.instructor_name} onChange={(e) => handleInputChange("instructor_name", e.target.value)} placeholder="Ex: Dr. João Silva" className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500" />
+              {errors.instructor_name && <p className="text-sm text-red-400">{errors.instructor_name}</p>}
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="scheduled_at" className="text-white">Data/Horário <span className="text-red-400">*</span></Label>
-              <Input id="scheduled_at" type="datetime-local" value={formData.scheduled_at as any} onChange={(e) => handleInputChange("scheduled_at", e.target.value)} className="bg-[#131D37] border-slate-600 text-white" />
+              <Label htmlFor="start_at" className="text-white">Data/Horário <span className="text-red-400">*</span></Label>
+              <Input id="start_at" type="datetime-local" value={formData.start_at as any} onChange={(e) => handleInputChange("start_at", e.target.value)} className="bg-[#131D37] border-slate-600 text-white" />
               <p className="text-xs text-slate-400 flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" /> Deve ser uma data futura</p>
-              {errors.scheduled_at && <p className="text-sm text-red-400">{errors.scheduled_at}</p>}
+              {errors.start_at && <p className="text-sm text-red-400">{errors.start_at}</p>}
             </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
+              <Label htmlFor="duration_minutes" className="text-white">Duração (minutos)</Label>
+              <Input
+                id="duration_minutes"
+                type="number"
+                min={15}
+                max={600}
+                value={formData.duration_minutes}
+                onChange={(e) => handleInputChange("duration_minutes", Number(e.target.value))}
+                className="bg-[#131D37] border-slate-600 text-white"
+              />
+              {errors.duration_minutes && <p className="text-sm text-red-400">{errors.duration_minutes}</p>}
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="status" className="text-white">Status</Label>
               <Select value={formData.status} onValueChange={(value) => handleInputChange("status", value)}>
                 <SelectTrigger className="bg-[#131D37] border-slate-600 text-white"><SelectValue /></SelectTrigger>
                 <SelectContent className="bg-[#131D37] border-slate-600">
-                  <SelectItem value="agendada" className="text-white">Agendada</SelectItem>
-                  <SelectItem value="realizada" className="text-white">Realizada</SelectItem>
-                  <SelectItem value="cancelada" className="text-white">Cancelada</SelectItem>
+                  <SelectItem value="scheduled" className="text-white">Agendada</SelectItem>
+                  <SelectItem value="live" className="text-white">Ao vivo</SelectItem>
+                  <SelectItem value="completed" className="text-white">Encerrada</SelectItem>
                 </SelectContent>
               </Select>
               {errors.status && <p className="text-sm text-red-400">{errors.status}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label className="text-white">Publicado</Label>
-              <Select value={(formData.is_published ? "true" : "false") as any} onValueChange={(v) => handleInputChange("is_published", v === "true") }>
-                <SelectTrigger className="bg-[#131D37] border-slate-600 text-white"><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-[#131D37] border-slate-600">
-                  <SelectItem value="true" className="text-white">Publicado</SelectItem>
-                  <SelectItem value="false" className="text-white">Rascunho</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </div>
 

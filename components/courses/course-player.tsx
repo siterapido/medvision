@@ -448,7 +448,7 @@ export function CoursePlayer({
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-full gap-6 overflow-hidden p-4 lg:p-6">
+    <div className="flex flex-col lg:flex-row min-h-full gap-6 overflow-hidden p-4 lg:p-6">
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto lg:overflow-visible pr-2">
         {/* Video Player Container */}

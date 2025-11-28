@@ -31,7 +31,7 @@ type LiveItem = {
   description: string
   thumbnail: string
   scheduledAt: string
-  status: "agendada" | "realizada" | "cancelada"
+  status: "scheduled" | "live" | "completed"
 }
 
 const formatDurationLabel = (durationText?: string | null, durationMinutes?: number | null) => {
@@ -140,19 +140,19 @@ export default async function CursosPage() {
   const novoCursos = dedupedCourses.filter(c => !(c.comingSoon && c.availableAt && new Date(c.availableAt) > new Date()))
 
   const { data: livesRaw } = await supabase
-    .from("lives")
-    .select("id,title,description,thumbnail_url,scheduled_at,status,is_published")
-    .order("scheduled_at", { ascending: true })
+    .from("live_events")
+    .select("id,title,description,thumbnail_url,start_at,status,duration_minutes")
+    .order("start_at", { ascending: true })
 
   const livesAgendadas: LiveItem[] = (livesRaw ?? [])
-    .filter((l) => l.status === "agendada" && l.scheduled_at && new Date(l.scheduled_at) > new Date())
+    .filter((l) => l.status === "scheduled" && l.start_at && new Date(l.start_at) > new Date())
     .map((l) => ({
       id: l.id,
       title: l.title,
       description: l.description || "Descrição em breve",
-      thumbnail: l.thumbnail_url || "/placeholder.svg?height=200&width=400",
-      scheduledAt: l.scheduled_at,
-      status: "agendada",
+      thumbnail: l.thumbnail_url || "",
+      scheduledAt: l.start_at,
+      status: "scheduled",
     }))
 
   const getProgressLabel = (progress: number) => {
@@ -188,7 +188,7 @@ export default async function CursosPage() {
     const normalizedProgress = Math.min(Math.max(course.progress, 0), 100)
 
     const card = (
-      <Card className="group relative flex h-full w-full flex-col overflow-hidden rounded-3xl border border-white/5 bg-slate-900/40 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:border-cyan-500/20 hover:bg-slate-900/60 hover:shadow-2xl hover:shadow-cyan-900/10">
+      <Card className="p-0 gap-0 group relative flex h-full w-full flex-col overflow-hidden rounded-3xl border border-white/5 bg-slate-900/40 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:border-cyan-500/20 hover:bg-slate-900/60 hover:shadow-2xl hover:shadow-cyan-900/10">
         {/* Thumbnail Container */}
         <div className="relative w-full overflow-hidden aspect-[16/9]">
           <CourseThumbnail
@@ -288,27 +288,54 @@ export default async function CursosPage() {
 
   const renderLiveCard = (live: LiveItem) => {
     const card = (
-      <Card className="interactive-card group relative flex h-full w-full flex-col overflow-hidden rounded-2xl border border-slate-800/60 bg-slate-950/80 text-white transition duration-300 hover:-translate-y-0.5 hover:border-primary/60 hover:shadow-xl">
-        <div className="relative w-full overflow-hidden" style={{ aspectRatio: "4 / 3" }}>
+      <Card className="p-0 gap-0 group relative flex h-full w-full flex-col overflow-hidden rounded-3xl border border-white/5 bg-slate-900/40 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:border-cyan-500/20 hover:bg-slate-900/60 hover:shadow-2xl hover:shadow-cyan-900/10">
+        {/* Thumbnail Container */}
+        <div className="relative w-full overflow-hidden aspect-[16/9]">
           <CourseThumbnail
             src={live.thumbnail}
             alt={live.title}
-            className="object-cover object-top opacity-60 mix-blend-luminosity transition duration-[1200ms] ease-out group-hover:scale-110"
+            className="object-cover transition-transform duration-700 will-change-transform group-hover:scale-105"
             priority={false}
           />
-          <div className="absolute inset-0 bg-slate-950/40" />
-          <div className="absolute top-4 left-4">
-            <Badge className="flex items-center gap-1 rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.25em] text-white/90 backdrop-blur border-[#0891b2]/60 bg-[#0891b2]/10 text-[#7de3ff]">Live</Badge>
+
+          {/* Overlay Gradient */}
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-60 transition-opacity duration-500 group-hover:opacity-40" />
+
+          {/* Play/Action Button Overlay */}
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-100 scale-90">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-cyan-500 text-white shadow-lg shadow-cyan-500/30 transition-transform duration-300 hover:scale-110 hover:bg-cyan-400">
+              <PlayCircle className="h-6 w-6 fill-current" />
+            </div>
+          </div>
+
+          {/* Badges */}
+          <div className="absolute top-3 left-3">
+            <Badge className="rounded-full border px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border-cyan-500/30 bg-cyan-500/10 text-cyan-200">
+              Live
+            </Badge>
           </div>
         </div>
-        <div className="flex flex-1 flex-col gap-3 p-4">
-          <div className="space-y-2">
-            <h3 className="text-base font-semibold leading-snug text-white line-clamp-2">{live.title}</h3>
-            <p className="text-xs text-slate-300/90 line-clamp-2">{live.description}</p>
+
+        {/* Content */}
+        <div className="flex flex-1 flex-col p-5">
+          <div className="flex-1 space-y-3">
+            <h3 className="text-lg font-bold leading-tight text-white line-clamp-2 group-hover:text-cyan-400 transition-colors duration-300">
+              {live.title}
+            </h3>
+
+            <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed">
+              {live.description}
+            </p>
+
             {live.scheduledAt && (
-              <div className="text-xs font-medium text-cyan-200 flex items-center gap-1">
-                <Clock className="h-3.5 w-3.5 text-[#06b6d4]" />
-                {new Date(live.scheduledAt).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}
+              <div className="flex items-center gap-2 text-xs font-medium text-cyan-300/90 bg-cyan-500/10 px-3 py-2 rounded-lg border border-cyan-500/20">
+                <Clock className="h-3.5 w-3.5" />
+                <span>
+                  {new Date(live.scheduledAt).toLocaleString("pt-BR", {
+                    dateStyle: "short",
+                    timeStyle: "short",
+                  })}
+                </span>
               </div>
             )}
           </div>
@@ -317,7 +344,10 @@ export default async function CursosPage() {
     )
 
     return (
-      <div key={live.id} className="flex-shrink-0 block w-[min(280px,82vw)] min-w-[240px]">
+      <div
+        key={live.id}
+        className="flex-shrink-0 block w-full sm:w-[300px] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 rounded-3xl"
+      >
         {card}
       </div>
     )
@@ -325,7 +355,7 @@ export default async function CursosPage() {
 
   return (
     <DashboardScrollArea className="!px-0 !pt-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-      <section className="relative overflow-hidden px-4 py-6 text-white sm:px-8 lg:px-10">
+      <section className="relative px-4 py-6 text-white sm:px-8 lg:px-10">
         <div className="relative space-y-10">
           {/* Header */}
           <div className="space-y-4">

@@ -35,9 +35,9 @@ async function LivesContent() {
   const adminName = profile?.full_name || user.email || "Administrador"
 
   let { data: lives, error } = await supabase
-    .from("lives")
-    .select("*")
-    .order("created_at", { ascending: false })
+    .from("live_events")
+    .select("id,title,description,thumbnail_url,instructor_name,start_at,status,duration_minutes,created_at,updated_at,is_featured")
+    .order("start_at", { ascending: true })
 
   if (error) {
     console.error("Erro ao buscar lives:", error)

@@ -1,6 +1,7 @@
 import Link from "next/link"
 
 import { CoursePlayer, type CoursePlayerCourse, type CoursePlayerLesson, type LessonMaterial, type CoursePlayerModule } from "@/components/courses/course-player"
+import { DashboardScrollArea } from "@/components/layout/dashboard-scroll-area"
 import { createClient } from "@/lib/supabase/server"
 import { sanitizeCourseId } from "@/lib/course/helpers"
 import { getLessonModuleSupport, isLessonModulesTableMissingError, isLessonsModuleIdColumnMissingError } from "@/lib/lesson-module-support"
@@ -200,5 +201,9 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
     lessons: normalizedLessons,
   }
 
-  return <CoursePlayer key={course.id} course={course} modules={modules} progress={userProgress?.progress ?? 0} />
+  return (
+    <DashboardScrollArea className="!px-0 !pt-0">
+      <CoursePlayer key={course.id} course={course} modules={modules} progress={userProgress?.progress ?? 0} />
+    </DashboardScrollArea>
+  )
 }

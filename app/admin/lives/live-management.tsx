@@ -25,19 +25,20 @@ import {
 import { bulkActionLives } from "@/app/actions/lives"
 import { LivesTable } from "@/components/admin/lives-table"
 import { LiveFormDialog } from "@/components/admin/live-form-dialog"
-import { Plus, Search, Filter, Trash2, CheckCircle2, XCircle, Loader2 } from "lucide-react"
+import { Plus, Search, Filter, Trash2, Loader2, Radio, CalendarClock } from "lucide-react"
 
 interface Live {
   id: string
   title: string
   description: string | null
-  instructor: string | null
+  instructor_name: string | null
   thumbnail_url: string | null
-  status: "agendada" | "realizada" | "cancelada"
-  is_published: boolean
-  scheduled_at: string
+  status: "scheduled" | "live" | "completed"
+  start_at: string
+  duration_minutes: number | null
   created_at: string
   updated_at?: string
+  is_featured?: boolean | null
 }
 
 interface LiveManagementProps {
@@ -45,7 +46,7 @@ interface LiveManagementProps {
   adminName: string
 }
 
-export function LiveManagement({ lives, adminName }: LiveManagementProps) {
+export function LiveManagement({ lives, adminName: _adminName }: LiveManagementProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
 
@@ -53,7 +54,6 @@ export function LiveManagement({ lives, adminName }: LiveManagementProps) {
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState("")
   const [statusFilter, setStatusFilter] = useState<string>("all")
-  const [pubFilter, setPubFilter] = useState<string>("all")
   const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false)
 
   const filteredLives = useMemo(() => {
@@ -66,20 +66,16 @@ export function LiveManagement({ lives, adminName }: LiveManagementProps) {
       const matchesStatus =
         statusFilter === "all" ? true : live.status === (statusFilter as any)
 
-      const matchesPublished =
-        pubFilter === "all" ? true : pubFilter === "published" ? live.is_published : !live.is_published
-
-      return matchesSearch && matchesStatus && matchesPublished
+      return matchesSearch && matchesStatus
     })
-  }, [lives, searchQuery, statusFilter, pubFilter])
+  }, [lives, searchQuery, statusFilter])
 
   const stats = useMemo(() => {
     return {
       total: lives.length,
-      published: lives.filter((l) => l.is_published).length,
-      agendada: lives.filter((l) => l.status === "agendada").length,
-      realizada: lives.filter((l) => l.status === "realizada").length,
-      cancelada: lives.filter((l) => l.status === "cancelada").length,
+      scheduled: lives.filter((l) => l.status === "scheduled").length,
+      live: lives.filter((l) => l.status === "live").length,
+      completed: lives.filter((l) => l.status === "completed").length,
     }
   }, [lives])
 
@@ -95,35 +91,12 @@ export function LiveManagement({ lives, adminName }: LiveManagementProps) {
     })
   }
 
-  const handleBulkPublish = async () => {
-    if (selectedIds.length === 0) return
-    startTransition(async () => {
-      const result = await bulkActionLives({ liveIds: selectedIds, action: "publish" })
-      if (result.success) {
-        setSelectedIds([])
-        router.refresh()
-      }
-    })
-  }
-
-  const handleBulkUnpublish = async () => {
-    if (selectedIds.length === 0) return
-    startTransition(async () => {
-      const result = await bulkActionLives({ liveIds: selectedIds, action: "unpublish" })
-      if (result.success) {
-        setSelectedIds([])
-        router.refresh()
-      }
-    })
-  }
-
   const handleResetFilters = () => {
     setSearchQuery("")
     setStatusFilter("all")
-    setPubFilter("all")
   }
 
-  const hasActiveFilters = searchQuery || statusFilter !== "all" || pubFilter !== "all"
+  const hasActiveFilters = searchQuery || statusFilter !== "all"
 
   return (
     <div className="space-y-6">
@@ -142,30 +115,30 @@ export function LiveManagement({ lives, adminName }: LiveManagementProps) {
         <div className="bg-[#131D37] border border-slate-700 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-400">Publicadas</p>
-              <p className="text-2xl font-bold text-green-400 mt-1">{stats.published}</p>
-            </div>
-            <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
-              <CheckCircle2 className="h-6 w-6 text-green-500" />
-            </div>
-          </div>
-        </div>
-        <div className="bg-[#131D37] border border-slate-700 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div>
               <p className="text-sm text-slate-400">Agendadas</p>
-              <p className="text-2xl font-bold text-amber-300 mt-1">{stats.agendada}</p>
+              <p className="text-2xl font-bold text-amber-300 mt-1">{stats.scheduled}</p>
             </div>
             <div className="h-12 w-12 rounded-full bg-amber-500/10 flex items-center justify-center">
-              <span className="text-2xl">⏳</span>
+              <CalendarClock className="h-6 w-6 text-amber-400" />
             </div>
           </div>
         </div>
         <div className="bg-[#131D37] border border-slate-700 rounded-lg p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-slate-400">Realizadas / Canceladas</p>
-              <p className="text-2xl font-bold text-slate-300 mt-1">{stats.realizada + stats.cancelada}</p>
+              <p className="text-sm text-slate-400">Ao vivo</p>
+              <p className="text-2xl font-bold text-red-300 mt-1">{stats.live}</p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center">
+              <Radio className="h-6 w-6 text-red-400" />
+            </div>
+          </div>
+        </div>
+        <div className="bg-[#131D37] border border-slate-700 rounded-lg p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-slate-400">Encerradas</p>
+              <p className="text-2xl font-bold text-slate-300 mt-1">{stats.completed}</p>
             </div>
             <div className="h-12 w-12 rounded-full bg-slate-500/10 flex items-center justify-center">
               <span className="text-2xl">📅</span>
@@ -193,20 +166,9 @@ export function LiveManagement({ lives, adminName }: LiveManagementProps) {
             </SelectTrigger>
             <SelectContent className="bg-[#131D37] border-slate-600">
               <SelectItem value="all" className="text-white">Todos</SelectItem>
-              <SelectItem value="agendada" className="text-white">Agendada</SelectItem>
-              <SelectItem value="realizada" className="text-white">Realizada</SelectItem>
-              <SelectItem value="cancelada" className="text-white">Cancelada</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={pubFilter} onValueChange={setPubFilter}>
-            <SelectTrigger className="w-full sm:w-48 bg-[#131D37] border-slate-600 text-white">
-              <SelectValue placeholder="Publicação" />
-            </SelectTrigger>
-            <SelectContent className="bg-[#131D37] border-slate-600">
-              <SelectItem value="all" className="text-white">Todos os status</SelectItem>
-              <SelectItem value="published" className="text-white">Publicadas</SelectItem>
-              <SelectItem value="draft" className="text-white">Rascunhos</SelectItem>
+              <SelectItem value="scheduled" className="text-white">Agendada</SelectItem>
+              <SelectItem value="live" className="text-white">Ao vivo</SelectItem>
+              <SelectItem value="completed" className="text-white">Encerrada</SelectItem>
             </SelectContent>
           </Select>
 
@@ -232,12 +194,6 @@ export function LiveManagement({ lives, adminName }: LiveManagementProps) {
             <span className="text-sm text-slate-300">Aplicar ações em lote:</span>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Button size="sm" variant="outline" onClick={handleBulkPublish} disabled={isPending} className="border-green-500/30 bg-green-500/10 text-green-400 hover:bg-green-500/20">
-              <CheckCircle2 className="h-4 w-4 mr-2" /> Publicar
-            </Button>
-            <Button size="sm" variant="outline" onClick={handleBulkUnpublish} disabled={isPending} className="border-slate-600 text-slate-300 hover:bg-slate-700">
-              <XCircle className="h-4 w-4 mr-2" /> Despublicar
-            </Button>
             <Button size="sm" variant="outline" onClick={() => setBulkDeleteDialogOpen(true)} disabled={isPending} className="border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20">
               <Trash2 className="h-4 w-4 mr-2" /> Deletar
             </Button>
