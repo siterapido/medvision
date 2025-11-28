@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition, type ChangeEvent } from "react"
+import { useState, useTransition } from "react"
 import {
   Dialog,
   DialogContent,
@@ -14,9 +14,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { createClient } from "@/lib/supabase/client"
 import { createLessonAction, updateLessonAction } from "@/app/actions/lesson-actions"
-import { Loader2, Plus, UploadCloud } from "lucide-react"
+import { Loader2, Plus } from "lucide-react"
 import type { LessonFormData, LessonMaterialData } from "@/lib/validations/lesson"
 import { AttachmentUploader } from "@/components/admin/attachment-uploader"
 
@@ -89,7 +88,6 @@ export function LessonFormDialog({
   }
 
   const [materials, setMaterials] = useState<MaterialState[]>(buildInitialMaterials)
-  const [materialUploadStates, setMaterialUploadStates] = useState<Record<string, boolean>>({})
 
   const buildInitialFormData = () => {
     const preferredModuleId =
@@ -112,7 +110,6 @@ export function LessonFormDialog({
 }
 
   const [formData, setFormData] = useState(buildInitialFormData)
-  const supabase = createClient()
 
   const addMaterial = () => {
     setMaterials((prev) => [...prev, createMaterialState()])
@@ -126,54 +123,6 @@ export function LessonFormDialog({
 
   const removeMaterial = (materialId: string) => {
     setMaterials((prev) => prev.filter((material) => material.id !== materialId))
-  }
-
-  const handleMaterialFileUpload = async (
-    materialId: string,
-    event: ChangeEvent<HTMLInputElement>
-  ) => {
-    const file = event.target.files?.[0]
-    event.target.value = ""
-    if (!file) {
-      return
-    }
-
-    setMaterialUploadStates((prev) => ({ ...prev, [materialId]: true }))
-    try {
-      const ext = file.name.split(".").pop() ?? "bin"
-      const path = `materials/${crypto.randomUUID()}.${ext}`
-      const { error: uploadError } = await supabase.storage.from("course-assets").upload(path, file, {
-        cacheControl: "3600",
-        upsert: true,
-      })
-      if (uploadError) {
-        throw uploadError
-      }
-
-      const { data } = supabase.storage.from("course-assets").getPublicUrl(path)
-      if (!data?.publicUrl) {
-        throw new Error("Não foi possível obter a URL pública do arquivo")
-      }
-
-      updateMaterial(materialId, { url: data.publicUrl })
-      setErrors((prev) => {
-        const next = { ...prev }
-        delete next.materials
-        return next
-      })
-    } catch (error) {
-      console.error("Erro ao enviar material:", error)
-      setErrors((prev) => ({
-        ...prev,
-        materials: "Não foi possível enviar o material. Tente novamente.",
-      }))
-    } finally {
-      setMaterialUploadStates((prev) => {
-        const next = { ...prev }
-        delete next[materialId]
-        return next
-      })
-    }
   }
 
   const handleInputChange = (field: string, value: string) => {
@@ -404,16 +353,14 @@ export function LessonFormDialog({
             )}
           </div>
 
-          {/* Anexos da aula (apenas no modo edição, após existir ID da aula) */}
-          {mode === "edit" && initialData?.id && (
-            <div className="space-y-2 rounded-2xl border border-slate-700 bg-[#0A111F] p-4">
-              <AttachmentUploader lessonId={initialData.id} />
-            </div>
-          )}
-
           <div className="space-y-4 rounded-2xl border border-slate-700 bg-[#0A111F] p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm font-semibold text-white">Materiais vinculados</p>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-white">Materiais e anexos</p>
+                <p className="text-xs text-slate-500">
+                  Adicione PDFs, links ou faça upload de arquivos. Tudo ficará disponível junto com a aula.
+                </p>
+              </div>
               <Button
                 type="button"
                 size="sm"
@@ -425,111 +372,90 @@ export function LessonFormDialog({
                 Adicionar material
               </Button>
             </div>
-            <p className="text-xs text-slate-500">
-              Adicione PDFs, checklists, links e templates que devem ficar disponíveis junto com a aula.
-            </p>
+
+            {mode === "edit" && initialData?.id ? (
+              <div className="rounded-2xl border border-slate-700/80 bg-[#0F192F] p-3">
+                <AttachmentUploader lessonId={initialData.id} />
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900/40 p-4 text-sm text-slate-400">
+                Salve a aula primeiro para adicionar anexos via link do Bunny.
+              </div>
+            )}
             {materials.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900/40 p-4 text-sm text-slate-400">
                 Nenhum material vinculado ainda. Clique em “Adicionar material” para começar.
               </div>
             ) : (
               <div className="space-y-4">
-                {materials.map((material) => {
-                  const isUploading = materialUploadStates[material.id] ?? false
-                  const fileInputId = `lesson-material-${material.id}`
-                  return (
-                    <div key={material.id} className="rounded-2xl border border-slate-800 bg-[#0F192F] p-4">
-                      <div className="grid gap-3 md:grid-cols-[1.1fr,220px,180px]">
-                        <div className="space-y-2">
-                          <Label className="text-xs text-slate-400">Título</Label>
-                          <Input
-                            value={material.title}
-                            onChange={(event) =>
-                              updateMaterial(material.id, { title: event.target.value })
-                            }
-                            placeholder="Ex.: Checklist de imagens"
-                            className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs text-slate-400">Tipo</Label>
-                          <Select
-                            value={material.type}
-                            onValueChange={(value) => updateMaterial(material.id, { type: value })}
-                          >
-                            <SelectTrigger className="bg-[#131D37] border-slate-600 text-white">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {materialOptions.map((option) => (
-                                <SelectItem key={option.value} value={option.value}>
-                                  {option.label}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label className="text-xs text-slate-400">URL / arquivo</Label>
-                          <div className="flex gap-2">
-                            <Input
-                              value={material.url}
-                              onChange={(event) =>
-                                updateMaterial(material.id, { url: event.target.value })
-                              }
-                              placeholder="https://..."
-                              className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500 flex-1"
-                            />
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="outline"
-                              className="flex items-center gap-1 rounded-xl border-slate-600 px-3 text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-200 hover:bg-slate-800"
-                              onClick={() => document.getElementById(fileInputId)?.click()}
-                              disabled={isUploading}
-                            >
-                              {isUploading ? (
-                                <Loader2 className="h-3 w-3 animate-spin text-[#06b6d4]" />
-                              ) : (
-                                <UploadCloud className="h-3.5 w-3.5 text-slate-200" />
-                              )}
-                              {isUploading ? "Enviando" : "Upload"}
-                            </Button>
-                          </div>
-                          <input
-                            id={fileInputId}
-                            type="file"
-                            className="hidden"
-                            accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip,application/x-7z-compressed,image/*"
-                            onChange={(event) => handleMaterialFileUpload(material.id, event)}
-                          />
-                        </div>
-                      </div>
-                      <div className="mt-3 space-y-2">
-                        <Label className="text-xs text-slate-400">Descrição</Label>
-                        <Textarea
-                          value={material.description ?? ""}
+                {materials.map((material) => (
+                  <div key={material.id} className="rounded-2xl border border-slate-800 bg-[#0F192F] p-4">
+                    <div className="grid gap-3 md:grid-cols-[1.1fr,220px,180px]">
+                      <div className="space-y-2">
+                        <Label className="text-xs text-slate-400">Título</Label>
+                        <Input
+                          value={material.title}
                           onChange={(event) =>
-                            updateMaterial(material.id, { description: event.target.value })
+                            updateMaterial(material.id, { title: event.target.value })
                           }
-                          rows={2}
-                          className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500 resize-none"
+                          placeholder="Ex.: Checklist de imagens"
+                          className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500"
                         />
                       </div>
-                      <div className="flex justify-end">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="sm"
-                          className="rounded-full text-xs text-rose-400 hover:bg-rose-500/10"
-                          onClick={() => removeMaterial(material.id)}
+                      <div className="space-y-2">
+                        <Label className="text-xs text-slate-400">Tipo</Label>
+                        <Select
+                          value={material.type}
+                          onValueChange={(value) => updateMaterial(material.id, { type: value })}
                         >
-                          Remover material
-                        </Button>
+                          <SelectTrigger className="bg-[#131D37] border-slate-600 text-white">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {materialOptions.map((option) => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-xs text-slate-400">URL do arquivo (Bunny)</Label>
+                        <Input
+                          value={material.url}
+                          onChange={(event) =>
+                            updateMaterial(material.id, { url: event.target.value })
+                          }
+                          placeholder="https://odontogpt.b-cdn.net/pasta/arquivo.pdf"
+                          className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500 flex-1"
+                        />
                       </div>
                     </div>
-                  )
-                })}
+                    <div className="mt-3 space-y-2">
+                      <Label className="text-xs text-slate-400">Descrição</Label>
+                      <Textarea
+                        value={material.description ?? ""}
+                        onChange={(event) =>
+                          updateMaterial(material.id, { description: event.target.value })
+                        }
+                        rows={2}
+                        className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500 resize-none"
+                      />
+                    </div>
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="rounded-full text-xs text-rose-400 hover:bg-rose-500/10"
+                        onClick={() => removeMaterial(material.id)}
+                      >
+                        Remover material
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
             {errors.materials && <p className="text-sm text-red-400">{errors.materials}</p>}

@@ -1,9 +1,9 @@
 # Anexos de Arquivos em Aulas
 
 ## Visão Geral
-- Anexos são armazenados em bucket privado `lesson-attachments` no Supabase Storage.
-- Metadados ficam na tabela `public.lesson_attachments`.
-- Acesso aos arquivos é feito via URLs assinadas geradas pelos endpoints.
+- Arquivos são enviados para o Bunny Storage (Storage Zone definida por `BUNNY_STORAGE_ZONE`), servidos via CDN em `BUNNY_CDN_BASE_URL` (ex.: `https://odontogpt.b-cdn.net`).
+- Metadados permanecem na tabela `public.lesson_attachments` no Supabase.
+- O backend valida permissão e entrega a URL CDN já pronta para download.
 
 ## Endpoints
 - `POST /api/lessons/:lessonId/attachments`
@@ -17,7 +17,7 @@
   - Permissão: `admin` ou usuário participante do curso (`user_courses`).
 
 - `GET /api/lessons/:lessonId/attachments/:attachmentId/download`
-  - Retorna `{ url }` com URL assinada válida por 10 minutos.
+  - Retorna `{ url }` apontando para o arquivo no Bunny CDN (CDN pública, apenas liberada após checagem de permissão).
   - Permissão: `admin` ou participante do curso.
 
 - `DELETE /api/lessons/:lessonId/attachments/:attachmentId`
@@ -31,12 +31,15 @@
   - RLS: SELECT para `admin` e participantes; INSERT/DELETE para `admin` (apenas se acessado direto).
 
 ## Storage
-- Bucket `lesson-attachments` privado.
-- Sem políticas de leitura pública.
-- Upload/remoção feitos via service role no backend.
+- Bunny Storage (Object Storage) com paths `lessons/{lessonId}/{uuid}.{ext}`.
+- CDN pública configurada em `BUNNY_CDN_BASE_URL`.
+- Upload e remoção feitos pelo backend usando a Storage API do Bunny (AccessKey).
 
 ## Configuração
-- `SUPABASE_SERVICE_ROLE_KEY`: obrigatório para geração de URLs assinadas.
+- `BUNNY_STORAGE_ZONE`: nome da Storage Zone.
+- `BUNNY_STORAGE_API_KEY`: AccessKey da Storage Zone (não do pull zone).
+- `BUNNY_CDN_BASE_URL`: domínio CDN público (ex.: `https://odontogpt.b-cdn.net`).
+- `BUNNY_STORAGE_HOST` (opcional): host da região do Bunny, padrão `storage.bunnycdn.com`.
 - `NEXT_PUBLIC_MAX_ATTACHMENT_MB`: limite máximo de tamanho por arquivo (padrão 10).
 
 ## Frontend
@@ -46,8 +49,8 @@
 ## Segurança
 - Autenticação: Supabase Auth.
 - Autorização: `admin` para upload/remoção; `admin` ou inscritos para listagem/download.
+- O link CDN só é devolvido após checagem de permissão no endpoint; evite compartilhar publicamente para manter controle de acesso.
 
 ## Testes
 - Unit: util de MIME e validações.
 - Integração: validações e fluxo de download exercitados via UI.
-

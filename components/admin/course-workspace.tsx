@@ -1,6 +1,6 @@
 "use client"
 
-import { useMemo, useState, type ChangeEvent } from "react"
+import { useMemo, useState } from "react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -146,7 +146,6 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
   const [currentStep, setCurrentStep] = useState(0)
   const [stepTouched, setStepTouched] = useState<Record<WorkflowStepId, boolean>>(createInitialStepTouched)
   const [uploadingThumb, setUploadingThumb] = useState(false)
-  const [materialUploadStates, setMaterialUploadStates] = useState<Record<string, boolean>>({})
   const shortName = adminName.split(" ")[0] ?? adminName
   const isLastStep = currentStep === workflowSteps.length - 1
   const isFirstStep = currentStep === 0
@@ -279,58 +278,6 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
       })
     } finally {
       setUploadingThumb(false)
-    }
-  }
-
-  const handleMaterialFileUpload = async (
-    moduleId: string,
-    lessonId: string,
-    materialId: string,
-    event: ChangeEvent<HTMLInputElement>,
-  ) => {
-    const file = event.target.files?.[0]
-    event.target.value = ""
-    if (!file) {
-      return
-    }
-
-    setMaterialUploadStates((prev) => ({ ...prev, [materialId]: true }))
-    setStatus(null)
-
-    try {
-      const ext = file.name.split(".").pop() || "bin"
-      const path = `materials/${crypto.randomUUID()}.${ext}`
-      const { error: uploadError } = await supabase.storage.from("course-assets").upload(path, file, {
-        cacheControl: "3600",
-        upsert: true,
-      })
-
-      if (uploadError) {
-        throw uploadError
-      }
-
-      const { data } = supabase.storage.from("course-assets").getPublicUrl(path)
-      if (!data?.publicUrl) {
-        throw new Error("Não foi possível obter a URL pública do arquivo")
-      }
-
-      updateMaterial(moduleId, lessonId, materialId, { url: data.publicUrl })
-      setStatus({ type: "success", message: `Arquivo "${file.name}" anexado com sucesso.` })
-    } catch (error) {
-      console.error("Erro ao enviar material:", error)
-      setStatus({
-        type: "error",
-        message:
-          error instanceof Error
-            ? error.message
-            : "Não foi possível fazer o upload do material. Tente novamente.",
-      })
-    } finally {
-      setMaterialUploadStates((prev) => {
-        const next = { ...prev }
-        delete next[materialId]
-        return next
-      })
     }
   }
 
@@ -644,8 +591,6 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                         </CollapsibleTrigger>
                         <CollapsibleContent className="mt-3 space-y-3">
                           {lesson.materials.map((material) => {
-                            const isMaterialUploading = materialUploadStates[material.id] ?? false
-                            const materialFileInputId = `material-file-${material.id}`
                             return (
                               <div key={material.id} className="rounded-xl border border-slate-200 bg-white p-4">
                                 <div className="grid gap-3 md:grid-cols-3">
@@ -680,40 +625,14 @@ export function CourseWorkspace({ adminName, existingCourses }: CourseWorkspaceP
                                     </Select>
                                   </div>
                                   <div className="space-y-2">
-                                    <label className="text-xs text-slate-400">URL / arquivo</label>
-                                    <div className="flex items-center gap-2">
-                                      <Input
-                                        value={material.url}
-                                        onChange={(event) =>
-                                          updateMaterial(module.id, lesson.id, material.id, { url: event.target.value })
-                                        }
-                                        placeholder="https://..."
-                                        className={`${darkFieldClass} flex-1`}
-                                      />
-                                      <Button
-                                        type="button"
-                                        size="sm"
-                                        variant="outline"
-                                        className="flex items-center gap-1 rounded-xl border-slate-300 px-3 text-xs font-semibold uppercase tracking-[0.2em] text-slate-700 hover:bg-slate-50"
-                                        onClick={() => document.getElementById(materialFileInputId)?.click()}
-                                        disabled={isMaterialUploading}
-                                      >
-                                        {isMaterialUploading ? (
-                                          <Loader2 className="h-4 w-4 animate-spin text-[#0891b2]" />
-                                        ) : (
-                                          <UploadCloud className="h-4 w-4 text-[#0891b2]" />
-                                        )}
-                                        {isMaterialUploading ? "Enviando" : "Upload"}
-                                      </Button>
-                                    </div>
-                                    <input
-                                      id={materialFileInputId}
-                                      type="file"
-                                      className="hidden"
-                                      accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip,application/x-7z-compressed,image/*"
+                                    <label className="text-xs text-slate-400">URL do arquivo (Bunny)</label>
+                                    <Input
+                                      value={material.url}
                                       onChange={(event) =>
-                                        handleMaterialFileUpload(module.id, lesson.id, material.id, event)
+                                        updateMaterial(module.id, lesson.id, material.id, { url: event.target.value })
                                       }
+                                      placeholder="https://odontogpt.b-cdn.net/pasta/arquivo.pdf"
+                                      className={`${darkFieldClass} flex-1`}
                                     />
                                   </div>
                                 </div>

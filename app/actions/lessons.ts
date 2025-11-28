@@ -34,6 +34,15 @@ export type ActionResult<T = void> = {
   fieldErrors?: Record<string, string[]>
 }
 
+type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
+
+type NormalizedLessonMaterial = {
+  title: string
+  type: LessonMaterialData["type"]
+  url: string
+  description: string | null
+}
+
 function getMissingLessonModulesTableResult<T = void>(
   error: PostgrestError | null
 ): ActionResult<T> | null {
@@ -50,6 +59,61 @@ function getMissingLessonModulesTableResult<T = void>(
 const DEFAULT_MODULE_TITLE = "Sem módulo"
 
 const DUPLICATE_MODULE_ERROR_CODES = new Set(["PGRST116", "23505"])
+
+function normalizeLessonMaterials(materials?: LessonMaterialData[] | null): NormalizedLessonMaterial[] {
+  if (!materials?.length) return []
+
+  return materials.map((material) => ({
+    title: material.title.trim(),
+    type: material.type,
+    url: material.url.trim(),
+    description: material.description?.trim() || null,
+  }))
+}
+
+async function syncCourseResourcesForLesson(
+  supabase: SupabaseServerClient,
+  courseId: string,
+  lessonId: string,
+  materials: NormalizedLessonMaterial[]
+): Promise<ActionResult> {
+  const { error: deleteError } = await supabase.from("course_resources").delete().eq("lesson_id", lessonId)
+
+  if (deleteError) {
+    console.error("Erro ao limpar materiais existentes da aula:", deleteError)
+    return {
+      success: false,
+      error: "Falha ao atualizar materiais da aula.",
+    }
+  }
+
+  if (materials.length === 0) {
+    return { success: true }
+  }
+
+  const payload = materials.map((material, index) => ({
+    course_id: courseId,
+    lesson_id: lessonId,
+    title: material.title,
+    resource_type: material.type,
+    description: material.description,
+    url: material.url,
+    position: index,
+    is_downloadable: true,
+  }))
+
+  const { error: insertError } = await supabase.from("course_resources").insert(payload)
+
+  if (insertError) {
+    console.error("Erro ao sincronizar materiais da aula:", insertError)
+    return {
+      success: false,
+      error: "Falha ao salvar materiais vinculados à aula.",
+    }
+  }
+
+  return { success: true }
+}
 
 async function resolveModuleReference(
   supabase: ReturnType<typeof createClient>,
@@ -200,6 +264,8 @@ export async function createLesson(
       }
     }
 
+    const normalizedMaterials = normalizeLessonMaterials(parsed.data.materials)
+
     const lessonPayload: Record<string, unknown> = {
       course_id: courseId,
       title: parsed.data.title,
@@ -208,7 +274,7 @@ export async function createLesson(
       duration_minutes: parsed.data.duration_minutes || null,
       module_title: resolvedModule.title,
       order_index: parsed.data.order_index,
-      materials: parsed.data.materials || [],
+      materials: normalizedMaterials,
       available_at: parsed.data.available_at || null,
     }
 
@@ -228,6 +294,13 @@ export async function createLesson(
         success: false,
         error: "Erro ao criar aula. Tente novamente.",
       }
+    }
+
+    const syncResult = await syncCourseResourcesForLesson(supabase, courseId, data.id, normalizedMaterials)
+
+    if (!syncResult.success) {
+      await supabase.from("lessons").delete().eq("id", data.id)
+      return syncResult
     }
 
     // Revalidar paths
@@ -318,8 +391,12 @@ export async function updateLesson(
         updateData.module_id = resolvedModule.id
       }
     }
+    let normalizedMaterials: NormalizedLessonMaterial[] | undefined
     if (parsed.data.order_index !== undefined) updateData.order_index = parsed.data.order_index
-    if (parsed.data.materials !== undefined) updateData.materials = parsed.data.materials || []
+    if (parsed.data.materials !== undefined) {
+      normalizedMaterials = normalizeLessonMaterials(parsed.data.materials)
+      updateData.materials = normalizedMaterials
+    }
     if (parsed.data.available_at !== undefined) updateData.available_at = parsed.data.available_at || null
 
     // Atualizar aula
@@ -333,6 +410,19 @@ export async function updateLesson(
       return {
         success: false,
         error: "Erro ao atualizar aula. Tente novamente.",
+      }
+    }
+
+    if (normalizedMaterials) {
+      const syncResult = await syncCourseResourcesForLesson(
+        supabase,
+        lesson.course_id,
+        lessonId,
+        normalizedMaterials
+      )
+
+      if (!syncResult.success) {
+        return syncResult
       }
     }
 
@@ -477,6 +567,7 @@ export async function createBulkLessons(
     const moduleSupport = await getLessonModuleSupport(supabase)
     const moduleFeatureReady = supportsLessonModules(moduleSupport)
     const lessonsToInsert: any[] = []
+    const normalizedMaterialsList: NormalizedLessonMaterial[][] = []
     for (const lesson of parsed.data.lessons) {
       const resolvedModule = await resolveModuleReference(
         supabase,
@@ -493,6 +584,8 @@ export async function createBulkLessons(
         }
       }
 
+      const normalizedMaterials = normalizeLessonMaterials(lesson.materials)
+
       const lessonPayload: Record<string, unknown> = {
         course_id: parsed.data.course_id,
         title: lesson.title,
@@ -501,7 +594,7 @@ export async function createBulkLessons(
         duration_minutes: lesson.duration_minutes || null,
         module_title: resolvedModule.title,
         order_index: lesson.order_index,
-        materials: lesson.materials || [],
+        materials: normalizedMaterials,
         available_at: lesson.available_at || null,
       }
 
@@ -510,6 +603,7 @@ export async function createBulkLessons(
       }
 
       lessonsToInsert.push(lessonPayload)
+      normalizedMaterialsList.push(normalizedMaterials)
     }
 
     // Inserir aulas
@@ -523,6 +617,36 @@ export async function createBulkLessons(
       return {
         success: false,
         error: "Erro ao criar aulas. Tente novamente.",
+      }
+    }
+
+    const resourcesPayload =
+      data?.flatMap((row, index) => {
+        const materials = normalizedMaterialsList[index] ?? []
+        return materials.map((material, materialIndex) => ({
+          course_id: parsed.data.course_id,
+          lesson_id: row.id,
+          title: material.title,
+          resource_type: material.type,
+          description: material.description,
+          url: material.url,
+          position: materialIndex,
+          is_downloadable: true,
+        }))
+      }) ?? []
+
+    if (resourcesPayload.length > 0) {
+      const { error: resourcesError } = await supabase.from("course_resources").insert(resourcesPayload)
+
+      if (resourcesError) {
+        console.error("Erro ao salvar materiais das aulas:", resourcesError)
+        if (data?.length) {
+          await supabase.from("lessons").delete().in("id", data.map((d) => d.id))
+        }
+        return {
+          success: false,
+          error: "Erro ao salvar materiais vinculados às aulas.",
+        }
       }
     }
 

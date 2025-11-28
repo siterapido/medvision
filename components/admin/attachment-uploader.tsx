@@ -1,12 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Progress } from "@/components/ui/progress"
+import { Input } from "@/components/ui/input"
 import { UploadCloud, FileText, FileArchive, Image as ImageIcon, FileSpreadsheet, FileVideo, File, FileType, Trash2, Download } from "lucide-react"
 import { kindFromMime, formatBytes } from "@/lib/attachments/mime"
-import { ALLOWED_MIME, maxBytesFromEnv } from "@/lib/attachments/validate"
+import { isUuid } from "@/lib/validations/uuid"
 
 type AttachmentRow = {
   id: string
@@ -20,83 +20,96 @@ type AttachmentRow = {
 export function AttachmentUploader({ lessonId }: { lessonId: string }) {
   const [attachments, setAttachments] = useState<AttachmentRow[]>([])
   const [errors, setErrors] = useState<string | null>(null)
-  const [uploading, setUploading] = useState(false)
-  const [progress, setProgress] = useState<number>(0)
-  const inputRef = useRef<HTMLInputElement | null>(null)
-
-  const maxBytes = useMemo(() => maxBytesFromEnv(10), [])
+  const [adding, setAdding] = useState(false)
+  const [link, setLink] = useState("")
+  const [fileName, setFileName] = useState("")
 
   useEffect(() => {
     const run = async () => {
+      if (!isUuid(lessonId)) {
+        setErrors("Aula ainda não salva. Salve a aula antes de enviar anexos.")
+        setAttachments([])
+        return
+      }
       try {
         const res = await fetch(`/api/lessons/${lessonId}/attachments`, { cache: "no-store" })
-        if (!res.ok) throw new Error(await res.text())
+        if (res.status === 401) {
+          setErrors("Sua sessão expirou. Faça login novamente.")
+          setAttachments([])
+          return
+        }
+        if (res.status === 403) {
+          setErrors("Você não tem permissão para visualizar anexos desta aula.")
+          setAttachments([])
+          return
+        }
+        if (!res.ok) {
+          const msg = await res.text().catch(() => "")
+          throw new Error(msg || "Erro ao listar anexos.")
+        }
         const json = await res.json()
         setAttachments(json.attachments ?? [])
       } catch (err) {
-        setErrors("Falha ao carregar anexos.")
+        const msg = err instanceof Error ? err.message : null
+        setErrors(msg || "Falha ao carregar anexos.")
       }
     }
     void run()
   }, [lessonId])
 
-  const handlePick = () => inputRef.current?.click()
-
-  const handleUpload = async (file: File) => {
+  const handleAddLink = async () => {
+    const url = link.trim()
+    if (!url) {
+      setErrors("Informe a URL do arquivo no Bunny.")
+      return
+    }
+    if (!isUuid(lessonId)) {
+      setErrors("Aula ainda não salva. Salve a aula antes de enviar anexos.")
+      return
+    }
     setErrors(null)
-    setUploading(true)
-    setProgress(0)
+    setAdding(true)
 
-    // Validações client-side básicas
-    if (!ALLOWED_MIME.includes(file.type) && !file.type.startsWith("image/")) {
-      setErrors("Tipo de arquivo não suportado.")
-      setUploading(false)
-      return
-    }
-    if (file.size > maxBytes) {
-      setErrors("Arquivo excede o limite permitido.")
-      setUploading(false)
-      return
-    }
+    try {
+      const res = await fetch(`/api/lessons/${lessonId}/attachments`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url, file_name: fileName.trim() || undefined }),
+      })
 
-    // Envio com XHR para capturar progresso
-    await new Promise<void>((resolve) => {
-      const xhr = new XMLHttpRequest()
-      xhr.open("POST", `/api/lessons/${lessonId}/attachments`)
-      xhr.responseType = "json"
-      xhr.upload.onprogress = (e) => {
-        if (e.lengthComputable) {
-          setProgress(Math.round((e.loaded / e.total) * 100))
-        }
+      const json = await res.json().catch(() => null)
+      if (!res.ok) {
+        setErrors(json?.error || "Não foi possível salvar o anexo.")
+        setAdding(false)
+        return
       }
-      xhr.onload = () => {
-        const ok = xhr.status >= 200 && xhr.status < 300
-        if (!ok) {
-          setErrors(xhr.response?.error ?? "Falha no upload.")
-          setUploading(false)
-          resolve()
-          return
-        }
-        const att = xhr.response?.attachment
-        setAttachments((prev) => (att ? [att, ...prev] : prev))
-        setUploading(false)
-        setProgress(100)
-        resolve()
-      }
-      xhr.onerror = () => {
-        setErrors("Erro de rede durante upload.")
-        setUploading(false)
-        resolve()
-      }
-      const fd = new FormData()
-      fd.append("file", file)
-      xhr.send(fd)
-    })
+
+      const att = json?.attachment
+      setAttachments((prev) => (att ? [att, ...prev] : prev))
+      setLink("")
+      setFileName("")
+    } catch (err) {
+      setErrors("Falha ao salvar anexo.")
+    } finally {
+      setAdding(false)
+    }
   }
 
   const removeAttachment = async (id: string) => {
+    if (!isUuid(lessonId)) {
+      setErrors("Aula ainda não salva. Salve a aula antes de enviar anexos.")
+      return
+    }
     try {
       const res = await fetch(`/api/lessons/${lessonId}/attachments/${id}`, { method: "DELETE" })
+      if (res.status === 401) {
+        setErrors("Sua sessão expirou. Faça login novamente.")
+        return
+      }
+      if (res.status === 403) {
+        setErrors("Você não tem permissão para remover anexos.")
+        return
+      }
       if (!res.ok) throw new Error(await res.text())
       setAttachments((prev) => prev.filter((a) => a.id !== id))
     } catch (err) {
@@ -105,8 +118,20 @@ export function AttachmentUploader({ lessonId }: { lessonId: string }) {
   }
 
   const downloadAttachment = async (id: string) => {
+    if (!isUuid(lessonId)) {
+      setErrors("Aula ainda não salva. Salve a aula antes de baixar anexos.")
+      return
+    }
     try {
       const res = await fetch(`/api/lessons/${lessonId}/attachments/${id}/download`)
+      if (res.status === 401) {
+        setErrors("Sua sessão expirou. Faça login novamente.")
+        return
+      }
+      if (res.status === 403) {
+        setErrors("Você não tem permissão para baixar anexos desta aula.")
+        return
+      }
       if (!res.ok) throw new Error(await res.text())
       const json = await res.json()
       const url: string | undefined = json.url
@@ -148,35 +173,37 @@ export function AttachmentUploader({ lessonId }: { lessonId: string }) {
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <Label className="text-xs text-slate-400">Anexos da aula</Label>
+      </div>
+      <div className="rounded-xl border border-slate-800 bg-[#0F192F] p-3 space-y-3">
+        <div className="space-y-2">
+          <Label className="text-xs text-slate-400">Link do arquivo (Bunny CDN)</Label>
+          <Input
+            value={link}
+            onChange={(e) => setLink(e.target.value)}
+            placeholder="https://odontogpt.b-cdn.net/pasta/arquivo.pdf"
+            className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label className="text-xs text-slate-400">Nome do arquivo (opcional)</Label>
+          <Input
+            value={fileName}
+            onChange={(e) => setFileName(e.target.value)}
+            placeholder="Checklist Pré-Operatório.pdf"
+            className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500"
+          />
+        </div>
         <Button
           type="button"
           size="sm"
-          variant="outline"
-          className="flex items-center gap-1 rounded-xl border-slate-600 px-3 text-[10px] font-semibold uppercase tracking-[0.3em] text-slate-200 hover:bg-slate-800"
-          onClick={handlePick}
-          disabled={uploading}
+          className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white"
+          onClick={handleAddLink}
+          disabled={adding}
         >
-          <UploadCloud className="h-3.5 w-3.5" />
-          {uploading ? "Enviando..." : "Enviar arquivo"}
+          <UploadCloud className="h-4 w-4" />
+          {adding ? "Salvando..." : "Salvar link"}
         </Button>
       </div>
-      <input
-        ref={inputRef}
-        type="file"
-        className="hidden"
-        accept="application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.ms-powerpoint,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/zip,application/x-7z-compressed,image/*"
-        onChange={(e) => {
-          const file = e.target.files?.[0]
-          e.currentTarget.value = ""
-          if (file) void handleUpload(file)
-        }}
-      />
-      {uploading && (
-        <div className="rounded-xl border border-slate-800 bg-[#0F192F] p-3">
-          <p className="text-xs text-slate-300">Enviando arquivo...</p>
-          <Progress value={progress} className="mt-2 h-1.5 rounded-full bg-white/10" />
-        </div>
-      )}
       {errors && <p className="text-sm text-red-400">{errors}</p>}
       <div className="space-y-2">
         {attachments.length === 0 ? (

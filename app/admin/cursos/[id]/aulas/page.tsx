@@ -8,6 +8,7 @@ import {
   isLessonModulesTableMissingError,
   isLessonsModuleIdColumnMissingError,
 } from "@/lib/lesson-module-support"
+import type { LessonMaterialData } from "@/lib/validations/lesson"
 import { Loader2, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
@@ -102,19 +103,51 @@ async function LessonsContent({ courseId }: { courseId: string }) {
   const lessons = lessonsResult.data || []
   const modulesFromDb = modulesResult.data || []
 
+  const { data: courseResources } = await supabase
+    .from("course_resources")
+    .select("lesson_id, title, description, resource_type, url, position")
+    .eq("course_id", courseId)
+
+  const materialsByLesson = new Map<string, LessonMaterialData[]>()
+
+  courseResources
+    ?.sort((a, b) => (a.position ?? 0) - (b.position ?? 0))
+    .forEach((resource) => {
+      if (!resource.lesson_id) return
+      const current = materialsByLesson.get(resource.lesson_id) ?? []
+      current.push({
+        title: resource.title,
+        description: resource.description ?? undefined,
+        type: (resource.resource_type as LessonMaterialData["type"]) ?? "outro",
+        url: resource.url ?? "",
+      })
+      materialsByLesson.set(resource.lesson_id, current)
+    })
+
+  const lessonsWithMaterials = lessons.map((lesson) => {
+    const lessonMaterials = Array.isArray(lesson.materials) ? lesson.materials : []
+    const materials = materialsByLesson.get(lesson.id) ?? lessonMaterials
+    return {
+      ...lesson,
+      materials,
+    }
+  })
+
   const moduleIdAvailable = includeModuleId && modulesEnabled
 
   const modulesWithLessons = moduleIdAvailable
     ? modulesFromDb.map((module) => ({
         ...module,
-        lessons: lessons.filter((lesson) => lesson.module_id === module.id),
+        lessons: lessonsWithMaterials.filter((lesson) => lesson.module_id === module.id),
       }))
     : modulesFromDb.map((module) => ({
         ...module,
         lessons: [],
       }))
 
-  const unassignedLessons = moduleIdAvailable ? lessons.filter((lesson) => !lesson.module_id) : lessons
+  const unassignedLessons = moduleIdAvailable
+    ? lessonsWithMaterials.filter((lesson) => !lesson.module_id)
+    : lessonsWithMaterials
 
   const modulesPayload = unassignedLessons.length
     ? [

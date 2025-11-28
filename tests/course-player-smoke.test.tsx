@@ -29,6 +29,7 @@ describe("CoursePlayer smoke", () => {
       React.createElement(CoursePlayer, { course: sampleCourse as any, modules: [], progress: 0 })
     )
     assert.ok(html.includes("Conteúdo do Curso"))
+    assert.ok(html.includes('data-testid="course-player-video"'), "wrapper do vídeo não encontrado")
   })
 })
 

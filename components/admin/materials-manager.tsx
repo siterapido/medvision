@@ -12,11 +12,9 @@ import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog"
 import { Checkbox } from "@/components/ui/checkbox"
-import { createClient } from "@/lib/supabase/client"
 import { createMaterial, deleteMaterial, updateMaterial, type MaterialActionResult } from "@/app/actions/materials"
 import type { MaterialFormData } from "@/lib/validations/material"
 import { materialResourceOptions } from "@/lib/validations/material"
-import { Loader2, UploadCloud } from "lucide-react"
 
 export type AdminMaterialRow = {
   id: string
@@ -40,8 +38,6 @@ type StatusMessage = {
   message: string
 }
 
-const supabase = createClient()
-
 export function MaterialsManager({ materials }: MaterialsManagerProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
@@ -55,8 +51,6 @@ export function MaterialsManager({ materials }: MaterialsManagerProps) {
   })
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [status, setStatus] = useState<StatusMessage | null>(null)
-  const [uploadingFile, setUploadingFile] = useState(false)
-  const [uploadedFileName, setUploadedFileName] = useState<string>("")
 
   const handleInputChange = (field: keyof typeof formState, value: string) => {
     setFormState((prev) => ({ ...prev, [field]: value }))
@@ -65,43 +59,6 @@ export function MaterialsManager({ materials }: MaterialsManagerProps) {
       delete next[field]
       return next
     })
-  }
-
-  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) {
-      return
-    }
-
-    setUploadingFile(true)
-    setStatus(null)
-
-    try {
-      const extension = file.name.split(".").pop() ?? "bin"
-      const uploadPath = `materials/${crypto.randomUUID()}.${extension}`
-
-      const { error: uploadError } = await supabase.storage
-        .from("course-assets")
-        .upload(uploadPath, file, { cacheControl: "3600", upsert: true })
-
-      if (uploadError) {
-        throw uploadError
-      }
-
-      const { data } = supabase.storage.from("course-assets").getPublicUrl(uploadPath)
-      if (!data?.publicUrl) {
-        throw new Error("Não foi possível obter a URL pública")
-      }
-
-      setFormState((prev) => ({ ...prev, file_url: data.publicUrl }))
-      setUploadedFileName(file.name)
-      setStatus({ type: "success", message: "Arquivo enviado com sucesso." })
-    } catch (error) {
-      console.error("Erro ao enviar material", error)
-      setStatus({ type: "error", message: "Não foi possível enviar o arquivo." })
-    } finally {
-      setUploadingFile(false)
-    }
   }
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -238,28 +195,20 @@ export function MaterialsManager({ materials }: MaterialsManagerProps) {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-slate-200">Arquivo</label>
-              <label className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:border-primary cursor-pointer">
-                {uploadingFile ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <UploadCloud className="h-4 w-4" />
-                )}
-                {uploadingFile ? "Enviando..." : "Selecione um arquivo"}
-                <input
-                  type="file"
-                  accept="application/pdf"
-                  className="hidden"
-                  onChange={handleFileChange}
-                />
-              </label>
-              {uploadedFileName && (
-                <p className="text-xs text-slate-300 truncate">{uploadedFileName}</p>
-              )}
+              <label className="text-sm font-semibold text-slate-200">Link do arquivo (Bunny)</label>
+              <Input
+                value={formState.file_url}
+                onChange={(event) => handleInputChange("file_url", event.target.value)}
+                placeholder="https://odontogpt.b-cdn.net/materials/arquivo.pdf"
+                className="bg-[#16243F] border border-slate-800 text-white"
+              />
+              <p className="text-xs text-slate-400">
+                Cole o link CDN já gerado no Bunny. Não há upload direto pela aplicação.
+              </p>
               {fieldErrors.file_url && <p className="text-xs text-rose-400">{fieldErrors.file_url}</p>}
             </div>
 
-            <Button type="submit" className="w-full" disabled={isPending || uploadingFile}>
+            <Button type="submit" className="w-full" disabled={isPending}>
               {isPending ? "Salvando..." : "Salvar material"}
             </Button>
           </form>

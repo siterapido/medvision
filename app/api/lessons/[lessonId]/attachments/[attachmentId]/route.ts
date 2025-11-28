@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server"
-import { z } from "zod"
-
 import { createClient as createSupabaseServerClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { resolveUserRole } from "@/lib/auth/roles"
-
-const BUCKET = "lesson-attachments"
+import { uuidSchemaWithMessage } from "@/lib/validations/uuid"
+import { deleteFromBunnyStorage } from "@/lib/bunny/storage"
 
 export async function DELETE(_: Request, { params }: { params: { lessonId: string; attachmentId: string } }) {
   try {
@@ -24,9 +22,9 @@ export async function DELETE(_: Request, { params }: { params: { lessonId: strin
       return NextResponse.json({ error: "Apenas administradores podem remover anexos." }, { status: 403 })
     }
 
-    const lessonId = params.lessonId
-    const attachmentId = params.attachmentId
-    if (!z.string().uuid().safeParse(lessonId).success || !z.string().uuid().safeParse(attachmentId).success) {
+    const lessonId = uuidSchemaWithMessage("Parâmetros inválidos.").safeParse(params.lessonId?.trim())
+    const attachmentId = uuidSchemaWithMessage("Parâmetros inválidos.").safeParse(params.attachmentId?.trim())
+    if (!lessonId.success || !attachmentId.success) {
       return NextResponse.json({ error: "Parâmetros inválidos." }, { status: 400 })
     }
 
@@ -34,8 +32,8 @@ export async function DELETE(_: Request, { params }: { params: { lessonId: strin
     const { data: attRow, error: attErr } = await admin
       .from("lesson_attachments")
       .select("id, storage_path")
-      .eq("id", attachmentId)
-      .eq("lesson_id", lessonId)
+      .eq("id", attachmentId.data)
+      .eq("lesson_id", lessonId.data)
       .maybeSingle()
 
     if (attErr) {
@@ -44,17 +42,18 @@ export async function DELETE(_: Request, { params }: { params: { lessonId: strin
     }
     if (!attRow) return NextResponse.json({ error: "Anexo não encontrado." }, { status: 404 })
 
-    const { error: rmErr } = await admin.storage.from(BUCKET).remove([attRow.storage_path])
-    if (rmErr) {
-      console.error("[attachments DELETE] erro ao remover arquivo", rmErr)
+    try {
+      await deleteFromBunnyStorage(attRow.storage_path)
+    } catch (rmErr) {
+      console.error("[attachments DELETE] erro ao remover arquivo no Bunny", rmErr)
       return NextResponse.json({ error: "Falha ao remover arquivo do storage." }, { status: 500 })
     }
 
     const { error: delErr } = await admin
       .from("lesson_attachments")
       .delete()
-      .eq("id", attachmentId)
-      .eq("lesson_id", lessonId)
+      .eq("id", attachmentId.data)
+      .eq("lesson_id", lessonId.data)
 
     if (delErr) {
       console.error("[attachments DELETE] erro ao remover metadados", delErr)
@@ -67,4 +66,3 @@ export async function DELETE(_: Request, { params }: { params: { lessonId: strin
     return NextResponse.json({ error: "Erro inesperado ao remover anexo." }, { status: 500 })
   }
 }
-

@@ -1,12 +1,9 @@
 import { NextResponse } from "next/server"
-import { z } from "zod"
-
 import { createClient as createSupabaseServerClient } from "@/lib/supabase/server"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { resolveUserRole } from "@/lib/auth/roles"
-
-const BUCKET = "lesson-attachments"
-const SIGNED_TTL_SECONDS = 60 * 10 // 10 minutos
+import { uuidSchemaWithMessage } from "@/lib/validations/uuid"
+import { buildBunnyPublicUrl } from "@/lib/bunny/storage"
 
 export async function GET(_: Request, { params }: { params: { lessonId: string; attachmentId: string } }) {
   try {
@@ -15,16 +12,16 @@ export async function GET(_: Request, { params }: { params: { lessonId: string; 
     const user = authData.user
     if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 })
 
-    const lessonId = params.lessonId
-    const attachmentId = params.attachmentId
-    if (!z.string().uuid().safeParse(lessonId).success || !z.string().uuid().safeParse(attachmentId).success) {
+    const lessonId = uuidSchemaWithMessage("Parâmetros inválidos.").safeParse(params.lessonId?.trim())
+    const attachmentId = uuidSchemaWithMessage("Parâmetros inválidos.").safeParse(params.attachmentId?.trim())
+    if (!lessonId.success || !attachmentId.success) {
       return NextResponse.json({ error: "Parâmetros inválidos." }, { status: 400 })
     }
 
     const { data: lessonRow, error: lessonErr } = await supabase
       .from("lessons")
       .select("course_id")
-      .eq("id", lessonId)
+      .eq("id", lessonId.data)
       .maybeSingle()
     if (lessonErr) {
       console.error("[download GET] erro ao buscar aula", lessonErr)
@@ -59,8 +56,8 @@ export async function GET(_: Request, { params }: { params: { lessonId: string; 
     const { data: attRow, error: attErr } = await admin
       .from("lesson_attachments")
       .select("id, storage_path, file_name")
-      .eq("id", attachmentId)
-      .eq("lesson_id", lessonId)
+      .eq("id", attachmentId.data)
+      .eq("lesson_id", lessonId.data)
       .maybeSingle()
 
     if (attErr) {
@@ -69,19 +66,10 @@ export async function GET(_: Request, { params }: { params: { lessonId: string; 
     }
     if (!attRow) return NextResponse.json({ error: "Anexo não encontrado." }, { status: 404 })
 
-    const { data: signed, error: signedErr } = await admin.storage
-      .from(BUCKET)
-      .createSignedUrl(attRow.storage_path, SIGNED_TTL_SECONDS, { download: attRow.file_name })
-
-    if (signedErr || !signed?.signedUrl) {
-      console.error("[download GET] erro ao gerar URL assinada", signedErr)
-      return NextResponse.json({ error: "Falha ao gerar link de download." }, { status: 500 })
-    }
-
-    return NextResponse.json({ url: signed.signedUrl }, { status: 200 })
+    const url = buildBunnyPublicUrl(attRow.storage_path)
+    return NextResponse.json({ url }, { status: 200 })
   } catch (error) {
     console.error("[download GET] erro inesperado", error)
     return NextResponse.json({ error: "Erro inesperado ao preparar download." }, { status: 500 })
   }
 }
-

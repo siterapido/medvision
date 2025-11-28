@@ -33,6 +33,7 @@ import {
   Paperclip
 } from "lucide-react"
 import { kindFromMime } from "@/lib/attachments/mime"
+import { isUuid } from "@/lib/validations/uuid"
 
 export type CourseResourceType = "pdf" | "slides" | "checklist" | "link" | "video" | "template" | "outro"
 
@@ -211,11 +212,16 @@ export function CoursePlayer({
   const allCompleted = lessons.length > 0 && completedCount === lessons.length
 
   const normalizedVideoUrl = normalizeVideoUrl(currentLesson?.video_url)
-  const withBunnyResponsive = (u?: string | null) => {
+  const withBunnyParams = (u?: string | null) => {
     if (!u) return u ?? null
     try {
       const url = new URL(u)
+      // Usa o player mais responsivo do Bunny e força a ocupar o iframe inteiro
+      if (url.hostname === "iframe.mediadelivery.net") {
+        url.hostname = "player.mediadelivery.net"
+      }
       url.searchParams.set("responsive", "true")
+      // Configurações básicas do player
       url.searchParams.set("preload", "true")
       url.searchParams.set("autoplay", "false")
       url.searchParams.set("muted", "false")
@@ -293,9 +299,16 @@ export function CoursePlayer({
   useEffect(() => {
     const run = async () => {
       const id = currentLesson?.id
-      if (!id) return
+      if (!id || !isUuid(id)) {
+        setAttachments([])
+        return
+      }
       try {
         const res = await fetch(`/api/lessons/${id}/attachments`, { cache: "no-store" })
+        if (!res.ok) {
+          setAttachments([])
+          return
+        }
         const json = await res.json().catch(() => ({}))
         setAttachments(Array.isArray(json.attachments) ? json.attachments : [])
       } catch (e) {
@@ -419,8 +432,9 @@ export function CoursePlayer({
       })
   }, [lessons, modules])
 
-  const [activeTab, setActiveTab] = useState<"overview" | "materials" | "files">("overview")
+  const [activeTab, setActiveTab] = useState<"overview" | "materials">("overview")
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const totalMaterialsCount = (currentLesson?.materials?.length ?? 0) + attachments.length
 
   if (isComingSoon(course)) {
     return (
@@ -438,20 +452,23 @@ export function CoursePlayer({
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-y-auto lg:overflow-visible pr-2">
         {/* Video Player Container */}
-        <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-2xl border border-slate-200 group">
+        <div
+          data-testid="course-player-video"
+          className="relative w-full bg-black rounded-xl overflow-hidden shadow-2xl border border-slate-200 group aspect-video min-h-[320px] sm:min-h-[380px] lg:min-h-[460px]"
+        >
           {normalizedVideoUrl ? (
             isVideoFile(normalizedVideoUrl) ? (
               isHlsStream ? (
                 <video
                   ref={videoRef}
-                  className="w-full h-full object-contain"
+                  className="absolute inset-0 w-full h-full object-contain"
                   controls
                   controlsList="nodownload"
                 />
               ) : (
                 <video
                   src={normalizedVideoUrl}
-                  className="w-full h-full object-contain"
+                  className="absolute inset-0 w-full h-full object-contain"
                   controls
                   controlsList="nodownload"
                 />
@@ -459,24 +476,22 @@ export function CoursePlayer({
             ) : (
               (() => {
                 const isBunny = (normalizedVideoUrl ?? "").includes("mediadelivery.net")
-                const src = isBunny ? withBunnyResponsive(normalizedVideoUrl) ?? normalizedVideoUrl : normalizedVideoUrl
+                const src = isBunny ? withBunnyParams(normalizedVideoUrl) ?? normalizedVideoUrl : normalizedVideoUrl
                 return (
-                  <div className="relative w-full h-full overflow-hidden">
-                    <iframe
-                      src={src ?? ""}
-                      title={currentLesson?.title ?? "Vídeo do curso"}
-                      className={isBunny ? "absolute inset-0 w-full h-full block" : "w-full h-full block"}
-                      allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
-                      allowFullScreen
-                      frameBorder="0"
-                      style={isBunny ? { border: 0, position: "absolute", top: 0, left: 0, width: "100%", height: "100%", margin: 0, padding: 0, transform: "scale(2)", transformOrigin: "center" } : undefined}
-                    />
-                  </div>
+                  <iframe
+                    src={src ?? ""}
+                    loading="lazy"
+                    title={currentLesson?.title ?? "Vídeo do curso"}
+                    className="absolute inset-0 w-full h-full"
+                    allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                    allowFullScreen
+                    style={{ border: 0, position: "absolute", top: 0, left: 0, width: "100%", height: "100%" }}
+                  />
                 )
               })()
             )
           ) : (
-            <div className="flex h-full flex-col items-center justify-center gap-4 text-slate-400">
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 text-slate-400">
               <Video className="h-12 w-12 opacity-20" />
               <p>Selecione uma aula para assistir</p>
             </div>
@@ -555,29 +570,12 @@ export function CoursePlayer({
                 )}
               >
                 Materiais Complementares
-                {currentLesson?.materials && currentLesson.materials.length > 0 && (
+                {totalMaterialsCount > 0 && (
                   <span className="ml-2 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">
-                    {currentLesson.materials.length}
+                    {totalMaterialsCount}
                   </span>
                 )}
                 {activeTab === "materials" && (
-                  <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#0891b2] rounded-t-full" />
-                )}
-              </button>
-              <button
-                onClick={() => setActiveTab("files")}
-                className={cn(
-                  "pb-3 text-sm font-medium transition-colors relative focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0891b2] focus-visible:rounded-md",
-                  activeTab === "files" ? "text-[#0891b2]" : "text-slate-500 hover:text-slate-800"
-                )}
-              >
-                Arquivos Anexados
-                {attachments.length > 0 && (
-                  <span className="ml-2 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">
-                    {attachments.length}
-                  </span>
-                )}
-                {activeTab === "files" && (
                   <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#0891b2] rounded-t-full" />
                 )}
               </button>
@@ -601,81 +599,90 @@ export function CoursePlayer({
             )}
 
             {activeTab === "materials" && (
-              <div className="grid gap-3 sm:grid-cols-2 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                {currentLesson?.materials && currentLesson.materials.length > 0 ? (
-                  currentLesson.materials.map((resource, idx) => {
-                    const config = resourceTypeConfig[resource.type]
-                    const Icon = config.icon
-                    return (
-                      <div
-                        key={idx}
-                        className="group flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-[#0891b2] hover:bg-[#0891b2]/5"
-                      >
-                        <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100", config.accent)}>
-                          <Icon className="h-5 w-5" />
+              <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {currentLesson?.materials && currentLesson.materials.length > 0 ? (
+                    currentLesson.materials.map((resource, idx) => {
+                      const config = resourceTypeConfig[resource.type]
+                      const Icon = config.icon
+                      return (
+                        <div
+                          key={idx}
+                          className="group flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-[#0891b2] hover:bg-[#0891b2]/5"
+                        >
+                          <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100", config.accent)}>
+                            <Icon className="h-5 w-5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="truncate text-sm font-medium text-slate-900">{resource.title}</p>
+                            <p className="text-xs text-slate-500">{config.label}</p>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-400 hover:text-[#0891b2]"
+                            onClick={() => handleDocumentAction(resource, "view")}
+                            aria-label={`Abrir material: ${resource.title}`}
+                          >
+                            <Link2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )
+                    })
+                  ) : (
+                    <div className="col-span-full py-8 text-center text-slate-500">
+                      <Layout className="mx-auto h-8 w-8 opacity-20 mb-2" />
+                      <p>Nenhum material complementar disponível.</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
+                    <Paperclip className="h-4 w-4" />
+                    <span>Arquivos anexados</span>
+                    {attachments.length > 0 && (
+                      <span className="rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600">
+                        {attachments.length}
+                      </span>
+                    )}
+                  </div>
+                  {attachments.length > 0 ? (
+                    attachments.map((att) => (
+                      <div key={att.id} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-[#0891b2] hover:bg-[#0891b2]/5">
+                        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
+                          <Paperclip className="h-5 w-5" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="truncate text-sm font-medium text-slate-900">{resource.title}</p>
-                          <p className="text-xs text-slate-500">{config.label}</p>
+                          <p className="truncate text-sm font-medium text-slate-900">{att.file_name}</p>
+                          <p className="text-xs text-slate-500">
+                            {(att.size_bytes / (1024 * 1024)).toFixed(1)} MB • {att.mime_type}
+                          </p>
                         </div>
                         <Button
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-slate-400 hover:text-[#0891b2]"
-                          onClick={() => handleDocumentAction(resource, "view")}
-                          aria-label={`Abrir material: ${resource.title}`}
+                          onClick={async () => {
+                            try {
+                              const res = await fetch(`/api/lessons/${currentLesson?.id}/attachments/${att.id}/download`)
+                              const json = await res.json().catch(() => ({}))
+                              if (json.url) window.open(json.url, "_blank")
+                            } catch { }
+                          }}
+                          aria-label={`Baixar anexo: ${att.file_name}`}
                         >
-                          <Link2 className="h-4 w-4" />
+                          <Download className="h-4 w-4" />
                         </Button>
                       </div>
-                    )
-                  })
-                ) : (
-                  <div className="col-span-full py-8 text-center text-slate-500">
-                    <Layout className="mx-auto h-8 w-8 opacity-20 mb-2" />
-                    <p>Nenhum material complementar disponível.</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === "files" && (
-              <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                {attachments.length > 0 ? (
-                  attachments.map((att) => (
-                    <div key={att.id} className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-[#0891b2] hover:bg-[#0891b2]/5">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
-                        <Paperclip className="h-5 w-5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="truncate text-sm font-medium text-slate-900">{att.file_name}</p>
-                        <p className="text-xs text-slate-500">
-                          {(att.size_bytes / (1024 * 1024)).toFixed(1)} MB • {att.mime_type}
-                        </p>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-[#0891b2]"
-                        onClick={async () => {
-                          try {
-                            const res = await fetch(`/api/lessons/${currentLesson?.id}/attachments/${att.id}/download`)
-                            const json = await res.json().catch(() => ({}))
-                            if (json.url) window.open(json.url, "_blank")
-                          } catch { }
-                        }}
-                        aria-label={`Baixar anexo: ${att.file_name}`}
-                      >
-                        <Download className="h-4 w-4" />
-                      </Button>
+                    ))
+                  ) : (
+                    <div className="py-8 text-center text-slate-500">
+                      <FileIcon className="mx-auto h-8 w-8 opacity-20 mb-2" />
+                      <p>Nenhum arquivo anexado.</p>
                     </div>
-                  ))
-                ) : (
-                  <div className="py-8 text-center text-slate-500">
-                    <FileIcon className="mx-auto h-8 w-8 opacity-20 mb-2" />
-                    <p>Nenhum arquivo anexado.</p>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
           </div>

@@ -12,8 +12,8 @@
 
 ## Como os alunos acessam os anexos
 - Na página da aula, há a seção "Arquivos da aula" com lista de anexos.
-- O botão "Baixar" gera um link temporário seguro.
-- Apenas usuários autorizados (inscritos no curso) conseguem acessar.
+- O botão "Baixar" libera a URL CDN do Bunny apenas para usuários autorizados.
+- Apenas usuários autorizados (inscritos no curso) conseguem obter o link.
 
 ## Boas práticas
 - Nomeie arquivos com títulos claros (ex.: "Checklist Pré-Operatório.pdf").
@@ -24,3 +24,6 @@
 - Tamanho máximo por arquivo: configurável por `NEXT_PUBLIC_MAX_ATTACHMENT_MB` (padrão 10MB).
 - Formatos suportados: PDF, DOC/DOCX, PPT/PPTX, XLS/XLSX, imagens, ZIP.
 
+## Infra
+- Armazenamento: Bunny Storage (`BUNNY_STORAGE_ZONE`), servido via CDN (`BUNNY_CDN_BASE_URL`).
+- Credenciais: `BUNNY_STORAGE_API_KEY` (AccessKey da Storage Zone) configurada no backend.

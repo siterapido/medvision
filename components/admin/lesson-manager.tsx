@@ -1,7 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Link from "next/link"
 import { useRouter } from "next/navigation"
+import { ArrowUpRight, Edit, FileText, GripVertical, Loader2, Plus, Trash2, Video } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -21,7 +23,7 @@ import {
   deleteLessonAction,
   deleteModuleAction,
 } from "@/app/actions/lesson-actions"
-import { Edit, FileText, GripVertical, Loader2, Plus, Trash2, Video } from "lucide-react"
+import type { LessonMaterialData } from "@/lib/validations/lesson"
 
 export type LessonData = {
   id: string
@@ -32,7 +34,7 @@ export type LessonData = {
   module_title: string
   module_id: string | null
   order_index: number
-  materials: any[] | null
+  materials: LessonMaterialData[]
   available_at: string | null
 }
 
@@ -55,6 +57,7 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
   const isModulesEnabled = modulesEnabled ?? true
   const modulesDisabledTitle =
     "Ative a tabela lesson_modules (migration 013) no banco para criar e editar módulos."
+  const courseDashboardHref = `/dashboard/cursos/${encodeURIComponent(courseId)}`
 
   const router = useRouter()
   const [isLessonDialogOpen, setIsLessonDialogOpen] = useState(false)
@@ -323,26 +326,39 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
                               <span>Ordem: {lesson.order_index}</span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center gap-2">
                             <Button
                               size="sm"
-                              variant="ghost"
-                              onClick={() => {
-                                setEditingLesson(lesson)
-                                setIsLessonDialogOpen(true)
-                              }}
-                              className="text-slate-400 hover:text-white hover:bg-slate-700"
+                              variant="outline"
+                              asChild
+                              className="border-cyan-500/40 text-cyan-100 hover:bg-cyan-500/10"
                             >
-                              <Edit className="h-4 w-4" />
+                              <Link href={`${courseDashboardHref}?lesson=${encodeURIComponent(lesson.id)}`}>
+                                <ArrowUpRight className="h-4 w-4 mr-1" />
+                                Ver no curso
+                              </Link>
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => setDeletingLessonId(lesson.id)}
-                              className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setEditingLesson(lesson)
+                                  setIsLessonDialogOpen(true)
+                                }}
+                                className="text-slate-400 hover:text-white hover:bg-slate-700"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setDeletingLessonId(lesson.id)}
+                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       ))}
