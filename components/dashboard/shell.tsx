@@ -9,7 +9,6 @@ import {
   DashboardSidebarContent,
   DashboardSidebarTopBar,
 } from "@/components/dashboard/sidebar"
-import { DashboardFooter } from "@/components/dashboard/footer"
 import { createClient } from "@/lib/supabase/client"
 import { resolveUserRole } from "@/lib/auth/roles"
 import type { DashboardProfile } from "@/components/dashboard/types"
@@ -182,9 +181,6 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
     }
   }
 
-  const showFooter = pathname !== "/dashboard/chat" && pathname !== "/dashboard/cursos"
-  const isProfileRoute = pathname === "/dashboard/perfil"
-
   return (
     <div className={`min-h-screen h-screen flex overflow-hidden ${pathname === '/dashboard/chat' || pathname === '/dashboard/cursos' ? 'bg-slate-950' : 'bg-slate-50'}`}>
       <DashboardSidebar
@@ -207,10 +203,8 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
             }`}
         >
           {children}
-          {showFooter && isProfileRoute && <DashboardFooter />}
         </main>
         <FloatingChat />
-        {showFooter && !isProfileRoute && <DashboardFooter />}
       </div>
 
       <>
