@@ -10,6 +10,7 @@ export {
   getLessons as getLessonsAction,
   createBulkLessons as createBulkLessonsAction,
   reorderLessons as reorderLessonsAction,
+  reorderModules as reorderModulesAction,
   createModule as createModuleAction,
   updateModule as updateModuleAction,
   deleteModule as deleteModuleAction,

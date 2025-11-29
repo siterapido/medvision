@@ -53,6 +53,14 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
     return null
   }
 
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("plan_type, subscription_status")
+    .eq("id", user.id)
+    .maybeSingle()
+
+  const canAccessPremium = (profile?.plan_type ?? "").toLowerCase() === "premium" || (profile?.subscription_status ?? "").toLowerCase() === "active"
+
   const { data: courseData, error } = await supabase
     .from("courses")
     .select(`
@@ -129,12 +137,18 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
   if (moduleSupport.lessonModulesTable) {
     const { data: modulesData, error: modulesError } = await supabase
       .from("lesson_modules")
-      .select("id, title, description, order_index")
+      .select("id, title, description, order_index, access_type")
       .eq("course_id", courseId)
       .order("order_index", { ascending: true })
 
     if (!modulesError && modulesData) {
-      modules = modulesData.map((m) => ({ id: m.id, title: m.title, description: m.description, order_index: m.order_index }))
+      modules = modulesData.map((m) => ({
+        id: m.id,
+        title: m.title,
+        description: m.description,
+        order_index: m.order_index,
+        access_type: (m as any)?.access_type ?? "free",
+      }))
     } else if (modulesError && isLessonModulesTableMissingError(modulesError)) {
       modules = []
     }
@@ -172,6 +186,49 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
 
   lessonsRaw = lessonsResult.data ?? []
 
+  const lessonIds = lessonsRaw.map((lesson) => lesson.id).filter((id): id is string => Boolean(id))
+  let lastWatchedLessonId: string | null = null
+
+  if (lessonIds.length > 0) {
+    const { data: lastLesson, error: lastLessonError } = await supabase
+      .from("user_lessons")
+      .select("lesson_id, completed_at")
+      .eq("user_id", user.id)
+      .in("lesson_id", lessonIds)
+      .eq("is_completed", true)
+      .order("completed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (lastLessonError) {
+      console.warn("Erro ao buscar última aula assistida:", lastLessonError)
+    } else {
+      lastWatchedLessonId = lastLesson?.lesson_id ?? null
+    }
+  }
+
+  const lessonCompletionMap = new Map<string, boolean>()
+  let hasCompletionData = false
+
+  if (lessonIds.length > 0) {
+    const { data: lessonStatuses, error: lessonStatusError } = await supabase
+      .from("user_lessons")
+      .select("lesson_id, is_completed")
+      .eq("user_id", user.id)
+      .in("lesson_id", lessonIds)
+
+    if (lessonStatusError) {
+      console.warn("Erro ao buscar status de conclusão das aulas:", lessonStatusError)
+    } else {
+      lessonStatuses?.forEach((lessonStatus) => {
+        if (lessonStatus.lesson_id) {
+          lessonCompletionMap.set(lessonStatus.lesson_id, lessonStatus.is_completed ?? false)
+        }
+      })
+      hasCompletionData = (lessonStatuses?.length ?? 0) > 0
+    }
+  }
+
   const normalizedLessons: CoursePlayerLesson[] = lessonsRaw.map((lesson) => ({
     id: lesson.id,
     title: lesson.title,
@@ -183,6 +240,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
     materials: resourcesByLesson.get(lesson.id) ?? [],
     available_at: lesson.available_at,
     order_index: lesson.order_index ?? null,
+    completed: hasCompletionData ? (lessonCompletionMap.get(lesson.id) ?? false) : null,
   }))
 
   const course: CoursePlayerCourse = {
@@ -203,7 +261,14 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
 
   return (
     <DashboardScrollArea className="!px-0 !pt-0">
-      <CoursePlayer key={course.id} course={course} modules={modules} progress={userProgress?.progress ?? 0} />
+      <CoursePlayer
+        key={course.id}
+        course={course}
+        modules={modules}
+        progress={userProgress?.progress ?? 0}
+        initialLessonId={lastWatchedLessonId}
+        canAccessPremium={canAccessPremium}
+      />
     </DashboardScrollArea>
   )
 }

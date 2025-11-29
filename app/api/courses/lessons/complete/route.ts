@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server"
 const CompleteLessonSchema = z.object({
   courseId: z.string().uuid(),
   lessonId: z.string().uuid(),
+  isCompleted: z.boolean().optional(),
 })
 
 export async function POST(request: Request) {
@@ -32,7 +33,8 @@ export async function POST(request: Request) {
       )
     }
 
-    const { courseId, lessonId } = parsed.data
+    const { courseId, lessonId, isCompleted: isCompletedPayload } = parsed.data
+    const isCompleted = isCompletedPayload ?? true
 
     const { data: lessonMatch, error: lessonError } = await supabase
       .from("lessons")
@@ -55,8 +57,8 @@ export async function POST(request: Request) {
         {
           user_id: user.id,
           lesson_id: lessonId,
-          is_completed: true,
-          completed_at: new Date().toISOString(),
+          is_completed: isCompleted,
+          completed_at: isCompleted ? new Date().toISOString() : null,
         },
         { onConflict: "user_id,lesson_id" },
       )
@@ -115,7 +117,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Não foi possível salvar o progresso." }, { status: 500 })
     }
 
-    return NextResponse.json({ success: true, progress }, { status: 200 })
+    return NextResponse.json({ success: true, progress, isCompleted }, { status: 200 })
   } catch (error) {
     console.error("[api/courses/lessons/complete] erro inesperado:", error)
     return NextResponse.json({ error: "Erro inesperado ao processar o progresso." }, { status: 500 })

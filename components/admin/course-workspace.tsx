@@ -45,6 +45,8 @@ export type CourseLessonRow = {
   id: string
   title: string
   module_title: string | null
+  module_id?: string | null
+  module_access_type?: "free" | "premium" | null
   duration_minutes: number | null
   video_url: string | null
   materials: LessonMaterial[] | null

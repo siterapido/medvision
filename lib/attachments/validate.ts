@@ -10,6 +10,10 @@ export const ALLOWED_MIME = [
   "application/vnd.ms-excel",
   "application/zip",
   "application/x-7z-compressed",
+  "video/mp4",
+  "video/webm",
+  "video/quicktime",
+  "video/x-matroska",
 ]
 
 export const allowedMimeSchema = z.union([
@@ -23,10 +27,10 @@ export const allowedMimeSchema = z.union([
   z.literal("application/zip"),
   z.literal("application/x-7z-compressed"),
   z.string().startsWith("image/"),
+  z.string().startsWith("video/"),
 ])
 
 export function maxBytesFromEnv(defaultMb = 10): number {
   const mb = parseInt(process.env.NEXT_PUBLIC_MAX_ATTACHMENT_MB || String(defaultMb), 10)
   return mb * 1024 * 1024
 }
-

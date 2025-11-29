@@ -1,10 +1,22 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { UploadCloud, FileText, FileArchive, Image as ImageIcon, FileSpreadsheet, FileVideo, File, FileType, Trash2, Download } from "lucide-react"
+import {
+  UploadCloud,
+  FileText,
+  FileArchive,
+  Image as ImageIcon,
+  FileSpreadsheet,
+  FileVideo,
+  File,
+  FileType,
+  Trash2,
+  Download,
+  Loader2,
+} from "lucide-react"
 import { kindFromMime, formatBytes } from "@/lib/attachments/mime"
 import { isUuid } from "@/lib/validations/uuid"
 
@@ -20,9 +32,15 @@ type AttachmentRow = {
 export function AttachmentUploader({ lessonId }: { lessonId: string }) {
   const [attachments, setAttachments] = useState<AttachmentRow[]>([])
   const [errors, setErrors] = useState<string | null>(null)
+  const [info, setInfo] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const [link, setLink] = useState("")
   const [fileName, setFileName] = useState("")
+  const [uploadingFile, setUploadingFile] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const maxUploadMb = Number(process.env.NEXT_PUBLIC_MAX_ATTACHMENT_MB ?? "10")
+  const ACCEPTED_FILES =
+    ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.7z,image/*,video/*"
 
   useEffect(() => {
     const run = async () => {
@@ -57,6 +75,41 @@ export function AttachmentUploader({ lessonId }: { lessonId: string }) {
     void run()
   }, [lessonId])
 
+  const handleFileUpload = async (file?: File | null) => {
+    if (!file) return
+    if (!isUuid(lessonId)) {
+      setErrors("Aula ainda não salva. Salve a aula antes de enviar anexos.")
+      return
+    }
+    setErrors(null)
+    setInfo(null)
+    setUploadingFile(true)
+
+    try {
+      const form = new FormData()
+      form.append("file", file)
+      const res = await fetch(`/api/lessons/${lessonId}/attachments`, {
+        method: "POST",
+        body: form,
+      })
+      const json = await res.json().catch(() => null)
+      if (!res.ok) {
+        setErrors(json?.error || "Não foi possível enviar o arquivo.")
+        return
+      }
+      const att = json?.attachment
+      setAttachments((prev) => (att ? [att, ...prev] : prev))
+      setInfo("Upload concluído e anexo registrado.")
+    } catch (err) {
+      setErrors("Falha ao enviar o arquivo.")
+    } finally {
+      setUploadingFile(false)
+      if (fileInputRef.current) {
+        fileInputRef.current.value = ""
+      }
+    }
+  }
+
   const handleAddLink = async () => {
     const url = link.trim()
     if (!url) {
@@ -68,6 +121,7 @@ export function AttachmentUploader({ lessonId }: { lessonId: string }) {
       return
     }
     setErrors(null)
+    setInfo(null)
     setAdding(true)
 
     try {
@@ -88,6 +142,7 @@ export function AttachmentUploader({ lessonId }: { lessonId: string }) {
       setAttachments((prev) => (att ? [att, ...prev] : prev))
       setLink("")
       setFileName("")
+      setInfo("Link salvo com sucesso.")
     } catch (err) {
       setErrors("Falha ao salvar anexo.")
     } finally {
@@ -100,6 +155,7 @@ export function AttachmentUploader({ lessonId }: { lessonId: string }) {
       setErrors("Aula ainda não salva. Salve a aula antes de enviar anexos.")
       return
     }
+    setInfo(null)
     try {
       const res = await fetch(`/api/lessons/${lessonId}/attachments/${id}`, { method: "DELETE" })
       if (res.status === 401) {
@@ -175,35 +231,76 @@ export function AttachmentUploader({ lessonId }: { lessonId: string }) {
         <Label className="text-xs text-slate-400">Anexos da aula</Label>
       </div>
       <div className="rounded-xl border border-slate-800 bg-[#0F192F] p-3 space-y-3">
-        <div className="space-y-2">
-          <Label className="text-xs text-slate-400">Link do arquivo (Bunny CDN)</Label>
-          <Input
-            value={link}
-            onChange={(e) => setLink(e.target.value)}
-            placeholder="https://odontogpt.b-cdn.net/pasta/arquivo.pdf"
-            className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500"
-          />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ACCEPTED_FILES}
+          className="hidden"
+          onChange={(e) => void handleFileUpload(e.target.files?.[0] || null)}
+        />
+        <div className="grid gap-3 lg:grid-cols-[1.4fr,0.6fr]">
+          <div className="space-y-2">
+            <Label className="text-xs text-slate-400">Link do arquivo (Bunny CDN)</Label>
+            <Input
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              placeholder="https://odontogpt.b-cdn.net/pasta/arquivo.pdf"
+              className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500"
+            />
+            <div className="space-y-1">
+              <Label className="text-xs text-slate-400">Nome do arquivo (opcional)</Label>
+              <Input
+                value={fileName}
+                onChange={(e) => setFileName(e.target.value)}
+                placeholder="Checklist Pré-Operatório.pdf"
+                className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500"
+              />
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white"
+              onClick={handleAddLink}
+              disabled={adding}
+            >
+              <UploadCloud className="h-4 w-4" />
+              {adding ? "Salvando..." : "Salvar link"}
+            </Button>
+          </div>
+
+          <div className="space-y-2 rounded-lg border border-slate-700/80 bg-[#0A1527] p-3">
+            <div className="flex items-center justify-between gap-2">
+              <div className="space-y-1">
+                <Label className="text-xs text-slate-300">Upload direto</Label>
+                <p className="text-xs text-slate-500">
+                  Aceita PDF, imagens e vídeos. Limite {maxUploadMb}MB (NEXT_PUBLIC_MAX_ATTACHMENT_MB).
+                </p>
+              </div>
+            </div>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-2 border-slate-600 text-white hover:bg-slate-800"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploadingFile}
+            >
+              {uploadingFile ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <UploadCloud className="h-4 w-4" />
+                  Enviar arquivo
+                </>
+              )}
+            </Button>
+          </div>
         </div>
-        <div className="space-y-2">
-          <Label className="text-xs text-slate-400">Nome do arquivo (opcional)</Label>
-          <Input
-            value={fileName}
-            onChange={(e) => setFileName(e.target.value)}
-            placeholder="Checklist Pré-Operatório.pdf"
-            className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500"
-          />
-        </div>
-        <Button
-          type="button"
-          size="sm"
-          className="flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white"
-          onClick={handleAddLink}
-          disabled={adding}
-        >
-          <UploadCloud className="h-4 w-4" />
-          {adding ? "Salvando..." : "Salvar link"}
-        </Button>
       </div>
+      {info && <p className="text-sm text-emerald-400">{info}</p>}
       {errors && <p className="text-sm text-red-400">{errors}</p>}
       <div className="space-y-2">
         {attachments.length === 0 ? (

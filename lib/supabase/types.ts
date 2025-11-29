@@ -236,6 +236,9 @@ export type Database = {
           nome_completo: string | null
           telefone: string | null
           updated_at: string
+          trial_started_at: string | null
+          trial_ends_at: string | null
+          trial_used: boolean | null
         }
         Insert: {
           avatar_url?: string | null
@@ -247,6 +250,9 @@ export type Database = {
           nome_completo?: string | null
           telefone?: string | null
           updated_at?: string
+          trial_started_at?: string | null
+          trial_ends_at?: string | null
+          trial_used?: boolean | null
         }
         Update: {
           avatar_url?: string | null
@@ -258,6 +264,9 @@ export type Database = {
           nome_completo?: string | null
           telefone?: string | null
           updated_at?: string
+          trial_started_at?: string | null
+          trial_ends_at?: string | null
+          trial_used?: boolean | null
         }
         Relationships: []
       }

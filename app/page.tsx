@@ -610,7 +610,7 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Pricing - substituted with redesigned pricing section using current values */}
+        {/* Pricing */}
         <section id="planos" className="w-full py-16 md:py-32 px-4 md:px-6 bg-pricing-section">
           <div className="mx-auto max-w-6xl space-y-10 md:space-y-12">
             <SectionHeader

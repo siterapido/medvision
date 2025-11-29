@@ -40,10 +40,12 @@
 - `BUNNY_STORAGE_API_KEY`: AccessKey da Storage Zone (não do pull zone).
 - `BUNNY_CDN_BASE_URL`: domínio CDN público (ex.: `https://odontogpt.b-cdn.net`).
 - `BUNNY_STORAGE_HOST` (opcional): host da região do Bunny, padrão `storage.bunnycdn.com`.
-- `NEXT_PUBLIC_MAX_ATTACHMENT_MB`: limite máximo de tamanho por arquivo (padrão 10).
+- `NEXT_PUBLIC_MAX_ATTACHMENT_MB`: limite máximo de tamanho por arquivo (padrão 10). Para vídeos subidos pelo admin, aumente conforme necessário (ex.: 500).
+- Para esta instância, configure `.env.local` com as credenciais enviadas (ex.: `BUNNY_STORAGE_API_KEY=<chave fornecida>`).
 
 ## Frontend
-- Admin: `AttachmentUploader` com validação client-side e barra de progresso.
+- Admin: `AttachmentUploader` com validação client-side, barra de progresso e envio direto para o Bunny (PDF, imagens e vídeos leves).
+- Formulário de aula (Nova/Editar): botões de upload preenchem automaticamente a URL do vídeo e dos materiais; os arquivos vão para `/api/uploads/materials` com pasta por curso.
 - Aula: seção "Arquivos da aula" em `CoursePlayer` consumindo listagem e download seguro.
 
 ## Segurança

@@ -7,7 +7,14 @@ import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2 } from "lucide-react"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, Sparkles } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { DEFAULT_ROLE, resolveUserRole } from "@/lib/auth/roles"
 import { Alert, AlertDescription } from "@/components/ui/alert"
@@ -16,6 +23,9 @@ export function RegisterForm() {
   const router = useRouter()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
+  const [whatsapp, setWhatsapp] = useState("")
+  const [occupation, setOccupation] = useState("")
+  const [institution, setInstitution] = useState("")
   const [password, setPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
@@ -43,6 +53,24 @@ export function RegisterForm() {
       return
     }
 
+    if (!whatsapp) {
+      setError("O WhatsApp é obrigatório.")
+      setIsLoading(false)
+      return
+    }
+
+    if (!occupation) {
+      setError("Selecione sua ocupação.")
+      setIsLoading(false)
+      return
+    }
+
+    if (occupation === "Estudante" && !institution) {
+      setError("Informe sua instituição de ensino.")
+      setIsLoading(false)
+      return
+    }
+
     try {
       const supabase = createClient()
 
@@ -52,6 +80,9 @@ export function RegisterForm() {
         options: {
           data: {
             name,
+            whatsapp,
+            profession: occupation,
+            institution: occupation === "Estudante" ? institution : null,
             role: DEFAULT_ROLE,
           },
         },
@@ -112,6 +143,24 @@ export function RegisterForm() {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      
+      {/* Trial Banner */}
+      <div className="bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border border-emerald-500/20 rounded-xl p-3 mb-6">
+        <div className="flex items-center gap-3">
+          <div className="bg-emerald-500/20 p-2 rounded-full">
+            <Sparkles className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
+              7 Dias de Acesso Gratuito
+            </p>
+            <p className="text-xs text-emerald-600/80 dark:text-emerald-400/80">
+              Sem cartão de crédito. Acesso completo imediato.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {error && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
@@ -140,7 +189,7 @@ export function RegisterForm() {
           onChange={(e) => setName(e.target.value)}
           required
           disabled={isLoading || success}
-          className="h-12 px-4 rounded-xl"
+          className="h-12 px-4 bg-slate-50 dark:bg-slate-900/50 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-primary rounded-xl transition-all"
         />
       </div>
 
@@ -156,9 +205,65 @@ export function RegisterForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           disabled={isLoading || success}
-          className="h-12 px-4 rounded-xl"
+          className="h-12 px-4 bg-slate-50 dark:bg-slate-900/50 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-primary rounded-xl transition-all"
         />
       </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="whatsapp" className="text-sm font-medium">
+          WhatsApp
+        </Label>
+        <Input
+          id="whatsapp"
+          type="tel"
+          placeholder="(11) 99999-9999"
+          value={whatsapp}
+          onChange={(e) => setWhatsapp(e.target.value)}
+          required
+          disabled={isLoading || success}
+          className="h-12 px-4 bg-slate-50 dark:bg-slate-900/50 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-primary rounded-xl transition-all"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="occupation" className="text-sm font-medium">
+          Ocupação
+        </Label>
+        <Select
+          value={occupation}
+          onValueChange={setOccupation}
+          disabled={isLoading || success}
+          required
+        >
+          <SelectTrigger className="h-12 px-4 bg-slate-50 dark:bg-slate-900/50 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-primary rounded-xl transition-all">
+            <SelectValue placeholder="Selecione sua ocupação" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Cirurgião-Dentista">Cirurgião-Dentista</SelectItem>
+            <SelectItem value="Estudante">Estudante</SelectItem>
+            <SelectItem value="Empresário">Empresário</SelectItem>
+            <SelectItem value="Outro">Outro</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {occupation === "Estudante" && (
+        <div className="space-y-2 animate-in fade-in slide-in-from-top-2">
+          <Label htmlFor="institution" className="text-sm font-medium">
+            Instituição de Ensino
+          </Label>
+          <Input
+            id="institution"
+            type="text"
+            placeholder="Nome da Universidade/Faculdade"
+            value={institution}
+            onChange={(e) => setInstitution(e.target.value)}
+            required
+            disabled={isLoading || success}
+            className="h-12 px-4 bg-slate-50 dark:bg-slate-900/50 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-primary rounded-xl transition-all"
+          />
+        </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="password" className="text-sm font-medium">
@@ -174,7 +279,7 @@ export function RegisterForm() {
             required
             minLength={8}
             disabled={isLoading || success}
-            className="h-12 px-4 pr-12 rounded-xl"
+            className="h-12 px-4 pr-12 bg-slate-50 dark:bg-slate-900/50 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-primary rounded-xl transition-all"
           />
           <button
             type="button"
@@ -202,7 +307,7 @@ export function RegisterForm() {
             required
             minLength={8}
             disabled={isLoading || success}
-            className="h-12 px-4 pr-12 rounded-xl"
+            className="h-12 px-4 pr-12 bg-slate-50 dark:bg-slate-900/50 border-slate-300 dark:border-slate-600 focus:border-primary focus:ring-primary rounded-xl transition-all"
           />
           <button
             type="button"
@@ -232,7 +337,7 @@ export function RegisterForm() {
             Conta criada!
           </>
         ) : (
-          "Criar Conta"
+          "Começar Teste Grátis"
         )}
       </Button>
     </form>

@@ -16,8 +16,10 @@ import {
 import {
   moduleFormSchema,
   moduleUpdateSchema,
+  reorderModulesSchema,
   type ModuleFormData,
   type ModuleUpdateData,
+  type ReorderModulesData,
 } from "@/lib/validations/module"
 import {
   LESSON_MODULE_SUPPORT_ERROR,
@@ -730,6 +732,68 @@ export async function reorderLessons(
 }
 
 /**
+ * Reordena os módulos de um curso
+ */
+export async function reorderModules(
+  reorderData: ReorderModulesData
+): Promise<ActionResult> {
+  try {
+    const parsed = reorderModulesSchema.safeParse(reorderData)
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: "Dados inválidos",
+        fieldErrors: parsed.error.flatten().fieldErrors,
+      }
+    }
+
+    const supabase = await createClient()
+    const moduleSupport = await getLessonModuleSupport(supabase)
+    if (!moduleSupport.lessonModulesTable) {
+      return {
+        success: false,
+        error: LESSON_MODULE_SUPPORT_ERROR,
+      }
+    }
+
+    const updates = parsed.data.module_orders.map((item) =>
+      supabase
+        .from("lesson_modules")
+        .update({ order_index: item.order_index })
+        .eq("id", item.id)
+        .eq("course_id", parsed.data.course_id)
+    )
+
+    const results = await Promise.all(updates)
+    const hasError = results.some((result) => result.error)
+
+    if (hasError) {
+      console.error("Erro ao reordenar módulos")
+      return {
+        success: false,
+        error: "Erro ao reordenar módulos. Tente novamente.",
+      }
+    }
+
+    revalidatePath("/admin/cursos")
+    revalidatePath(`/admin/cursos/${parsed.data.course_id}`)
+    revalidatePath(`/admin/cursos/${parsed.data.course_id}/aulas`)
+    revalidatePath("/dashboard/cursos")
+    revalidatePath(`/dashboard/cursos/${parsed.data.course_id}`)
+
+    return {
+      success: true,
+    }
+  } catch (error) {
+    console.error("Erro inesperado ao reordenar módulos:", error)
+    return {
+      success: false,
+      error: "Erro inesperado ao reordenar módulos",
+    }
+  }
+}
+
+/**
  * Cria um módulo para um curso
  */
 export async function createModule(
@@ -761,6 +825,7 @@ export async function createModule(
         title: parsed.data.title.trim(),
         description: parsed.data.description || null,
         order_index: parsed.data.order_index ?? 0,
+        access_type: parsed.data.access_type ?? "free",
       })
       .select("id")
       .single()
@@ -853,6 +918,7 @@ export async function updateModule(
     if (parsed.data.title !== undefined) updatePayload.title = parsed.data.title.trim()
     if (parsed.data.description !== undefined) updatePayload.description = parsed.data.description || null
     if (parsed.data.order_index !== undefined) updatePayload.order_index = parsed.data.order_index
+    if (parsed.data.access_type !== undefined) updatePayload.access_type = parsed.data.access_type
 
     if (Object.keys(updatePayload).length === 0) {
       return { success: true }

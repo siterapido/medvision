@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import type { LucideIcon } from "lucide-react"
 import { normalizeVideoUrl, isVideoFile } from "@/lib/video/normalize"
@@ -30,7 +31,8 @@ import {
   X,
   FileIcon,
   Layout,
-  Paperclip
+  Paperclip,
+  Lock
 } from "lucide-react"
 import { kindFromMime } from "@/lib/attachments/mime"
 import { isUuid } from "@/lib/validations/uuid"
@@ -56,6 +58,7 @@ export type CoursePlayerLesson = {
   materials?: LessonMaterial[] | null
   available_at?: string | null
   order_index?: number | null
+  completed?: boolean | null
 }
 
 export type CoursePlayerCourse = {
@@ -79,6 +82,7 @@ export type CoursePlayerModule = {
   title: string
   description?: string | null
   order_index?: number | null
+  access_type?: "free" | "premium" | null
 }
 
 const resourceTypeConfig: Record<CourseResourceType, { label: string; icon: LucideIcon; accent: string }> = {
@@ -109,14 +113,14 @@ const isComingSoon = (course: CoursePlayerCourse) => {
 
 
 
-const persistLessonCompletion = async (courseId: string, lessonId: string) => {
+const persistLessonCompletion = async (courseId: string, lessonId: string, isCompleted: boolean) => {
   try {
     const response = await fetch("/api/courses/lessons/complete", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ courseId, lessonId }),
+      body: JSON.stringify({ courseId, lessonId, isCompleted }),
     })
 
     if (!response.ok) {
@@ -125,9 +129,13 @@ const persistLessonCompletion = async (courseId: string, lessonId: string) => {
         "[course-player] falha ao salvar progresso:",
         errorPayload?.error ?? response.statusText,
       )
+      return false
     }
+
+    return true
   } catch (error) {
     console.error("[course-player] erro ao salvar progresso:", error)
+    return false
   }
 }
 
@@ -137,10 +145,14 @@ export function CoursePlayer({
   course,
   modules = [],
   progress = 0,
+  initialLessonId = null,
+  canAccessPremium = false,
 }: {
   course: CoursePlayerCourse
   modules?: CoursePlayerModule[]
   progress?: number
+  initialLessonId?: string | null
+  canAccessPremium?: boolean
 }) {
   const getLessonFromUrl = () => {
     if (typeof window === "undefined") return ""
@@ -150,6 +162,42 @@ export function CoursePlayer({
     } catch {
       return ""
     }
+  }
+  const normalizedModules = useMemo<CoursePlayerModule[]>(() => {
+    return (modules ?? []).map((module) => ({
+      ...module,
+      access_type: module.access_type ?? "free",
+    }))
+  }, [modules])
+  const modulesById = useMemo(() => {
+    const map = new Map<string, CoursePlayerModule>()
+    normalizedModules.forEach((module) => {
+      if (module.id) {
+        map.set(module.id, module)
+      }
+    })
+    return map
+  }, [normalizedModules])
+  const moduleOrderMap = useMemo(() => {
+    const map = new Map<string, number>()
+    const sorted = [...normalizedModules].sort((a, b) => {
+      const ao = a.order_index ?? Number.MAX_SAFE_INTEGER
+      const bo = b.order_index ?? Number.MAX_SAFE_INTEGER
+      if (ao !== bo) return ao - bo
+      return (a.title ?? "").localeCompare(b.title ?? "", "pt-BR")
+    })
+    sorted.forEach((module, index) => {
+      if (module.id) {
+        map.set(module.id, index)
+      }
+    })
+    return map
+  }, [normalizedModules])
+  const resolveLessonAccess = (lesson?: CoursePlayerLessonState | CoursePlayerLesson | null) => {
+    const module = lesson?.module_id ? modulesById.get(lesson.module_id) : null
+    const accessType = module?.access_type ?? "free"
+    const locked = accessType === "premium" && !canAccessPremium
+    return { module, accessType, locked }
   }
   const normalizedLessons = useMemo<CoursePlayerLessonState[]>(() => {
     const seenLessonIds = new Set<string>()
@@ -165,37 +213,48 @@ export function CoursePlayer({
       })
     const items = [...uniqueLessons]
     items.sort((a, b) => {
-      if (a.order_index != null && b.order_index != null) {
-        return a.order_index - b.order_index
-      }
-      if (a.order_index != null) {
-        return -1
-      }
-      if (b.order_index != null) {
-        return 1
-      }
-      return 0
+      const aModuleOrder = a.module_id ? moduleOrderMap.get(a.module_id) ?? Number.MAX_SAFE_INTEGER : Number.MAX_SAFE_INTEGER
+      const bModuleOrder = b.module_id ? moduleOrderMap.get(b.module_id) ?? Number.MAX_SAFE_INTEGER : Number.MAX_SAFE_INTEGER
+      if (aModuleOrder !== bModuleOrder) return aModuleOrder - bModuleOrder
+
+      const aOrder = a.order_index ?? Number.MAX_SAFE_INTEGER
+      const bOrder = b.order_index ?? Number.MAX_SAFE_INTEGER
+      if (aOrder !== bOrder) return aOrder - bOrder
+
+      return (a.title ?? "").localeCompare(b.title ?? "", "pt-BR")
     })
     const baselineCount = Math.round(((progress ?? 0) / 100) * (items.length || 1))
-    return items.map((lesson, index) => ({
-      ...lesson,
-      completed: index < baselineCount,
-    }))
-  }, [course.lessons, progress])
+    return items.map((lesson, index) => {
+      const resolvedCompleted = lesson.completed ?? index < baselineCount
+      return {
+        ...lesson,
+        completed: resolvedCompleted,
+      }
+    })
+  }, [course.lessons, progress, moduleOrderMap])
 
-  const [completedOverrides, setCompletedOverrides] = useState<Set<string>>(() => new Set())
+  const validLessonIds = useMemo(
+    () => new Set(normalizedLessons.map((lesson) => lesson.id).filter(Boolean) as string[]),
+    [normalizedLessons],
+  )
+  const [completionOverrides, setCompletionOverrides] = useState<Map<string, boolean>>(() => new Map())
   const [currentLessonId, setCurrentLessonId] = useState(() => {
     const fromUrl = getLessonFromUrl()
-    return fromUrl || (normalizedLessons[0]?.id ?? "")
+    if (fromUrl && validLessonIds.has(fromUrl)) return fromUrl
+    if (initialLessonId && validLessonIds.has(initialLessonId)) return initialLessonId
+    return normalizedLessons[0]?.id ?? ""
   })
 
   const lessons = useMemo(
     () =>
-      normalizedLessons.map((lesson) => ({
-        ...lesson,
-        completed: lesson.completed || (lesson.id ? completedOverrides.has(lesson.id) : false),
-      })),
-    [normalizedLessons, completedOverrides],
+      normalizedLessons.map((lesson) => {
+        const override = lesson.id ? completionOverrides.get(lesson.id) : undefined
+        return {
+          ...lesson,
+          completed: override ?? lesson.completed,
+        }
+      }),
+    [normalizedLessons, completionOverrides],
   )
 
   const currentLesson = lessons.find((lesson) => lesson.id === currentLessonId) ?? lessons[0]
@@ -203,6 +262,8 @@ export function CoursePlayer({
   const completedCount = lessons.filter((lesson) => lesson.completed).length
   const progressValue = lessons.length ? Math.round((completedCount / lessons.length) * 100) : 0
   const allCompleted = lessons.length > 0 && completedCount === lessons.length
+  const currentLessonAccess = resolveLessonAccess(currentLesson)
+  const currentLessonLocked = currentLessonAccess.locked
 
   const normalizedVideoUrl = normalizeVideoUrl(currentLesson?.video_url)
   const withBunnyParams = (u?: string | null) => {
@@ -289,6 +350,7 @@ export function CoursePlayer({
   }, [isHlsStream, normalizedVideoUrl])
 
   const [attachments, setAttachments] = useState<Array<{ id: string; file_name: string; mime_type: string; size_bytes: number; created_at: string }>>([])
+  const [isCheckoutLoading, setIsCheckoutLoading] = useState(false)
 
   useEffect(() => {
     const run = async () => {
@@ -312,31 +374,92 @@ export function CoursePlayer({
     void run()
   }, [currentLesson?.id])
 
-  const handleMarkComplete = async () => {
-    if (!currentLesson) return
+  const handleCheckoutClick = async () => {
+    if (isCheckoutLoading) return
+    setIsCheckoutLoading(true)
+    try {
+      const response = await fetch("/api/cakto/checkout-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customData: {
+            course_id: course.id,
+          },
+        }),
+      })
 
-    setCompletedOverrides((prev) => {
-      if (!currentLesson.id) {
-        return prev
+      if (!response.ok) {
+        throw new Error(`status ${response.status}`)
       }
-      const next = new Set(prev)
-      next.add(currentLesson.id)
+
+      const payload = await response.json().catch(() => ({}))
+      const checkoutUrl = payload?.url
+      if (checkoutUrl && typeof window !== "undefined") {
+        window.open(checkoutUrl, "_blank", "noopener,noreferrer")
+      } else {
+        throw new Error("URL de checkout ausente")
+      }
+    } catch (error) {
+      console.error("[course-player] não foi possível abrir o checkout:", error)
+      alert("Não foi possível abrir o checkout. Tente novamente.")
+    } finally {
+      setIsCheckoutLoading(false)
+    }
+  }
+
+  const handleToggleCompletion = async () => {
+    if (!currentLesson?.id) return
+    if (resolveLessonAccess(currentLesson).locked) {
+      setSidebarOpen(true)
+      return
+    }
+
+    const lessonId = currentLesson.id
+    const currentStatus = lessons.find((lesson) => lesson.id === lessonId)?.completed ?? false
+    const nextStatus = !currentStatus
+    const nextLessonId =
+      nextStatus && lessons.length > 0
+        ? (() => {
+            const currentIndex = lessons.findIndex((lesson) => lesson.id === lessonId)
+            if (currentIndex > -1 && currentIndex < lessons.length - 1) {
+              return lessons[currentIndex + 1].id
+            }
+            return null
+          })()
+        : null
+
+    setCompletionOverrides((prev) => {
+      const next = new Map(prev)
+      next.set(lessonId, nextStatus)
       return next
     })
 
-    const currentIndex = lessons.findIndex((lesson) => lesson.id === currentLesson.id)
-    if (currentIndex > -1 && currentIndex < lessons.length - 1) {
-      const nextId = lessons[currentIndex + 1].id
-      setCurrentLessonId(nextId)
+    if (nextLessonId) {
+      setCurrentLessonId(nextLessonId)
       if (typeof window !== "undefined") {
         const url = new URL(window.location.href)
-        url.searchParams.set("lesson", nextId)
+        url.searchParams.set("lesson", nextLessonId)
         window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`)
       }
     }
 
-    if (course.id && currentLesson.id) {
-      void persistLessonCompletion(course.id, currentLesson.id)
+    if (course.id) {
+      const success = await persistLessonCompletion(course.id, lessonId, nextStatus)
+      if (!success) {
+        setCompletionOverrides((prev) => {
+          const next = new Map(prev)
+          next.set(lessonId, currentStatus)
+          return next
+        })
+        if (nextLessonId) {
+          setCurrentLessonId(lessonId)
+          if (typeof window !== "undefined") {
+            const url = new URL(window.location.href)
+            url.searchParams.set("lesson", lessonId)
+            window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`)
+          }
+        }
+      }
     }
   }
 
@@ -369,7 +492,7 @@ export function CoursePlayer({
       return [] as Array<{ module: CoursePlayerModule; lessons: CoursePlayerLessonState[] }>
     }
 
-    if (modules.length > 0) {
+    if (normalizedModules.length > 0) {
       const byModuleId: Record<string, CoursePlayerLessonState[]> = {}
       lessons.forEach((l) => {
         const key = l.module_id ?? "__none__"
@@ -380,18 +503,26 @@ export function CoursePlayer({
 
       const noneLessons = byModuleId["__none__"] || []
       if (noneLessons.length) {
-        groups.push({ module: { id: null, title: "Aulas Extras", description: "Aulas sem módulo", order_index: -1 }, lessons: noneLessons })
+        groups.push({
+          module: { id: null, title: "Aulas Extras", description: "Aulas sem módulo", order_index: -1, access_type: "free" },
+          lessons: noneLessons,
+        })
       }
 
-      modules.forEach((m) => {
+      normalizedModules.forEach((m) => {
         const items = byModuleId[m.id ?? ""] || []
         items.sort((a, b) => {
-          if (a.order_index != null && b.order_index != null) return a.order_index - b.order_index
-          if (a.order_index != null) return -1
-          if (b.order_index != null) return 1
-          return 0
+          const aOrder = a.order_index
+          const bOrder = b.order_index
+          if (aOrder != null && bOrder != null) return aOrder - bOrder
+          if (aOrder == null && bOrder == null) return 0
+          if (aOrder == null) return -1
+          return 1
         })
-        groups.push({ module: m, lessons: items })
+        groups.push({
+          module: m.access_type ? m : { ...m, access_type: m.access_type ?? "free" },
+          lessons: items,
+        })
       })
 
       groups.sort((a, b) => {
@@ -411,11 +542,13 @@ export function CoursePlayer({
     })
     return Object.entries(byTitle)
       .map(([title, items]) => ({
-        module: { id: null, title, order_index: title === "Geral" ? -1 : 0 }, lessons: items.sort((a, b) => {
-          if (a.order_index != null && b.order_index != null) return a.order_index - b.order_index
-          if (a.order_index != null) return -1
-          if (b.order_index != null) return 1
-          return 0
+        module: { id: null, title, order_index: title === "Geral" ? -1 : 0, access_type: "free" }, lessons: items.sort((a, b) => {
+          const aOrder = a.order_index
+          const bOrder = b.order_index
+          if (aOrder != null && bOrder != null) return aOrder - bOrder
+          if (aOrder == null && bOrder == null) return 0
+          if (aOrder == null) return -1
+          return 1
         })
       }))
       .sort((a, b) => {
@@ -424,7 +557,40 @@ export function CoursePlayer({
         if (ao !== bo) return ao - bo
         return a.module.title.localeCompare(b.module.title, "pt-BR")
       })
-  }, [lessons, modules])
+  }, [lessons, normalizedModules])
+
+  const moduleNumberMap = useMemo(() => {
+    const map = new Map<string, number>()
+    let counter = 1
+    groupedByModules.forEach((group) => {
+      const key = group.module.id ?? group.module.title
+      if (!map.has(key)) {
+        map.set(key, counter)
+        counter += 1
+      }
+    })
+    return map
+  }, [groupedByModules])
+
+  const lessonNumbering = useMemo(() => {
+    const global = new Map<string, number>()
+    const withinModule = new Map<string, number>()
+    let globalIndex = 1
+
+    groupedByModules.forEach((group) => {
+      let moduleIndex = 1
+      group.lessons.forEach((lesson) => {
+        if (lesson.id) {
+          global.set(lesson.id, globalIndex)
+          withinModule.set(lesson.id, moduleIndex)
+        }
+        globalIndex += 1
+        moduleIndex += 1
+      })
+    })
+
+    return { global, withinModule }
+  }, [groupedByModules])
 
   const [activeTab, setActiveTab] = useState<"overview" | "materials">("overview")
   const [sidebarOpen, setSidebarOpen] = useState(false)
@@ -490,7 +656,33 @@ export function CoursePlayer({
               data-testid="course-player-video"
               className="relative aspect-video w-full overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-[0_20px_60px_rgba(0,0,0,0.55)] ring-1 ring-white/5 min-h-[240px] sm:min-h-[300px] lg:min-h-[420px]"
             >
-              {normalizedVideoUrl ? (
+              {currentLessonLocked ? (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 bg-[radial-gradient(circle_at_20%_20%,rgba(248,180,0,0.12),transparent_35%),radial-gradient(circle_at_80%_20%,rgba(8,145,178,0.12),transparent_30%),linear-gradient(135deg,#0b1627,#0f172a)] p-6 text-center">
+                  <div className="flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-amber-100">
+                    <Lock className="h-4 w-4" />
+                    Módulo premium bloqueado
+                  </div>
+                  <p className="max-w-xl text-sm text-slate-100">
+                    Desbloqueie o curso completo para assistir a este módulo e liberar todos os materiais.
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-3">
+                    <Button
+                      className="bg-amber-500 hover:bg-amber-400 text-slate-900 font-semibold shadow-lg shadow-amber-500/20"
+                      onClick={handleCheckoutClick}
+                      disabled={isCheckoutLoading}
+                    >
+                      {isCheckoutLoading ? "Abrindo checkout..." : "Comprar curso"}
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="border-white/30 text-white hover:bg-white/10"
+                      onClick={() => setSidebarOpen(true)}
+                    >
+                      Ver aulas gratuitas
+                    </Button>
+                  </div>
+                </div>
+              ) : normalizedVideoUrl ? (
                 isVideoFile(normalizedVideoUrl) ? (
                   isHlsStream ? (
                     <video
@@ -536,9 +728,47 @@ export function CoursePlayer({
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-xs font-medium uppercase tracking-wider text-[#0891b2]">
-                    <span>Aula {currentLessonIndex + 1}</span>
-                    <span className="h-1 w-1 rounded-full bg-[#0891b2]/20" />
-                    <span>{currentLesson?.module_title || "Módulo Geral"}</span>
+                    {(() => {
+                      const moduleKey = (currentLesson?.module_id ?? null) || (currentLesson?.module_title ?? null)
+                      const moduleNumber = moduleKey ? moduleNumberMap.get(moduleKey) ?? null : null
+                      const lessonNumber =
+                        currentLesson?.id
+                          ? lessonNumbering.withinModule.get(currentLesson.id) ??
+                            lessonNumbering.global.get(currentLesson.id) ??
+                            currentLessonIndex + 1
+                          : currentLessonIndex + 1
+
+                      return (
+                        <>
+                          {moduleNumber && (
+                            <>
+                              <span>{`Módulo ${moduleNumber}`}</span>
+                              <span className="h-1 w-1 rounded-full bg-[#0891b2]/20" />
+                            </>
+                          )}
+                          <span>{`Aula ${lessonNumber}`}</span>
+                          <span className="h-1 w-1 rounded-full bg-[#0891b2]/20" />
+                          <span>{currentLesson?.module_title || "Módulo Geral"}</span>
+                        </>
+                      )
+                    })()}
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "border px-2 py-0 text-[10px] uppercase tracking-wide",
+                        currentLessonAccess.accessType === "premium"
+                          ? "border-amber-400/60 bg-amber-500/10 text-amber-700"
+                          : "border-emerald-300/50 bg-emerald-100 text-emerald-700"
+                      )}
+                    >
+                      {currentLessonAccess.accessType === "premium" ? "Premium" : "Gratuito"}
+                    </Badge>
+                    {currentLessonLocked && (
+                      <span className="flex items-center gap-1 rounded-full bg-amber-500/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+                        <Lock className="h-3 w-3" />
+                        Bloqueado
+                      </span>
+                    )}
                   </div>
                   <h1 className="text-2xl font-bold leading-tight text-[#0f172a]">{currentLesson?.title}</h1>
                 </div>
@@ -551,12 +781,21 @@ export function CoursePlayer({
                       "gap-2 rounded-full font-medium transition-all",
                       currentLesson?.completed
                         ? "border border-green-200 bg-green-100 text-green-700 hover:bg-green-200"
-                        : "bg-[#0891b2] text-white shadow-lg shadow-[#0891b2]/20 hover:bg-[#0e7490]"
+                        : "bg-[#0891b2] text-white shadow-lg shadow-[#0891b2]/20 hover:bg-[#0e7490]",
+                      currentLessonLocked && "cursor-not-allowed opacity-60"
                     )}
-                    onClick={handleMarkComplete}
-                    aria-label={currentLesson?.completed ? "Aula marcada como concluída" : "Marcar aula como vista"}
+                    onClick={handleToggleCompletion}
+                    aria-label={
+                      currentLesson?.completed ? "Marcar aula como não concluída" : "Marcar aula como concluída"
+                    }
+                    disabled={currentLessonLocked}
                   >
-                    {currentLesson?.completed ? (
+                    {currentLessonLocked ? (
+                      <>
+                        <Lock className="h-4 w-4" />
+                        Desbloqueie para concluir
+                      </>
+                    ) : currentLesson?.completed ? (
                       <>
                         <CheckCircle2 className="h-4 w-4" />
                         Concluída
@@ -564,7 +803,7 @@ export function CoursePlayer({
                     ) : (
                       <>
                         <CheckCircle2 className="h-4 w-4" />
-                        Marcar como vista
+                        Concluir aula
                       </>
                     )}
                   </Button>
@@ -617,56 +856,70 @@ export function CoursePlayer({
               <div className="py-2">
                 {activeTab === "overview" && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <p className="leading-relaxed text-slate-700">
-                      {currentLesson?.description || "Nenhuma descrição disponível para esta aula."}
-                    </p>
-                    {currentLesson?.duration_minutes && (
-                      <div className="flex items-center gap-2 text-sm text-slate-500">
-                        <Clock className="h-4 w-4" />
-                        <span>Duração estimada: {formatMinutesLabel(currentLesson.duration_minutes)}</span>
+                    {currentLessonLocked ? (
+                      <div className="rounded-lg border border-amber-200/60 bg-amber-50/80 px-4 py-3 text-sm text-amber-800">
+                        Este conteúdo é premium. Compre o curso para liberar a descrição completa, vídeos e materiais.
                       </div>
+                    ) : (
+                      <>
+                        <p className="leading-relaxed text-slate-700">
+                          {currentLesson?.description || "Nenhuma descrição disponível para esta aula."}
+                        </p>
+                        {currentLesson?.duration_minutes && (
+                          <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <Clock className="h-4 w-4" />
+                            <span>Duração estimada: {formatMinutesLabel(currentLesson.duration_minutes)}</span>
+                          </div>
+                        )}
+                      </>
                     )}
                   </div>
                 )}
 
                 {activeTab === "materials" && (
                   <div className="space-y-6 animate-in fade-in slide-in-from-bottom-2 duration-300">
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      {currentLesson?.materials && currentLesson.materials.length > 0 ? (
-                        currentLesson.materials.map((resource, idx) => {
-                          const config = resourceTypeConfig[resource.type]
-                          const Icon = config.icon
-                          return (
-                            <div
-                              key={idx}
-                              className="group flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-[#0891b2] hover:bg-[#0891b2]/5"
-                            >
-                              <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100", config.accent)}>
-                                <Icon className="h-5 w-5" />
-                              </div>
-                              <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-medium text-slate-900">{resource.title}</p>
-                                <p className="text-xs text-slate-500">{config.label}</p>
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 text-slate-400 hover:text-[#0891b2]"
-                                onClick={() => handleDocumentAction(resource, "view")}
-                                aria-label={`Abrir material: ${resource.title}`}
+                    {currentLessonLocked ? (
+                      <div className="rounded-lg border border-amber-200/60 bg-amber-50/80 px-4 py-3 text-sm text-amber-800">
+                        Materiais deste módulo estão bloqueados. Finalize a compra para fazer download e acessar links.
+                      </div>
+                    ) : (
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {currentLesson?.materials && currentLesson.materials.length > 0 ? (
+                          currentLesson.materials.map((resource, idx) => {
+                            const config = resourceTypeConfig[resource.type]
+                            const Icon = config.icon
+                            return (
+                              <div
+                                key={idx}
+                                className="group flex items-start gap-3 rounded-xl border border-slate-200 bg-white p-3 transition hover:border-[#0891b2] hover:bg-[#0891b2]/5"
                               >
-                                <Link2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          )
-                        })
-                      ) : (
-                        <div className="col-span-full py-8 text-center text-slate-500">
-                          <Layout className="mb-2 mx-auto h-8 w-8 opacity-20" />
-                          <p>Nenhum material complementar disponível.</p>
-                        </div>
-                      )}
-                    </div>
+                                <div className={cn("flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-slate-100", config.accent)}>
+                                  <Icon className="h-5 w-5" />
+                                </div>
+                                <div className="min-w-0 flex-1">
+                                  <p className="truncate text-sm font-medium text-slate-900">{resource.title}</p>
+                                  <p className="text-xs text-slate-500">{config.label}</p>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-slate-400 hover:text-[#0891b2]"
+                                  onClick={() => handleDocumentAction(resource, "view")}
+                                  aria-label={`Abrir material: ${resource.title}`}
+                                >
+                                  <Link2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )
+                          })
+                        ) : (
+                          <div className="col-span-full py-8 text-center text-slate-500">
+                            <Layout className="mb-2 mx-auto h-8 w-8 opacity-20" />
+                            <p>Nenhum material complementar disponível.</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div className="space-y-3">
                       <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-600">
@@ -748,64 +1001,105 @@ export function CoursePlayer({
 
               <ScrollArea className="flex-1">
                 <Accordion type="multiple" defaultValue={groupedByModules.map(g => g.module.id || g.module.title)} className="w-full">
-                  {groupedByModules.map((group, i) => (
-                    <AccordionItem key={i} value={group.module.id || group.module.title} className="border-[#334155]">
-                      <AccordionTrigger className="px-4 py-3 text-left text-sm font-medium text-[#f1f5f9] hover:text-white hover:no-underline data-[state=open]:bg-[#334155]/30">
-                        <span className="truncate">{group.module.title}</span>
-                      </AccordionTrigger>
-                      <AccordionContent className="pb-0 pt-0">
-                        <div className="flex flex-col">
-                          {group.lessons.map((lesson) => (
-                            <button
-                              key={lesson.id}
-                              onClick={() => {
-                                setCurrentLessonId(lesson.id)
-                                if (typeof window !== "undefined") {
-                                  const url = new URL(window.location.href)
-                                  url.searchParams.set("lesson", lesson.id)
-                                  window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`)
-                                }
-                                setSidebarOpen(false)
-                              }}
+                  {groupedByModules.map((group, i) => {
+                    const moduleKey = group.module.id ?? group.module.title
+                    const moduleNumber = moduleNumberMap.get(moduleKey)
+                    return (
+                      <AccordionItem key={i} value={group.module.id || group.module.title} className="border-[#334155]">
+                        <AccordionTrigger className="px-4 py-3 pr-5 text-left text-sm font-medium text-[#f1f5f9] hover:text-white hover:no-underline data-[state=open]:bg-[#334155]/30 gap-3">
+                          <div className="flex w-full items-center justify-between gap-3">
+                            <span className="truncate">
+                              {moduleNumber ? `Módulo ${moduleNumber} · ${group.module.title}` : group.module.title}
+                            </span>
+                            <Badge
+                              variant="outline"
                               className={cn(
-                                "flex items-start gap-3 border-l-2 px-4 py-3 text-left transition-colors hover:bg-[#334155]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#06b6d4]",
-                                currentLessonId === lesson.id
-                                  ? "border-[#06b6d4] bg-[#334155]/50"
-                                  : "border-transparent"
+                                "flex items-center gap-1 border text-[10px] uppercase tracking-wide",
+                                group.module.access_type === "premium"
+                                  ? "border-amber-400/50 bg-amber-400/10 text-amber-200"
+                                  : "border-emerald-400/50 bg-emerald-400/10 text-emerald-100"
                               )}
                             >
-                              <div className={cn(
-                                "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px]",
-                                lesson.completed
-                                  ? "border-green-400 bg-green-500 text-white"
-                                  : currentLessonId === lesson.id
-                                    ? "border-[#06b6d4] text-[#06b6d4]"
-                                    : "border-[#475569] text-[#94a3b8]"
-                              )}>
-                                {lesson.completed ? <CheckCircle2 className="h-3 w-3" /> : (lesson.order_index ?? 0) + 1}
-                              </div>
-                              <div className="space-y-1">
-                                <p className={cn(
-                                  "text-sm font-medium leading-tight",
-                                  currentLessonId === lesson.id ? "text-white" : "text-[#f1f5f9]"
-                                )}>
-                                  {lesson.title}
-                                </p>
-                                <div className="flex items-center gap-2 text-[10px] text-[#94a3b8]">
-                                  {lesson.duration_minutes && (
-                                    <span className="flex items-center gap-1">
-                                      <Clock className="h-3 w-3" />
-                                      {formatMinutesLabel(lesson.duration_minutes)}
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </button>
-                          ))}
-                        </div>
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
+                              {group.module.access_type === "premium" ? (
+                                <>
+                                  <Lock className="h-3 w-3" />
+                                  Premium
+                                </>
+                              ) : (
+                                "Gratuito"
+                              )}
+                            </Badge>
+                          </div>
+                        </AccordionTrigger>
+                        <AccordionContent className="pb-0 pt-0">
+                          <div className="flex flex-col">
+                            {group.lessons.map((lesson) => {
+                              const lessonAccess = resolveLessonAccess(lesson)
+                              const isLockedLesson = lessonAccess.locked
+                              const lessonNumber =
+                                lesson.id
+                                  ? lessonNumbering.withinModule.get(lesson.id) ??
+                                    lessonNumbering.global.get(lesson.id) ??
+                                    1
+                                  : 1
+                              return (
+                                <button
+                                  key={lesson.id}
+                                  onClick={() => {
+                                    setCurrentLessonId(lesson.id)
+                                    if (typeof window !== "undefined") {
+                                      const url = new URL(window.location.href)
+                                      url.searchParams.set("lesson", lesson.id)
+                                      window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`)
+                                    }
+                                    setSidebarOpen(false)
+                                  }}
+                                className={cn(
+                                  "flex items-start gap-3 border-l-2 px-4 py-3 text-left transition-colors hover:bg-[#334155]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#06b6d4]",
+                                  currentLessonId === lesson.id
+                                    ? "border-[#06b6d4] bg-[#334155]/50"
+                                    : "border-transparent",
+                                  isLockedLesson && "bg-[#1f2937]/40 opacity-60"
+                                )}
+                              >
+                                <div className={cn(
+                                  "mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px]",
+                                  lesson.completed
+                                      ? "border-green-400 bg-green-500 text-white"
+                                      : currentLessonId === lesson.id
+                                        ? "border-[#06b6d4] text-[#06b6d4]"
+                                        : "border-[#475569] text-[#94a3b8]"
+                                  )}>
+                                    {lesson.completed ? <CheckCircle2 className="h-3 w-3" /> : lessonNumber}
+                                  </div>
+                                  <div className="space-y-1">
+                                    <p className={cn(
+                                      "text-sm font-medium leading-tight",
+                                      currentLessonId === lesson.id ? "text-white" : "text-[#f1f5f9]",
+                                      isLockedLesson && currentLessonId !== lesson.id && "text-[#cbd5e1]"
+                                    )}>
+                                      {lesson.title}
+                                    </p>
+                                    <div className={cn(
+                                      "flex items-center gap-2 text-[10px] text-[#94a3b8]",
+                                      isLockedLesson && "text-[#94a3b8]/80"
+                                    )}>
+                                      {lesson.duration_minutes && (
+                                        <span className="flex items-center gap-1">
+                                          <Clock className="h-3 w-3" />
+                                          {formatMinutesLabel(lesson.duration_minutes)}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                </button>
+                              )
+                            })}
+                          </div>
+                        </AccordionContent>
+                      </AccordionItem>
+                    )
+                  })}
                 </Accordion>
               </ScrollArea>
             </div>

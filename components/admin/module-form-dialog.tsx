@@ -14,6 +14,13 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
   createModuleAction,
   updateModuleAction,
 } from "@/app/actions/lesson-actions"
@@ -29,6 +36,7 @@ interface ModuleFormDialogProps {
     title?: string
     description?: string | null
     order_index?: number | null
+    access_type?: "free" | "premium" | null
   }
   onSuccess?: () => void
 }
@@ -53,6 +61,7 @@ export function ModuleFormDialog({
           initialData.order_index !== undefined && initialData.order_index !== null
             ? initialData.order_index.toString()
             : "0",
+        access_type: initialData.access_type || "free",
       }
     }
 
@@ -60,6 +69,7 @@ export function ModuleFormDialog({
       title: "",
       description: "",
       order_index: "0",
+      access_type: "free",
     }
   }
 
@@ -85,6 +95,7 @@ export function ModuleFormDialog({
         title: formData.title,
         description: formData.description || undefined,
         order_index: formData.order_index ? parseInt(formData.order_index) : 0,
+        access_type: formData.access_type || "free",
       }
 
       let result
@@ -165,6 +176,30 @@ export function ModuleFormDialog({
             />
             {errors.description && (
               <p className="text-sm text-red-400">{errors.description}</p>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="module_access_type" className="text-white">
+              Tipo de acesso
+            </Label>
+            <Select
+              value={formData.access_type}
+              onValueChange={(value) => handleInputChange("access_type", value)}
+            >
+              <SelectTrigger id="module_access_type" className="bg-[#131D37] border-slate-600 text-white">
+                <SelectValue placeholder="Selecione o tipo de acesso" />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0F192F] text-white border-slate-700">
+                <SelectItem value="free">Gratuito</SelectItem>
+                <SelectItem value="premium">Premium</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-slate-500">
+              Módulos premium ficam bloqueados para alunos sem compra/assinatura.
+            </p>
+            {errors.access_type && (
+              <p className="text-sm text-red-400">{errors.access_type}</p>
             )}
           </div>
 

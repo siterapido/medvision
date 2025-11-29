@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/client"
 import { resolveUserRole } from "@/lib/auth/roles"
 import type { DashboardProfile } from "@/components/dashboard/types"
 import type { User } from "@supabase/supabase-js"
+import { TrialCountdownBanner } from "@/components/trial/trial-countdown-banner"
 
 interface DashboardLayoutShellProps {
   user: User
@@ -187,6 +188,13 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
         isVisible={isSidebarVisible}
       />
       <div className={`flex flex-1 flex-col min-h-0 ${pathname === '/dashboard/chat' ? 'overflow-hidden' : ''}`}>
+        
+        {/* Banner de Trial */}
+        <TrialCountdownBanner 
+          trialEndsAt={profile?.trial_ends_at} 
+          planType={profile?.plan_type} 
+        />
+
         <DashboardHeader
           user={user}
           profile={profile}

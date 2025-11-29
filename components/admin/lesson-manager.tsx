@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useTransition } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { ArrowUpRight, Edit, FileText, GripVertical, Loader2, Plus, Trash2, Video } from "lucide-react"
+import { ArrowDown, ArrowUp, ArrowUpRight, Edit, FileText, GripVertical, Loader2, Lock, Plus, Trash2, Video } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -22,6 +22,7 @@ import { ModuleFormDialog } from "@/components/admin/module-form-dialog"
 import {
   deleteLessonAction,
   deleteModuleAction,
+  reorderModulesAction,
 } from "@/app/actions/lesson-actions"
 import type { LessonMaterialData } from "@/lib/validations/lesson"
 
@@ -43,6 +44,7 @@ export type ModuleWithLessons = {
   title: string
   description: string | null
   order_index: number
+  access_type?: "free" | "premium" | null
   lessons: LessonData[]
 }
 
@@ -71,12 +73,20 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
   const [activeModuleId, setActiveModuleId] = useState<string | null>(
     modules[0]?.id ?? null
   )
+  const [reorderingModuleId, setReorderingModuleId] = useState<string | null>(null)
+  const [isReorderingModules, startReorderModules] = useTransition()
 
   useEffect(() => {
     setActiveModuleId(modules[0]?.id ?? null)
   }, [modules])
 
   const allLessons = modules.flatMap((module) => module.lessons)
+  const reorderableModules = modules.filter(
+    (module): module is ModuleWithLessons & { id: string } => module.id !== null
+  )
+  const moduleOrderMap = new Map(
+    reorderableModules.map((module, index) => [module.id as string, index])
+  )
   const now = new Date()
   const moduleCount = modules.filter((module) => module.id !== null).length
   const videoCount = allLessons.filter((lesson) => Boolean(lesson.video_url)).length
@@ -135,6 +145,41 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
     } finally {
       setIsDeletingModule(false)
     }
+  }
+
+  const handleReorderModule = (moduleId: string, direction: "up" | "down") => {
+    if (!isModulesEnabled) return
+    if (!moduleId) return
+
+    const currentIndex = moduleOrderMap.get(moduleId)
+    if (currentIndex === undefined) return
+
+    const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1
+    if (targetIndex < 0 || targetIndex >= reorderableModules.length) return
+
+    const updatedOrder = [...reorderableModules]
+    const [movedModule] = updatedOrder.splice(currentIndex, 1)
+    updatedOrder.splice(targetIndex, 0, movedModule)
+
+    const payload = updatedOrder.map((module, index) => ({
+      id: module.id,
+      order_index: index,
+    }))
+
+    setReorderingModuleId(moduleId)
+    startReorderModules(async () => {
+      const result = await reorderModulesAction({
+        course_id: courseId,
+        module_orders: payload,
+      })
+
+      if (result.success) {
+        router.refresh()
+      } else {
+        alert(result.error || "Erro ao reordenar módulos")
+      }
+      setReorderingModuleId(null)
+    })
   }
 
   return (
@@ -224,56 +269,115 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
         </Card>
       ) : (
         <div className="space-y-6">
-          {modules.map((module) => (
-            <Card key={module.id ?? "sem-modulo"} className="bg-[#131D37] border-slate-700">
-              <CardHeader className="flex flex-col gap-3 pb-0">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <CardTitle className="text-lg text-cyan-400 leading-tight">
-                      {module.title}
-                    </CardTitle>
-                    <CardDescription className="text-slate-500 text-sm">
-                      {module.description || (module.id === null ? "Aulas sem módulo definido" : "Módulo organizado")}
-                    </CardDescription>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge className="bg-slate-800 text-slate-200 border-slate-700/50">
-                      {module.lessons.length} {module.lessons.length === 1 ? "aula" : "aulas"}
-                    </Badge>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => openLessonDialog(module.id)}
-                      className="border-slate-600 text-slate-200 hover:bg-slate-800"
-                    >
-                      Adicionar aula
-                    </Button>
-                    {module.id && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => {
-                            setEditingModule(module)
-                            setIsModuleDialogOpen(true)
-                          }}
-                          className="text-slate-400 hover:text-white hover:bg-slate-800"
+          {modules.map((module) => {
+            const moduleOrderIndex = module.id ? moduleOrderMap.get(module.id) ?? 0 : 0
+            const isFirstModule = module.id ? moduleOrderIndex === 0 : true
+            const isLastModule = module.id ? moduleOrderIndex === reorderableModules.length - 1 : true
+            const isReorderTarget = reorderingModuleId === module.id && isReorderingModules
+
+            return (
+              <Card key={module.id ?? "sem-modulo"} className="bg-[#131D37] border-slate-700">
+                <CardHeader className="flex flex-col gap-3 pb-0">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <CardTitle className="text-lg text-cyan-400 leading-tight">
+                        {module.title}
+                      </CardTitle>
+                      <CardDescription className="text-slate-500 text-sm">
+                        {module.description || (module.id === null ? "Aulas sem módulo definido" : "Módulo organizado")}
+                      </CardDescription>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Badge
+                          className={
+                            module.access_type === "premium"
+                              ? "bg-amber-500/15 text-amber-200 border-amber-400/40"
+                              : "bg-emerald-500/10 text-emerald-200 border-emerald-400/30"
+                          }
                         >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setModuleDeleteTarget(module)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </>
-                    )}
+                          {module.access_type === "premium" ? (
+                            <>
+                              <Lock className="mr-1 h-3 w-3" />
+                              Premium
+                            </>
+                          ) : (
+                            "Gratuito"
+                          )}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      {module.id && (
+                        <Badge className="bg-cyan-500/10 text-cyan-200 border-cyan-500/30">
+                          Ordem {moduleOrderIndex + 1}
+                        </Badge>
+                      )}
+                      <Badge className="bg-slate-800 text-slate-200 border-slate-700/50">
+                        {module.lessons.length} {module.lessons.length === 1 ? "aula" : "aulas"}
+                      </Badge>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => openLessonDialog(module.id)}
+                        className="border-slate-600 text-slate-200 hover:bg-slate-800"
+                      >
+                        Adicionar aula
+                      </Button>
+                      {module.id && (
+                        <>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              aria-label="Mover módulo para cima"
+                              onClick={() => handleReorderModule(module.id, "up")}
+                              disabled={isFirstModule || isReorderingModules}
+                              className="text-slate-400 hover:text-white hover:bg-slate-800"
+                            >
+                              {isReorderTarget ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <ArrowUp className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="ghost"
+                              aria-label="Mover módulo para baixo"
+                              onClick={() => handleReorderModule(module.id, "down")}
+                              disabled={isLastModule || isReorderingModules}
+                              className="text-slate-400 hover:text-white hover:bg-slate-800"
+                            >
+                              {isReorderTarget ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <ArrowDown className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => {
+                              setEditingModule(module)
+                              setIsModuleDialogOpen(true)
+                            }}
+                            className="text-slate-400 hover:text-white hover:bg-slate-800"
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setModuleDeleteTarget(module)}
+                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </CardHeader>
+                </CardHeader>
               <CardContent>
                 {module.lessons.length === 0 ? (
                   <div className="flex flex-col items-center justify-center gap-3 border border-dashed border-slate-700 rounded-2xl bg-slate-900/40 p-8 text-center">
@@ -366,7 +470,8 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
                 )}
               </CardContent>
             </Card>
-          ))}
+            )
+          })}
         </div>
       )}
 
@@ -412,6 +517,7 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
                   title: editingModule.title,
                   description: editingModule.description,
                   order_index: editingModule.order_index,
+                  access_type: editingModule.access_type ?? undefined,
                 }
               : undefined
           }

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useTransition } from "react"
+import { useRef, useState, useTransition } from "react"
 import {
   Dialog,
   DialogContent,
@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { createLessonAction, updateLessonAction } from "@/app/actions/lesson-actions"
-import { Loader2, Plus } from "lucide-react"
+import { Loader2, Plus, UploadCloud } from "lucide-react"
 import type { LessonFormData, LessonMaterialData } from "@/lib/validations/lesson"
 import { AttachmentUploader } from "@/components/admin/attachment-uploader"
 
@@ -105,11 +105,21 @@ export function LessonFormDialog({
       module_title: moduleSelection
         ? moduleSelection.title
         : initialData?.module_title || DEFAULT_MODULE_TITLE,
-    order_index: initialData?.order_index?.toString() || "0",
+      order_index: initialData?.order_index?.toString() || "0",
+    }
   }
-}
 
   const [formData, setFormData] = useState(buildInitialFormData)
+  const [uploadingVideo, setUploadingVideo] = useState(false)
+  const [videoUploadMessage, setVideoUploadMessage] = useState<string | null>(null)
+  const [materialsMessage, setMaterialsMessage] = useState<string | null>(null)
+  const videoInputRef = useRef<HTMLInputElement | null>(null)
+  const [uploadingMaterialId, setUploadingMaterialId] = useState<string | null>(null)
+  const [pendingMaterialId, setPendingMaterialId] = useState<string | null>(null)
+  const materialInputRef = useRef<HTMLInputElement | null>(null)
+  const maxUploadMb = Number(process.env.NEXT_PUBLIC_MAX_ATTACHMENT_MB ?? "10")
+  const MATERIAL_ACCEPT =
+    ".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.zip,.7z,image/*,video/*"
 
   const addMaterial = () => {
     setMaterials((prev) => [...prev, createMaterialState()])
@@ -154,6 +164,99 @@ export function LessonFormDialog({
         delete next.module_title
         return next
       })
+    }
+  }
+
+  const handleVideoUpload = async (file?: File | null) => {
+    if (!file) return
+    setVideoUploadMessage(null)
+    setMaterialsMessage(null)
+    setErrors((prev) => {
+      const next = { ...prev }
+      delete next.video_url
+      delete next.general
+      return next
+    })
+    setUploadingVideo(true)
+
+    try {
+      const form = new FormData()
+      form.append("file", file)
+      form.append("folder", `videos/${courseId}`)
+
+      const res = await fetch("/api/uploads/materials", {
+        method: "POST",
+        body: form,
+      })
+
+      const json = await res.json().catch(() => null)
+      if (!res.ok || !json?.publicUrl) {
+        setErrors((prev) => ({
+          ...prev,
+          video_url: json?.error || "Não foi possível enviar o vídeo.",
+        }))
+        return
+      }
+
+      setFormData((prev) => ({ ...prev, video_url: json.publicUrl }))
+      setVideoUploadMessage("Vídeo enviado para o Bunny e URL preenchida automaticamente.")
+    } catch (err) {
+      setErrors((prev) => ({ ...prev, video_url: "Falha ao enviar vídeo." }))
+    } finally {
+      setUploadingVideo(false)
+      if (videoInputRef.current) {
+        videoInputRef.current.value = ""
+      }
+    }
+  }
+
+  const handleMaterialUpload = async (file?: File | null) => {
+    if (!file || !pendingMaterialId) {
+      setPendingMaterialId(null)
+      return
+    }
+    setMaterialsMessage(null)
+    setErrors((prev) => {
+      const next = { ...prev }
+      delete next.materials
+      delete next.general
+      return next
+    })
+    setUploadingMaterialId(pendingMaterialId)
+
+    try {
+      const form = new FormData()
+      form.append("file", file)
+      form.append("folder", `materials/${courseId}`)
+
+      const res = await fetch("/api/uploads/materials", {
+        method: "POST",
+        body: form,
+      })
+      const json = await res.json().catch(() => null)
+
+      if (!res.ok || !json?.publicUrl) {
+        setErrors((prev) => ({
+          ...prev,
+          materials: json?.error || "Não foi possível enviar o arquivo.",
+        }))
+        return
+      }
+
+      setMaterials((prev) =>
+        prev.map((material) =>
+          material.id === pendingMaterialId ? { ...material, url: json.publicUrl } : material
+        )
+      )
+      setMaterialsMessage("Arquivo enviado e URL atualizada.")
+    } catch (err) {
+      setErrors((prev) => ({ ...prev, materials: "Falha ao enviar arquivo." }))
+    } finally {
+      setUploadingMaterialId(null)
+      setPendingMaterialId(null)
+      if (materialInputRef.current) {
+        materialInputRef.current.value = ""
+      }
     }
   }
 
@@ -226,6 +329,20 @@ export function LessonFormDialog({
               {errors.general}
             </div>
           )}
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept="video/*"
+            className="hidden"
+            onChange={(e) => void handleVideoUpload(e.target.files?.[0] || null)}
+          />
+          <input
+            ref={materialInputRef}
+            type="file"
+            accept={MATERIAL_ACCEPT}
+            className="hidden"
+            onChange={(e) => void handleMaterialUpload(e.target.files?.[0] || null)}
+          />
 
           {/* Título */}
           <div className="space-y-2">
@@ -330,6 +447,34 @@ export function LessonFormDialog({
               placeholder="https://iframe.mediadelivery.net/embed/... ou https://{zona}.b-cdn.net/..."
               className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500"
             />
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="flex items-center gap-2 border-slate-600 text-white hover:bg-slate-800"
+                onClick={() => videoInputRef.current?.click()}
+                disabled={uploadingVideo}
+              >
+                {uploadingVideo ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Enviando vídeo...
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud className="h-4 w-4" />
+                    Upload direto para Bunny
+                  </>
+                )}
+              </Button>
+              <p className="text-xs text-slate-500">
+                Limite {maxUploadMb}MB (NEXT_PUBLIC_MAX_ATTACHMENT_MB). Aceita MP4, WEBM e MOV.
+              </p>
+            </div>
+            {videoUploadMessage && (
+              <p className="text-xs text-emerald-400">{videoUploadMessage}</p>
+            )}
             {errors.video_url && (
               <p className="text-sm text-red-400">{errors.video_url}</p>
             )}
@@ -382,6 +527,9 @@ export function LessonFormDialog({
                 Salve a aula primeiro para adicionar anexos via link do Bunny.
               </div>
             )}
+            {materialsMessage && (
+              <p className="text-sm text-emerald-400">{materialsMessage}</p>
+            )}
             {materials.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-slate-700 bg-slate-900/40 p-4 text-sm text-slate-400">
                 Nenhum material vinculado ainda. Clique em “Adicionar material” para começar.
@@ -422,14 +570,41 @@ export function LessonFormDialog({
                       </div>
                       <div className="space-y-2">
                         <Label className="text-xs text-slate-400">URL do arquivo (Bunny)</Label>
-                        <Input
-                          value={material.url}
-                          onChange={(event) =>
-                            updateMaterial(material.id, { url: event.target.value })
-                          }
-                          placeholder="https://odontogpt.b-cdn.net/pasta/arquivo.pdf"
-                          className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500 flex-1"
-                        />
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={material.url}
+                            onChange={(event) =>
+                              updateMaterial(material.id, { url: event.target.value })
+                            }
+                            placeholder="https://odontogpt.b-cdn.net/pasta/arquivo.pdf"
+                            className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500 flex-1"
+                          />
+                          <Button
+                            type="button"
+                            size="icon-sm"
+                            variant="outline"
+                            className="border-slate-600 text-white hover:bg-slate-800"
+                            onClick={() => {
+                              setPendingMaterialId(material.id)
+                              materialInputRef.current?.click()
+                            }}
+                            disabled={uploadingMaterialId === material.id}
+                            title="Enviar arquivo para o Bunny e preencher a URL automaticamente"
+                          >
+                            {uploadingMaterialId === material.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <UploadCloud className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                        {uploadingMaterialId === material.id ? (
+                          <p className="text-xs text-cyan-300">Enviando arquivo para o Bunny...</p>
+                        ) : (
+                          <p className="text-xs text-slate-500">
+                            Upload direto (limite {maxUploadMb}MB). Aceita PDF, imagens e vídeos leves.
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="mt-3 space-y-2">
