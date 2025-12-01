@@ -210,9 +210,12 @@ export function CoursesTable({
                     </TableCell>
                     <TableCell>
                       <div className="space-y-1 max-w-md">
-                        <p className="font-medium text-white truncate">
+                        <Link
+                          href={`/dashboard/cursos/${course.id}`}
+                          className="font-medium text-white truncate hover:text-cyan-400 transition-colors cursor-pointer block"
+                        >
                           {course.title}
-                        </p>
+                        </Link>
                         {course.description && (
                           <p className="text-sm text-slate-400 truncate">
                             {course.description}
