@@ -68,7 +68,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
 
   const hasPurchasedCourse = !!purchase
   const canAccessPremium =
-    (profile?.plan_type ?? "").toLowerCase() === "premium" ||
+    (profile?.plan_type && profile.plan_type !== "free") ||
     (profile?.subscription_status ?? "").toLowerCase() === "active" ||
     hasPurchasedCourse
 

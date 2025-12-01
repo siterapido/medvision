@@ -33,18 +33,23 @@ export async function startTrial(options?: StartTrialOptions) {
     .eq("id", user.id)
     .single()
 
-  if (profile?.trial_used) {
-    return { success: false, message: "Trial já foi utilizado" }
-  }
-
   // Se já tem plano pago, não inicia trial
   if (profile?.plan_type && profile.plan_type !== "free") {
     return { success: false, message: "Usuário já possui plano pago" }
   }
 
-  // Se já existe um trial ativo, não inicia novo
-  if (profile?.trial_started_at && profile.trial_ends_at && !isTrialExpired(profile.trial_ends_at)) {
-    return { success: false, message: "Trial já está ativo" }
+  // Se já existe um trial iniciado (ativo ou expirado), não permite novo trial
+  // Isso garante que cada usuário só pode ter um trial na vida
+  if (profile?.trial_started_at) {
+    if (profile.trial_ends_at && !isTrialExpired(profile.trial_ends_at)) {
+      return { success: false, message: "Trial já está ativo" }
+    }
+    return { success: false, message: "Trial já foi utilizado" }
+  }
+
+  // Se trial_used está marcado como true, também bloqueia (para casos especiais)
+  if (profile?.trial_used) {
+    return { success: false, message: "Trial já foi utilizado" }
   }
 
   const metadataDays = typeof user.user_metadata?.trial_days === "number"
@@ -60,7 +65,7 @@ export async function startTrial(options?: StartTrialOptions) {
     .update({
       trial_started_at: startDate.toISOString(),
       trial_ends_at: endDate.toISOString(),
-      trial_used: false,
+      trial_used: false, // Mantém false - será marcado como true quando o trial expirar ou for consumido
     })
     .eq("id", user.id)
 

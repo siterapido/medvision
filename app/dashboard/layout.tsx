@@ -4,7 +4,7 @@ import { redirect } from "next/navigation"
 import { startTrial } from "@/app/actions/trial"
 import { DashboardLayoutShell } from "@/components/dashboard/shell"
 import type { DashboardProfile } from "@/components/dashboard/types"
-import { calculateTrialEndDate, getTrialDurationFromDates, normalizeTrialDays } from "@/lib/trial"
+import { calculateTrialEndDate, getTrialDurationFromDates, isTrialExpired, normalizeTrialDays } from "@/lib/trial"
 import { createClient } from "@/lib/supabase/server"
 
 export default async function DashboardLayout({
@@ -35,12 +35,13 @@ export default async function DashboardLayout({
   )
 
   // Ajusta a duração do trial conforme a origem do cadastro, sem liberar para premium
+  // Verifica se há um trial ativo (não expirado) para ajustar a duração
   if (
     profile &&
     !hasActivePlan &&
     profile.trial_started_at &&
     profile.trial_ends_at &&
-    profile.trial_used === false
+    !isTrialExpired(profile.trial_ends_at)
   ) {
     const currentDuration = getTrialDurationFromDates(
       profile.trial_started_at,
