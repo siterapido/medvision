@@ -1,9 +1,11 @@
 import type React from "react"
-import { DashboardLayoutShell } from "@/components/dashboard/shell"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import type { DashboardProfile } from "@/components/dashboard/types"
+
 import { startTrial } from "@/app/actions/trial"
+import { DashboardLayoutShell } from "@/components/dashboard/shell"
+import type { DashboardProfile } from "@/components/dashboard/types"
+import { calculateTrialEndDate, getTrialDurationFromDates, normalizeTrialDays } from "@/lib/trial"
+import { createClient } from "@/lib/supabase/server"
 
 export default async function DashboardLayout({
   children,
@@ -26,10 +28,50 @@ export default async function DashboardLayout({
     .eq("id", user.id)
     .single<DashboardProfile>()
 
-  // Ativação automática do trial no primeiro acesso
-  if (profile && !profile.trial_used && (!profile.plan_type || profile.plan_type === "free")) {
-    await startTrial(false)
-    // Recarrega o profile após ativar o trial
+  const hasActivePlan = profile?.plan_type && profile.plan_type !== "free"
+
+  const requestedTrialDays = normalizeTrialDays(
+    typeof user.user_metadata?.trial_days === "number" ? user.user_metadata.trial_days : undefined
+  )
+
+  // Ajusta a duração do trial conforme a origem do cadastro, sem liberar para premium
+  if (
+    profile &&
+    !hasActivePlan &&
+    profile.trial_started_at &&
+    profile.trial_ends_at &&
+    profile.trial_used === false
+  ) {
+    const currentDuration = getTrialDurationFromDates(
+      profile.trial_started_at,
+      profile.trial_ends_at,
+      requestedTrialDays
+    )
+
+    if (currentDuration !== requestedTrialDays) {
+      const newEnd = calculateTrialEndDate(new Date(profile.trial_started_at), requestedTrialDays)
+
+      const { data: updatedProfile } = await supabase
+        .from("profiles")
+        .update({ trial_ends_at: newEnd.toISOString() })
+        .eq("id", user.id)
+        .select("*")
+        .single<DashboardProfile>()
+
+      if (updatedProfile) {
+        Object.assign(profile, updatedProfile)
+      }
+    }
+  }
+
+  // Ativação automática do trial no primeiro acesso (apenas se ainda não iniciado)
+  if (
+    profile &&
+    !hasActivePlan &&
+    !profile.trial_used &&
+    !profile.trial_started_at
+  ) {
+    await startTrial({ shouldRevalidate: false, days: requestedTrialDays })
     const { data: updatedProfile } = await supabase
       .from("profiles")
       .select("*")

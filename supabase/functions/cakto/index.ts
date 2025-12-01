@@ -4,7 +4,9 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const CAKTO_WEBHOOK_SECRET = Deno.env.get('CAKTO_WEBHOOK_SECRET') ?? '';
-const DEFAULT_CAKTO_PRODUCT_ID = '3263gsd_647430';
+const CAKTO_ANNUAL_PLAN_ID = '3263gsd_647430';
+const CAKTO_MONTHLY_PLAN_ID = '6nowfr6_671057';
+const DEFAULT_CAKTO_PRODUCT_ID = CAKTO_ANNUAL_PLAN_ID;
 const RAW_CAKTO_PRODUCT_ID = Deno.env.get('CAKTO_PRODUCT_ID') ?? DEFAULT_CAKTO_PRODUCT_ID;
 const APP_URL = Deno.env.get('APP_URL') ?? 'https://odontogpt.com';
 
@@ -44,7 +46,9 @@ const encoder = new TextEncoder();
 
 const planTypes = {
   FREE: 'free',
-  PREMIUM: 'premium'
+  PREMIUM: 'premium',
+  MONTHLY: 'monthly',
+  ANNUAL: 'annual'
 } as const;
 
 const subscriptionStatuses = {
@@ -103,13 +107,28 @@ serve(async (req) => {
   const product = data?.product as Record<string, unknown> | undefined;
   const productId = String(product?.id || '');
   const shortId = String(product?.short_id || '');
-  if (product && (productId !== CAKTO_PRODUCT_ID && shortId !== CAKTO_PRODUCT_ID)) {
+  
+  const validIds = [CAKTO_ANNUAL_PLAN_ID, CAKTO_MONTHLY_PLAN_ID, CAKTO_PRODUCT_ID];
+  let isSubscription = validIds.includes(productId) || validIds.includes(shortId);
+  
+  let courseData: { id: string; title: string } | null = null;
+  if (!isSubscription && (productId || shortId)) {
+    const targetId = productId || shortId;
+    const { data } = await supabase
+      .from('courses')
+      .select('id, title')
+      .eq('cakto_product_id', targetId)
+      .maybeSingle();
+    courseData = data;
+  }
+
+  if (product && !isSubscription && !courseData) {
     return jsonResponse({ error: 'Product not found' }, 404);
   }
   try {
     switch (event) {
       case 'purchase_approved':
-        return jsonResponse(await handlePurchaseApproved(payload));
+        return jsonResponse(await handlePurchaseApproved(payload, courseData));
       case 'refund':
         return jsonResponse(await handleRefund(payload));
       case 'subscription_cancelled':
@@ -170,7 +189,7 @@ function isTestEmail(email?: string) {
   return /(test|demo|fake)/i.test(email);
 }
 
-async function handlePurchaseApproved(payload: Record<string, unknown>) {
+async function handlePurchaseApproved(payload: Record<string, unknown>, courseData: { id: string; title: string } | null = null) {
   const data = payload.data as Record<string, unknown> | undefined;
   if (!data) {
     throw new Error('Webhook sem campo data.');
@@ -188,6 +207,11 @@ async function handlePurchaseApproved(payload: Record<string, unknown>) {
   const transactionId = String(data.id || '');
   const amount = Number(data.amount ?? 0);
   const paymentMethod = String(data.paymentMethod || 'desconhecido');
+  const product = data.product as Record<string, unknown> | undefined;
+  const productId = String(product?.id || product?.short_id || '');
+  
+  const isMonthly = productId === CAKTO_MONTHLY_PLAN_ID;
+  const planType = isMonthly ? 'monthly' : 'annual';
 
   if (await isEventProcessed(transactionId)) {
     return {
@@ -250,31 +274,68 @@ async function handlePurchaseApproved(payload: Record<string, unknown>) {
   }
 
   if (user) {
-    // Calcula data de expiração (1 ano a partir de agora)
-    const expiresAt = new Date();
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+    if (courseData) {
+      // É uma compra de curso avulso
+      const { error: purchaseError } = await supabase.from('course_purchases').upsert(
+        {
+          user_id: user.id,
+          course_id: courseData.id,
+          transaction_id: transactionId,
+          amount,
+          status: 'completed',
+          created_at: new Date().toISOString()
+        },
+        { onConflict: 'transaction_id' }
+      );
 
-    await updateProfile(user.id, {
-      plan_type: planTypes.PREMIUM,
-      subscription_status: subscriptionStatuses.ACTIVE,
-      last_payment_date: new Date().toISOString(),
-      payment_method: paymentMethod,
-      expires_at: expiresAt.toISOString(),
-      name: customerName || user.name,
-      phone: customerPhone || undefined,
-      cpf: customerCpf || undefined,
-      account_source: 'cakto'
-    });
+      if (purchaseError) {
+        console.error('Erro ao registrar compra de curso:', purchaseError);
+        throw new Error(`Erro ao registrar compra: ${purchaseError.message}`);
+      }
 
-    await upsertPaymentHistory({
-      userId: user.id,
-      transactionId,
-      amount,
-      currency: String(data.currency || 'BRL'),
-      status: 'completed',
-      paymentMethod,
-      webhookData: data
-    });
+      // Registra no histórico geral também
+      await upsertPaymentHistory({
+        userId: user.id,
+        transactionId,
+        amount,
+        currency: String(data.currency || 'BRL'),
+        status: 'completed',
+        paymentMethod,
+        webhookData: data
+      });
+
+    } else {
+      // É uma assinatura
+      // Calcula data de expiração (1 mês ou 1 ano a partir de agora)
+      const expiresAt = new Date();
+      if (planType === 'monthly') {
+        expiresAt.setMonth(expiresAt.getMonth() + 1);
+      } else {
+        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
+      }
+
+      await updateProfile(user.id, {
+        plan_type: planType,
+        subscription_status: subscriptionStatuses.ACTIVE,
+        last_payment_date: new Date().toISOString(),
+        payment_method: paymentMethod,
+        expires_at: expiresAt.toISOString(),
+        name: customerName || user.name,
+        phone: customerPhone || undefined,
+        cpf: customerCpf || undefined,
+        account_source: 'cakto'
+      });
+
+      await upsertPaymentHistory({
+        userId: user.id,
+        transactionId,
+        amount,
+        currency: String(data.currency || 'BRL'),
+        status: 'completed',
+        paymentMethod,
+        webhookData: data
+      });
+    }
 
     // Enviar e-mail de boas-vindas
     try {

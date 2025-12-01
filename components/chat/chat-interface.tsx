@@ -286,9 +286,6 @@ export function ChatInterface() {
               <Send className="w-5 h-5" />
             </button>
           </div>
-          <p className="text-xs text-slate-500 mt-2 text-center">
-            Pressione Enter para enviar • Shift + Enter para nova linha
-          </p>
         </div>
       </div>
     </div>

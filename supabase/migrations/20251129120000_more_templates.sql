@@ -13,3 +13,6 @@ VALUES
 ('subscription_expired_email', 'Aviso de assinatura expirada (Email)', '<p>Olá {{name}},</p><p>Sua assinatura do OdontoGPT expirou.</p><p><a href="https://odontogpt.com/dashboard/assinatura">Renove agora</a> para recuperar seu acesso exclusivo.</p>', 'Sua assinatura expirou', 'email', 'cron')
 ON CONFLICT (name) DO NOTHING;
 
+
+
+

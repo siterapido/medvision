@@ -150,21 +150,19 @@ function LoadingState() {
 
 export default function AdminCoursesPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#0F192F] via-[#131D37] to-[#0B1627] p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-white">Gestão de Cursos</h1>
-          <p className="text-slate-400">
-            Gerencie todos os cursos da plataforma
-          </p>
-        </div>
-
-        {/* Content */}
-        <Suspense fallback={<LoadingState />}>
-          <CoursesContent />
-        </Suspense>
+    <div className="w-full space-y-6 p-6">
+      {/* Header */}
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold text-white">Gestão de Cursos</h1>
+        <p className="text-slate-400">
+          Gerencie todos os cursos da plataforma
+        </p>
       </div>
+
+      {/* Content */}
+      <Suspense fallback={<LoadingState />}>
+        <CoursesContent />
+      </Suspense>
     </div>
   )
 }

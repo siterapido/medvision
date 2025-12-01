@@ -1,14 +1,28 @@
 import { addDays, differenceInDays, isAfter, isBefore, parseISO } from "date-fns"
 
-export const TRIAL_DAYS = 7
+export const TRIAL_OPTIONS = [1, 3, 7, 30] as const
+export const DEFAULT_TRIAL_DAYS = 7
+
+export type TrialOption = (typeof TRIAL_OPTIONS)[number]
+
+export function normalizeTrialDays(value?: number | null, fallback = DEFAULT_TRIAL_DAYS): TrialOption {
+  const parsed = Number(value)
+  if (!Number.isFinite(parsed)) return fallback
+
+  const rounded = Math.max(1, Math.floor(parsed))
+  const allowed = TRIAL_OPTIONS.find((days) => days === rounded)
+
+  return allowed ?? fallback
+}
 
 /**
  * Calcula a data de término do trial com base na data de início
  * @param startDate Data de início do trial
+ * @param days Duração do trial em dias (default 7)
  * @returns Data de término do trial
  */
-export function calculateTrialEndDate(startDate: Date): Date {
-  return addDays(startDate, TRIAL_DAYS)
+export function calculateTrialEndDate(startDate: Date, days: number = DEFAULT_TRIAL_DAYS): Date {
+  return addDays(startDate, normalizeTrialDays(days))
 }
 
 /**
@@ -24,7 +38,27 @@ export function getRemainingTrialDays(endsAt: string | Date | null | undefined):
   
   if (isBefore(end, now)) return 0
   
-  return differenceInDays(end, now)
+ return differenceInDays(end, now)
+}
+
+/**
+ * Descobre quantos dias de trial estavam previstos a partir das datas salvas
+ */
+export function getTrialDurationFromDates(
+  startAt: string | Date | null | undefined,
+  endAt: string | Date | null | undefined,
+  fallback = DEFAULT_TRIAL_DAYS
+): number {
+  if (!startAt || !endAt) return fallback
+
+  const start = typeof startAt === "string" ? parseISO(startAt) : startAt
+  const end = typeof endAt === "string" ? parseISO(endAt) : endAt
+
+  const duration = differenceInDays(end, start)
+
+  if (duration <= 0) return fallback
+
+  return duration
 }
 
 /**
@@ -54,4 +88,6 @@ export function isTrialExpired(endsAt: string | Date | null | undefined): boolea
   
   return isBefore(end, now)
 }
+
+
 

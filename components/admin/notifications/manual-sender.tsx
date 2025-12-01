@@ -51,6 +51,14 @@ export function ManualSender({ initialUsers }: ManualSenderProps) {
   const [loading, setLoading] = useState(false)
 
   const selectedUser = initialUsers.find((user) => user.id === selectedUserId)
+  const recipientContact = channel === "whatsapp" ? selectedUser?.whatsapp : selectedUser?.email
+  const messageLength = message.trim().length
+
+  function handleReset() {
+    setSelectedUserId("")
+    setMessage("")
+    setSubject("")
+  }
 
   async function handleSend() {
     if (!selectedUserId || !message) return
@@ -74,11 +82,11 @@ export function ManualSender({ initialUsers }: ManualSenderProps) {
       const res = await fetch("/api/admin/notifications/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ 
-          userId: selectedUserId, 
-          message, 
+        body: JSON.stringify({
+          userId: selectedUserId,
+          message,
           channel,
-          subject: channel === "email" ? subject : undefined 
+          subject: channel === "email" ? subject : undefined,
         }),
       })
 
@@ -222,23 +230,52 @@ export function ManualSender({ initialUsers }: ManualSenderProps) {
           />
         </div>
 
-        <Button 
-          onClick={handleSend} 
-          disabled={loading || !selectedUserId || !message}
-          className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
-        >
-          {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Enviando...
-            </>
-          ) : (
-            <>
-              <Send className="mr-2 h-4 w-4" />
-              Enviar Notificação
-            </>
-          )}
-        </Button>
+        <div className="rounded-lg border border-slate-800 bg-slate-950/60 p-3 space-y-3">
+          <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <div className="text-xs uppercase tracking-wide text-slate-500">Pré-visualização</div>
+            <div className="text-xs text-slate-400">{messageLength} caracteres</div>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-slate-200">{selectedUser?.name || "Selecione um usuário"}</p>
+              <p className="text-xs text-slate-500">{recipientContact || (channel === "whatsapp" ? "WhatsApp pendente" : "Email pendente")}</p>
+              <p className="text-xs text-slate-400">Canal: {channel === "whatsapp" ? "WhatsApp" : "Email"}</p>
+            </div>
+            <div className="rounded-md border border-slate-800 bg-slate-900/70 p-3 text-sm text-slate-200 min-h-[96px] whitespace-pre-wrap">
+              {message || "Digite a mensagem para visualizar como o usuário receberá."}
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <Button 
+            onClick={handleSend} 
+            disabled={loading || !selectedUserId || !message}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white sm:w-auto"
+          >
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Enviando...
+              </>
+            ) : (
+              <>
+                <Send className="mr-2 h-4 w-4" />
+                Enviar Notificação
+              </>
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            type="button"
+            onClick={handleReset}
+            disabled={loading}
+            className="text-slate-300 hover:text-white"
+          >
+            Limpar seleção
+          </Button>
+        </div>
       </CardContent>
     </Card>
   )

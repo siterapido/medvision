@@ -3,21 +3,27 @@ const Z_API_BASE_URL = "https://api.z-api.io/instances";
 interface ZApiConfig {
   instanceId: string;
   token: string;
+  clientToken: string;
 }
 
 function getConfig(): ZApiConfig {
   const instanceId = process.env.Z_API_INSTANCE_ID;
   const token = process.env.Z_API_TOKEN;
+  const clientToken = process.env.Z_API_CLIENT_TOKEN;
 
   if (!instanceId || !token) {
     throw new Error("Z_API credentials not configured");
   }
 
-  return { instanceId, token };
+  if (!clientToken) {
+    throw new Error("Z_API client token not configured");
+  }
+
+  return { instanceId, token, clientToken };
 }
 
 export async function sendZApiText(phone: string, message: string) {
-  const { instanceId, token } = getConfig();
+  const { instanceId, token, clientToken } = getConfig();
 
   // Clean phone number: remove non-digits
   const cleanPhone = phone.replace(/\D/g, "");
@@ -31,12 +37,14 @@ export async function sendZApiText(phone: string, message: string) {
 
   const url = `${Z_API_BASE_URL}/${instanceId}/token/${token}/send-text`;
 
+  const headers: HeadersInit = {
+    "Content-Type": "application/json",
+    "Client-Token": clientToken,
+  };
+
   const response = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Client-Token": token // Some endpoints require this header too
-    },
+    headers,
     body: JSON.stringify({
       phone: finalPhone,
       message: message,
@@ -51,4 +59,5 @@ export async function sendZApiText(phone: string, message: string) {
 
   return await response.json();
 }
+
 

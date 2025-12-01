@@ -14,6 +14,8 @@ import {
   LogOut,
   Calendar,
   MessageSquare,
+  Sparkles,
+  Users,
   type LucideIcon,
 } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
@@ -29,6 +31,7 @@ interface Profile {
 interface AdminSidebarProps {
   user: User
   profile: Profile | null
+  isVisible?: boolean
 }
 
 type NavItem = {
@@ -43,9 +46,11 @@ const navigation: NavItem[] = [
   { name: "Materiais", href: "/admin/materiais", icon: FileText },
   { name: "Cadastrar Lives", href: "/admin/lives", icon: Calendar },
   { name: "Notificações", href: "/admin/notifications", icon: MessageSquare },
+  { name: "Trials", href: "/admin/trials", icon: Sparkles },
+  { name: "Usuários", href: "/admin/usuarios", icon: Users },
 ]
 
-export function AdminSidebar({ user, profile }: AdminSidebarProps) {
+export function AdminSidebar({ user, profile, isVisible = true }: AdminSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
@@ -68,7 +73,17 @@ export function AdminSidebar({ user, profile }: AdminSidebarProps) {
   }
 
   return (
-    <aside className="hidden min-h-screen w-72 flex-col border-r border-slate-800 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 shadow-2xl md:flex">
+    <aside
+      id="admin-sidebar"
+      aria-hidden={!isVisible}
+      style={{ width: isVisible ? '288px' : '0' }}
+      className={cn(
+        "hidden flex-col border-r border-slate-800 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 shadow-2xl transition-all duration-300 ease-in-out md:flex md:sticky md:top-0 md:h-screen md:overflow-y-auto",
+        isVisible
+          ? "md:opacity-100 md:translate-x-0 md:pointer-events-auto"
+          : "md:opacity-0 md:-translate-x-full md:pointer-events-none"
+      )}
+    >
       <div className="flex flex-col gap-3 px-6 pb-6 pt-10">
         <Link href="/admin" aria-label="Admin Dashboard" className="flex items-center gap-2">
           <Logo width={140} height={36} variant="white" />
@@ -79,7 +94,18 @@ export function AdminSidebar({ user, profile }: AdminSidebarProps) {
       <nav className="flex-1 space-y-1.5 px-4">
         {navigation.map((item) => {
           const Icon = item.icon
-          const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+          // Garante que apenas um item seja selecionado por vez
+          // Encontra o item mais específico que corresponde ao pathname atual
+          const matchingItem = navigation
+            .filter((navItem) => {
+              if (navItem.href === "/admin") {
+                return pathname === "/admin"
+              }
+              return pathname === navItem.href || pathname.startsWith(navItem.href + "/")
+            })
+            .sort((a, b) => b.href.length - a.href.length)[0] // Ordena por maior comprimento (mais específico)
+          
+          const isActive = matchingItem?.href === item.href
 
           return (
             <Link

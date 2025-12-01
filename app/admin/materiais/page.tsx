@@ -27,7 +27,7 @@ export default async function AdminMaterialsPage() {
   }))
 
   return (
-    <div className="space-y-6">
+    <div className="w-full h-full space-y-6 p-6 md:p-8">
       <div className="space-y-1">
         <p className="text-xs font-semibold uppercase tracking-[0.4em] text-slate-400">Biblioteca de materiais</p>
         <h1 className="text-3xl font-bold text-white">Materiais publicados</h1>

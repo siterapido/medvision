@@ -4,6 +4,9 @@ import type React from "react"
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, Sparkles } from "lucide-react"
+
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,12 +17,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, Sparkles } from "lucide-react"
-import { createClient } from "@/lib/supabase/client"
 import { DEFAULT_ROLE, resolveUserRole } from "@/lib/auth/roles"
-import { Alert, AlertDescription } from "@/components/ui/alert"
+import { DEFAULT_TRIAL_DAYS, calculateTrialEndDate, normalizeTrialDays } from "@/lib/trial"
+import { createClient } from "@/lib/supabase/client"
 
-export function RegisterForm() {
+type RegisterFormProps = {
+  trialDays?: number
+}
+
+export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormProps) {
   const router = useRouter()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
@@ -33,6 +39,9 @@ export function RegisterForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+
+  const normalizedTrialDays = normalizeTrialDays(trialDays)
+  const trialLabel = `${normalizedTrialDays} dia${normalizedTrialDays > 1 ? "s" : ""}`
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -84,6 +93,8 @@ export function RegisterForm() {
             profession: occupation,
             institution: occupation === "Estudante" ? institution : null,
             role: DEFAULT_ROLE,
+            trial_days: normalizedTrialDays,
+            trial_form: `${normalizedTrialDays}d`,
           },
         },
       })
@@ -108,6 +119,24 @@ export function RegisterForm() {
       if (data.user) {
         // Cadastro bem-sucedido
         setSuccess(true)
+
+        if (data.session) {
+          const now = new Date()
+          const trialEnd = calculateTrialEndDate(now, normalizedTrialDays)
+
+          const { error: trialUpdateError } = await supabase
+            .from("profiles")
+            .update({
+              trial_started_at: now.toISOString(),
+              trial_ends_at: trialEnd.toISOString(),
+              trial_used: false,
+            })
+            .eq("id", data.user.id)
+
+          if (trialUpdateError) {
+            console.warn("[auth] Não foi possível ajustar o trial escolhido", trialUpdateError)
+          }
+        }
 
         // Se o email foi confirmado automaticamente (depende da configuração do Supabase)
         if (data.user.email_confirmed_at || data.session) {
@@ -152,7 +181,7 @@ export function RegisterForm() {
           </div>
           <div>
             <p className="text-sm font-semibold text-emerald-800 dark:text-emerald-300">
-              7 Dias de Acesso Gratuito
+              {trialLabel} de acesso gratuito
             </p>
             <p className="text-xs text-emerald-600/80 dark:text-emerald-400/80">
               Sem cartão de crédito. Acesso completo imediato.
@@ -337,7 +366,7 @@ export function RegisterForm() {
             Conta criada!
           </>
         ) : (
-          "Começar Teste Grátis"
+          `Começar teste de ${trialLabel}`
         )}
       </Button>
     </form>

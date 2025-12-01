@@ -1,23 +1,23 @@
 import Link from "next/link"
-import { DEFAULT_TRIAL_DAYS, normalizeTrialDays } from "@/lib/trial"
+
 import { RegisterForm } from "@/components/auth/register-form"
 import { Logo } from "@/components/logo"
+import { DEFAULT_TRIAL_DAYS, normalizeTrialDays } from "@/lib/trial"
 
-type RegisterPageProps = {
-  searchParams?: {
-    trial?: string
+type TrialRegisterPageProps = {
+  params: {
+    days: string
   }
 }
 
-export default function RegisterPage({ searchParams }: RegisterPageProps) {
-  const requestedTrial = typeof searchParams?.trial === "string"
-    ? Number(searchParams.trial)
-    : undefined
+export default function TrialRegisterPage({ params }: TrialRegisterPageProps) {
+  const requestedTrial = Number(params.days)
   const trialDays = normalizeTrialDays(requestedTrial, DEFAULT_TRIAL_DAYS)
+  const isFallback = Number.isFinite(requestedTrial) && trialDays !== requestedTrial
+  const trialLabel = `${trialDays} dia${trialDays > 1 ? "s" : ""}`
 
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-gradient-to-br from-[#0F192F] via-[#131D37] to-[#1A2847] p-4">
-      {/* Background Effects */}
       <div className="absolute inset-0 opacity-30 pointer-events-none">
         <div className="absolute inset-0 bg-grid-pattern"></div>
         <div className="absolute top-20 left-20 w-96 h-96 bg-[#2399B4]/20 rounded-full blur-3xl"></div>
@@ -30,21 +30,26 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
             <Logo width={180} height={42} className="login-logo-white" />
           </div>
           <h1 className="text-2xl font-bold text-white mb-2">
-            Crie sua conta
+            Teste grátis de {trialLabel}
           </h1>
           <p className="text-slate-300">
-            Comece sua jornada com IA odontológica hoje mesmo
+            Cadastro dedicado para liberar {trialLabel} do OdontoGPT
           </p>
+          {isFallback && (
+            <p className="mt-3 text-xs text-amber-300">
+              Link não reconhecido, aplicamos automaticamente o teste padrão de {DEFAULT_TRIAL_DAYS} dias.
+            </p>
+          )}
         </div>
 
         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl border border-slate-200 dark:border-slate-700 p-8">
           <RegisterForm trialDays={trialDays} />
-          
+
           <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700">
             <p className="text-center text-sm text-slate-600 dark:text-slate-400">
               Já tem uma conta?{" "}
-              <Link 
-                href="/login" 
+              <Link
+                href="/login"
                 className="text-primary hover:text-primary-hover font-semibold transition-colors"
               >
                 Entrar

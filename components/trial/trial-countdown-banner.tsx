@@ -1,10 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import Link from "next/link"
 import { getRemainingTrialDays, isTrialActive } from "@/lib/trial"
 import { Crown, AlertTriangle, Clock } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+import { SubscriptionModal } from "./subscription-modal"
 
 interface TrialCountdownBannerProps {
   trialEndsAt: string | null | undefined
@@ -57,20 +58,23 @@ export function TrialCountdownBanner({ trialEndsAt, planType }: TrialCountdownBa
         </span>
       </div>
 
-      <Link 
-        href="/dashboard/assinatura" 
-        className={cn(
-          "inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105",
-          isLastDay 
-            ? "bg-red-500 text-white hover:bg-red-600 shadow-sm" 
-            : isUrgent
-              ? "bg-amber-500 text-white hover:bg-amber-600 shadow-sm"
-              : "bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm"
-        )}
-      >
-        <Crown className="h-3 w-3" />
-        Assinar Agora
-      </Link>
+      <SubscriptionModal
+        trigger={
+          <button 
+            className={cn(
+              "inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold transition-all hover:scale-105 whitespace-nowrap flex-shrink-0",
+              isLastDay 
+                ? "bg-red-500 text-white hover:bg-red-600 shadow-sm" 
+                : isUrgent
+                  ? "bg-amber-500 text-white hover:bg-amber-600 shadow-sm"
+                  : "bg-emerald-500 text-white hover:bg-emerald-600 shadow-sm"
+            )}
+          >
+            <Crown className="h-3 w-3" />
+            Assinar Agora
+          </button>
+        }
+      />
     </div>
   )
 }

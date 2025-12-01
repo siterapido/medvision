@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server"
-import { generateCheckoutUrl } from "@/lib/cakto"
+import { generateCheckoutUrl, CAKTO_ANNUAL_PLAN_ID, CAKTO_MONTHLY_PLAN_ID } from "@/lib/cakto"
 import { createClient as createSupabaseServerClient } from "@/lib/supabase/server"
 
 type CheckoutPayload = {
   email?: string
+  plan?: 'monthly' | 'annual'
   customData?: Record<string, unknown>
 }
 
@@ -35,7 +36,25 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Informe um e-mail" }, { status: 400 })
   }
 
-  const url = generateCheckoutUrl(email, normalizeCustomData(payload.customData))
+  let productId = payload.plan === 'monthly' ? CAKTO_MONTHLY_PLAN_ID : CAKTO_ANNUAL_PLAN_ID
+
+  // Se houver um course_id no customData, tentamos buscar o ID do produto específico
+  const customData = normalizeCustomData(payload.customData)
+  const courseId = customData.course_id
+
+  if (courseId) {
+    const { data: course } = await supabase
+      .from("courses")
+      .select("cakto_product_id")
+      .eq("id", courseId)
+      .single()
+
+    if (course?.cakto_product_id) {
+      productId = course.cakto_product_id
+    }
+  }
+
+  const url = generateCheckoutUrl(email, customData, productId)
   return NextResponse.json({ url })
 }
 

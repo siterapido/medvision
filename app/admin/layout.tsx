@@ -1,5 +1,5 @@
 import type React from "react"
-import { AdminSidebar } from "@/components/admin/sidebar"
+import { AdminLayoutShell } from "@/components/admin/shell"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { resolveUserRole } from "@/lib/auth/roles"
@@ -29,14 +29,9 @@ export default async function AdminLayout({
     }
 
     return (
-      <div className="flex min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-        <AdminSidebar user={user} profile={profile} />
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <main className="flex flex-1 flex-col overflow-y-auto bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 py-6 md:px-8">
-            {children}
-          </main>
-        </div>
-      </div>
+      <AdminLayoutShell user={user} profile={profile}>
+        {children}
+      </AdminLayoutShell>
     )
   } catch {
     // Fallback: se houver erro ao criar cliente, redireciona para login

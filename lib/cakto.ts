@@ -1,6 +1,8 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 
-const DEFAULT_CAKTO_PRODUCT_ID = "3263gsd_647430"
+export const CAKTO_ANNUAL_PLAN_ID = "3263gsd_647430"
+export const CAKTO_MONTHLY_PLAN_ID = "6nowfr6_671057"
+const DEFAULT_CAKTO_PRODUCT_ID = CAKTO_ANNUAL_PLAN_ID
 const PRODUCT_ID_PATTERN = /^[A-Za-z0-9_-]+$/
 
 function extractProductId(input?: string) {
@@ -136,14 +138,14 @@ async function findUserByEmail(email: string): Promise<UserSummary | null> {
   }
 }
 
-export function generateCheckoutUrl(userEmail: string, customData: Record<string, string> = {}) {
+export function generateCheckoutUrl(userEmail: string, customData: Record<string, string> = {}, productId?: string) {
   const normalizedEmail = normalizeEmail(userEmail)
   if (!normalizedEmail) {
     throw new Error("E-mail inválido para gerar checkout")
   }
 
-  const productId = resolveProductId()
-  if (!PRODUCT_ID_PATTERN.test(productId)) {
+  const resolvedProductId = productId || resolveProductId()
+  if (!PRODUCT_ID_PATTERN.test(resolvedProductId)) {
     throw new Error("ID de produto Cakto inválido")
   }
 
@@ -152,7 +154,7 @@ export function generateCheckoutUrl(userEmail: string, customData: Record<string
     ...customData,
   })
 
-  const baseUrl = `https://pay.cakto.com.br/${productId}`
+  const baseUrl = `https://pay.cakto.com.br/${resolvedProductId}`
   return `${baseUrl}?${params.toString()}`
 }
 

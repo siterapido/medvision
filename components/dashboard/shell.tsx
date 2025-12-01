@@ -183,7 +183,7 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
   }
 
   return (
-    <div className={`min-h-screen h-screen flex overflow-hidden ${pathname === '/dashboard/chat' || pathname === '/dashboard/cursos' ? 'bg-slate-950' : 'bg-slate-50'}`}>
+    <div className={`min-h-screen h-screen supports-[height:100dvh]:h-[100dvh] flex overflow-hidden ${pathname === '/dashboard/chat' || pathname === '/dashboard/cursos' ? 'bg-slate-950' : 'bg-slate-50'}`}>
       <DashboardSidebar
         isVisible={isSidebarVisible}
       />
@@ -195,15 +195,17 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
           planType={profile?.plan_type} 
         />
 
-        <DashboardHeader
-          user={user}
-          profile={profile}
-          isSidebarVisible={isSidebarVisible}
-          isDrawerOpen={isDrawerOpen}
-          onToggleSidebar={handleToggleSidebar}
-          isLoggingOut={isLoggingOut}
-          onLogout={handleLogout}
-        />
+        <div className="shrink-0 z-20 relative">
+          <DashboardHeader
+            user={user}
+            profile={profile}
+            isSidebarVisible={isSidebarVisible}
+            isDrawerOpen={isDrawerOpen}
+            onToggleSidebar={handleToggleSidebar}
+            isLoggingOut={isLoggingOut}
+            onLogout={handleLogout}
+          />
+        </div>
         <main
           className={`flex flex-1 flex-col min-h-0 ${pathname === "/dashboard/chat" || pathname?.startsWith("/dashboard/cursos")
               ? "bg-transparent p-0 overflow-hidden"

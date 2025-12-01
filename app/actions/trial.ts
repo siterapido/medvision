@@ -1,10 +1,24 @@
 "use server"
 
-import { createClient } from "@/lib/supabase/server"
-import { calculateTrialEndDate, isTrialActive, isTrialExpired } from "@/lib/trial"
 import { revalidatePath } from "next/cache"
 
-export async function startTrial(shouldRevalidate = true) {
+import { createClient } from "@/lib/supabase/server"
+import {
+  DEFAULT_TRIAL_DAYS,
+  calculateTrialEndDate,
+  getTrialDurationFromDates,
+  isTrialActive,
+  isTrialExpired,
+  normalizeTrialDays,
+} from "@/lib/trial"
+
+type StartTrialOptions = {
+  shouldRevalidate?: boolean
+  days?: number
+}
+
+export async function startTrial(options?: StartTrialOptions) {
+  const shouldRevalidate = options?.shouldRevalidate ?? true
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -15,12 +29,12 @@ export async function startTrial(shouldRevalidate = true) {
   // Verificar se já usou o trial
   const { data: profile } = await supabase
     .from("profiles")
-    .select("trial_used, trial_started_at, plan_type")
+    .select("trial_used, trial_started_at, plan_type, trial_ends_at")
     .eq("id", user.id)
     .single()
 
-  if (profile?.trial_used || profile?.trial_started_at) {
-    return { success: false, message: "Trial já utilizado ou em andamento" }
+  if (profile?.trial_used) {
+    return { success: false, message: "Trial já foi utilizado" }
   }
 
   // Se já tem plano pago, não inicia trial
@@ -28,15 +42,25 @@ export async function startTrial(shouldRevalidate = true) {
     return { success: false, message: "Usuário já possui plano pago" }
   }
 
+  // Se já existe um trial ativo, não inicia novo
+  if (profile?.trial_started_at && profile.trial_ends_at && !isTrialExpired(profile.trial_ends_at)) {
+    return { success: false, message: "Trial já está ativo" }
+  }
+
+  const metadataDays = typeof user.user_metadata?.trial_days === "number"
+    ? user.user_metadata.trial_days
+    : undefined
+
+  const trialDays = normalizeTrialDays(options?.days ?? metadataDays ?? DEFAULT_TRIAL_DAYS)
   const startDate = new Date()
-  const endDate = calculateTrialEndDate(startDate)
+  const endDate = calculateTrialEndDate(startDate, trialDays)
 
   const { error } = await supabase
     .from("profiles")
     .update({
       trial_started_at: startDate.toISOString(),
       trial_ends_at: endDate.toISOString(),
-      trial_used: true
+      trial_used: false,
     })
     .eq("id", user.id)
 
@@ -48,7 +72,7 @@ export async function startTrial(shouldRevalidate = true) {
   if (shouldRevalidate) {
     revalidatePath("/dashboard")
   }
-  return { success: true }
+  return { success: true, days: trialDays }
 }
 
 export async function getTrialStatus() {
@@ -94,8 +118,12 @@ export async function getTrialStatus() {
   return {
     isActive: isTrialActive(profile.trial_ends_at),
     isExpired: isTrialExpired(profile.trial_ends_at),
+    trialDurationDays: getTrialDurationFromDates(
+      profile.trial_started_at,
+      profile.trial_ends_at,
+      DEFAULT_TRIAL_DAYS
+    ),
     trialEndsAt: profile.trial_ends_at,
     hasUsedTrial: profile.trial_used || false
   }
 }
-

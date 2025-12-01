@@ -853,7 +853,7 @@ export function CoursePlayer({
                 </div>
               </div>
 
-              <div className="py-2">
+              <div className={cn(activeTab === "overview" ? "" : "py-2")}>
                 {activeTab === "overview" && (
                   <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-300">
                     {currentLessonLocked ? (

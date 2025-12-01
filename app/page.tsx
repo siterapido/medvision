@@ -96,13 +96,13 @@ export default function LandingPage() {
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 pt-4 md:pt-6">
                   <Button
                     size="xl"
-                    aria-label="Assinar agora"
+                    aria-label="Testar 7 dias grátis"
                     variant="cta"
                     className="group shadow-primary/25 w-full sm:w-auto"
                     asChild
                   >
-                    <Link href="#planos">
-                      Assinar agora
+                    <Link href="/register">
+                      Testar 7 dias grátis
                       <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
                     </Link>
                   </Button>
@@ -228,9 +228,9 @@ export default function LandingPage() {
             </div>
 
             <div className="flex justify-center mt-10">
-              <Link href="#planos">
+              <Link href="/register">
                 <Button size="lg" variant="cta">
-                  Ver Planos
+                  Começar Teste Grátis
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
@@ -468,12 +468,12 @@ export default function LandingPage() {
             </div>
 
             <div className="text-center pt-8">
-              <a href="https://pay.cakto.com.br/3263gsd_647430" target="_blank" rel="noopener noreferrer">
-                <Button size="lg" aria-label="Abrir planos" variant="cta">
-                  Pronto para começar?
+              <Link href="/register">
+                <Button size="lg" aria-label="Começar teste grátis" variant="cta">
+                  Começar Teste Grátis
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
-              </a>
+              </Link>
             </div>
           </div>
         </section>
@@ -698,12 +698,12 @@ export default function LandingPage() {
                   </li>
                 </ul>
 
-                <a href="https://pay.cakto.com.br/3263gsd_647430" target="_blank" rel="noopener noreferrer" className="block">
+                <Link href="/register" className="block">
                   <Button className="w-full shadow-lg" size="lg" variant="cta">
-                    Garantir Meu Acesso Anual
+                    Começar Teste Grátis
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-                </a>
+                </Link>
               </Card>
             </div>
 
@@ -731,7 +731,7 @@ export default function LandingPage() {
                       d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
                   </svg>
-                  Garantia de 7 dias
+                  7 dias grátis
                 </span>
                 <span className="flex items-center gap-2">
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -742,7 +742,7 @@ export default function LandingPage() {
                       d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
                     />
                   </svg>
-                  Cartão ou Boleto
+                  Cancele quando quiser
                 </span>
               </div>
             </div>
@@ -759,17 +759,17 @@ export default function LandingPage() {
               description="Junte-se aos profissionais que já estão usando IA especializada na rotina clínica e acadêmica."
               align="center"
             />
-            <a href="https://pay.cakto.com.br/3263gsd_647430" target="_blank" rel="noopener noreferrer">
+            <Link href="/register">
               <Button
                 size="xl"
                 aria-label="Começar Agora"
                 variant="cta"
                 className="group shadow-primary/25"
               >
-                Começar Agora
+                Começar Teste Grátis
                 <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
               </Button>
-            </a>
+            </Link>
           </div>
         </section>
 

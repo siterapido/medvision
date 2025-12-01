@@ -1,44 +1,51 @@
+import { CAKTO_MONTHLY_PLAN_ID, CAKTO_ANNUAL_PLAN_ID } from "@/lib/cakto"
+
 export type Plan = {
+  id: "monthly" | "annual"
   name: string
   price: string
   period: string
-  description: string
+  description?: string
   features: string[]
   cta: string
   popular: boolean
+  caktoId: string
 }
 
 export const plans: Plan[] = [
   {
-    name: "Mensal",
-    price: "R$ 97",
+    id: "monthly",
+    name: "Plano Mensal",
+    price: "R$ 30",
     period: "/mês",
-    description: "Perfeito para começar sua jornada",
+    popular: false,
+    caktoId: CAKTO_MONTHLY_PLAN_ID,
     features: [
-      "Acesso ao Odonto GPT",
-      "Todos os cursos disponíveis",
-      "Certificados de conclusão",
-      "Suporte por email",
-      "Atualizações mensais",
+      "Consultor 24/7 no WhatsApp - sem limite de perguntas",
+      "Respostas fundamentadas em literatura científica",
+      "Prescrições com dosagens corretas e protocolos atualizados",
+      "Ajuda em provas, estágios e casos clínicos complexos",
+      "Live exclusiva toda quarta-feira com Q&A",
     ],
     cta: "Assinar Plano Mensal",
-    popular: false,
   },
   {
-    name: "Anual",
-    price: "R$ 970",
+    id: "annual",
+    name: "Plano Anual",
+    price: "R$ 240",
     period: "/ano",
-    description: "Melhor custo-benefício com bônus exclusivos",
+    popular: true,
+    caktoId: CAKTO_ANNUAL_PLAN_ID,
     features: [
-      "Tudo do plano mensal",
-      "2 meses grátis (economize R$ 194)",
-      "Acesso prioritário a novos cursos",
-      "Suporte prioritário",
-      "Sessões de mentoria exclusivas",
-      "Material complementar em PDF",
-      "Certificados premium",
+      "Consultor 24/7 no WhatsApp - sem limite de perguntas",
+      "Respostas fundamentadas em literatura científica",
+      "Prescrições com dosagens corretas e protocolos atualizados",
+      "Ajuda em provas, estágios e casos clínicos complexos",
+      "Live exclusiva toda quarta-feira com Q&A",
+      "🎁 Ebook exclusivo: Como Validar Seu Diploma nos EUA",
+      "🎁 Certificado mensal de participação nas lives",
+      "🎁 Acesso prioritário a novas funcionalidades",
     ],
     cta: "Assinar Plano Anual",
-    popular: true,
   },
 ]

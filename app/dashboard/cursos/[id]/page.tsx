@@ -59,7 +59,18 @@ export default async function CoursePage({ params }: { params: Promise<{ id?: st
     .eq("id", user.id)
     .maybeSingle()
 
-  const canAccessPremium = (profile?.plan_type ?? "").toLowerCase() === "premium" || (profile?.subscription_status ?? "").toLowerCase() === "active"
+  const { data: purchase } = await supabase
+    .from("course_purchases")
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("course_id", courseId)
+    .maybeSingle()
+
+  const hasPurchasedCourse = !!purchase
+  const canAccessPremium =
+    (profile?.plan_type ?? "").toLowerCase() === "premium" ||
+    (profile?.subscription_status ?? "").toLowerCase() === "active" ||
+    hasPurchasedCourse
 
   const { data: courseData, error } = await supabase
     .from("courses")

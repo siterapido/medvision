@@ -63,3 +63,6 @@ VALUES
 ('subscription_expired', 'Aviso de assinatura expirada', 'Olá {{name}}, sua assinatura do OdontoGPT expirou. Renove agora para não perder o acesso.', 'cron')
 ON CONFLICT (name) DO NOTHING;
 
+
+
+

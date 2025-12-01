@@ -16,3 +16,6 @@ VALUES
 ('trial_expired_email', 'Aviso de trial expirado (Email)', '<p>Olá {{name}},</p><p>Seu período de testes do OdontoGPT expirou.</p><p><a href="https://odontogpt.com/dashboard/assinatura">Assine agora</a> para continuar tendo acesso!</p>', 'Seu trial expirou', 'email', 'cron')
 ON CONFLICT (name) DO NOTHING;
 
+
+
+

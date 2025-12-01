@@ -27,6 +27,7 @@
 - Cadastro de cursos: o painel em `app/admin/cursos` lista os cursos existentes e o botão “Novo Curso” abre um dialog em etapas com área escura e cards colapsáveis (“acordeão”).
 - Cabeçalho fixo da landing page: a nova barra superior usa `backdrop-blur`, borda clara e mantém links âncora (`#como-funciona`, `#beneficios`, `#planos`, `#faq`) + CTA “Garantir Acesso” visíveis independentemente da rolagem.
 - Cards de estatísticas são claros (`bg-white` + `border-slate-200`) para não “escurecer tudo”. Detalhes (badges, ícones, headers) mantêm acentos teal.
+- Trials: rota `/admin/trials` exibe cards escuros com badges ciano para copiar links dos formulários de 1, 3, 7 e 30 dias (padrão LP segue 7 dias).
 
 ### Acentos com degradês azul escuro (vida/ênfase)
 
