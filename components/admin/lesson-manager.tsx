@@ -442,7 +442,7 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
                                 Ver no curso
                               </Link>
                             </Button>
-                            <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="flex items-center gap-2">
                               <Button
                                 size="sm"
                                 variant="ghost"
