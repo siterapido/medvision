@@ -183,7 +183,7 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
   }
 
   return (
-    <div className={`min-h-screen h-screen supports-[height:100dvh]:h-[100dvh] flex overflow-hidden ${pathname === '/dashboard/chat' || pathname?.startsWith('/dashboard/cursos') || pathname?.startsWith('/dashboard/resumos') ? 'bg-slate-950' : 'bg-slate-50'}`}>
+    <div className={`h-screen supports-[height:100dvh]:h-[100dvh] flex overflow-hidden ${pathname === '/dashboard/chat' || pathname?.startsWith('/dashboard/cursos') || pathname?.startsWith('/dashboard/resumos') ? 'bg-slate-950' : 'bg-slate-50'}`}>
       <DashboardSidebar
         isVisible={isSidebarVisible}
       />
