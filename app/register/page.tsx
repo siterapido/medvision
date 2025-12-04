@@ -4,14 +4,15 @@ import { RegisterForm } from "@/components/auth/register-form"
 import { Logo } from "@/components/logo"
 
 type RegisterPageProps = {
-  searchParams?: {
+  searchParams?: Promise<{
     trial?: string
-  }
+  }>
 }
 
-export default function RegisterPage({ searchParams }: RegisterPageProps) {
-  const requestedTrial = typeof searchParams?.trial === "string"
-    ? Number(searchParams.trial)
+export default async function RegisterPage({ searchParams }: RegisterPageProps) {
+  const resolvedSearchParams = await searchParams
+  const requestedTrial = typeof resolvedSearchParams?.trial === "string"
+    ? Number(resolvedSearchParams.trial)
     : undefined
   const trialDays = normalizeTrialDays(requestedTrial, DEFAULT_TRIAL_DAYS)
 

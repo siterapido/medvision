@@ -42,7 +42,7 @@ function inferPathFromUrl(rawUrl: string): { path: string; fileName: string } {
   return { path, fileName }
 }
 
-export async function POST(request: Request, { params }: { params: { lessonId: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ lessonId: string }> }) {
   try {
     const supabase = await createSupabaseServerClient()
     const { data: authData } = await supabase.auth.getUser()
@@ -60,7 +60,7 @@ export async function POST(request: Request, { params }: { params: { lessonId: s
       return NextResponse.json({ error: "Apenas administradores podem enviar anexos." }, { status: 403 })
     }
 
-    const lessonId = params.lessonId
+    const { lessonId } = await params
     const validLessonId = uuidSchemaWithMessage("ID da aula inválido.").safeParse(lessonId?.trim())
     if (!validLessonId.success) {
       return NextResponse.json({ error: "ID da aula inválido." }, { status: 400 })
@@ -172,14 +172,14 @@ export async function POST(request: Request, { params }: { params: { lessonId: s
   }
 }
 
-export async function GET(_: Request, { params }: { params: { lessonId: string } }) {
+export async function GET(_: Request, { params }: { params: Promise<{ lessonId: string }> }) {
   try {
     const supabase = await createSupabaseServerClient()
     const { data: authData } = await supabase.auth.getUser()
     const user = authData.user
     if (!user) return NextResponse.json({ error: "Não autenticado." }, { status: 401 })
 
-    const lessonId = params.lessonId
+    const { lessonId } = await params
     const validLessonId = uuidSchemaWithMessage("ID da aula inválido.").safeParse(lessonId?.trim())
     if (!validLessonId.success) {
       // Para evitar quebra em aulas antigas com IDs não compatíveis, retornamos lista vazia

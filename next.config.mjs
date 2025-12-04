@@ -14,8 +14,10 @@ const nextConfig = {
   // Aumentar limite de tamanho de corpo para uploads (padrão: 1MB)
   experimental: {
     serverActions: {
-      bodySizeLimit: '50mb',
+      bodySizeLimit: '2gb',
     },
+    // Aumentar limite para rotas API e middleware (vídeos podem ser grandes)
+    middlewareClientMaxBodySize: '2gb',
   },
   // Otimizações adicionais
   compress: true,

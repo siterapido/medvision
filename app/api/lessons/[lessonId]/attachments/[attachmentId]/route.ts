@@ -5,7 +5,7 @@ import { resolveUserRole } from "@/lib/auth/roles"
 import { uuidSchemaWithMessage } from "@/lib/validations/uuid"
 import { deleteFromBunnyStorage } from "@/lib/bunny/storage"
 
-export async function DELETE(_: Request, { params }: { params: { lessonId: string; attachmentId: string } }) {
+export async function DELETE(_: Request, { params }: { params: Promise<{ lessonId: string; attachmentId: string }> }) {
   try {
     const supabase = await createSupabaseServerClient()
     const { data: authData } = await supabase.auth.getUser()
@@ -22,8 +22,9 @@ export async function DELETE(_: Request, { params }: { params: { lessonId: strin
       return NextResponse.json({ error: "Apenas administradores podem remover anexos." }, { status: 403 })
     }
 
-    const lessonId = uuidSchemaWithMessage("Parâmetros inválidos.").safeParse(params.lessonId?.trim())
-    const attachmentId = uuidSchemaWithMessage("Parâmetros inválidos.").safeParse(params.attachmentId?.trim())
+    const resolvedParams = await params
+    const lessonId = uuidSchemaWithMessage("Parâmetros inválidos.").safeParse(resolvedParams.lessonId?.trim())
+    const attachmentId = uuidSchemaWithMessage("Parâmetros inválidos.").safeParse(resolvedParams.attachmentId?.trim())
     if (!lessonId.success || !attachmentId.success) {
       return NextResponse.json({ error: "Parâmetros inválidos." }, { status: 400 })
     }

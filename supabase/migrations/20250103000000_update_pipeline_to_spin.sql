@@ -41,3 +41,4 @@ CHECK (
 -- Step 4: Update comment
 COMMENT ON COLUMN public.profiles.pipeline_stage IS 'Etapa atual do lead no pipeline SPIN: situacao, problema, implicacao, necessidade_beneficio, proposta_enviada, convertido, perdido';
 
+

@@ -17,9 +17,10 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ImageCropDialog } from "@/components/ui/image-crop-dialog"
 import { createLive, updateLive } from "@/app/actions/lives"
 import type { LiveFormData } from "@/lib/validations/live"
-import { Loader2, UploadCloud, X, CalendarClock } from "lucide-react"
+import { Loader2, UploadCloud, X, CalendarClock, Crop } from "lucide-react"
 
 interface LiveFormDialogProps {
   open: boolean
@@ -57,16 +58,38 @@ export function LiveFormDialog({ open, onOpenChange, mode, initialData }: LiveFo
   const fileInputRef = useRef<HTMLInputElement | null>(null)
   const [thumbnailPreviewUrl, setThumbnailPreviewUrl] = useState<string>(formData.thumbnail_url || "")
   const [uploadingImage, setUploadingImage] = useState(false)
+  const [cropDialogOpen, setCropDialogOpen] = useState(false)
+  const [imageToCrop, setImageToCrop] = useState<string>("")
 
-  const handleThumbnailUpload = async (file: File) => {
+  const handleFileSelect = (file: File) => {
+    // Criar URL temporária para preview e crop
+    const reader = new FileReader()
+    reader.onload = () => {
+      setImageToCrop(reader.result as string)
+      setCropDialogOpen(true)
+    }
+    reader.readAsDataURL(file)
+  }
+
+  const handleCropComplete = async (croppedBlob: Blob) => {
     try {
       setUploadingImage(true)
-      const ext = file.name.split(".").pop() || "jpg"
-      const path = `thumbnails/${crypto.randomUUID()}.${ext}`
-      const { error: uploadError } = await supabase.storage.from("live-assets").upload(path, file, {
-        cacheControl: "3600",
-        upsert: true,
+      setCropDialogOpen(false)
+
+      // Converter blob para File
+      const file = new File([croppedBlob], `thumbnail-${Date.now()}.jpg`, {
+        type: "image/jpeg",
       })
+
+      const ext = "jpg"
+      const path = `thumbnails/${crypto.randomUUID()}.${ext}`
+      const { error: uploadError } = await supabase.storage
+        .from("live-assets")
+        .upload(path, file, {
+          cacheControl: "3600",
+          upsert: true,
+        })
+
       if (uploadError) throw uploadError
 
       const { data } = supabase.storage.from("live-assets").getPublicUrl(path)
@@ -78,11 +101,15 @@ export function LiveFormDialog({ open, onOpenChange, mode, initialData }: LiveFo
         delete next.thumbnail_url
         return next
       })
-    } catch (uploadError) {
-      console.error("❌ [handleThumbnailUpload] erro:", uploadError)
-      setErrors((prev) => ({ ...prev, thumbnail_url: "Falha ao enviar a imagem. Tente novamente." }))
+    } catch (uploadError: any) {
+      console.error("❌ [handleCropComplete] erro:", uploadError)
+      const errorMessage = uploadError?.message
+        ? `Falha ao enviar: ${uploadError.message}`
+        : "Falha ao enviar a imagem. Tente novamente."
+      setErrors((prev) => ({ ...prev, thumbnail_url: errorMessage }))
     } finally {
       setUploadingImage(false)
+      setImageToCrop("")
     }
   }
 
@@ -139,14 +166,24 @@ export function LiveFormDialog({ open, onOpenChange, mode, initialData }: LiveFo
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#0F192F] border-slate-700">
-        <DialogHeader>
-          <DialogTitle className="text-2xl text-white">{mode === "create" ? "Nova Live" : "Editar Live"}</DialogTitle>
-          <DialogDescription className="text-slate-400">
-            {mode === "create" ? "Preencha os dados da live." : "Atualize as informações da live."}
-          </DialogDescription>
-        </DialogHeader>
+    <>
+      <ImageCropDialog
+        open={cropDialogOpen}
+        onOpenChange={setCropDialogOpen}
+        imageSrc={imageToCrop}
+        onCropComplete={handleCropComplete}
+        aspect={16 / 9}
+        isProcessing={uploadingImage}
+      />
+
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto bg-[#0F192F] border-slate-700">
+          <DialogHeader>
+            <DialogTitle className="text-2xl text-white">{mode === "create" ? "Nova Live" : "Editar Live"}</DialogTitle>
+            <DialogDescription className="text-slate-400">
+              {mode === "create" ? "Preencha os dados da live." : "Atualize as informações da live."}
+            </DialogDescription>
+          </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {errors.general && (
@@ -224,7 +261,13 @@ export function LiveFormDialog({ open, onOpenChange, mode, initialData }: LiveFo
           </div>
 
           <div className="space-y-2">
-            <Label className="text-white">Thumbnail (imagem)</Label>
+            <Label className="text-white flex items-center gap-2">
+              Thumbnail (imagem)
+              <span className="text-xs font-normal text-slate-400 flex items-center gap-1">
+                <Crop className="h-3 w-3" />
+                com ajuste e crop
+              </span>
+            </Label>
             {thumbnailPreviewUrl && (
               <div className="relative w-full h-48 overflow-hidden rounded-lg border border-slate-600 bg-slate-900">
                 <Image src={thumbnailPreviewUrl} alt="Preview da thumbnail" fill sizes="(max-width: 640px) 100vw, 480px" className="object-cover" unoptimized />
@@ -235,10 +278,10 @@ export function LiveFormDialog({ open, onOpenChange, mode, initialData }: LiveFo
               type="file"
               accept="image/*"
               className="hidden"
-              onChange={async (event) => {
+              onChange={(event) => {
                 const file = event.target.files?.[0]
                 event.target.value = ""
-                if (file) await handleThumbnailUpload(file)
+                if (file) handleFileSelect(file)
               }}
             />
             <div className="flex flex-wrap gap-3">
@@ -263,5 +306,6 @@ export function LiveFormDialog({ open, onOpenChange, mode, initialData }: LiveFo
         </form>
       </DialogContent>
     </Dialog>
+    </>
   )
 }

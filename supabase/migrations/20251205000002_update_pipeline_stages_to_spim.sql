@@ -34,3 +34,4 @@ SET pipeline_stage =
   END
 WHERE pipeline_stage IN ('necessidade_beneficio', 'proposta_enviada', 'perdido');
 
+

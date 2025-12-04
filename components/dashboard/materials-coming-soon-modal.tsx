@@ -3,16 +3,19 @@
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Logo } from "@/components/logo"
 import { Sparkles, X } from "lucide-react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 
 export function MaterialsComingSoonModal() {
+  const [isOpen, setIsOpen] = useState(true)
   const router = useRouter()
 
   const handleClose = () => {
+    setIsOpen(false)
     // Redireciona para o dashboard ou volta para a página anterior se possível
     // O router.back() é melhor para UX de "cancelar navegação", mas se o usuário veio direto
     // para esta URL, pode ser melhor enviá-lo para a home do dashboard
-    if (window.history.length > 2) {
+    if (typeof window !== 'undefined' && window.history.length > 1) {
       router.back()
     } else {
       router.push('/dashboard')
@@ -20,7 +23,7 @@ export function MaterialsComingSoonModal() {
   }
 
   return (
-    <Dialog open={true} onOpenChange={(open) => !open && handleClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => !open && handleClose()}>
       <DialogContent 
         showCloseButton={false}
         className="max-w-md border border-[#1E293B] bg-[#0F192F] p-0 text-white shadow-2xl sm:rounded-2xl overflow-hidden"

@@ -1000,35 +1000,33 @@ export function CoursePlayer({
               </div>
 
               <ScrollArea className="flex-1 min-h-0 px-4 pb-6 pt-4">
-                <Accordion type="multiple" defaultValue={[]} className="w-full">
+                <Accordion type="multiple" defaultValue={[]} className="w-full space-y-1">
                   {groupedByModules.map((group, i) => {
                     const moduleKey = group.module.id ?? group.module.title
                     const moduleNumber = moduleNumberMap.get(moduleKey)
+                    const isPremium = group.module.access_type === "premium"
                     return (
-                      <AccordionItem key={i} value={group.module.id || group.module.title} className="border-[#334155]">
-                        <AccordionTrigger className="px-4 py-3 pr-6 text-left text-sm font-medium text-[#f1f5f9] hover:text-white hover:no-underline data-[state=open]:bg-[#334155]/30 gap-3">
-                          <div className="flex w-full items-center justify-between gap-3 min-w-0">
-                            <span className="truncate flex-1 min-w-0">
+                      <AccordionItem key={i} value={group.module.id || group.module.title} className="border-[#334155] rounded-lg overflow-hidden hover:bg-[#334155]/10 transition-colors">
+                        <AccordionTrigger className="px-4 py-3.5 pr-6 text-left text-sm font-medium text-[#f1f5f9] hover:text-white hover:no-underline data-[state=open]:bg-[#334155]/30 data-[state=open]:text-white gap-3 transition-all duration-200">
+                          <div className="relative flex w-full items-center min-w-0 pr-20">
+                            <span className={cn(
+                              "truncate font-semibold pr-2",
+                              isPremium && "pr-16"
+                            )}>
                               {moduleNumber ? `Módulo ${moduleNumber} · ${group.module.title}` : group.module.title}
                             </span>
-                            <Badge
-                              variant="outline"
-                              className={cn(
-                                "flex items-center gap-1 border text-[10px] uppercase tracking-wide shrink-0 whitespace-nowrap ml-2",
-                                group.module.access_type === "premium"
-                                  ? "border-amber-400/50 bg-amber-400/10 text-amber-200"
-                                  : "border-emerald-400/50 bg-emerald-400/10 text-emerald-100"
-                              )}
-                            >
-                              {group.module.access_type === "premium" ? (
-                                <>
+                            {isPremium && (
+                              <>
+                                <div className="absolute right-16 top-0 bottom-0 w-8 bg-gradient-to-r from-transparent to-[#1e293b] pointer-events-none z-0" />
+                                <Badge
+                                  variant="outline"
+                                  className="absolute right-0 flex items-center gap-1.5 border-amber-400/60 bg-amber-400/15 backdrop-blur-sm text-amber-200 text-[10px] font-semibold uppercase tracking-wide shrink-0 whitespace-nowrap px-2 py-0.5 shadow-sm z-10"
+                                >
                                   <Lock className="h-3 w-3" />
                                   Premium
-                                </>
-                              ) : (
-                                "Gratuito"
-                              )}
-                            </Badge>
+                                </Badge>
+                              </>
+                            )}
                           </div>
                         </AccordionTrigger>
                         <AccordionContent className="pb-0 pt-0">
@@ -1053,13 +1051,14 @@ export function CoursePlayer({
                                       window.history.replaceState(null, "", `${url.pathname}?${url.searchParams.toString()}`)
                                     }
                                     setSidebarOpen(false)
+                                    scrollToVideo()
                                   }}
                                 className={cn(
-                                  "flex items-start gap-3 border-l-2 px-4 py-3 text-left transition-colors hover:bg-[#334155]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#06b6d4]",
+                                  "flex items-start gap-3 border-l-2 px-4 py-3 text-left transition-all duration-200 hover:bg-[#334155]/30 hover:border-[#06b6d4]/30 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#06b6d4] rounded-r-md",
                                   currentLessonId === lesson.id
-                                    ? "border-[#06b6d4] bg-[#334155]/50"
+                                    ? "border-[#06b6d4] bg-[#334155]/50 shadow-sm"
                                     : "border-transparent",
-                                  isLockedLesson && "bg-[#1f2937]/40 opacity-60"
+                                  isLockedLesson && "bg-[#1f2937]/40 opacity-60 cursor-not-allowed"
                                 )}
                               >
                                 <div className={cn(
@@ -1072,14 +1071,25 @@ export function CoursePlayer({
                                   )}>
                                     {lesson.completed ? <CheckCircle2 className="h-3 w-3" /> : lessonNumber}
                                   </div>
-                                  <div className="space-y-1">
-                                    <p className={cn(
-                                      "text-sm font-medium leading-tight",
-                                      currentLessonId === lesson.id ? "text-white" : "text-[#f1f5f9]",
-                                      isLockedLesson && currentLessonId !== lesson.id && "text-[#cbd5e1]"
-                                    )}>
-                                      {lesson.title}
-                                    </p>
+                                  <div className="flex-1 min-w-0 space-y-1">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                      <p className={cn(
+                                        "text-sm font-medium leading-tight truncate",
+                                        currentLessonId === lesson.id ? "text-white" : "text-[#f1f5f9]",
+                                        isLockedLesson && currentLessonId !== lesson.id && "text-[#cbd5e1]"
+                                      )}>
+                                        {lesson.title}
+                                      </p>
+                                      {lessonAccess.accessType === "premium" && (
+                                        <Badge
+                                          variant="outline"
+                                          className="flex items-center gap-1 border-amber-400/60 bg-amber-400/15 text-amber-200 text-[9px] font-semibold uppercase tracking-wide shrink-0 whitespace-nowrap px-1.5 py-0.5"
+                                        >
+                                          <Lock className="h-2.5 w-2.5" />
+                                          Premium
+                                        </Badge>
+                                      )}
+                                    </div>
                                     <div className={cn(
                                       "flex items-center gap-2 text-[10px] text-[#94a3b8]",
                                       isLockedLesson && "text-[#94a3b8]/80"

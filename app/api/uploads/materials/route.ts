@@ -41,7 +41,18 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Apenas administradores podem enviar arquivos." }, { status: 403 })
     }
 
-    const form = await request.formData()
+    let form
+    try {
+      form = await request.formData()
+    } catch (formError: any) {
+      console.error("[uploads/materials POST] erro ao fazer parse do FormData:", formError)
+      if (formError?.message?.includes("boundary") || formError?.message?.includes("10MB")) {
+        return NextResponse.json({ 
+          error: "Arquivo muito grande ou formato inválido. Certifique-se de que o arquivo não excede o limite permitido." 
+        }, { status: 413 })
+      }
+      return NextResponse.json({ error: "Erro ao processar o arquivo." }, { status: 400 })
+    }
     const file = form.get("file")
     const folder = form.get("folder")
     const parsed = UploadSchema.safeParse({ file, folder })

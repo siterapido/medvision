@@ -9,7 +9,7 @@ import { resolveUserRole } from "@/lib/auth/roles"
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -36,10 +36,11 @@ export async function GET(
       )
     }
 
+    const { id } = await params
     const { data: userData, error } = await supabase
       .from("profiles")
       .select("*")
-      .eq("id", params.id)
+      .eq("id", id)
       .single()
 
     if (error || !userData) {
@@ -65,7 +66,7 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -92,6 +93,7 @@ export async function PUT(
       )
     }
 
+    const { id } = await params
     const body = await request.json()
 
     // Preparar dados para atualização
@@ -116,7 +118,7 @@ export async function PUT(
     const { data: updatedUser, error } = await supabase
       .from("profiles")
       .update(updateData)
-      .eq("id", params.id)
+      .eq("id", id)
       .select()
       .single()
 
@@ -131,7 +133,7 @@ export async function PUT(
     // Se o email foi alterado, também atualizar no auth.users
     if (body.email && updatedUser) {
       const adminClient = createAdminClient()
-      await adminClient.auth.admin.updateUserById(params.id, {
+      await adminClient.auth.admin.updateUserById(id, {
         email: body.email,
       })
     }

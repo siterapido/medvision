@@ -225,12 +225,6 @@ export async function createLesson(
   formData: LessonFormData
 ): Promise<ActionResult<{ id: string }>> {
   try {
-    console.log("🚀 [createLesson] Iniciando criação de aula", {
-      courseId,
-      formDataKeys: Object.keys(formData),
-      timestamp: new Date().toISOString(),
-    })
-
     // Validação
     const parsed = lessonFormSchema.safeParse(formData)
     if (!parsed.success) {
@@ -244,16 +238,6 @@ export async function createLesson(
         )
       )
       const hasFieldErrors = Object.keys(fieldErrors).length > 0
-      
-      console.error("❌ [createLesson] Erro de validação:", {
-        fieldErrors: hasFieldErrors ? fieldErrors : undefined,
-        formErrors,
-        issues: parsed.error.issues.map(issue => ({
-          code: issue.code,
-          path: issue.path.join("."),
-          message: issue.message,
-        })),
-      })
 
       return {
         success: false,
@@ -261,12 +245,6 @@ export async function createLesson(
         ...(hasFieldErrors ? { fieldErrors } : {}),
       }
     }
-
-    console.log("✅ [createLesson] Validação passou", {
-      title: parsed.data.title,
-      module_title: parsed.data.module_title,
-      order_index: parsed.data.order_index,
-    })
 
     const supabase = await createClient()
 
@@ -339,12 +317,6 @@ export async function createLesson(
       lessonPayload.module_id = resolvedModule.id
     }
 
-    console.log("📝 [createLesson] Tentando inserir aula com payload:", {
-      courseId,
-      payload: lessonPayload,
-      timestamp: new Date().toISOString(),
-    })
-
     const { data, error } = await supabase
       .from("lessons")
       .insert(lessonPayload)
@@ -352,20 +324,6 @@ export async function createLesson(
       .single()
 
     if (error) {
-      const errorDetails = {
-        message: error.message,
-        code: error.code,
-        hint: error.hint,
-        details: error.details,
-      }
-
-      console.error("❌ [createLesson] Erro ao criar aula:", {
-        error: errorDetails,
-        payload: lessonPayload,
-        courseId,
-        timestamp: new Date().toISOString(),
-      })
-
       // Retornar erro mais específico baseado no tipo de erro
       let userError = "Erro ao criar aula. Tente novamente."
       if (error.message?.includes("null value in column")) {
