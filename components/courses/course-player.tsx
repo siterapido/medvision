@@ -1008,24 +1008,18 @@ export function CoursePlayer({
                     return (
                       <AccordionItem key={i} value={group.module.id || group.module.title} className="border-[#334155] rounded-lg overflow-hidden hover:bg-[#334155]/10 transition-colors">
                         <AccordionTrigger className="px-4 py-3.5 pr-6 text-left text-sm font-medium text-[#f1f5f9] hover:text-white hover:no-underline data-[state=open]:bg-[#334155]/30 data-[state=open]:text-white gap-3 transition-all duration-200">
-                          <div className="relative flex w-full items-center min-w-0 pr-20">
-                            <span className={cn(
-                              "truncate font-semibold pr-2",
-                              isPremium && "pr-16"
-                            )}>
+                          <div className="flex w-full items-center gap-2 min-w-0">
+                            <span className="truncate font-semibold">
                               {moduleNumber ? `Módulo ${moduleNumber} · ${group.module.title}` : group.module.title}
                             </span>
                             {isPremium && (
-                              <>
-                                <div className="absolute right-16 top-0 bottom-0 w-8 bg-gradient-to-r from-transparent to-[#1e293b] pointer-events-none z-0" />
-                                <Badge
-                                  variant="outline"
-                                  className="absolute right-0 flex items-center gap-1.5 border-amber-400/60 bg-amber-400/15 backdrop-blur-sm text-amber-200 text-[10px] font-semibold uppercase tracking-wide shrink-0 whitespace-nowrap px-2 py-0.5 shadow-sm z-10"
-                                >
-                                  <Lock className="h-3 w-3" />
-                                  Premium
-                                </Badge>
-                              </>
+                              <Badge
+                                variant="outline"
+                                className="flex items-center gap-1.5 border-amber-400/60 bg-amber-400/15 backdrop-blur-sm text-amber-200 text-[10px] font-semibold uppercase tracking-wide shrink-0 whitespace-nowrap px-2 py-0.5 shadow-sm"
+                              >
+                                <Lock className="h-3 w-3" />
+                                Premium
+                              </Badge>
                             )}
                           </div>
                         </AccordionTrigger>

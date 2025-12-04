@@ -46,8 +46,9 @@ export default function RootLayout({
       <body className={`${inter.className} font-sans antialiased app-shell`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
-          enableSystem
+          defaultTheme="dark"
+          enableSystem={false}
+          forcedTheme="dark"
           disableTransitionOnChange
         >
           <EnvWarning />

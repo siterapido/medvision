@@ -70,7 +70,7 @@ export function LandingFooter() {
             <ul className="space-y-2 text-sm text-slate-400">
               <li>
                 <a
-                  href="https://wa.me/5511999999999"
+                  href="https://wa.me/5584986260850"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-primary transition-colors flex items-center gap-2"

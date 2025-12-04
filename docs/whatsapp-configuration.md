@@ -19,7 +19,7 @@ app/dashboard/whatsapp/page.tsx
 Localize a linha que define o número:
 
 ```typescript
-const whatsappNumber = "5511999999999"
+const whatsappNumber = "5584986260850"
 ```
 
 ### Formato do Número

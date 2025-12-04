@@ -7,7 +7,7 @@ export default function WhatsAppPage() {
   useEffect(() => {
     // Redireciona para o WhatsApp da Odonto GPT
     // Substitua o número abaixo pelo número real do WhatsApp da Odonto GPT
-    const whatsappNumber = "5511999999999" // Formato: código do país + DDD + número sem espaços ou caracteres especiais
+    const whatsappNumber = "5584986260850" // Formato: código do país + DDD + número sem espaços ou caracteres especiais
     const message = encodeURIComponent("Olá! Vim pelo dashboard da Odonto GPT.")
     const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${message}`
     
