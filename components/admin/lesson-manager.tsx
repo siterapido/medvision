@@ -1,9 +1,30 @@
 "use client"
 
-import { useEffect, useState, useTransition } from "react"
+import { useEffect, useState, useTransition, type ReactNode } from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { ArrowDown, ArrowUp, ArrowUpRight, Edit, FileText, GripVertical, Loader2, Lock, Plus, Trash2, Video } from "lucide-react"
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+  useDroppable,
+  type DragEndEvent,
+  type DragStartEvent,
+  type UniqueIdentifier,
+} from "@dnd-kit/core"
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
 import { Button } from "@/components/ui/button"
 import {
   AlertDialog,
@@ -23,6 +44,7 @@ import {
   deleteLessonAction,
   deleteModuleAction,
   reorderModulesAction,
+  moveLessonBetweenModulesAction,
 } from "@/app/actions/lesson-actions"
 import type { LessonMaterialData } from "@/lib/validations/lesson"
 
@@ -55,6 +77,147 @@ interface LessonManagerProps {
   modulesEnabled?: boolean
 }
 
+// Componente para aula arrastável
+function SortableLesson({
+  lesson,
+  index,
+  courseDashboardHref,
+  onEdit,
+  onDelete,
+}: {
+  lesson: LessonData
+  index: number
+  courseDashboardHref: string
+  onEdit: () => void
+  onDelete: () => void
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: lesson.id })
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  }
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-3 p-4 rounded-lg bg-[#0F192F] border border-slate-700/50 hover:border-slate-600 transition-colors group"
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-move text-slate-600 group-hover:text-slate-500 touch-none"
+      >
+        <GripVertical className="h-5 w-5" />
+      </div>
+      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-xs font-semibold text-cyan-400">
+        {index + 1}
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2">
+          <h4 className="text-white font-medium truncate">{lesson.title}</h4>
+          {lesson.video_url && (
+            <Video className="h-4 w-4 text-cyan-400 flex-shrink-0" />
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-slate-500">
+          {lesson.duration_minutes && (
+            <>
+              <span>
+                {Math.floor(lesson.duration_minutes / 60) > 0
+                  ? `${Math.floor(lesson.duration_minutes / 60)}h${
+                      lesson.duration_minutes % 60 > 0
+                        ? ` ${lesson.duration_minutes % 60}min`
+                        : ""
+                    }`
+                  : `${lesson.duration_minutes}min`}
+              </span>
+              <span>•</span>
+            </>
+          )}
+          {lesson.materials && lesson.materials.length > 0 && (
+            <>
+              <span>{lesson.materials.length} materiais</span>
+              <span>•</span>
+            </>
+          )}
+          <span>Ordem: {lesson.order_index}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-2">
+        <Button
+          size="sm"
+          variant="outline"
+          asChild
+          className="border-cyan-500/40 text-cyan-100 hover:bg-cyan-500/10"
+        >
+          <Link href={`${courseDashboardHref}?lesson=${encodeURIComponent(lesson.id)}`}>
+            <ArrowUpRight className="h-4 w-4 mr-1" />
+            Ver no curso
+          </Link>
+        </Button>
+        <div className="flex items-center gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onEdit}
+            className="text-slate-400 hover:text-white hover:bg-slate-700"
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onDelete}
+            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// Componente para área de drop do módulo
+function DroppableModule({
+  moduleId,
+  children,
+  isEmpty,
+}: {
+  moduleId: string | null
+  children: ReactNode
+  isEmpty: boolean
+}) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: `module-${moduleId ?? "null"}`,
+  })
+
+  return (
+    <div
+      ref={setNodeRef}
+      className={`space-y-2 min-h-[60px] p-2 rounded-lg border-2 border-dashed transition-colors ${
+        isOver
+          ? "border-cyan-500/50 bg-cyan-500/5"
+          : isEmpty
+            ? "border-slate-700/30 hover:border-slate-700/50"
+            : "border-transparent hover:border-slate-700/30"
+      }`}
+    >
+      {children}
+    </div>
+  )
+}
+
 export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }: LessonManagerProps) {
   const isModulesEnabled = modulesEnabled ?? true
   const modulesDisabledTitle =
@@ -75,6 +238,28 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
   )
   const [reorderingModuleId, setReorderingModuleId] = useState<string | null>(null)
   const [isReorderingModules, startReorderModules] = useTransition()
+  
+  // Estados para drag-and-drop
+  const [localModules, setLocalModules] = useState<ModuleWithLessons[]>(modules)
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
+  const [isMovingLesson, setIsMovingLesson] = useState(false)
+
+  // Sensores para drag-and-drop
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  )
+
+  // Atualizar módulos locais quando props mudarem
+  useEffect(() => {
+    setLocalModules(modules)
+  }, [modules])
 
   useEffect(() => {
     setActiveModuleId(modules[0]?.id ?? null)
@@ -182,8 +367,186 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
     })
   }
 
+  // Handler para início do drag
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(event.active.id)
+  }
+
+  // Handler para fim do drag
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event
+    setActiveId(null)
+
+    if (!over || !isModulesEnabled) return
+
+    const activeId = active.id as string
+    const overId = over.id as string
+
+    // Encontrar a aula sendo arrastada e o módulo de destino
+    let sourceModuleIndex = -1
+    let sourceLessonIndex = -1
+    let targetModuleIndex = -1
+    let targetModuleId: string | null = null
+
+    // Procurar a aula no módulo de origem
+    for (let i = 0; i < localModules.length; i++) {
+      const lessonIndex = localModules[i].lessons.findIndex((l) => l.id === activeId)
+      if (lessonIndex !== -1) {
+        sourceModuleIndex = i
+        sourceLessonIndex = lessonIndex
+        break
+      }
+    }
+
+    if (sourceModuleIndex === -1) return
+
+    // Verificar se está sendo arrastado para outro módulo ou dentro do mesmo módulo
+    if (overId.startsWith("module-")) {
+      // Arrastando para um módulo
+      targetModuleId = overId.replace("module-", "")
+      if (targetModuleId === "null") targetModuleId = null
+
+      // Encontrar o índice do módulo de destino
+      targetModuleIndex = localModules.findIndex(
+        (m) => (m.id ?? "null") === (targetModuleId ?? "null")
+      )
+
+      if (targetModuleIndex === -1) return
+
+      // Se for o mesmo módulo, apenas reordenar
+      if (sourceModuleIndex === targetModuleIndex) {
+        const module = localModules[sourceModuleIndex]
+        const newLessons = arrayMove(module.lessons, sourceLessonIndex, module.lessons.length)
+
+        const updatedModules = [...localModules]
+        updatedModules[sourceModuleIndex] = {
+          ...module,
+          lessons: newLessons.map((lesson, index) => ({
+            ...lesson,
+            order_index: index,
+          })),
+        }
+        setLocalModules(updatedModules)
+
+        // Atualizar ordem no backend
+        setIsMovingLesson(true)
+        const result = await moveLessonBetweenModulesAction({
+          lesson_id: activeId,
+          course_id: courseId,
+          target_module_id: targetModuleId,
+          new_order_index: newLessons.length - 1,
+        })
+
+        if (result.success) {
+          router.refresh()
+        } else {
+          alert(result.error || "Erro ao mover aula")
+          setLocalModules(modules) // Reverter
+        }
+        setIsMovingLesson(false)
+        return
+      }
+
+      // Mover para outro módulo
+      const sourceModule = localModules[sourceModuleIndex]
+      const targetModule = localModules[targetModuleIndex]
+      const lesson = sourceModule.lessons[sourceLessonIndex]
+
+      // Remover da origem e adicionar ao destino
+      const updatedModules = [...localModules]
+      updatedModules[sourceModuleIndex] = {
+        ...sourceModule,
+        lessons: sourceModule.lessons.filter((l) => l.id !== activeId),
+      }
+      updatedModules[targetModuleIndex] = {
+        ...targetModule,
+        lessons: [
+          ...targetModule.lessons,
+          {
+            ...lesson,
+            order_index: targetModule.lessons.length,
+          },
+        ],
+      }
+      setLocalModules(updatedModules)
+
+      // Atualizar no backend
+      setIsMovingLesson(true)
+      const result = await moveLessonBetweenModulesAction({
+        lesson_id: activeId,
+        course_id: courseId,
+        target_module_id: targetModuleId,
+        new_order_index: targetModule.lessons.length,
+      })
+
+      if (result.success) {
+        router.refresh()
+      } else {
+        alert(result.error || "Erro ao mover aula")
+        setLocalModules(modules) // Reverter
+      }
+      setIsMovingLesson(false)
+    } else {
+      // Arrastando sobre outra aula (reordenação dentro do mesmo módulo)
+      const targetLessonId = overId
+      const targetModuleIndex = localModules.findIndex((m) =>
+        m.lessons.some((l) => l.id === targetLessonId)
+      )
+
+      if (targetModuleIndex === -1 || targetModuleIndex !== sourceModuleIndex) return
+
+      const module = localModules[sourceModuleIndex]
+      const targetLessonIndex = module.lessons.findIndex((l) => l.id === targetLessonId)
+
+      if (targetLessonIndex === -1) return
+
+      const newLessons = arrayMove(module.lessons, sourceLessonIndex, targetLessonIndex)
+
+      const updatedModules = [...localModules]
+      updatedModules[sourceModuleIndex] = {
+        ...module,
+        lessons: newLessons.map((lesson, index) => ({
+          ...lesson,
+          order_index: index,
+        })),
+      }
+      setLocalModules(updatedModules)
+
+      // Atualizar ordem no backend
+      setIsMovingLesson(true)
+      const result = await moveLessonBetweenModulesAction({
+        lesson_id: activeId,
+        course_id: courseId,
+        target_module_id: module.id,
+        new_order_index: targetLessonIndex,
+      })
+
+      if (result.success) {
+        router.refresh()
+      } else {
+        alert(result.error || "Erro ao reordenar aula")
+        setLocalModules(modules) // Reverter
+      }
+      setIsMovingLesson(false)
+    }
+  }
+
+  // Coletar todos os IDs de aulas para o SortableContext
+  const allLessonIds = localModules.flatMap((module) => module.lessons.map((lesson) => lesson.id))
+  const activeLesson = activeId
+    ? localModules
+        .flatMap((module) => module.lessons)
+        .find((lesson) => lesson.id === activeId)
+    : null
+
   return (
-    <div className="space-y-6">
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCenter}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div className="space-y-6">
       <Card className="bg-[#131D37] border-slate-700">
         <CardHeader>
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -268,8 +631,9 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
-          {modules.map((module) => {
+        <SortableContext items={allLessonIds} strategy={verticalListSortingStrategy}>
+          <div className="space-y-6">
+            {localModules.map((module) => {
             const moduleOrderIndex = module.id ? moduleOrderMap.get(module.id) ?? 0 : 0
             const isFirstModule = module.id ? moduleOrderIndex === 0 : true
             const isLastModule = module.id ? moduleOrderIndex === reorderableModules.length - 1 : true
@@ -380,100 +744,65 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
                 </CardHeader>
               <CardContent>
                 {module.lessons.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center gap-3 border border-dashed border-slate-700 rounded-2xl bg-slate-900/40 p-8 text-center">
-                    <p className="text-slate-400">Este módulo ainda não tem aulas.</p>
-                    <Button
-                      variant="outline"
-                      onClick={() => openLessonDialog(module.id)}
-                      className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Criar primeira aula
-                    </Button>
-                  </div>
+                  <DroppableModule moduleId={module.id} isEmpty={true}>
+                    <div className="flex flex-col items-center justify-center gap-3 border border-dashed border-slate-700 rounded-2xl bg-slate-900/40 p-8 text-center min-h-[120px]">
+                      <p className="text-slate-400">Este módulo ainda não tem aulas.</p>
+                      <Button
+                        variant="outline"
+                        onClick={() => openLessonDialog(module.id)}
+                        className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Criar primeira aula
+                      </Button>
+                      <p className="text-xs text-slate-500 mt-2">
+                        Arraste aulas aqui para adicionar ao módulo
+                      </p>
+                    </div>
+                  </DroppableModule>
                 ) : (
-                  <div className="space-y-2">
-                    {module.lessons
-                      .slice()
-                      .sort((a, b) => a.order_index - b.order_index)
-                      .map((lesson, index) => (
-                        <div
-                          key={lesson.id}
-                          className="flex items-center gap-3 p-4 rounded-lg bg-[#0F192F] border border-slate-700/50 hover:border-slate-600 transition-colors group"
-                        >
-                          <div className="cursor-move text-slate-600 group-hover:text-slate-500">
-                            <GripVertical className="h-5 w-5" />
-                          </div>
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-xs font-semibold text-cyan-400">
-                            {index + 1}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <h4 className="text-white font-medium truncate">{lesson.title}</h4>
-                              {lesson.video_url && (
-                                <Video className="h-4 w-4 text-cyan-400 flex-shrink-0" />
-                              )}
-                            </div>
-                            <div className="flex flex-wrap items-center gap-3 mt-1 text-xs text-slate-500">
-                              {lesson.duration_minutes && (
-                                <>
-                                  <span>{Math.floor(lesson.duration_minutes / 60) > 0 ? `${Math.floor(lesson.duration_minutes / 60)}h${lesson.duration_minutes % 60 > 0 ? ` ${lesson.duration_minutes % 60}min` : ""}` : `${lesson.duration_minutes}min`}</span>
-                                  <span>•</span>
-                                </>
-                              )}
-                              {lesson.materials && lesson.materials.length > 0 && (
-                                <>
-                                  <span>{lesson.materials.length} materiais</span>
-                                  <span>•</span>
-                                </>
-                              )}
-                              <span>Ordem: {lesson.order_index}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              asChild
-                              className="border-cyan-500/40 text-cyan-100 hover:bg-cyan-500/10"
-                            >
-                              <Link href={`${courseDashboardHref}?lesson=${encodeURIComponent(lesson.id)}`}>
-                                <ArrowUpRight className="h-4 w-4 mr-1" />
-                                Ver no curso
-                              </Link>
-                            </Button>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => {
-                                  setEditingLesson(lesson)
-                                  setIsLessonDialogOpen(true)
-                                }}
-                                className="text-slate-400 hover:text-white hover:bg-slate-700"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={() => setDeletingLessonId(lesson.id)}
-                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
+                  <DroppableModule moduleId={module.id} isEmpty={false}>
+                    <SortableContext items={module.lessons.map((l) => l.id)} strategy={verticalListSortingStrategy}>
+                      {module.lessons
+                        .slice()
+                        .sort((a, b) => a.order_index - b.order_index)
+                        .map((lesson, index) => (
+                          <SortableLesson
+                            key={lesson.id}
+                            lesson={lesson}
+                            index={index}
+                            courseDashboardHref={courseDashboardHref}
+                            onEdit={() => {
+                              setEditingLesson(lesson)
+                              setIsLessonDialogOpen(true)
+                            }}
+                            onDelete={() => setDeletingLessonId(lesson.id)}
+                          />
+                        ))}
+                    </SortableContext>
+                  </DroppableModule>
                 )}
               </CardContent>
             </Card>
             )
           })}
-        </div>
+          </div>
+        </SortableContext>
       )}
+
+      <DragOverlay>
+        {activeLesson ? (
+          <div className="flex items-center gap-3 p-4 rounded-lg bg-[#0F192F] border border-cyan-500/50 shadow-lg opacity-90">
+            <GripVertical className="h-5 w-5 text-slate-400" />
+            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-xs font-semibold text-cyan-400">
+              #
+            </div>
+            <div className="flex-1 min-w-0">
+              <h4 className="text-white font-medium truncate">{activeLesson.title}</h4>
+            </div>
+          </div>
+        ) : null}
+      </DragOverlay>
 
       <LessonFormDialog
         key={lessonDialogKey}
@@ -600,6 +929,7 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </DndContext>
   )
 }

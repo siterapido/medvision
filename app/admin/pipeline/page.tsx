@@ -2,14 +2,17 @@ import { Suspense } from "react"
 import { Loader2 } from "lucide-react"
 
 import { PipelineKanbanBoard } from "@/components/admin/pipeline/pipeline-kanban-board"
+import { ColdLeadsKanbanBoard } from "@/components/admin/pipeline/cold-leads-kanban-board"
+import { PipelineTabs } from "@/components/admin/pipeline/pipeline-tabs"
 import { createClient } from "@/lib/supabase/server"
+import { getColdLeads } from "@/app/actions/leads"
 
 export const metadata = {
   title: "Pipeline de Conversão | Admin",
   description: "Acompanhe leads, organize follow-ups e acompanhe conversões",
 }
 
-async function PipelineContent() {
+async function TrialPipelineContent() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -50,12 +53,27 @@ async function PipelineContent() {
   return <PipelineKanbanBoard leads={leads || []} />
 }
 
+async function ColdLeadsContent() {
+  const result = await getColdLeads()
+
+  if (!result.success) {
+    return (
+      <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-6 text-red-100">
+        <p className="font-semibold">Não foi possível carregar os leads frios.</p>
+        <p className="text-sm text-red-200/80">{result.message}</p>
+      </div>
+    )
+  }
+
+  return <ColdLeadsKanbanBoard leads={result.data} />
+}
+
 function LoadingState() {
   return (
     <div className="flex items-center justify-center min-h-[200px]">
       <div className="text-center space-y-3">
         <Loader2 className="h-6 w-6 animate-spin text-cyan-500 mx-auto" />
-        <p className="text-slate-400 text-sm">Carregando pipeline de conversão...</p>
+        <p className="text-slate-400 text-sm">Carregando pipeline...</p>
       </div>
     </div>
   )
@@ -63,19 +81,19 @@ function LoadingState() {
 
 export default function AdminPipelinePage() {
   return (
-    <div className="w-full space-y-8 p-6">
-      <div className="space-y-2">
-        <h1 className="text-3xl font-bold text-white">Pipeline de Conversão</h1>
-        <p className="text-slate-400">
-          Acompanhe leads no funil de conversão, organize follow-ups e visualize o progresso das vendas.
-        </p>
-      </div>
-
-      <Suspense fallback={<LoadingState />}>
-        <PipelineContent />
-      </Suspense>
+    <div className="w-full h-full flex flex-col">
+      <PipelineTabs
+        coldLeadsTab={
+          <Suspense fallback={<LoadingState />}>
+            <ColdLeadsContent />
+          </Suspense>
+        }
+        trialPipelineTab={
+          <Suspense fallback={<LoadingState />}>
+            <TrialPipelineContent />
+          </Suspense>
+        }
+      />
     </div>
   )
 }
-
-

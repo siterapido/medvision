@@ -27,7 +27,7 @@ const LazyVideoWrapper = dynamic(() => import("@/components/video/lazy-video-wra
   ssr: false
 })
 
-const videoEmbedHtml = `<div style="position:relative;padding-top:56.25%;"><iframe src="https://player.mediadelivery.net/embed/549378/cda93e32-c7b9-4c81-a3b1-7658dc56f077?autoplay=true&loop=false&muted=false&preload=true&responsive=true" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe></div>`
+const videoEmbedHtml = `<div style="position:relative;padding-top:56.25%;"><iframe src="https://player.mediadelivery.net/embed/553851/447c874d-b867-4c2f-85b1-15819f2b4789?autoplay=true&loop=false&muted=false&preload=true&responsive=true" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe></div>`
 
 export default function LandingPage() {
   const showTestimonials = false // Temporariamente escondemos a seção até ser reativada

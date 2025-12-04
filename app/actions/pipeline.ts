@@ -5,13 +5,12 @@ import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 
 type PipelineStage =
-  | "novo_lead"
-  | "trial_ativo"
-  | "urgente"
-  | "contato_realizado"
-  | "proposta_enviada"
+  | "novo_usuario"
+  | "situacao"
+  | "problema"
+  | "implicacao"
+  | "motivacao"
   | "convertido"
-  | "perdido"
 
 export async function updatePipelineStage(userId: string, stage: PipelineStage | null) {
   const supabase = await createClient()
@@ -33,7 +32,7 @@ export async function updatePipelineStage(userId: string, stage: PipelineStage |
   }
 
   // Validar stage
-  if (stage && !["novo_lead", "trial_ativo", "urgente", "contato_realizado", "proposta_enviada", "convertido", "perdido"].includes(stage)) {
+  if (stage && !["novo_usuario", "situacao", "problema", "implicacao", "motivacao", "convertido"].includes(stage)) {
     return { success: false, message: "Etapa inválida" }
   }
 

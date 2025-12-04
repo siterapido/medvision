@@ -33,6 +33,10 @@ Públicas (Available in: All/Production/Preview):
 Somente servidor (Environment: Production/Preview, Type: Encrypted):
 - `APP_URL` (ex.: `https://seu-dominio.com`)
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `BUNNY_STORAGE_ZONE` - Nome da Storage Zone do Bunny.net
+- `BUNNY_STORAGE_API_KEY` - Access Key da Storage Zone
+- `BUNNY_CDN_BASE_URL` - URL do Pull Zone (ex.: `https://seu-pull-zone.b-cdn.net`)
+- (Opcional) `BUNNY_STORAGE_HOST` - Host da Storage Zone (padrão: `storage.bunnycdn.com`)
 - (Opcional) `N8N_WEBHOOK_URL` (sem espaços no valor)
 
 Dica (CLI):
@@ -87,12 +91,30 @@ Observação: o build usa `next/font` para hospedar a fonte Inter. Em ambientes 
 - Aviso Next 16: `middleware` está deprecado em favor de `proxy`. O projeto ainda funciona, mas migrar depois reduz warnings de build.
 - Se desejar evitar download de fontes no build, migre para `next/font/local` com arquivos de fonte versionados no repo.
 
-## 9) Troubleshooting
+## 9) Configuração do Bunny CDN
+
+Para configurar o Bunny CDN (Storage Zone e Pull Zone), consulte o guia completo:
+
+- **docs/bunny-cdn-setup.md** - Instruções detalhadas de configuração
+
+### Teste rápido da configuração
+
+Após configurar as variáveis de ambiente, teste a configuração:
+
+```bash
+npm run test:bunny
+```
+
+## 10) Troubleshooting
 
 - Build falhou por `next/font`/Google Fonts:
   - Confirme que o build da Vercel tem acesso à rede (normalmente sim)
   - Alternativa: usar `next/font/local`
 - 401/403 no Supabase:
   - Revise `NEXT_PUBLIC_SUPABASE_URL`/`ANON_KEY` e policies RLS
+- Erro ao fazer upload no Bunny:
+  - Verifique `BUNNY_STORAGE_ZONE`, `BUNNY_STORAGE_API_KEY` e `BUNNY_CDN_BASE_URL`
+  - Execute `npm run test:bunny` para diagnosticar problemas
+  - Consulte `docs/bunny-cdn-setup.md` para troubleshooting detalhado
 - Webhook inválido:
   - Revise `N8N_WEBHOOK_URL` e verifique se o payload está no formato esperado pelo N8N

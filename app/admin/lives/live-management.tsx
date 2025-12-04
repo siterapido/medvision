@@ -33,6 +33,7 @@ interface Live {
   description: string | null
   instructor_name: string | null
   thumbnail_url: string | null
+  live_url: string | null
   status: "scheduled" | "live" | "completed"
   start_at: string
   duration_minutes: number | null

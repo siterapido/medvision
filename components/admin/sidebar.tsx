@@ -16,6 +16,7 @@ import {
   MessageSquare,
   Sparkles,
   Users,
+  Workflow,
   type LucideIcon,
 } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
@@ -46,6 +47,7 @@ const navigation: NavItem[] = [
   { name: "Materiais", href: "/admin/materiais", icon: FileText },
   { name: "Cadastrar Lives", href: "/admin/lives", icon: Calendar },
   { name: "Notificações", href: "/admin/notifications", icon: MessageSquare },
+  { name: "Pipeline", href: "/admin/pipeline", icon: Workflow },
   { name: "Trials", href: "/admin/trials", icon: Sparkles },
   { name: "Usuários", href: "/admin/usuarios", icon: Users },
 ]

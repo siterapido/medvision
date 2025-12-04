@@ -5,6 +5,7 @@ export interface LiveEvent {
   title: string
   description: string | null
   thumbnail: string | null
+  liveUrl: string | null
   startAt: string
   durationMinutes: number
   instructorName: string | null

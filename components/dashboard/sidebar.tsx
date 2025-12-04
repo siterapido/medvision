@@ -11,6 +11,7 @@ import {
   Sparkles,
   UserRound,
   X,
+  FileText,
   type LucideIcon,
 } from "lucide-react"
 
@@ -23,6 +24,7 @@ type NavItem = {
 export const dashboardNavigation: NavItem[] = [
   { name: "Odonto GPT", href: "/dashboard/chat", icon: BotIcon },
   { name: "Cursos", href: "/dashboard/cursos", icon: GraduationCap },
+  { name: "Resumos", href: "/dashboard/resumos", icon: FileText },
   { name: "Materiais", href: "/dashboard/materiais", icon: BookOpen },
   { name: "Perfil", href: "/dashboard/perfil", icon: UserRound },
   { name: "Assinatura", href: "/dashboard/assinatura", icon: Sparkles },

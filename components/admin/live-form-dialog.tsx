@@ -46,6 +46,7 @@ export function LiveFormDialog({ open, onOpenChange, mode, initialData }: LiveFo
     description: initialData?.description || "",
     instructor_name: initialData?.instructor_name || "",
     thumbnail_url: initialData?.thumbnail_url || "",
+    live_url: initialData?.live_url || "",
     start_at: toDatetimeLocal(initialData?.start_at as string) || "",
     duration_minutes: initialData?.duration_minutes ?? 60,
     status: (initialData?.status as any) || "scheduled",
@@ -162,6 +163,20 @@ export function LiveFormDialog({ open, onOpenChange, mode, initialData }: LiveFo
             <Label htmlFor="description" className="text-white">Descrição</Label>
             <Textarea id="description" value={formData.description || ""} onChange={(e) => handleInputChange("description", e.target.value)} placeholder="Descreva o conteúdo e objetivos da live..." rows={4} className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500 resize-none" />
             {errors.description && <p className="text-sm text-red-400">{errors.description}</p>}
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="live_url" className="text-white">Link da Live</Label>
+            <Input
+              id="live_url"
+              type="url"
+              value={formData.live_url || ""}
+              onChange={(e) => handleInputChange("live_url", e.target.value)}
+              placeholder="https://youtube.com/live/... ou https://zoom.us/j/..."
+              className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500"
+            />
+            <p className="text-xs text-slate-400">URL da plataforma onde a live será transmitida (YouTube, Zoom, etc.)</p>
+            {errors.live_url && <p className="text-sm text-red-400">{errors.live_url}</p>}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

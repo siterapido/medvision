@@ -643,9 +643,29 @@ export async function deleteUser(userId: string): Promise<ActionResult> {
       }
     }
 
-    // Deletar o usuário do auth.users primeiro
-    // Isso vai automaticamente deletar o perfil e todas as dependências devido ao ON DELETE CASCADE
     const adminClient = createAdminClient()
+
+    // IMPORTANTE: A foreign key profiles_id_fkey não tem ON DELETE CASCADE
+    // Precisamos deletar o perfil primeiro para evitar problemas de constraint
+    // Depois deletamos o usuário do auth.users (que remove sessões, tokens, etc.)
+    
+    // 1. Deletar o perfil primeiro (isso remove dependências em outras tabelas via CASCADE)
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .delete()
+      .eq("id", userId)
+
+    if (profileError) {
+      console.error("Erro ao excluir perfil", {
+        profileError,
+        userId,
+        message: profileError.message,
+      })
+      // Continua tentando deletar o usuário mesmo se o perfil falhar
+    }
+
+    // 2. Deletar o usuário do auth.users
+    // Isso remove sessões, tokens, identidades, etc. automaticamente via CASCADE
     const { error: authError } = await adminClient.auth.admin.deleteUser(userId)
 
     if (authError) {
@@ -659,9 +679,6 @@ export async function deleteUser(userId: string): Promise<ActionResult> {
         error: authError.message || "Não foi possível remover o usuário. Verifique dependências antes de tentar novamente.",
       }
     }
-
-    // O perfil e todas as dependências são deletados automaticamente via CASCADE
-    // Não precisamos deletar manualmente o perfil
 
     revalidatePath(`/admin/usuarios/${userId}`)
     revalidatePath("/admin/usuarios")
@@ -679,6 +696,160 @@ export async function deleteUser(userId: string): Promise<ActionResult> {
     return {
       success: false,
       error: "Erro inesperado ao excluir usuário",
+    }
+  }
+}
+
+const bulkDeleteUsersSchema = z.object({
+  userIds: z.array(z.string().uuid()).min(1, "Selecione ao menos um usuário"),
+})
+
+/**
+ * Exclui múltiplos usuários em lote
+ * 
+ * IMPORTANTE: A ordem de exclusão é crítica:
+ * 1. Deletar os usuários do auth.users primeiro
+ * 2. Isso automaticamente deleta os perfis devido ao ON DELETE CASCADE
+ * 3. Isso também deleta todas as outras dependências (course_purchases, payment_history, etc)
+ */
+export async function bulkDeleteUsers(
+  actionData: z.infer<typeof bulkDeleteUsersSchema>
+): Promise<ActionResult<{ affected: number; failed: number }>> {
+  try {
+    const adminCheck = await ensureAdminAccess()
+    if ("error" in adminCheck) {
+      return {
+        success: false,
+        error: adminCheck.error,
+      }
+    }
+
+    // Validação
+    const parsed = bulkDeleteUsersSchema.safeParse(actionData)
+    if (!parsed.success) {
+      const fieldErrors = parsed.error.flatten().fieldErrors
+      return {
+        success: false,
+        error: "Dados inválidos",
+        fieldErrors,
+      }
+    }
+
+    const { userIds } = parsed.data
+    const adminClient = createAdminClient()
+    const supabase = adminCheck.supabase
+
+    // Verificar se algum dos usuários selecionados é o próprio admin
+    if (userIds.includes(adminCheck.user.id)) {
+      return {
+        success: false,
+        error: "Você não pode excluir a si mesmo.",
+      }
+    }
+
+    // Verificar se os usuários existem antes de tentar deletar
+    const { data: userProfiles, error: checkError } = await supabase
+      .from("profiles")
+      .select("id, email, role")
+      .in("id", userIds)
+
+    if (checkError) {
+      console.error("Erro ao verificar usuários", { checkError })
+      return {
+        success: false,
+        error: "Erro ao verificar usuários. Tente novamente.",
+      }
+    }
+
+    if (!userProfiles || userProfiles.length === 0) {
+      return {
+        success: false,
+        error: "Nenhum usuário encontrado para excluir.",
+      }
+    }
+
+    // IMPORTANTE: A foreign key profiles_id_fkey não tem ON DELETE CASCADE
+    // Precisamos deletar o perfil primeiro, depois o usuário do auth
+    // Isso garante que todas as dependências sejam removidas corretamente
+    let successCount = 0
+    let failedCount = 0
+    const errors: string[] = []
+
+    for (const userId of userIds) {
+      try {
+        // 1. Deletar o perfil primeiro (isso remove dependências em outras tabelas)
+        const { error: profileError } = await supabase
+          .from("profiles")
+          .delete()
+          .eq("id", userId)
+
+        if (profileError) {
+          console.error("Erro ao excluir perfil", {
+            profileError,
+            userId,
+            message: profileError.message,
+          })
+          // Continua tentando deletar o usuário mesmo se o perfil falhar
+        }
+
+        // 2. Deletar o usuário do auth.users
+        // Isso remove sessões, tokens, identidades, etc. automaticamente via CASCADE
+        const { error: authError } = await adminClient.auth.admin.deleteUser(userId)
+
+        if (authError) {
+          console.error("Erro ao excluir usuário de auth", {
+            authError,
+            userId,
+            message: authError.message,
+          })
+          failedCount++
+          errors.push(`Erro ao excluir ${userId}: ${authError.message}`)
+        } else {
+          successCount++
+        }
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err)
+        console.error("Erro inesperado ao excluir usuário", {
+          err,
+          userId,
+          message: errorMessage,
+        })
+        failedCount++
+        errors.push(`Erro ao excluir ${userId}: ${errorMessage}`)
+      }
+    }
+
+    revalidatePath("/admin/usuarios")
+
+    if (failedCount > 0 && successCount === 0) {
+      return {
+        success: false,
+        error: `Falha ao excluir todos os usuários. ${errors[0]}`,
+      }
+    }
+
+    if (failedCount > 0) {
+      return {
+        success: true,
+        data: { affected: successCount, failed: failedCount },
+        error: `${successCount} usuário(s) excluído(s) com sucesso. ${failedCount} falha(ram).`,
+      }
+    }
+
+    return {
+      success: true,
+      data: { affected: successCount, failed: failedCount },
+    }
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err)
+    console.error("Erro inesperado ao excluir usuários em lote", {
+      err,
+      message: errorMessage,
+      stack: err instanceof Error ? err.stack : undefined,
+    })
+    return {
+      success: false,
+      error: "Erro inesperado ao excluir usuários em lote",
     }
   }
 }

@@ -8,10 +8,12 @@ import {
   lessonUpdateSchema,
   bulkLessonsSchema,
   reorderLessonsSchema,
+  moveLessonSchema,
   type LessonFormData,
   type LessonUpdateData,
   type BulkLessonsData,
   type ReorderLessonsData,
+  type MoveLessonData,
 } from "@/lib/validations/lesson"
 import {
   moduleFormSchema,
@@ -223,15 +225,48 @@ export async function createLesson(
   formData: LessonFormData
 ): Promise<ActionResult<{ id: string }>> {
   try {
+    console.log("🚀 [createLesson] Iniciando criação de aula", {
+      courseId,
+      formDataKeys: Object.keys(formData),
+      timestamp: new Date().toISOString(),
+    })
+
     // Validação
     const parsed = lessonFormSchema.safeParse(formData)
     if (!parsed.success) {
+      const {
+        fieldErrors: rawFieldErrors,
+        formErrors,
+      } = parsed.error.flatten()
+      const fieldErrors = Object.fromEntries(
+        Object.entries(rawFieldErrors).filter(
+          ([, messages]) => messages && messages.length > 0
+        )
+      )
+      const hasFieldErrors = Object.keys(fieldErrors).length > 0
+      
+      console.error("❌ [createLesson] Erro de validação:", {
+        fieldErrors: hasFieldErrors ? fieldErrors : undefined,
+        formErrors,
+        issues: parsed.error.issues.map(issue => ({
+          code: issue.code,
+          path: issue.path.join("."),
+          message: issue.message,
+        })),
+      })
+
       return {
         success: false,
-        error: "Dados inválidos",
-        fieldErrors: parsed.error.flatten().fieldErrors,
+        error: formErrors?.[0] || "Dados inválidos",
+        ...(hasFieldErrors ? { fieldErrors } : {}),
       }
     }
+
+    console.log("✅ [createLesson] Validação passou", {
+      title: parsed.data.title,
+      module_title: parsed.data.module_title,
+      order_index: parsed.data.order_index,
+    })
 
     const supabase = await createClient()
 
@@ -268,21 +303,47 @@ export async function createLesson(
 
     const normalizedMaterials = normalizeLessonMaterials(parsed.data.materials)
 
+    // Normalizar available_at: se for string vazia ou inválida, usar null
+    let normalizedAvailableAt: string | null = null
+    if (parsed.data.available_at && parsed.data.available_at.trim() !== "") {
+      try {
+        // Validar se é uma data válida
+        const date = new Date(parsed.data.available_at)
+        if (!isNaN(date.getTime())) {
+          normalizedAvailableAt = parsed.data.available_at
+        }
+      } catch {
+        // Se não conseguir parsear, usar null
+        normalizedAvailableAt = null
+      }
+    }
+
+    // Normalizar video_url: se for string vazia, usar null
+    const normalizedVideoUrl = parsed.data.video_url && parsed.data.video_url.trim() !== "" 
+      ? parsed.data.video_url.trim() 
+      : null
+
     const lessonPayload: Record<string, unknown> = {
       course_id: courseId,
       title: parsed.data.title,
       description: parsed.data.description || null,
-      video_url: parsed.data.video_url || null,
+      video_url: normalizedVideoUrl,
       duration_minutes: parsed.data.duration_minutes || null,
       module_title: resolvedModule.title,
       order_index: parsed.data.order_index,
       materials: normalizedMaterials,
-      available_at: parsed.data.available_at || null,
+      available_at: normalizedAvailableAt,
     }
 
     if (moduleSupport.lessonsModuleIdColumn && resolvedModule.id) {
       lessonPayload.module_id = resolvedModule.id
     }
+
+    console.log("📝 [createLesson] Tentando inserir aula com payload:", {
+      courseId,
+      payload: lessonPayload,
+      timestamp: new Date().toISOString(),
+    })
 
     const { data, error } = await supabase
       .from("lessons")
@@ -291,10 +352,41 @@ export async function createLesson(
       .single()
 
     if (error) {
-      console.error("Erro ao criar aula:", error)
+      const errorDetails = {
+        message: error.message,
+        code: error.code,
+        hint: error.hint,
+        details: error.details,
+      }
+
+      console.error("❌ [createLesson] Erro ao criar aula:", {
+        error: errorDetails,
+        payload: lessonPayload,
+        courseId,
+        timestamp: new Date().toISOString(),
+      })
+
+      // Retornar erro mais específico baseado no tipo de erro
+      let userError = "Erro ao criar aula. Tente novamente."
+      if (error.message?.includes("null value in column")) {
+        userError = `Campo obrigatório faltando: ${error.message}`
+      } else if (error.message?.includes("violates foreign key constraint")) {
+        userError = "Referência inválida. Verifique se o curso existe."
+      } else if (error.message?.includes("violates unique constraint")) {
+        userError = "Já existe uma aula com esses dados."
+      } else if (error.message?.includes("permission denied") || error.code === "42501") {
+        userError = "Você não tem permissão para criar aulas."
+      } else if (error.message?.includes("column") && error.message?.includes("does not exist")) {
+        userError = `Coluna não encontrada na tabela: ${error.message}`
+      } else if (error.hint) {
+        userError = `${error.message}. ${error.hint}`
+      } else if (error.message) {
+        userError = error.message
+      }
+
       return {
         success: false,
-        error: "Erro ao criar aula. Tente novamente.",
+        error: userError,
       }
     }
 
@@ -789,6 +881,124 @@ export async function reorderModules(
     return {
       success: false,
       error: "Erro inesperado ao reordenar módulos",
+    }
+  }
+}
+
+/**
+ * Move uma aula de um módulo para outro e atualiza sua ordem
+ */
+export async function moveLessonBetweenModules(
+  moveData: MoveLessonData
+): Promise<ActionResult> {
+  try {
+    const parsed = moveLessonSchema.safeParse(moveData)
+    if (!parsed.success) {
+      return {
+        success: false,
+        error: "Dados inválidos",
+        fieldErrors: parsed.error.flatten().fieldErrors,
+      }
+    }
+
+    const supabase = await createClient()
+    const moduleSupport = await getLessonModuleSupport(supabase)
+
+    // Verificar se módulos estão habilitados
+    if (!moduleSupport.lessonModulesTable) {
+      return {
+        success: false,
+        error: LESSON_MODULE_SUPPORT_ERROR,
+      }
+    }
+
+    // Buscar a aula para verificar se existe
+    const { data: lesson, error: lessonError } = await supabase
+      .from("lessons")
+      .select("id, course_id, module_id")
+      .eq("id", parsed.data.lesson_id)
+      .eq("course_id", parsed.data.course_id)
+      .single()
+
+    if (lessonError || !lesson) {
+      return {
+        success: false,
+        error: "Aula não encontrada",
+      }
+    }
+
+    // Se o módulo de destino não é null, verificar se existe
+    if (parsed.data.target_module_id !== null) {
+      const { data: targetModule, error: moduleError } = await supabase
+        .from("lesson_modules")
+        .select("id, course_id")
+        .eq("id", parsed.data.target_module_id)
+        .eq("course_id", parsed.data.course_id)
+        .single()
+
+      if (moduleError || !targetModule) {
+        return {
+          success: false,
+          error: "Módulo de destino não encontrado",
+        }
+      }
+    }
+
+    // Preparar dados de atualização
+    const updateData: any = {
+      order_index: parsed.data.new_order_index,
+    }
+
+    // Atualizar module_id se a coluna existir
+    if (moduleSupport.lessonsModuleIdColumn) {
+      updateData.module_id = parsed.data.target_module_id
+    }
+
+    // Se não há suporte para module_id, usar module_title
+    if (!moduleSupport.lessonsModuleIdColumn && parsed.data.target_module_id !== null) {
+      const { data: moduleData } = await supabase
+        .from("lesson_modules")
+        .select("title")
+        .eq("id", parsed.data.target_module_id)
+        .single()
+
+      if (moduleData) {
+        updateData.module_title = moduleData.title
+      }
+    } else if (!moduleSupport.lessonsModuleIdColumn && parsed.data.target_module_id === null) {
+      updateData.module_title = "Sem módulo"
+    }
+
+    // Atualizar a aula
+    const { error: updateError } = await supabase
+      .from("lessons")
+      .update(updateData)
+      .eq("id", parsed.data.lesson_id)
+      .eq("course_id", parsed.data.course_id)
+
+    if (updateError) {
+      console.error("Erro ao mover aula:", updateError)
+      return {
+        success: false,
+        error: "Erro ao mover aula. Tente novamente.",
+      }
+    }
+
+    // Revalidar paths
+    revalidatePath("/admin/cursos")
+    revalidatePath(`/admin/cursos/${parsed.data.course_id}`)
+    revalidatePath(`/admin/cursos/${parsed.data.course_id}/aulas`)
+    revalidatePath("/dashboard/cursos")
+    revalidatePath(`/dashboard/cursos/${parsed.data.course_id}`)
+
+    return {
+      success: true,
+    }
+  } catch (error) {
+    console.error("Erro inesperado ao mover aula:", error)
+    return {
+      success: false,
+      error: "Erro inesperado ao mover aula",
     }
   }
 }

@@ -64,3 +64,15 @@ export const reorderLessonsSchema = z.object({
 })
 
 export type ReorderLessonsData = z.infer<typeof reorderLessonsSchema>
+
+/**
+ * Schema para mover aula entre módulos
+ */
+export const moveLessonSchema = z.object({
+  lesson_id: uuidSchemaWithMessage("ID da aula inválido"),
+  course_id: uuidSchemaWithMessage("ID do curso inválido"),
+  target_module_id: uuidSchemaWithMessage("ID do módulo inválido").nullable(),
+  new_order_index: z.number().int().nonnegative("Ordem inválida"),
+})
+
+export type MoveLessonData = z.infer<typeof moveLessonSchema>

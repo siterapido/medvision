@@ -36,7 +36,7 @@ async function LivesContent() {
 
   let { data: lives, error } = await supabase
     .from("live_events")
-    .select("id,title,description,thumbnail_url,instructor_name,start_at,status,duration_minutes,created_at,updated_at,is_featured")
+    .select("*")
     .order("start_at", { ascending: true })
 
   if (error) {

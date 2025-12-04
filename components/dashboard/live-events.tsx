@@ -1,6 +1,7 @@
 "use client"
 
 import Image from "next/image"
+import Link from "next/link"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { Button } from "@/components/ui/button"
@@ -8,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { createClient } from "@/lib/supabase/client"
 import { cn } from "@/lib/utils"
-import { Calendar, Clock, ChevronLeft, ChevronRight } from "lucide-react"
+import { Calendar, Clock, ChevronLeft, ChevronRight, ExternalLink } from "lucide-react"
 import type { LiveEvent } from "@/lib/dashboard/events"
 import { formatEventLabel, isEventSoon } from "@/lib/dashboard/events"
 
@@ -55,6 +56,7 @@ export function LiveEventsSection({ initialEvents, initialReminders }: LiveEvent
       title: row.title,
       description: row.description,
       thumbnail: row.thumbnail_url,
+      liveUrl: row.live_url ?? null,
       startAt: row.start_at,
       durationMinutes: row.duration_minutes ?? 60,
       instructorName: row.instructor_name ?? null,
@@ -162,6 +164,11 @@ export function LiveEventsSection({ initialEvents, initialReminders }: LiveEvent
                       reminderActive && "ring-2 ring-primary/60"
                     )}
                   >
+                    <Link
+                      href={`/dashboard/cursos/live/${event.id}`}
+                      className="absolute inset-0 z-10"
+                      aria-label={`Ver detalhes da live: ${event.title}`}
+                    />
                     <div className="relative h-48 w-full overflow-hidden">
                       <Image
                         src={event.thumbnail ?? "/placeholder.svg?height=200&width=400"}
@@ -175,7 +182,7 @@ export function LiveEventsSection({ initialEvents, initialReminders }: LiveEvent
                       <div className="absolute inset-0 bg-gradient-to-t from-[#0B1627] via-[#0F192F]/80 to-transparent" />
 
                       {soon && (
-                        <Badge className="absolute top-4 left-4 rounded-full border border-rose-500/60 bg-rose-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-200 shadow-lg backdrop-blur">
+                        <Badge className="absolute top-4 left-4 rounded-full border border-rose-500/60 bg-rose-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-rose-200 shadow-lg backdrop-blur z-20">
                           <span className="inline-flex items-center gap-1.5">
                             <span className="h-2 w-2 rounded-full bg-rose-400 animate-pulse" />
                             Em breve
@@ -184,7 +191,7 @@ export function LiveEventsSection({ initialEvents, initialReminders }: LiveEvent
                       )}
 
                       {event.status === "live" && (
-                        <Badge className="absolute top-4 left-4 rounded-full border border-red-500/60 bg-red-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-red-200 shadow-lg backdrop-blur">
+                        <Badge className="absolute top-4 left-4 rounded-full border border-red-500/60 bg-red-500/20 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.2em] text-red-200 shadow-lg backdrop-blur z-20">
                           <span className="inline-flex items-center gap-1.5">
                             <span className="h-2 w-2 rounded-full bg-red-500 animate-pulse" />
                             Ao vivo
@@ -192,7 +199,7 @@ export function LiveEventsSection({ initialEvents, initialReminders }: LiveEvent
                         </Badge>
                       )}
 
-                      <div className="absolute bottom-3 left-3 right-3">
+                      <div className="absolute bottom-3 left-3 right-3 z-20">
                         <div className="flex items-center justify-between text-[11px] font-medium text-slate-200">
                           <span>{statusLabel}</span>
                           <span>{event.durationMinutes} min</span>
@@ -200,7 +207,7 @@ export function LiveEventsSection({ initialEvents, initialReminders }: LiveEvent
                       </div>
                     </div>
 
-                    <div className="flex flex-1 flex-col gap-3 p-5">
+                    <div className="flex flex-1 flex-col gap-3 p-5 relative z-20">
                       <div>
                         <p className="text-xs uppercase tracking-[0.2em] text-slate-400">{event.instructorName ?? "Profissional"}</p>
                         <h3 className="mt-1 text-lg font-semibold leading-tight line-clamp-2 text-white">{event.title}</h3>
@@ -217,17 +224,35 @@ export function LiveEventsSection({ initialEvents, initialReminders }: LiveEvent
                           </span>
                         </div>
 
-                        <Button
-                          size="sm"
-                          className="w-full rounded-full text-xs font-semibold uppercase tracking-[0.2em]"
-                          variant={reminderActive ? "secondary" : "outline"}
-                          disabled={busyId === event.id || event.id.startsWith("live-mock-")}
-                          onClick={() => toggleReminder(event.id)}
-                          aria-pressed={reminderActive}
-                          title={event.id.startsWith("live-mock-") ? "Disponível em breve" : undefined}
-                        >
-                          {reminderActive ? "Lembrete ativo" : "Criar lembrete"}
-                        </Button>
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            className="flex-1 rounded-full text-xs font-semibold uppercase tracking-[0.2em]"
+                            variant={reminderActive ? "secondary" : "outline"}
+                            disabled={busyId === event.id || event.id.startsWith("live-mock-")}
+                            onClick={(e) => {
+                              e.preventDefault()
+                              e.stopPropagation()
+                              toggleReminder(event.id)
+                            }}
+                            aria-pressed={reminderActive}
+                            title={event.id.startsWith("live-mock-") ? "Disponível em breve" : undefined}
+                          >
+                            {reminderActive ? "Lembrete ativo" : "Lembrete"}
+                          </Button>
+                          <Link
+                            href={`/dashboard/cursos/live/${event.id}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="flex-1"
+                          >
+                            <Button
+                              size="sm"
+                              className="w-full rounded-full text-xs font-semibold uppercase tracking-[0.2em] bg-primary hover:bg-primary/90 text-white"
+                            >
+                              Ver <ExternalLink className="ml-1 h-3 w-3" />
+                            </Button>
+                          </Link>
+                        </div>
                       </div>
                     </div>
                   </Card>

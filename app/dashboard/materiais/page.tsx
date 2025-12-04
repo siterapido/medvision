@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { DashboardScrollArea } from "@/components/layout/dashboard-scroll-area"
 import Image from "next/image"
 import { MaterialsRealtime } from "@/components/materials/materials-realtime"
+import { MaterialsComingSoonModal } from "@/components/dashboard/materials-coming-soon-modal"
 
 const resourceTypeLabels: Record<string, string> = {
   ebook: "E-book",
@@ -85,6 +86,8 @@ export default async function MateriaisPage() {
             Acesse e-books, slides, checklists e outros materiais de apoio para seu consultório.
           </p>
         </div>
+
+        <MaterialsComingSoonModal />
 
         {/* Erro ao carregar */}
         {error && !relationMissing ? (

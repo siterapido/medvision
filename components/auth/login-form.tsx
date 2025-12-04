@@ -97,13 +97,19 @@ export function LoginForm() {
         return
       }
 
+      console.log("[Login] Tentando login com:", trimmedEmail)
+
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email: trimmedEmail,
         password,
       })
 
       if (signInError) {
-        console.error("Login error:", signInError)
+        console.error("Login error details:", {
+          message: signInError.message,
+          status: signInError.status,
+          name: signInError.name
+        })
 
         // Mensagens de erro em português
         if (signInError.message.includes("Invalid login credentials")) {

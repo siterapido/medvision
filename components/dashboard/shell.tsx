@@ -183,7 +183,7 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
   }
 
   return (
-    <div className={`min-h-screen h-screen supports-[height:100dvh]:h-[100dvh] flex overflow-hidden ${pathname === '/dashboard/chat' || pathname === '/dashboard/cursos' ? 'bg-slate-950' : 'bg-slate-50'}`}>
+    <div className={`min-h-screen h-screen supports-[height:100dvh]:h-[100dvh] flex overflow-hidden ${pathname === '/dashboard/chat' || pathname?.startsWith('/dashboard/cursos') || pathname?.startsWith('/dashboard/resumos') ? 'bg-slate-950' : 'bg-slate-50'}`}>
       <DashboardSidebar
         isVisible={isSidebarVisible}
       />
@@ -207,7 +207,7 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
           />
         </div>
         <main
-          className={`flex flex-1 flex-col min-h-0 ${pathname === "/dashboard/chat" || pathname?.startsWith("/dashboard/cursos")
+          className={`flex flex-1 flex-col min-h-0 ${pathname === "/dashboard/chat" || pathname?.startsWith("/dashboard/cursos") || pathname?.startsWith("/dashboard/resumos")
               ? "bg-transparent p-0 overflow-hidden"
               : "bg-[#eff4fb] pt-4 px-4 md:pt-6 md:px-6 lg:pt-8 lg:px-8 overflow-y-auto"
             }`}

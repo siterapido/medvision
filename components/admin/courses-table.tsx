@@ -211,7 +211,7 @@ export function CoursesTable({
                     <TableCell>
                       <div className="space-y-1 max-w-md">
                         <Link
-                          href={`/dashboard/cursos/${course.id}`}
+                          href={`/admin/cursos/${course.id}/aulas`}
                           className="font-medium text-white truncate hover:text-cyan-400 transition-colors cursor-pointer block"
                         >
                           {course.title}

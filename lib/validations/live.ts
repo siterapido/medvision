@@ -30,6 +30,11 @@ export const liveFormSchema = z.object({
     .min(2, "O nome do instrutor deve ter pelo menos 2 caracteres")
     .max(200, "O nome do instrutor deve ter no máximo 200 caracteres"),
   thumbnail_url: z.string().optional(),
+  live_url: z
+    .string()
+    .url("Informe uma URL válida")
+    .optional()
+    .or(z.literal("")),
   start_at: z
     .string()
     .refine((val) => {

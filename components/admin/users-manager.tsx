@@ -23,6 +23,7 @@ import {
 
 import {
   deleteUser,
+  bulkDeleteUsers,
   updateUserPlan,
   updateUserRole,
   updateUserTrial,
@@ -40,6 +41,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Progress } from "@/components/ui/progress"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -141,6 +143,12 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
   const [trialDays, setTrialDays] = useState<number>(DEFAULT_TRIAL_DAYS)
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false)
+  const [bulkDeleteDialogOpen, setBulkDeleteDialogOpen] = useState(false)
+  const [bulkDeleteProgress, setBulkDeleteProgress] = useState<{
+    current: number
+    total: number
+    status: "idle" | "processing" | "completed" | "error"
+  }>({ current: 0, total: 0, status: "idle" })
   const [bulkDialogMessage, setBulkDialogMessage] = useState<{
     type: "success" | "error"
     message: string
@@ -591,6 +599,83 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
     })
   }
 
+  const handleBulkDelete = () => {
+    if (!hasBulkSelection) return
+
+    const totalUsers = selectedUsers.length
+    setBulkDeleteProgress({ current: 0, total: totalUsers, status: "processing" })
+    setDialogMessage(null)
+
+    let progressInterval: NodeJS.Timeout | null = null
+
+    startBulkTransition(async () => {
+      try {
+        // Simular progresso visual durante a exclusão
+        // Como a exclusão é feita em lote no servidor, simulamos o progresso para melhor UX
+        let progressValue = 0
+        progressInterval = setInterval(() => {
+          progressValue += Math.max(1, Math.floor(totalUsers / 15))
+          const cappedProgress = Math.min(progressValue, Math.floor(totalUsers * 0.85))
+          
+          setBulkDeleteProgress((prev) => {
+            if (prev.status !== "processing") {
+              if (progressInterval) clearInterval(progressInterval)
+              return prev
+            }
+            return { ...prev, current: cappedProgress }
+          })
+        }, 150)
+
+        const result = await bulkDeleteUsers({ userIds: selectedUsers })
+        
+        if (progressInterval) {
+          clearInterval(progressInterval)
+          progressInterval = null
+        }
+        
+        if (result.success) {
+          // Atualizar para 100% imediatamente
+          setBulkDeleteProgress({ current: totalUsers, total: totalUsers, status: "completed" })
+          
+          const affected = result.data?.affected || selectedUsers.length
+          const failed = result.data?.failed || 0
+          
+          // Delay para mostrar conclusão antes de fechar
+          setTimeout(() => {
+            setBulkDeleteDialogOpen(false)
+            setSelectedUsers([])
+            setBulkDeleteProgress({ current: 0, total: 0, status: "idle" })
+            
+            if (failed > 0 && result.error) {
+              handleActionSuccess(result.error)
+            } else {
+              handleActionSuccess(
+                affected === 1
+                  ? "1 usuário excluído com sucesso."
+                  : `${affected} usuário${affected > 1 ? "s" : ""} excluído${affected > 1 ? "s" : ""} com sucesso.`
+              )
+            }
+          }, 1000)
+        } else {
+          setBulkDeleteProgress({ current: 0, total: totalUsers, status: "error" })
+          setDialogMessage({
+            type: "error",
+            message: result.error || "Erro ao excluir usuários",
+          })
+        }
+      } catch (error) {
+        if (progressInterval) {
+          clearInterval(progressInterval)
+        }
+        setBulkDeleteProgress({ current: 0, total: totalUsers, status: "error" })
+        setDialogMessage({
+          type: "error",
+          message: "Erro inesperado ao excluir usuários",
+        })
+      }
+    })
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6">
       {statusMessage && (
@@ -798,16 +883,71 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
             >
               Limpar
             </Button>
-            <Button
-              onClick={() => {
-                setBulkDialogOpen(true)
-                setBulkDialogMessage(null)
-              }}
-              className="bg-cyan-600 hover:bg-cyan-700 text-white px-3"
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              Editar em massa
-            </Button>
+            {selectedUsers.length === 1 ? (
+              <>
+                {/* Botões para 1 usuário selecionado */}
+                <Button
+                  onClick={() => {
+                    const selectedUser = users.find((u) => u.id === selectedUsers[0])
+                    if (selectedUser) {
+                      handleOpenEdit(selectedUser)
+                    }
+                  }}
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white px-3"
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  Editar
+                </Button>
+                <Button
+                  onClick={() => {
+                    const selectedUser = users.find((u) => u.id === selectedUsers[0])
+                    if (selectedUser) {
+                      handleOpenDelete(selectedUser)
+                    }
+                  }}
+                  disabled={isActionPending}
+                  className="border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 px-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Excluir
+                </Button>
+              </>
+            ) : (
+              <>
+                {/* Botões para múltiplos usuários selecionados */}
+                <Button
+                  onClick={() => {
+                    setBulkDialogOpen(true)
+                    setBulkDialogMessage(null)
+                  }}
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white px-3"
+                >
+                  <Edit className="mr-2 h-4 w-4" />
+                  Editar em massa
+                </Button>
+                <Button
+                  onClick={() => {
+                    setBulkDeleteDialogOpen(true)
+                    setBulkDeleteProgress({ current: 0, total: selectedUsers.length, status: "idle" })
+                    setDialogMessage(null)
+                  }}
+                  disabled={isBulkPending || bulkDeleteProgress.status === "processing"}
+                  className="border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 px-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {bulkDeleteProgress.status === "processing" ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Excluindo...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Excluir em massa
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
           </div>
         </div>
       )}
@@ -1740,6 +1880,156 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
           </AlertDialogContent>
         </AlertDialog>
       )}
+
+      {/* Dialog de confirmação de exclusão em massa */}
+      <AlertDialog
+        open={bulkDeleteDialogOpen}
+        onOpenChange={(open) => {
+          if (!open && bulkDeleteProgress.status !== "processing") {
+            setBulkDeleteDialogOpen(false)
+            setDialogMessage(null)
+            setBulkDeleteProgress({ current: 0, total: 0, status: "idle" })
+          }
+        }}
+      >
+        <AlertDialogContent className="bg-[#0F192F] border-slate-700 max-w-md">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-white flex items-center gap-2">
+              {bulkDeleteProgress.status === "processing" ? (
+                <>
+                  <Loader2 className="h-5 w-5 animate-spin text-red-400" />
+                  Excluindo usuários...
+                </>
+              ) : bulkDeleteProgress.status === "completed" ? (
+                <>
+                  <CheckCircle2 className="h-5 w-5 text-green-400" />
+                  Exclusão concluída
+                </>
+              ) : (
+                <>
+                  <Trash2 className="h-5 w-5 text-red-400" />
+                  Excluir usuários em massa
+                </>
+              )}
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-slate-400">
+              {bulkDeleteProgress.status === "processing" ? (
+                <span>
+                  Processando exclusão de {selectedUsers.length} usuário{selectedUsers.length === 1 ? "" : "s"}...
+                  <br />
+                  <span className="text-xs text-slate-500 mt-1 block">
+                    Isso pode levar alguns segundos. Por favor, aguarde.
+                  </span>
+                </span>
+              ) : bulkDeleteProgress.status === "completed" ? (
+                <span className="text-green-300">
+                  Todos os usuários foram excluídos com sucesso.
+                </span>
+              ) : (
+                <span>
+                  Essa ação remove permanentemente <strong className="text-white">{selectedUsers.length}</strong> usuário{selectedUsers.length === 1 ? "" : "s"} selecionado{selectedUsers.length === 1 ? "" : "s"}. Os dados não poderão ser recuperados.
+                  <br />
+                  <span className="text-xs text-red-400/80 mt-2 block font-medium">
+                    ⚠️ Esta ação é irreversível
+                  </span>
+                </span>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          {/* Barra de progresso */}
+          {bulkDeleteProgress.status === "processing" && bulkDeleteProgress.total > 0 && (
+            <div className="space-y-3 py-2">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-slate-300 font-medium">
+                  Progresso
+                </span>
+                <span className="text-slate-400 font-semibold">
+                  {bulkDeleteProgress.current} de {bulkDeleteProgress.total}
+                </span>
+              </div>
+              <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-800">
+                <div
+                  className="absolute top-0 left-0 h-full rounded-full bg-gradient-to-r from-red-500 to-red-600 transition-all duration-300 ease-out shadow-lg shadow-red-500/50"
+                  style={{
+                    width: `${(bulkDeleteProgress.current / bulkDeleteProgress.total) * 100}%`,
+                  }}
+                />
+              </div>
+              <p className="text-xs text-slate-400 text-center">
+                {Math.round((bulkDeleteProgress.current / bulkDeleteProgress.total) * 100)}% concluído
+              </p>
+            </div>
+          )}
+
+          {bulkDeleteProgress.status === "completed" && (
+            <div className="space-y-3 py-2">
+              <div className="relative h-2.5 w-full overflow-hidden rounded-full bg-slate-800">
+                <div className="absolute top-0 left-0 h-full w-full rounded-full bg-gradient-to-r from-green-500 to-green-600 shadow-lg shadow-green-500/50" />
+              </div>
+              <p className="text-xs text-green-400 text-center font-medium flex items-center justify-center gap-1">
+                <CheckCircle2 className="h-3 w-3" />
+                Exclusão finalizada com sucesso
+              </p>
+            </div>
+          )}
+
+          {dialogMessage && bulkDeleteDialogOpen && (
+            <Alert className="bg-red-500/10 border-red-500/30">
+              <AlertDescription className="text-red-300">
+                {dialogMessage.message}
+              </AlertDescription>
+            </Alert>
+          )}
+
+          <AlertDialogFooter>
+            {bulkDeleteProgress.status === "processing" ? (
+              <AlertDialogCancel
+                className="border-slate-600 text-white hover:bg-slate-700"
+                disabled={true}
+              >
+                Processando...
+              </AlertDialogCancel>
+            ) : bulkDeleteProgress.status === "completed" ? (
+              <AlertDialogAction
+                onClick={() => {
+                  setBulkDeleteDialogOpen(false)
+                  setBulkDeleteProgress({ current: 0, total: 0, status: "idle" })
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                Fechar
+              </AlertDialogAction>
+            ) : (
+              <>
+                <AlertDialogCancel
+                  className="border-slate-600 text-white hover:bg-slate-700"
+                  disabled={isBulkPending}
+                >
+                  Cancelar
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleBulkDelete}
+                  disabled={isBulkPending}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  {isBulkPending ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Iniciando...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Excluir {selectedUsers.length} usuário{selectedUsers.length === 1 ? "" : "s"}
+                    </>
+                  )}
+                </AlertDialogAction>
+              </>
+            )}
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

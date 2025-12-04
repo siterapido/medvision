@@ -975,12 +975,12 @@ export function CoursePlayer({
 
           <div
             className={cn(
-              "fixed inset-y-0 right-0 z-50 w-[min(92vw,360px)] transform bg-[#0f172a] transition-transform duration-300 ease-in-out lg:static lg:z-auto lg:w-96 lg:translate-x-0 lg:border-l lg:border-[#334155] lg:bg-transparent",
+              "fixed inset-y-0 right-0 z-50 w-[min(92vw,420px)] transform bg-[#0f172a] transition-transform duration-300 ease-in-out lg:static lg:z-auto lg:w-[420px] lg:translate-x-0 lg:border-l lg:border-[#334155] lg:bg-transparent",
               sidebarOpen ? "translate-x-0 shadow-2xl" : "translate-x-full lg:translate-x-0"
             )}
           >
             <div className="flex h-full flex-col overflow-hidden bg-gradient-to-b from-[#1e293b] to-[#0f172a] lg:rounded-2xl lg:border lg:border-[#334155]">
-              <div className="flex items-center justify-between border-b border-[#334155] p-4">
+              <div className="flex items-center justify-between border-b border-[#334155] p-4 shrink-0">
                 <div>
                   <h3 className="font-semibold text-white">Conteúdo do Curso</h3>
                   <p className="text-xs text-[#94a3b8]">{progressValue}% concluído</p>
@@ -995,26 +995,26 @@ export function CoursePlayer({
                 </Button>
               </div>
 
-              <div className="px-4 pb-2 pt-4">
+              <div className="px-4 pb-2 pt-4 shrink-0">
                 <Progress value={progressValue} className="h-1.5 bg-[#334155]" />
               </div>
 
-              <ScrollArea className="flex-1">
-                <Accordion type="multiple" defaultValue={groupedByModules.map(g => g.module.id || g.module.title)} className="w-full">
+              <ScrollArea className="flex-1 min-h-0 px-4 pb-6 pt-4">
+                <Accordion type="multiple" defaultValue={[]} className="w-full">
                   {groupedByModules.map((group, i) => {
                     const moduleKey = group.module.id ?? group.module.title
                     const moduleNumber = moduleNumberMap.get(moduleKey)
                     return (
                       <AccordionItem key={i} value={group.module.id || group.module.title} className="border-[#334155]">
-                        <AccordionTrigger className="px-4 py-3 pr-5 text-left text-sm font-medium text-[#f1f5f9] hover:text-white hover:no-underline data-[state=open]:bg-[#334155]/30 gap-3">
-                          <div className="flex w-full items-center justify-between gap-3">
-                            <span className="truncate">
+                        <AccordionTrigger className="px-4 py-3 pr-6 text-left text-sm font-medium text-[#f1f5f9] hover:text-white hover:no-underline data-[state=open]:bg-[#334155]/30 gap-3">
+                          <div className="flex w-full items-center justify-between gap-3 min-w-0">
+                            <span className="truncate flex-1 min-w-0">
                               {moduleNumber ? `Módulo ${moduleNumber} · ${group.module.title}` : group.module.title}
                             </span>
                             <Badge
                               variant="outline"
                               className={cn(
-                                "flex items-center gap-1 border text-[10px] uppercase tracking-wide",
+                                "flex items-center gap-1 border text-[10px] uppercase tracking-wide shrink-0 whitespace-nowrap ml-2",
                                 group.module.access_type === "premium"
                                   ? "border-amber-400/50 bg-amber-400/10 text-amber-200"
                                   : "border-emerald-400/50 bg-emerald-400/10 text-emerald-100"

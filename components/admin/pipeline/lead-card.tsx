@@ -8,12 +8,13 @@ import {
   ArrowUpRight,
   ChevronDown,
   Clock3,
+  GripVertical,
   Mail,
   MessageSquare,
+  MoreHorizontal,
   Phone,
-  Sparkles,
-  Target,
 } from "lucide-react"
+import { useDraggable } from "@dnd-kit/core"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -22,6 +23,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
 import { cn } from "@/lib/utils"
 import { getRemainingTrialDays } from "@/lib/trial"
@@ -46,31 +48,20 @@ type PipelineLead = {
 }
 
 type PipelineStage =
-  | "novo_lead"
-  | "trial_ativo"
-  | "urgente"
-  | "contato_realizado"
-  | "proposta_enviada"
+  | "novo_usuario"
+  | "situacao"
+  | "problema"
+  | "implicacao"
+  | "motivacao"
   | "convertido"
-  | "perdido"
 
 const STAGE_LABELS: Record<PipelineStage, string> = {
-  novo_lead: "Novo Lead",
-  trial_ativo: "Trial Ativo",
-  urgente: "Urgente",
-  contato_realizado: "Contato Realizado",
-  proposta_enviada: "Proposta Enviada",
+  novo_usuario: "Novo Usuário",
+  situacao: "Situação",
+  problema: "Problema",
+  implicacao: "Implicação",
+  motivacao: "Motivação",
   convertido: "Convertido",
-  perdido: "Perdido",
-}
-
-function formatDate(value?: string | null) {
-  if (!value) return null
-  try {
-    return format(new Date(value), "dd/MM/yyyy", { locale: ptBR })
-  } catch {
-    return null
-  }
 }
 
 function sanitizePhone(raw?: string | null) {
@@ -80,37 +71,35 @@ function sanitizePhone(raw?: string | null) {
   return digits.startsWith("55") ? digits : `55${digits}`
 }
 
-interface InfoRowProps {
-  icon: React.ReactNode
-  label: string
-}
-
-function InfoRow({ icon, label }: InfoRowProps) {
-  return (
-    <div className="flex items-center gap-2 rounded-lg bg-slate-900/60 px-2 py-1.5">
-      <span className="shrink-0">{icon}</span>
-      <span className="text-xs text-slate-200 leading-tight">{label}</span>
-    </div>
-  )
-}
-
 interface LeadCardProps {
   lead: PipelineLead
   onStageChange?: () => void
+  isDragOverlay?: boolean
 }
 
-export function LeadCard({ lead, onStageChange }: LeadCardProps) {
+export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCardProps) {
   const [notesOpen, setNotesOpen] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
+
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: lead.id,
+    disabled: isDragOverlay,
+  })
+
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+      }
+    : undefined
 
   const daysRemaining = lead.trial_ends_at
     ? Math.max(0, getRemainingTrialDays(lead.trial_ends_at))
     : null
-  const formattedEnd = formatDate(lead.trial_ends_at)
-  const formattedStart = formatDate(lead.trial_started_at)
+  
   const ageLabel = lead.created_at
     ? formatDistanceToNow(new Date(lead.created_at), { addSuffix: true, locale: ptBR })
     : null
+    
   const phoneDigits = sanitizePhone(lead.whatsapp)
   const whatsappUrl = phoneDigits ? `https://wa.me/${phoneDigits}` : null
   const isPaid = !!lead.plan_type && lead.plan_type !== "free"
@@ -118,8 +107,12 @@ export function LeadCard({ lead, onStageChange }: LeadCardProps) {
   const handleStageChange = async (newStage: PipelineStage | null) => {
     setIsUpdating(true)
     try {
-      await updatePipelineStage(lead.id, newStage)
-      onStageChange?.()
+      const result = await updatePipelineStage(lead.id, newStage)
+      if (result.success) {
+        onStageChange?.()
+      } else {
+        console.error("Erro ao atualizar etapa:", result.message)
+      }
     } catch (error) {
       console.error("Erro ao atualizar etapa:", error)
     } finally {
@@ -128,186 +121,126 @@ export function LeadCard({ lead, onStageChange }: LeadCardProps) {
   }
 
   const currentStage = (lead.pipeline_stage as PipelineStage) || null
+  const isUrgent = daysRemaining !== null && daysRemaining <= 2
 
   return (
     <>
-      <div className="rounded-lg border border-slate-800 bg-slate-900 p-3 space-y-3">
+      <div
+        ref={setNodeRef}
+        style={style}
+        className={cn(
+          "group relative flex flex-col gap-2 rounded-md border border-slate-700 bg-slate-800/60 p-2.5 hover:border-slate-600 transition-all",
+          isDragging && !isDragOverlay && "opacity-50",
+          !isDragOverlay && "cursor-grab active:cursor-grabbing",
+          isUrgent && "border-l-2 border-l-red-400 bg-red-500/10"
+        )}
+      >
+        {/* Header Compacto */}
         <div className="flex items-start justify-between gap-2">
-          <div className="space-y-1 flex-1">
-            <p className="text-base font-semibold text-white leading-tight">
-              {lead.name || "Lead sem nome"}
-            </p>
-            <p className="text-xs text-slate-400">{lead.email || "Sem e-mail"}</p>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              <button
+                {...listeners}
+                {...attributes}
+                className="text-slate-600 hover:text-slate-400 -ml-1 cursor-grab active:cursor-grabbing"
+              >
+                <GripVertical className="h-3.5 w-3.5" />
+              </button>
+              <span className="font-medium text-sm text-slate-200 truncate block">
+                {lead.name || "Lead sem nome"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-slate-500 pl-4">
+              <span className="truncate">{lead.email}</span>
+              {ageLabel && <span>• {ageLabel}</span>}
+            </div>
           </div>
+          
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
-                variant="outline"
-                size="sm"
-                disabled={isUpdating}
-                className="h-8 border-slate-600 text-slate-300 hover:text-white text-xs"
+                variant="ghost"
+                size="icon"
+                className="h-6 w-6 text-slate-400 hover:text-slate-200"
               >
-                {currentStage ? STAGE_LABELS[currentStage] : "Mover"}
-                <ChevronDown className="h-3 w-3 ml-1" />
+                <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="bg-slate-800 border-slate-700">
-              <DropdownMenuItem
-                onClick={() => handleStageChange("novo_lead")}
-                className={cn(
-                  "text-slate-200 hover:bg-slate-700",
-                  currentStage === "novo_lead" && "bg-slate-700"
-                )}
-              >
-                Novo Lead
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleStageChange("trial_ativo")}
-                className={cn(
-                  "text-slate-200 hover:bg-slate-700",
-                  currentStage === "trial_ativo" && "bg-slate-700"
-                )}
-              >
-                Trial Ativo
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleStageChange("urgente")}
-                className={cn(
-                  "text-slate-200 hover:bg-slate-700",
-                  currentStage === "urgente" && "bg-slate-700"
-                )}
-              >
-                Urgente
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleStageChange("contato_realizado")}
-                className={cn(
-                  "text-slate-200 hover:bg-slate-700",
-                  currentStage === "contato_realizado" && "bg-slate-700"
-                )}
-              >
-                Contato Realizado
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleStageChange("proposta_enviada")}
-                className={cn(
-                  "text-slate-200 hover:bg-slate-700",
-                  currentStage === "proposta_enviada" && "bg-slate-700"
-                )}
-              >
-                Proposta Enviada
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleStageChange("convertido")}
-                className={cn(
-                  "text-slate-200 hover:bg-slate-700",
-                  currentStage === "convertido" && "bg-slate-700"
-                )}
-              >
-                Convertido
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => handleStageChange("perdido")}
-                className={cn(
-                  "text-slate-200 hover:bg-slate-700",
-                  currentStage === "perdido" && "bg-slate-700"
-                )}
-              >
-                Perdido
-              </DropdownMenuItem>
-              {currentStage && (
-                <>
-                  <div className="h-px bg-slate-700 my-1" />
-                  <DropdownMenuItem
-                    onClick={() => handleStageChange(null)}
-                    className="text-slate-400 hover:bg-slate-700"
+            <DropdownMenuContent align="end" className="w-48 bg-slate-800 border-slate-700">
+              <div className="px-2 py-1.5 text-xs font-semibold text-slate-400">
+                Mover para...
+              </div>
+              {Object.entries(STAGE_LABELS).map(([key, label]) => (
+                <DropdownMenuItem
+                  key={key}
+                  onClick={() => handleStageChange(key as PipelineStage)}
+                  className={cn(
+                    "text-xs cursor-pointer",
+                    currentStage === key && "bg-slate-800 text-cyan-400"
+                  )}
+                >
+                  {label}
+                </DropdownMenuItem>
+              ))}
+              <DropdownMenuSeparator className="bg-slate-700" />
+              {whatsappUrl && (
+                <DropdownMenuItem asChild>
+                  <a 
+                    href={whatsappUrl} 
+                    target="_blank" 
+                    rel="noreferrer"
+                    className="text-xs cursor-pointer flex items-center"
                   >
-                    Limpar etapa
-                  </DropdownMenuItem>
-                </>
+                    <Phone className="h-3 w-3 mr-2" />
+                    WhatsApp
+                  </a>
+                </DropdownMenuItem>
               )}
+              <DropdownMenuItem onClick={() => setNotesOpen(true)} className="text-xs cursor-pointer">
+                <MessageSquare className="h-3 w-3 mr-2" />
+                Ver notas
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href={`/admin/usuarios/${lead.id}`} className="text-xs cursor-pointer flex items-center">
+                  <ArrowUpRight className="h-3 w-3 mr-2" />
+                  Ver perfil
+                </Link>
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        {/* Badges Minimalistas */}
+        <div className="flex flex-wrap gap-1.5 pl-4">
           {isPaid ? (
-            <Badge className="bg-indigo-500/20 text-indigo-100 border-indigo-500/40">
-              Plano {lead.plan_type}
+            <Badge variant="secondary" className="h-4 px-1.5 text-[9px] font-medium bg-indigo-400/20 text-indigo-200 hover:bg-indigo-400/30 border-0">
+              {lead.plan_type}
             </Badge>
           ) : (
-            <Badge className="bg-emerald-500/15 text-emerald-100 border-emerald-500/30">
-              Plano free
+            <Badge variant="outline" className="h-4 px-1.5 text-[9px] font-normal border-slate-600 text-slate-400">
+              Free
             </Badge>
           )}
-          {daysRemaining !== null && (
-            <Badge variant="outline" className="border-cyan-500/40 text-cyan-100">
-              {daysRemaining} dia{daysRemaining === 1 ? "" : "s"} restantes
-            </Badge>
-          )}
+          
           {lead.profession && (
-            <Badge variant="outline" className="border-slate-600 text-slate-100">
+            <Badge variant="outline" className="h-4 px-1.5 text-[9px] font-normal border-slate-600 text-slate-300">
               {lead.profession}
             </Badge>
           )}
-        </div>
 
-        <div className="space-y-2 text-sm text-slate-200">
-          <InfoRow icon={<Mail className="h-4 w-4 text-cyan-300" />} label={lead.email || "Sem e-mail"} />
-          <InfoRow
-            icon={<Phone className="h-4 w-4 text-emerald-300" />}
-            label={lead.whatsapp || "Sem WhatsApp"}
-          />
-          {formattedEnd && (
-            <InfoRow
-              icon={<Clock3 className="h-4 w-4 text-amber-300" />}
-              label={`Termina em ${formattedEnd}${daysRemaining !== null ? ` (${daysRemaining}d)` : ""}`}
-            />
+          {daysRemaining !== null && (
+            <Badge 
+              variant="outline" 
+              className={cn(
+                "h-4 px-1.5 text-[9px] border-0",
+                isUrgent 
+                  ? "bg-red-400/20 text-red-200 font-medium" 
+                  : "bg-cyan-400/20 text-cyan-200"
+              )}
+            >
+              {daysRemaining === 0 ? "Expirou hoje" : `${daysRemaining}d restantes`}
+            </Badge>
           )}
-          {formattedStart && (
-            <InfoRow
-              icon={<Target className="h-4 w-4 text-purple-300" />}
-              label={`Início em ${formattedStart}`}
-            />
-          )}
-          {lead.company && (
-            <InfoRow icon={<Sparkles className="h-4 w-4 text-cyan-300" />} label={lead.company} />
-          )}
-          {lead.institution && (
-            <InfoRow icon={<Sparkles className="h-4 w-4 text-indigo-300" />} label={lead.institution} />
-          )}
-          {ageLabel && (
-            <InfoRow
-              icon={<Clock3 className="h-4 w-4 text-slate-300" />}
-              label={`Criado ${ageLabel.replace("menos de", "<")}`}
-            />
-          )}
-        </div>
-
-        <div className="flex flex-wrap gap-2">
-          {whatsappUrl && (
-            <Button asChild variant="secondary" size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
-              <a href={whatsappUrl} target="_blank" rel="noreferrer">
-                <Phone className="h-4 w-4 mr-1" />
-                WhatsApp
-              </a>
-            </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-slate-700 text-slate-200 hover:text-white"
-            onClick={() => setNotesOpen(true)}
-          >
-            <MessageSquare className="h-4 w-4 mr-1" />
-            Notas
-          </Button>
-          <Button variant="outline" size="sm" className="border-slate-700 text-slate-200 hover:text-white" asChild>
-            <Link href={`/admin/usuarios/${lead.id}`}>
-              Ver perfil
-              <ArrowUpRight className="h-4 w-4 ml-1" />
-            </Link>
-          </Button>
         </div>
       </div>
 
@@ -320,5 +253,3 @@ export function LeadCard({ lead, onStageChange }: LeadCardProps) {
     </>
   )
 }
-
-

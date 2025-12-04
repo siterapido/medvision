@@ -19,6 +19,7 @@ interface Live {
   description: string | null
   instructor_name: string | null
   thumbnail_url: string | null
+  live_url: string | null
   status: "scheduled" | "live" | "completed"
   start_at: string
   duration_minutes: number | null
@@ -214,6 +215,7 @@ export function LivesTable({ lives, selectedIds, onSelectChange }: LivesTablePro
             description: liveToEdit.description || "",
             instructor_name: liveToEdit.instructor_name || "",
             thumbnail_url: liveToEdit.thumbnail_url || "",
+            live_url: liveToEdit.live_url || "",
             start_at: liveToEdit.start_at,
             duration_minutes: liveToEdit.duration_minutes ?? 60,
             status: liveToEdit.status,

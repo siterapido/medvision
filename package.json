@@ -7,10 +7,14 @@
     "dev": "next dev",
     "lint": "eslint .",
     "test": "rm -rf .tmp/test-run && tsc --project tsconfig.test.json && TS_NODE_PROJECT=tsconfig.test.paths.json node -r tsconfig-paths/register --test .tmp/test-run/tests/*.test.js",
-    "start": "next start"
+    "start": "next start",
+    "test:bunny": "tsx scripts/test-bunny-config.ts"
   },
   "dependencies": {
     "@ai-sdk/react": "^2.0.89",
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
@@ -89,6 +93,7 @@
     "postcss": "^8.5",
     "tailwindcss": "^4.1.9",
     "tsconfig-paths": "^4.2.0",
+    "tsx": "^4.19.2",
     "tw-animate-css": "1.3.3",
     "typescript": "^5"
   }

@@ -11,6 +11,7 @@ export {
   createBulkLessons as createBulkLessonsAction,
   reorderLessons as reorderLessonsAction,
   reorderModules as reorderModulesAction,
+  moveLessonBetweenModules as moveLessonBetweenModulesAction,
   createModule as createModuleAction,
   updateModule as updateModuleAction,
   deleteModule as deleteModuleAction,

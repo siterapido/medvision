@@ -106,7 +106,6 @@ CREATE POLICY "Admins can delete pipeline notes"
       WHERE profiles.id = auth.uid()
       AND profiles.role = 'admin'
     )
-    AND created_by = auth.uid()
   );
 
 

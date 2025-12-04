@@ -287,68 +287,71 @@ export default async function CursosPage() {
   }
 
   const renderLiveCard = (live: LiveItem) => {
-    const card = (
-      <Card className="p-0 gap-0 group relative flex h-full w-full flex-col overflow-hidden rounded-3xl border border-white/5 bg-slate-900/40 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:border-cyan-500/20 hover:bg-slate-900/60 hover:shadow-2xl hover:shadow-cyan-900/10">
-        {/* Thumbnail Container */}
-        <div className="relative w-full overflow-hidden aspect-[16/9]">
-          <CourseThumbnail
-            src={live.thumbnail}
-            alt={live.title}
-            className="object-cover transition-transform duration-700 will-change-transform group-hover:scale-105"
-            priority={false}
-          />
-
-          {/* Overlay Gradient */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-60 transition-opacity duration-500 group-hover:opacity-40" />
-
-          {/* Play/Action Button Overlay */}
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-100 scale-90">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-cyan-500 text-white shadow-lg shadow-cyan-500/30 transition-transform duration-300 hover:scale-110 hover:bg-cyan-400">
-              <PlayCircle className="h-6 w-6 fill-current" />
-            </div>
-          </div>
-
-          {/* Badges */}
-          <div className="absolute top-3 left-3">
-            <Badge className="rounded-full border px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border-cyan-500/30 bg-cyan-500/10 text-cyan-200">
-              Live
-            </Badge>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex flex-1 flex-col p-5">
-          <div className="flex-1 space-y-3">
-            <h3 className="text-lg font-bold leading-tight text-white line-clamp-2 group-hover:text-cyan-400 transition-colors duration-300">
-              {live.title}
-            </h3>
-
-            <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed">
-              {live.description}
-            </p>
-
-            {live.scheduledAt && (
-              <div className="flex items-center gap-2 text-xs font-medium text-cyan-300/90 bg-cyan-500/10 px-3 py-2 rounded-lg border border-cyan-500/20">
-                <Clock className="h-3.5 w-3.5" />
-                <span>
-                  {new Date(live.scheduledAt).toLocaleString("pt-BR", {
-                    dateStyle: "short",
-                    timeStyle: "short",
-                  })}
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-      </Card>
-    )
-
     return (
       <div
         key={live.id}
         className="flex-shrink-0 block w-full sm:w-[300px] transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-cyan-500/50 rounded-3xl"
       >
-        {card}
+        <Card className="p-0 gap-0 group relative flex h-full w-full flex-col overflow-hidden rounded-3xl border border-white/5 bg-slate-900/40 backdrop-blur-sm transition-all duration-500 hover:-translate-y-1 hover:border-cyan-500/20 hover:bg-slate-900/60 hover:shadow-2xl hover:shadow-cyan-900/10">
+          {/* Link invisível cobrindo todo o card */}
+          <Link
+            href={`/dashboard/cursos/live/${live.id}`}
+            className="absolute inset-0 z-10"
+            aria-label={`Ver detalhes da live: ${live.title}`}
+          />
+
+          {/* Thumbnail Container */}
+          <div className="relative w-full overflow-hidden aspect-[16/9] pointer-events-none">
+            <CourseThumbnail
+              src={live.thumbnail}
+              alt={live.title}
+              className="object-cover transition-transform duration-700 will-change-transform group-hover:scale-105"
+              priority={false}
+            />
+
+            {/* Overlay Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/20 to-transparent opacity-60 transition-opacity duration-500 group-hover:opacity-40" />
+
+            {/* Play/Action Button Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-all duration-500 group-hover:opacity-100 group-hover:scale-100 scale-90">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-cyan-500 text-white shadow-lg shadow-cyan-500/30 transition-transform duration-300 hover:scale-110 hover:bg-cyan-400">
+                <PlayCircle className="h-6 w-6 fill-current" />
+              </div>
+            </div>
+
+            {/* Badges */}
+            <div className="absolute top-3 left-3 pointer-events-auto">
+              <Badge className="rounded-full border px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border-cyan-500/30 bg-cyan-500/10 text-cyan-200">
+                Live
+              </Badge>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="flex flex-1 flex-col p-5 relative z-20">
+            <div className="flex-1 space-y-3">
+              <h3 className="text-lg font-bold leading-tight text-white line-clamp-2 group-hover:text-cyan-400 transition-colors duration-300">
+                {live.title}
+              </h3>
+
+              <p className="text-sm text-slate-400 line-clamp-2 leading-relaxed">
+                {live.description}
+              </p>
+
+              {live.scheduledAt && (
+                <div className="flex items-center gap-2 text-xs font-medium text-cyan-300/90 bg-cyan-500/10 px-3 py-2 rounded-lg border border-cyan-500/20">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>
+                    {new Date(live.scheduledAt).toLocaleString("pt-BR", {
+                      dateStyle: "short",
+                      timeStyle: "short",
+                    })}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        </Card>
       </div>
     )
   }
