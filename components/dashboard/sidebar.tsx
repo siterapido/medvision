@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Logo } from "@/components/logo"
+import { WhatsAppModal } from "@/components/marketing/whatsapp-modal"
 import {
   BotIcon,
   BookOpen,
@@ -73,7 +74,6 @@ export function DashboardSidebarContent({
   const pathname = usePathname()
   const isAuthenticated = Boolean(isLoggedIn)
   const showLogoutButton = isAuthenticated && Boolean(onLogout)
-  const isWhatsAppActive = pathname === "/dashboard/whatsapp"
 
   return (
     <div className={cn("flex h-full flex-1 flex-col px-3 pb-6", className)}>
@@ -103,39 +103,36 @@ export function DashboardSidebarContent({
       
       {/* Card do WhatsApp no final */}
       <div className="mt-auto pt-4 px-3">
-        <Link
-          href="/dashboard/whatsapp"
-          onClick={() => onClose?.()}
-          className={cn(
-            "group relative flex flex-col gap-2 rounded-xl p-4 transition-all duration-200 overflow-hidden",
-            isWhatsAppActive
-              ? "bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 border border-emerald-500/40 shadow-lg shadow-emerald-500/10"
-              : "bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/15 hover:shadow-md hover:shadow-emerald-500/5"
-          )}
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-50" />
-          <div className="relative flex items-center gap-3">
-            <div className={cn(
-              "flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-200",
-              isWhatsAppActive
-                ? "bg-emerald-500/20 text-emerald-300"
-                : "bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 group-hover:text-emerald-300"
-            )}>
-              <MessageCircle className="h-5 w-5" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className={cn(
-                "text-sm font-semibold leading-tight",
-                isWhatsAppActive ? "text-emerald-100" : "text-emerald-200 group-hover:text-emerald-100"
+        <WhatsAppModal>
+          <button
+            onClick={() => onClose?.()}
+            className={cn(
+              "group relative flex flex-col gap-2 rounded-xl p-4 transition-all duration-200 overflow-hidden w-full text-left",
+              "bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 hover:border-emerald-500/40 hover:bg-emerald-500/15 hover:shadow-md hover:shadow-emerald-500/5"
+            )}
+          >
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-50" />
+            <div className="relative flex items-center gap-3">
+              <div className={cn(
+                "flex h-10 w-10 items-center justify-center rounded-lg transition-all duration-200",
+                "bg-emerald-500/10 text-emerald-400 group-hover:bg-emerald-500/20 group-hover:text-emerald-300"
               )}>
-                WhatsApp
-              </p>
-              <p className="text-[10px] text-emerald-400/70 mt-0.5">
-                Converse conosco
-              </p>
+                <MessageCircle className="h-5 w-5" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className={cn(
+                  "text-sm font-semibold leading-tight",
+                  "text-emerald-200 group-hover:text-emerald-100"
+                )}>
+                  WhatsApp
+                </p>
+                <p className="text-[10px] text-emerald-400/70 mt-0.5">
+                  Converse conosco
+                </p>
+              </div>
             </div>
-          </div>
-        </Link>
+          </button>
+        </WhatsAppModal>
       </div>
 
       <div className="mt-5 flex flex-col gap-2 px-3 md:hidden">

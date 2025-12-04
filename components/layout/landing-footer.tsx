@@ -3,6 +3,8 @@ import { MessageSquare } from "lucide-react"
 
 import { Logo } from "../logo"
 
+import { WhatsAppModal } from "../marketing/whatsapp-modal"
+
 export const landingFooterClassName =
   "site-footer landing-footer border-t border-slate-700 bg-footer"
 
@@ -69,15 +71,12 @@ export function LandingFooter() {
             <h4 className="font-semibold text-white">Suporte</h4>
             <ul className="space-y-2 text-sm text-slate-400">
               <li>
-                <a
-                  href="https://wa.me/5584986260850"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="hover:text-primary transition-colors flex items-center gap-2"
-                >
-                  <MessageSquare className="h-4 w-4" />
-                  Suporte via WhatsApp
-                </a>
+                <WhatsAppModal>
+                  <button className="hover:text-primary transition-colors flex items-center gap-2 text-left">
+                    <MessageSquare className="h-4 w-4" />
+                    Suporte via WhatsApp
+                  </button>
+                </WhatsAppModal>
               </li>
             </ul>
           </div>

@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/server"
 import { PlayCircle, Clock, UploadCloud } from "lucide-react"
 import { DashboardScrollArea } from "@/components/layout/dashboard-scroll-area"
 import { CourseThumbnail } from "@/components/dashboard/course-thumbnail"
+import { cn } from "@/lib/utils"
 
 type CourseWithProgress = {
   id: string
@@ -32,6 +33,7 @@ type LiveItem = {
   thumbnail: string
   scheduledAt: string
   status: "scheduled" | "live" | "completed"
+  duration: string
 }
 
 const formatDurationLabel = (durationText?: string | null, durationMinutes?: number | null) => {
@@ -142,17 +144,18 @@ export default async function CursosPage() {
   const { data: livesRaw } = await supabase
     .from("live_events")
     .select("id,title,description,thumbnail_url,start_at,status,duration_minutes")
-    .order("start_at", { ascending: true })
+    .order("start_at", { ascending: false })
 
   const livesAgendadas: LiveItem[] = (livesRaw ?? [])
-    .filter((l) => l.status === "scheduled" && l.start_at && new Date(l.start_at) > new Date())
+    .filter((l) => ["scheduled", "live", "completed"].includes(l.status) && l.start_at)
     .map((l) => ({
       id: l.id,
       title: l.title,
       description: l.description || "Descrição em breve",
       thumbnail: l.thumbnail_url || "",
       scheduledAt: l.start_at,
-      status: "scheduled",
+      status: l.status as "scheduled" | "live" | "completed",
+      duration: formatDurationLabel(null, l.duration_minutes),
     }))
 
   const getProgressLabel = (progress: number) => {
@@ -287,6 +290,21 @@ export default async function CursosPage() {
   }
 
   const renderLiveCard = (live: LiveItem) => {
+    const isPastSchedule = live.scheduledAt && new Date(live.scheduledAt) < new Date()
+    const isAvailable = live.status === "completed" || (live.status === "scheduled" && isPastSchedule)
+    const isLive = live.status === "live"
+
+    let badgeText = "Agendada"
+    let badgeClass = "border-cyan-500/30 bg-cyan-500/10 text-cyan-200"
+
+    if (isLive) {
+      badgeText = "Ao Vivo"
+      badgeClass = "border-red-500/50 bg-gradient-to-r from-red-600/90 to-red-500/90 text-white animate-pulse shadow-sm backdrop-blur-md"
+    } else if (isAvailable) {
+      badgeText = "Disponível"
+      badgeClass = "border-green-400/30 bg-gradient-to-r from-green-600/60 to-green-500/60 text-white shadow-sm backdrop-blur-md"
+    }
+
     return (
       <div
         key={live.id}
@@ -321,8 +339,13 @@ export default async function CursosPage() {
 
             {/* Badges */}
             <div className="absolute top-3 left-3 pointer-events-auto">
-              <Badge className="rounded-full border px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md border-cyan-500/30 bg-cyan-500/10 text-cyan-200">
-                Live
+              <Badge
+                className={cn(
+                  "rounded-full border px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider backdrop-blur-md",
+                  badgeClass
+                )}
+              >
+                {badgeText}
               </Badge>
             </div>
           </div>
@@ -338,16 +361,23 @@ export default async function CursosPage() {
                 {live.description}
               </p>
 
-              {live.scheduledAt && (
-                <div className="flex items-center gap-2 text-xs font-medium text-cyan-300/90 bg-cyan-500/10 px-3 py-2 rounded-lg border border-cyan-500/20">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>
-                    {new Date(live.scheduledAt).toLocaleString("pt-BR", {
-                      dateStyle: "short",
-                      timeStyle: "short",
-                    })}
-                  </span>
+              {isAvailable ? (
+                <div className="flex items-center gap-2 text-xs font-medium text-green-300 bg-green-950/60 px-3 py-2 rounded-lg border border-green-500/30">
+                  <PlayCircle className="h-3.5 w-3.5" />
+                  <span>Assista agora</span>
                 </div>
+              ) : (
+                live.scheduledAt && (
+                  <div className="flex items-center gap-2 text-xs font-medium text-cyan-300/90 bg-cyan-500/10 px-3 py-2 rounded-lg border border-cyan-500/20">
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>
+                      {new Date(live.scheduledAt).toLocaleString("pt-BR", {
+                        dateStyle: "short",
+                        timeStyle: "short",
+                      })}
+                    </span>
+                  </div>
+                )
               )}
             </div>
           </div>

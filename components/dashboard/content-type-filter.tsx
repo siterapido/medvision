@@ -36,7 +36,7 @@ export function ContentTypeSections({ cursosEmBreveCards, novoCursosCards, lives
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-3">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/30 bg-cyan-500/10 px-3 py-0.5 text-[10px] font-semibold uppercase tracking-[0.25em] text-cyan-400">
-                🎥 Lives Agendadas
+                🎥 Lives
               </span>
             </div>
           </div>
