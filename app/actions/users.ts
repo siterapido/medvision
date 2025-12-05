@@ -24,8 +24,8 @@ const updateUserSchema = z.object({
 })
 
 const updateRoleSchema = z.object({
-  role: z.enum(["cliente", "admin"], {
-    errorMap: () => ({ message: "Role deve ser 'cliente' ou 'admin'" }),
+  role: z.enum(["cliente", "admin", "vendedor"], {
+    errorMap: () => ({ message: "Role deve ser 'cliente', 'admin' ou 'vendedor'" }),
   }),
 })
 
@@ -175,7 +175,7 @@ export async function updateUser(
  */
 export async function updateUserRole(
   userId: string,
-  role: "cliente" | "admin"
+  role: "cliente" | "admin" | "vendedor"
 ): Promise<ActionResult> {
   try {
     const adminCheck = await ensureAdminAccess()
@@ -502,7 +502,7 @@ export async function updateUserTrial(
 
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("plan_type, subscription_status, trial_used, trial_started_at, trial_ends_at")
+      .select("plan_type, subscription_status, trial_used, trial_started_at, trial_ends_at, pipeline_stage")
       .eq("id", userId)
       .maybeSingle()
 
@@ -540,6 +540,8 @@ export async function updateUserTrial(
           trial_started_at: startDate.toISOString(),
           trial_ends_at: endDate.toISOString(),
           trial_used: false,
+          // Preserva o pipeline_stage se já existir, caso contrário define como 'novo_usuario'
+          pipeline_stage: profile?.pipeline_stage || "novo_usuario",
         }
         break
       }

@@ -44,6 +44,7 @@ type PipelineStage =
   | "implicacao"
   | "motivacao"
   | "convertido"
+  | "nao_convertido"
 
 type StageConfig = {
   id: PipelineStage
@@ -58,6 +59,7 @@ const STAGES: StageConfig[] = [
   { id: "implicacao", title: "Implicação (I)", color: "border-t-violet-400" },
   { id: "motivacao", title: "Motivação (M)", color: "border-t-fuchsia-400" },
   { id: "convertido", title: "Convertido", color: "border-t-green-400" },
+  { id: "nao_convertido", title: "Não Convertido", color: "border-t-red-400" },
 ]
 
 type PipelineLeadWithStage = PipelineLead & { resolvedStage: PipelineStage }
@@ -152,7 +154,7 @@ function DroppableColumn({ stage, leads, isDragging, onStageChange }: DroppableC
       </div>
 
       {/* Column Content */}
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         <div className={cn("p-2 space-y-2 min-h-[100px]")}>
           {leads.map((lead) => (
             <LeadCard key={lead.id} lead={lead} onStageChange={onStageChange} />
@@ -166,7 +168,7 @@ function DroppableColumn({ stage, leads, isDragging, onStageChange }: DroppableC
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   )
 }
@@ -213,6 +215,7 @@ export function PipelineKanbanBoard({ leads }: { leads: PipelineLead[] }) {
       implicacao: [],
       motivacao: [],
       convertido: [],
+      nao_convertido: [],
     }
 
     const map: Record<string, PipelineLeadWithStage> = {}

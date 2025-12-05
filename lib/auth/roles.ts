@@ -1,4 +1,4 @@
-export type UserRole = "admin" | "cliente"
+export type UserRole = "admin" | "cliente" | "vendedor"
 
 export const DEFAULT_ROLE: UserRole = "cliente"
 
@@ -12,6 +12,7 @@ type RoleMetadataSource = {
 function normalizeRole(role?: RoleLike): UserRole | undefined {
   if (role === "admin") return "admin"
   if (role === "cliente") return "cliente"
+  if (role === "vendedor") return "vendedor"
   return undefined
 }
 
@@ -23,6 +24,10 @@ function roleFromMetadata(metadata?: Record<string, unknown>): UserRole | undefi
 
 export function isAdmin(role?: RoleLike): role is "admin" {
   return normalizeRole(role) === "admin"
+}
+
+export function isVendedor(role?: RoleLike): role is "vendedor" {
+  return normalizeRole(role) === "vendedor"
 }
 
 export function resolveUserRole(profileRole?: RoleLike, metadataSource?: RoleMetadataSource): UserRole {

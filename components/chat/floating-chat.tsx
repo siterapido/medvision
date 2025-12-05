@@ -6,6 +6,7 @@ import { Logo } from "@/components/logo"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { X, Send, Bot, User, Loader2 } from "lucide-react"
+import { Streamdown } from "streamdown"
 
 type ChatMessage = {
   role: "user" | "assistant"
@@ -196,7 +197,9 @@ export function FloatingChat() {
                       ? "bg-slate-800 text-white rounded-tr-sm border border-slate-700"
                       : "bg-gradient-to-br from-slate-800 to-slate-900 text-slate-100 rounded-tl-sm border border-slate-700/50"
                   )}>
-                    {m.content}
+                    <div className="[&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_em]:italic [&_code]:bg-black/20 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_pre]:bg-black/20 [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:mb-1 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:text-base [&_h2]:font-bold [&_h3]:text-sm [&_h3]:font-semibold [&_blockquote]:border-l-4 [&_blockquote]:border-white/30 [&_blockquote]:pl-4 [&_blockquote]:italic">
+                      <Streamdown>{m.content}</Streamdown>
+                    </div>
                   </div>
                 </div>
               </div>

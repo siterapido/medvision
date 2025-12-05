@@ -621,10 +621,66 @@ export default function LandingPage() {
               align="center"
             />
 
-            {/* Oferta Especial de Lançamento - ajustar conteúdo dentro dos cards e ordem: esquerda anual, direita mensal */}
-            <div className="flex justify-center">
-              {/* Plano Anual - Mais Econômico (esquerda) */}
-              <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-primary shadow-2xl md:scale-[1.04] bg-gradient-to-b from-primary/10 to-transparent w-full max-w-[560px] min-h-[480px]">
+            {/* Planos Mensal e Anual */}
+            <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
+              {/* Plano Mensal */}
+              <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-border hover:border-primary/50 w-full min-h-[480px] flex flex-col">
+                <div className="text-center mb-5">
+                  <h3 className="text-xl font-bold mb-1">Plano Mensal</h3>
+                  <div className="flex items-baseline justify-center gap-1">
+                    <span className="text-3xl md:text-4xl font-extrabold text-primary">R$ 30</span>
+                    <span className="text-muted-foreground">/mês</span>
+                  </div>
+                </div>
+
+                <ul className="space-y-3 mb-6 flex-grow">
+                  <li className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm">Consultor 24/7 no WhatsApp - sem limite de perguntas</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm">Respostas fundamentadas em literatura científica</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm">Prescrições com dosagens corretas e protocolos atualizados</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm">Ajuda em provas, estágios e casos clínicos complexos</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span className="text-sm">Live exclusiva toda quarta-feira com Q&A</span>
+                  </li>
+                </ul>
+
+                <div className="mt-auto space-y-4">
+                  <p className="text-center text-sm font-medium text-primary">
+                    Inclui teste grátis de 7 dias
+                  </p>
+                  <Link href="/register" className="block">
+                    <Button className="w-full shadow-lg" size="lg" variant="cta">
+                      Começar Teste Grátis
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                </div>
+              </Card>
+
+              {/* Plano Anual - Mais Econômico */}
+              <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-primary shadow-2xl md:scale-[1.04] bg-gradient-to-b from-primary/10 to-transparent w-full min-h-[480px] flex flex-col">
                 {/* Fita de oferta especial apenas no plano anual */}
                 <div className="pointer-events-none absolute -right-14 top-6 rotate-45 z-10">
                   <span className="bg-accent text-accent-foreground px-16 py-1 text-xs font-semibold shadow-md">Oferta Especial</span>
@@ -636,7 +692,7 @@ export default function LandingPage() {
                   <h3 className="text-xl font-bold mb-1">Plano Anual</h3>
                   <div className="flex flex-col items-center gap-1">
                     <span className="text-xs md:text-sm text-muted-foreground line-through">Valor original: R$ 480/ano</span>
-                    <span className="text-xs md:text-sm font-semibold tracking-wide text-accent">Black Friday • 50% OFF</span>
+                    <span className="text-xs md:text-sm font-semibold tracking-wide text-accent">50% OFF</span>
                   </div>
                   <div className="flex items-baseline justify-center gap-1">
                     <span className="text-3xl md:text-4xl font-extrabold text-primary">R$ 240</span>
@@ -645,7 +701,7 @@ export default function LandingPage() {
                   <div className="mt-2 text-xs md:text-sm font-medium text-primary">Preço de lançamento • Economize R$ 240 (equivalente a R$ 20/mês)</div>
                 </div>
 
-                <ul className="space-y-3 mb-6">
+                <ul className="space-y-3 mb-6 flex-grow">
                   <li className="flex items-start gap-3">
                     <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
@@ -698,12 +754,17 @@ export default function LandingPage() {
                   </li>
                 </ul>
 
-                <Link href="/register" className="block">
-                  <Button className="w-full shadow-lg" size="lg" variant="cta">
-                    Começar Teste Grátis
-                    <ArrowRight className="ml-2 h-5 w-5" />
-                  </Button>
-                </Link>
+                <div className="mt-auto space-y-4">
+                  <p className="text-center text-sm font-medium text-primary">
+                    Inclui teste grátis de 7 dias
+                  </p>
+                  <Link href="/register" className="block">
+                    <Button className="w-full shadow-lg" size="lg" variant="cta">
+                      Começar Teste Grátis
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  </Link>
+                </div>
               </Card>
             </div>
 

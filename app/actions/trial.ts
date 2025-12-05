@@ -26,10 +26,10 @@ export async function startTrial(options?: StartTrialOptions) {
     return { success: false, message: "Usuário não autenticado" }
   }
 
-  // Verificar se já usou o trial
+  // Verificar se já usou o trial e buscar pipeline_stage atual
   const { data: profile } = await supabase
     .from("profiles")
-    .select("trial_used, trial_started_at, plan_type, trial_ends_at")
+    .select("trial_used, trial_started_at, plan_type, trial_ends_at, pipeline_stage")
     .eq("id", user.id)
     .single()
 
@@ -66,6 +66,8 @@ export async function startTrial(options?: StartTrialOptions) {
       trial_started_at: startDate.toISOString(),
       trial_ends_at: endDate.toISOString(),
       trial_used: false, // Mantém false - será marcado como true quando o trial expirar ou for consumido
+      // Preserva o pipeline_stage se já existir, caso contrário define como 'novo_usuario'
+      pipeline_stage: profile?.pipeline_stage || "novo_usuario",
     })
     .eq("id", user.id)
 

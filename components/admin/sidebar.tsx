@@ -41,7 +41,7 @@ type NavItem = {
   icon: LucideIcon
 }
 
-const navigation: NavItem[] = [
+const allNavigationItems: NavItem[] = [
   { name: "Visão geral", href: "/admin", icon: LayoutDashboard },
   { name: "Gerenciar Cursos", href: "/admin/cursos", icon: BookOpen },
   { name: "Materiais", href: "/admin/materiais", icon: FileText },
@@ -52,6 +52,12 @@ const navigation: NavItem[] = [
   { name: "Usuários", href: "/admin/usuarios", icon: Users },
 ]
 
+// Itens de navegação permitidos para vendedores
+const vendedorNavigationItems: NavItem[] = [
+  { name: "Visão geral", href: "/admin", icon: LayoutDashboard },
+  { name: "Pipeline", href: "/admin/pipeline", icon: Workflow },
+]
+
 export function AdminSidebar({ user, profile, isVisible = true }: AdminSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
@@ -60,7 +66,10 @@ export function AdminSidebar({ user, profile, isVisible = true }: AdminSidebarPr
   const userEmail = profile?.email || user.email || ""
   const userName = profile?.name || user.email?.split("@")[0] || "Usuário"
   const resolvedRole = resolveUserRole(profile?.role, user)
-  const userRoleLabel = resolvedRole === "admin" ? "Administrador" : "Cliente"
+  const userRoleLabel = resolvedRole === "admin" ? "Administrador" : resolvedRole === "vendedor" ? "Vendedor" : "Cliente"
+  
+  // Filtrar navegação baseado no role
+  const navigation = resolvedRole === "vendedor" ? vendedorNavigationItems : allNavigationItems
 
   const handleLogout = async () => {
     try {

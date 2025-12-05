@@ -323,7 +323,8 @@ async function handlePurchaseApproved(payload: Record<string, unknown>, courseDa
         name: customerName || user.name,
         phone: customerPhone || undefined,
         cpf: customerCpf || undefined,
-        account_source: 'cakto'
+        account_source: 'cakto',
+        pipeline_stage: 'convertido'
       });
 
       await upsertPaymentHistory({
@@ -670,17 +671,28 @@ async function createUserAccount(userData: {
   }
 
   // Atualiza ou cria o perfil
+  // Se for um novo usuário, define pipeline_stage = 'novo_usuario'
+  const profileData: Record<string, unknown> = {
+    id: userId,
+    email: userData.email,
+    name: userData.name,
+    phone: userData.phone,
+    cpf: userData.cpf,
+    account_source: 'cakto',
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  };
+
+  // Apenas define pipeline_stage para novos usuários
+  if (!existingUser) {
+    profileData.pipeline_stage = 'novo_usuario';
+  }
+
   const { error: profileError } = await supabase
     .from('profiles')
-    .upsert({
-      id: userId,
-      email: userData.email,
-      name: userData.name,
-      phone: userData.phone,
-      cpf: userData.cpf,
-      account_source: 'cakto',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
+    .upsert(profileData, {
+      onConflict: 'id',
+      ignoreDuplicates: false
     });
 
   if (profileError) {

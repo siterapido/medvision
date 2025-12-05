@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react"
 import { Send, Loader2, User, Bot, Copy, RotateCcw } from "lucide-react"
+import { Streamdown } from "streamdown"
 
 type Message = {
   id: string
@@ -205,9 +206,9 @@ export function ChatInterface() {
                       : "bg-slate-800/80 border border-slate-700/50 text-slate-100 shadow-lg"
                   }`}
                 >
-                  <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                    {message.content}
-                  </p>
+                  <div className="text-sm leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_em]:italic [&_code]:bg-black/20 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_pre]:bg-black/20 [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:mb-1 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:text-base [&_h2]:font-bold [&_h3]:text-sm [&_h3]:font-semibold [&_blockquote]:border-l-4 [&_blockquote]:border-white/30 [&_blockquote]:pl-4 [&_blockquote]:italic">
+                    <Streamdown>{message.content}</Streamdown>
+                  </div>
                 </div>
 
                 {message.role === "assistant" && message.id === messages[messages.length - 1]?.id && !isLoading && (

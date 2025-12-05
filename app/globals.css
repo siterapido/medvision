@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@source "../node_modules/streamdown/dist/index.js";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -123,8 +124,6 @@
 }
 
 @theme inline {
-  --font-sans: "Inter", "Inter Fallback";
-  --font-mono: "Geist Mono", "Geist Mono Fallback";
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -161,7 +160,6 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-serif: "Source Serif 4", "Source Serif 4 Fallback";
   --color-success: var(--success);
   --color-success-foreground: var(--success-foreground);
   --color-warning: var(--warning);
@@ -210,1161 +208,180 @@
 }
 
 /* Modern micro-interactions and subtle animated gradients */
-@keyframes gradientShift {
+@keyframes shimmer {
   0% {
-    transform: translate3d(0, 0, 0) scale(1);
-    filter: hue-rotate(0deg) saturate(1);
-  }
-  50% {
-    transform: translate3d(2%, -2%, 0) scale(1.02);
-    filter: hue-rotate(10deg) saturate(1.1);
+    background-position: 200% 0;
   }
   100% {
-    transform: translate3d(-2%, 2%, 0) scale(1);
-    filter: hue-rotate(-10deg) saturate(1);
+    background-position: -200% 0;
   }
 }
 
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-/* Tech grid drift to convey "IA" background */
-@keyframes gridDrift {
-  0% {
-    background-position: 0px 0px, 0px 0px;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    background-position: 80px 40px, 80px 40px;
-    transform: translate3d(1%, -1%, 0) scale(1.01);
-  }
-  100% {
-    background-position: 0px 0px, 0px 0px;
-    transform: translate3d(-1%, 1%, 0) scale(1);
-  }
-}
-
-/* Aurora beams float animation */
-@keyframes beamFloat {
-  0% {
-    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
-  }
-  33% {
-    transform: translate3d(-2%, 3%, 0) rotate(6deg) scale(1.05);
-  }
-  66% {
-    transform: translate3d(3%, -2%, 0) rotate(-4deg) scale(1.03);
-  }
-  100% {
-    transform: translate3d(0, 0, 0) rotate(0deg) scale(1);
-  }
-}
-
-/* Slight wobble to convey "não é a escolha correta" on hover */
-@keyframes invalidWobble {
-  0% { transform: translateX(0) rotate(0deg); }
-  15% { transform: translateX(-2px) rotate(-0.3deg); }
-  30% { transform: translateX(2px) rotate(0.3deg); }
-  45% { transform: translateX(-1px) rotate(-0.2deg); }
-  60% { transform: translateX(1px) rotate(0.2deg); }
-  100% { transform: translateX(0) rotate(0deg); }
-}
-
-/* Smooth size pulse for CTA buttons */
-@keyframes pulseScale {
-  0% {
-    transform: scale(1);
-  }
-  35% {
-    transform: scale(1.06);
-  }
-  60% {
-    transform: scale(1.02);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@layer utilities {
-  .bg-animated-gradient {
-    background-image: radial-gradient(60% 60% at 20% 10%, color-mix(in oklab, var(--accent) 25%, transparent) 0%, transparent 60%),
-      radial-gradient(50% 50% at 90% 10%, color-mix(in oklab, var(--primary) 22%, transparent) 0%, transparent 62%),
-      radial-gradient(40% 40% at 10% 90%, color-mix(in oklab, var(--secondary) 18%, transparent) 0%, transparent 65%);
-    animation: gradientShift 12s ease-in-out infinite;
-    /* Otimizações de performance */
-    will-change: transform;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
-
-  .interactive-card {
-    @apply transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5;
-    will-change: transform, box-shadow;
-  }
-
-  .interactive-button {
-    @apply transition-transform duration-200 hover:scale-[1.02] active:scale-[0.98];
-    will-change: transform;
-  }
-
-  .animate-scale-pulse {
-    animation: pulseScale 1.8s cubic-bezier(0.22, 1, 0.36, 1) infinite;
-    will-change: transform;
-    transform: translateZ(0);
-  }
-
-  .animate-wobble {
-    animation: invalidWobble 420ms ease;
-    will-change: transform;
-  }
-
-  /* === HERO AI Animated Background (shadcn-style aesthetic) === */
-  .hero-ai-bg {
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: -10;
-    overflow: hidden;
-    contain: layout style paint;
-  }
-
-  /* Subtle cyan tech grid that slowly drifts */
-  .hero-ai-grid {
-    position: absolute;
-    inset: 0;
-    opacity: 0.25;
-    filter: saturate(1.05);
-    background-size: 40px 40px, 40px 40px;
-    background-image:
-      repeating-linear-gradient(0deg, color-mix(in oklab, var(--accent) 18%, transparent) 0px, color-mix(in oklab, var(--accent) 18%, transparent) 1px, transparent 1px, transparent 40px),
-      repeating-linear-gradient(90deg, color-mix(in oklab, var(--accent) 12%, transparent) 0px, color-mix(in oklab, var(--accent) 12%, transparent) 1px, transparent 1px, transparent 40px);
-    mask-image: radial-gradient(ellipse 80% 60% at 50% 45%, black 0%, transparent 75%);
-    animation: gridDrift 22s linear infinite;
-    will-change: background-position, transform;
-    transform: translateZ(0);
-    contain: layout style paint;
-  }
-
-  /* Soft moving aurora beams - blur reduzido para 40px para melhor performance */
-  .hero-ai-beam {
-    position: absolute;
-    width: min(48vw, 720px);
-    height: min(48vh, 520px);
-    opacity: 0.3;
-    filter: blur(40px);
-    will-change: transform;
-    transform: translateZ(0);
-    backface-visibility: hidden;
-    background:
-      radial-gradient(circle at 50% 50%, var(--beam-color, color-mix(in oklab, var(--primary) 40%, transparent)) 0%, transparent 60%);
-    animation: beamFloat 18s ease-in-out infinite;
-    contain: layout style paint;
-  }
-
-  /* Desabilita beams em dispositivos mais fracos */
-  @media (max-width: 768px) {
-    .hero-ai-beam {
-      display: none;
-    }
-  }
-}
-
-/* Smooth scrolling for in-page navigation links (e.g., #planos, #faq) */
-html {
-  scroll-behavior: smooth;
-}
-
-/* Respect users who prefer reduced motion */
-@media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
-
-  .animate-scale-pulse,
-  .hero-ai-grid,
-  .hero-ai-beam,
-  .bg-animated-gradient,
-  .animate-float,
-  .animate-wobble {
-    animation: none !important;
-  }
-
-  .interactive-card {
-    transition: none !important;
-  }
-}
-
-/* Otimização para dispositivos menos potentes - desabilita animações pesadas */
-@media (max-width: 768px) or (prefers-reduced-motion: reduce) {
-  .bg-session-landing::before {
-    animation: none;
-    opacity: 0.5;
-  }
-
-  .hero-ai-grid {
-    opacity: 0.15;
-    animation: none;
-  }
-}
-
-/* Backgrounds específicos para cada sessão */
-.bg-session-landing {
-  background: linear-gradient(135deg, 
-    rgba(15, 23, 42, 0.95) 0%, 
-    rgba(30, 41, 59, 0.92) 50%, 
-    rgba(15, 23, 42, 1) 100%
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    rgba(255, 255, 255, 0) 100%
   );
-  position: relative;
-  overflow: hidden;
-  /* Evita "scroll anchoring" jank causado por elementos dinâmicos/pseudo-elementos dentro do container */
-  overflow-anchor: none;
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite linear;
 }
 
-.bg-session-landing::before {
-  content: '';
-  position: absolute;
-  /* Mantém o glow dentro do container para evitar áreas gigantes que causam layout shift */
-  inset: 0;
-  background: radial-gradient(
-    circle at 20% 20%,
-    rgba(6, 182, 212, 0.08) 0%,
-    rgba(34, 211, 238, 0.05) 25%,
-    transparent 50%
-  );
-  /* Otimizações para reduzir reflow/CLS durante animações */
-  will-change: transform;
-  contain: layout style paint;
-  pointer-events: none;
-  animation: float 20s ease-in-out infinite;
-  z-index: -1;
-  transform: translateZ(0);
-  backface-visibility: hidden;
+/* Glassmorphism utilities */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
-.bg-session-chat {
-  background: linear-gradient(135deg, 
-    rgba(30, 41, 59, 0.95) 0%, 
-    rgba(15, 23, 42, 0.98) 50%, 
-    rgba(15, 23, 42, 1) 100%
-  );
-  position: relative;
-  overflow: hidden;
+.dark .glass {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.bg-session-chat::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    radial-gradient(circle at 10% 20%, rgba(8, 145, 178, 0.03) 0%, transparent 50%),
-    radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.02) 0%, transparent 50%);
-  z-index: -1;
+.glass-card {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
 }
 
-.bg-session-dashboard {
-  background: linear-gradient(135deg, 
-    rgba(30, 41, 59, 0.97) 0%, 
-    rgba(15, 23, 42, 0.95) 50%, 
-    rgba(15, 23, 42, 1) 100%
-  );
-  position: relative;
-  overflow: hidden;
+/* Custom scrollbar */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary) transparent;
 }
 
-.bg-session-dashboard::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: 
-    linear-gradient(45deg, rgba(8, 145, 178, 0.02) 0%, transparent 50%),
-    linear-gradient(135deg, rgba(6, 182, 212, 0.01) 0%, transparent 50%);
-  z-index: -1;
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--muted-foreground);
+  border-radius: 20px;
+  opacity: 0.5;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: var(--primary);
+}
+
+/* Remove default number input arrows */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* React markdown custom styles */
+.markdown-content p {
+  margin-bottom: 1rem;
+  line-height: 1.7;
+}
+
+.markdown-content h1, .markdown-content h2, .markdown-content h3 {
+  margin-top: 1.5rem;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.markdown-content ul, .markdown-content ol {
+  margin-left: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+.markdown-content li {
+  margin-bottom: 0.5rem;
+}
+
+/* Custom styling for session cards */
+.bg-session-blue {
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+}
+.dark .bg-session-blue {
+  background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(23, 37, 84, 0.4) 100%);
+}
+
+.bg-session-green {
+  background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+}
+.dark .bg-session-green {
+  background: linear-gradient(135deg, rgba(6, 78, 59, 0.4) 0%, rgba(2, 44, 34, 0.4) 100%);
+}
+
+/* Enhanced background patterns for cards */
+.bg-grid-white {
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'%3E%3Cpath d='M0 40L40 0H20L0 20M40 40V20L20 40'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Animated gradient text */
+.text-gradient {
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-image: linear-gradient(to right, var(--primary), var(--accent));
+}
+
+/* Subtle glow effect for active elements */
+.glow-primary {
+  box-shadow: 0 0 15px rgba(8, 145, 178, 0.3);
+}
+
+.dark .glow-primary {
+  box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+}
+
+/* Background for session components */
 .bg-session-courses {
-  background: linear-gradient(135deg, 
-    rgba(30, 41, 59, 0.96) 0%, 
-    rgba(15, 23, 42, 0.94) 50%, 
-    rgba(15, 23, 42, 1) 100%
-  );
+  background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
   position: relative;
   overflow: hidden;
 }
 
 .bg-session-courses::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background: 
-    radial-gradient(circle at 30% 40%, rgba(6, 182, 212, 0.02) 0%, transparent 60%),
-    radial-gradient(circle at 70% 60%, rgba(34, 211, 238, 0.015) 0%, transparent 60%);
-  z-index: -1;
+    radial-gradient(circle at 10% 20%, rgba(8, 145, 178, 0.03) 0%, transparent 40%),
+    radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.03) 0%, transparent 40%);
+  z-index: 0;
 }
 
 .bg-session-pricing {
-  background: linear-gradient(135deg, 
-    rgba(248, 250, 252, 0.96) 0%, 
-    rgba(241, 245, 249, 0.93) 50%, 
-    rgba(255, 255, 255, 1) 100%
-  );
+  background: linear-gradient(135deg, #f0fdfa 0%, #ecfeff 100%);
   position: relative;
   overflow: hidden;
 }
 
 .bg-session-pricing::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
   background: 
-    linear-gradient(30deg, rgba(8, 145, 178, 0.025) 0%, transparent 50%),
-    linear-gradient(150deg, rgba(6, 182, 212, 0.015) 0%, transparent 50%);
-  z-index: -1;
-}
-
-/* Seção de depoimentos – removida duplicidade para usar versão padronizada abaixo */
-
-/* Backgrounds para todas as seções da landing page */
-.bg-hero-section {
-  @apply relative overflow-hidden;
-  /* Enhanced gradient with more depth and variation */
-  background:
-    radial-gradient(ellipse at top, #1A2847 0%, transparent 60%),
-    linear-gradient(135deg, #0F192F 0%, #131D37 35%, #1A2847 65%, #131D37 100%);
-}
-
-.bg-hero-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Intensified glow with cyan accent */
-  background:
-    radial-gradient(ellipse 80% 55% at 50% -15%, rgba(8, 145, 178, 0.08) 0%, transparent 65%),
-    radial-gradient(circle at 20% 80%, rgba(6, 182, 212, 0.06) 0%, transparent 50%);
-  pointer-events: none;
-}
-.bg-how-it-works-section {
-  @apply relative overflow-hidden;
-  /* Dark theme with diagonal depth */
-  background:
-    radial-gradient(ellipse at center, #16243F 0%, transparent 60%),
-    linear-gradient(145deg, #131D37 0%, #0F192F 25%, #1A2847 55%, #131F38 80%, #0F192F 100%);
-  /* Card palette for dark sections */
-  --card: #16243F;
-  --card-foreground: #E6EDF7;
-  --border: #24324F;
-}
-
-.bg-how-it-works-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Layered #2399B4 glows */
-  background:
-    radial-gradient(circle at 30% 20%, rgba(35, 153, 180, 0.12) 0%, transparent 65%),
-    radial-gradient(ellipse 75% 60% at 70% 80%, rgba(35, 153, 180, 0.10) 0%, transparent 70%),
-    radial-gradient(circle at 50% 50%, rgba(35, 153, 180, 0.06) 0%, transparent 50%);
-  pointer-events: none;
-}
-
-
-.bg-benefits-section {
-  @apply relative overflow-hidden;
-  /* Dark theme with wave-like gradient */
-  background:
-    radial-gradient(ellipse at top right, #1A2847 0%, transparent 68%),
-    linear-gradient(125deg, #0F192F 0%, #131F38 40%, #16243F 65%, #131D37 85%, #0F192F 100%);
-  /* Card palette for dark sections */
-  --card: #16243F;
-  --card-foreground: #E6EDF7;
-  --border: #24324F;
-}
-
-.bg-benefits-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Multiple floating #2399B4 glows */
-  background:
-    radial-gradient(circle at 15% 30%, rgba(35, 153, 180, 0.11) 0%, transparent 60%),
-    radial-gradient(ellipse 70% 60% at 85% 70%, rgba(35, 153, 180, 0.09) 0%, transparent 65%),
-    radial-gradient(circle at 50% 90%, rgba(35, 153, 180, 0.07) 0%, transparent 50%);
-  pointer-events: none;
-  animation: float 22s ease-in-out infinite;
-}
-
-.bg-benefits-section::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Diagonal lines with #2399B4 */
-  background-image: repeating-linear-gradient(
-    -45deg,
-    transparent,
-    transparent 50px,
-    rgba(35, 153, 180, 0.03) 50px,
-    rgba(35, 153, 180, 0.03) 51px
-  );
-  mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, black 0%, transparent 85%);
-  pointer-events: none;
-  opacity: 0.5;
-}
-
-.bg-testimonials-section {
-  @apply relative overflow-hidden;
-  /* Dark theme with layered radial depth */
-  background:
-    radial-gradient(ellipse at top left, #1A2847 0%, transparent 65%),
-    radial-gradient(ellipse at bottom right, #16243F 0%, transparent 70%),
-    linear-gradient(135deg, #0F192F 0%, #131D37 30%, #1A2847 50%, #131F38 70%, #0F192F 100%);
-  /* Card palette for dark sections */
-  --card: #16243F;
-  --card-foreground: #E6EDF7;
-  --border: #24324F;
-}
-
-.bg-testimonials-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Strong #2399B4 glows for testimonials */
-  background:
-    radial-gradient(ellipse 85% 65% at 50% 10%, rgba(35, 153, 180, 0.14) 0%, transparent 70%),
-    radial-gradient(circle at 20% 80%, rgba(35, 153, 180, 0.10) 0%, transparent 55%),
-    radial-gradient(circle at 80% 50%, rgba(35, 153, 180, 0.08) 0%, transparent 50%);
-  pointer-events: none;
-  animation: float 20s ease-in-out infinite;
-}
-
-.bg-testimonials-section::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Subtle grid with #2399B4 tint */
-  background-image:
-    repeating-linear-gradient(0deg, rgba(35, 153, 180, 0.04) 0px, rgba(35, 153, 180, 0.04) 1px, transparent 1px, transparent 50px),
-    repeating-linear-gradient(90deg, rgba(35, 153, 180, 0.04) 0px, rgba(35, 153, 180, 0.04) 1px, transparent 1px, transparent 50px);
-  mask-image: radial-gradient(ellipse 90% 75% at 50% 50%, black 0%, transparent 85%);
-  pointer-events: none;
-  opacity: 0.4;
-}
-
-.bg-pricing-section {
-  @apply relative overflow-hidden;
-  /* Rich gradient for premium feel */
-  background:
-    radial-gradient(ellipse at top right, #1A2847 0%, transparent 60%),
-    radial-gradient(ellipse at bottom left, #16243F 0%, transparent 65%),
-    linear-gradient(135deg, #0F192F 0%, #131F38 50%, #0F192F 100%);
-  /* Card palette scoped to section for coherence with #131F38 */
-  --card: #16243F;
-  --card-foreground: #E6EDF7;
-  --border: #24324F;
-}
-
-.bg-pricing-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Spotlight effect on pricing card */
-  background:
-    radial-gradient(ellipse 90% 60% at 50% 50%, rgba(8, 145, 178, 0.12) 0%, transparent 70%),
-    radial-gradient(circle at 50% -10%, rgba(6, 182, 212, 0.08) 0%, transparent 60%);
-  pointer-events: none;
-  animation: float 18s ease-in-out infinite;
-}
-
-.bg-final-cta-section {
-  @apply relative overflow-hidden;
-  /* Energetic gradient for final CTA */
-  background:
-    radial-gradient(ellipse at center, #1A2847 0%, transparent 55%),
-    linear-gradient(135deg, #131D37 0%, #152241 45%, #1A2847 55%, #131F38 100%);
-  /* Card palette scoped to section for coherence with #131F38 */
-  --card: #16243F;
-  --card-foreground: #E6EDF7;
-  --border: #24324F;
-}
-
-.bg-final-cta-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Pulsing glow for urgency */
-  background:
-    radial-gradient(ellipse 80% 60% at 50% 30%, rgba(8, 145, 178, 0.14) 0%, transparent 70%),
-    radial-gradient(circle at 50% 70%, rgba(6, 182, 212, 0.10) 0%, transparent 60%);
-  pointer-events: none;
-  animation: pulseScale 6s ease-in-out infinite;
-}
-
-.bg-faq-section {
-  @apply relative overflow-hidden;
-  /* Dark theme with subtle waves */
-  background:
-    radial-gradient(ellipse at bottom center, #16243F 0%, transparent 65%),
-    linear-gradient(165deg, #0F192F 0%, #131D37 45%, #1A2847 60%, #131F38 75%, #0F192F 100%);
-  /* Card palette for dark sections */
-  --card: #16243F;
-  --card-foreground: #E6EDF7;
-  --border: #24324F;
-}
-
-.bg-faq-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Concentric #2399B4 glows for FAQ */
-  background:
-    radial-gradient(ellipse 75% 60% at 50% 40%, rgba(35, 153, 180, 0.10) 0%, transparent 70%),
-    radial-gradient(circle at 90% 15%, rgba(35, 153, 180, 0.08) 0%, transparent 55%),
-    radial-gradient(circle at 10% 85%, rgba(35, 153, 180, 0.06) 0%, transparent 50%);
-  pointer-events: none;
-}
-
-.bg-faq-section::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Wave pattern with #2399B4 */
-  background-image:
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 70px,
-      rgba(35, 153, 180, 0.025) 70px,
-      rgba(35, 153, 180, 0.025) 72px
-    );
-  mask-image: radial-gradient(ellipse 95% 85% at 50% 50%, black 0%, transparent 90%);
-  pointer-events: none;
-  opacity: 0.6;
-}
-
-.bg-dentista-section {
-  @apply relative overflow-hidden;
-  /* Enhanced comparison section with depth */
-  background:
-    radial-gradient(ellipse at center, #16243F 0%, transparent 70%),
-    linear-gradient(135deg, #0F192F 0%, #131F38 40%, #1A2847 60%, #131F38 100%);
-  /* Card palette scoped to section for coherence with #131F38 */
-  --card: #16243F;
-  --card-foreground: #E6EDF7;
-  --border: #24324F;
-}
-
-.bg-dentista-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Stronger glow for emphasis */
-  background:
-    radial-gradient(ellipse 85% 60% at 50% -20%, rgba(8, 145, 178, 0.10) 0%, transparent 70%),
-    radial-gradient(circle at 50% 100%, rgba(6, 182, 212, 0.06) 0%, transparent 60%);
-  pointer-events: none;
-}
-
-.bg-dentista-section::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Contrasting glows for success/failure cards */
-  background:
-    radial-gradient(circle at 75% 25%, rgba(8, 145, 178, 0.08) 0%, transparent 50%),
-    radial-gradient(circle at 25% 75%, rgba(239, 68, 68, 0.05) 0%, transparent 50%);
-  pointer-events: none;
-}
-
-/* Seção de responsabilidade técnica - dark theme with professional depth */
-.bg-expert-section {
-  @apply relative overflow-hidden;
-  /* Premium dark gradient with centered spotlight */
-  background:
-    radial-gradient(ellipse at center, #1A2847 0%, transparent 55%),
-    linear-gradient(155deg, #131D37 0%, #0F192F 35%, #16243F 60%, #131F38 85%, #0F192F 100%);
-  /* Card palette for dark sections */
-  --card: #16243F;
-  --card-foreground: #E6EDF7;
-  --border: #24324F;
-}
-
-.bg-expert-section::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Sophisticated #2399B4 spotlight on center */
-  background:
-    radial-gradient(ellipse 80% 70% at 50% 50%, rgba(35, 153, 180, 0.15) 0%, transparent 75%),
-    radial-gradient(circle at 25% 20%, rgba(35, 153, 180, 0.08) 0%, transparent 55%),
-    radial-gradient(circle at 75% 80%, rgba(35, 153, 180, 0.06) 0%, transparent 50%);
-  pointer-events: none;
-  animation: pulseScale 8s ease-in-out infinite;
-}
-
-.bg-expert-section::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* Hexagonal pattern with #2399B4 */
-  background-image:
-    radial-gradient(circle, rgba(35, 153, 180, 0.06) 2px, transparent 2px);
-  background-size: 50px 50px;
-  background-position: 0 0, 25px 25px;
-  mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 0%, transparent 80%);
-  pointer-events: none;
-  opacity: 0.35;
-}
-
-/* Footer background – darker tone based on #131F38 */
-.bg-footer {
-  @apply relative overflow-hidden;
-  background: linear-gradient(135deg, #0F192F 0%, #131F38 55%, #0B1627 100%);
-}
-
-.bg-footer::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse 70% 45% at 50% -10%, rgba(19, 31, 56, 0.16) 0%, transparent 70%);
-  pointer-events: none;
-}
-
-/* === SECTION DIVIDERS === */
-/* Gradient divider between sections for smooth transitions */
-.section-divider {
-  height: 1px;
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(8, 145, 178, 0.3) 50%,
-    transparent 100%
-  );
-  width: 100%;
-}
-
-/* Subtle divider for light to light transitions */
-.section-divider-light {
-  height: 1px;
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(8, 145, 178, 0.15) 50%,
-    transparent 100%
-  );
-  width: 100%;
-}
-
-/* Stronger divider for dark to light transitions */
-.section-divider-contrast {
-  height: 2px;
-  background: linear-gradient(90deg,
-    transparent 0%,
-    rgba(8, 145, 178, 0.4) 30%,
-    rgba(6, 182, 212, 0.4) 70%,
-    transparent 100%
-  );
-  width: 100%;
-  box-shadow: 0 0 20px rgba(8, 145, 178, 0.2);
-}
-
-/* === DARK SECTION OVERRIDES === */
-
-/* Hero logo overrides removed: landing page now uses <Logo variant="white" /> */
-
-/* Force white logo in Login page left side */
-.login-logo-white img:first-child {
-  display: none !important;
-}
-.login-logo-white img:last-child {
-  display: block !important;
-}
-
-/* Force white logo in Footer */
-.footer-logo-white img:first-child {
-  display: none !important;
-}
-.footer-logo-white img:last-child {
-  display: block !important;
-}
-
-/* Scope forced white logo only for footer helper class */
-.bg-footer .footer-logo-white img:first-child,
-.footer-logo-white img:first-child {
-  display: none !important;
-}
-
-.bg-footer .footer-logo-white img:last-child,
-.footer-logo-white img:last-child {
-  display: block !important;
-}
-
-/* Force all text to white in dark sections */
-.bg-footer h1, .bg-footer h2, .bg-footer h3, .bg-footer h4, .bg-footer h5, .bg-footer h6 {
-  color: #ffffff !important;
-}
-
-/* Override badge colors in dark sections - FORCE WHITE */
-.bg-hero-section .inline-flex,
-.bg-dentista-section .inline-flex,
-.bg-testimonials-section .inline-flex,
-.bg-how-it-works-section .inline-flex,
-.bg-benefits-section .inline-flex,
-.bg-expert-section .inline-flex,
-.bg-pricing-section .inline-flex,
-.bg-final-cta-section .inline-flex,
-.bg-faq-section .inline-flex,
-.bg-footer .inline-flex {
-  color: #ffffff !important;
-}
-
-/* Force white for badge/label text in all sections */
-.bg-hero-section [class*="Badge"],
-.bg-dentista-section [class*="Badge"],
-.bg-testimonials-section [class*="Badge"],
-.bg-how-it-works-section [class*="Badge"],
-.bg-benefits-section [class*="Badge"],
-.bg-expert-section [class*="Badge"],
-.bg-pricing-section [class*="Badge"],
-.bg-final-cta-section [class*="Badge"],
-.bg-faq-section [class*="Badge"] {
-  color: #ffffff !important;
-}
-
-/* Override card borders in dark sections for better visibility */
-.bg-hero-section .border-2,
-.bg-dentista-section .border-2,
-.bg-pricing-section .border-2,
-.bg-final-cta-section .border-2 {
-  border-color: rgba(8, 145, 178, 0.3);
-}
-
-/* === ALL SECTIONS NOW DARK - White text and #2399B4 accents === */
-
-/* Force white text in all dark sections */
-.bg-hero-section h1,
-.bg-hero-section h2,
-.bg-hero-section h3,
-.bg-hero-section h4,
-.bg-dentista-section h1,
-.bg-dentista-section h2,
-.bg-dentista-section h3,
-.bg-dentista-section h4,
-.bg-testimonials-section h1,
-.bg-testimonials-section h2,
-.bg-testimonials-section h3,
-.bg-testimonials-section h4,
-.bg-how-it-works-section h1,
-.bg-how-it-works-section h2,
-.bg-how-it-works-section h3,
-.bg-how-it-works-section h4,
-.bg-benefits-section h1,
-.bg-benefits-section h2,
-.bg-benefits-section h3,
-.bg-benefits-section h4,
-.bg-expert-section h1,
-.bg-expert-section h2,
-.bg-expert-section h3,
-.bg-expert-section h4,
-.bg-pricing-section h1,
-.bg-pricing-section h2,
-.bg-pricing-section h3,
-.bg-pricing-section h4,
-.bg-final-cta-section h1,
-.bg-final-cta-section h2,
-.bg-final-cta-section h3,
-.bg-final-cta-section h4,
-.bg-faq-section h1,
-.bg-faq-section h2,
-.bg-faq-section h3,
-.bg-faq-section h4 {
-  color: #ffffff !important;
-}
-
-/* Ensure all paragraphs and descriptions are light colored */
-.bg-hero-section p,
-.bg-dentista-section p,
-.bg-testimonials-section p,
-.bg-how-it-works-section p,
-.bg-benefits-section p,
-.bg-expert-section p,
-.bg-pricing-section p,
-.bg-final-cta-section p,
-.bg-faq-section p {
-  color: #e2e8f0;
-}
-
-.bg-hero-section .text-muted-foreground,
-.bg-dentista-section .text-muted-foreground,
-.bg-testimonials-section .text-muted-foreground,
-.bg-how-it-works-section .text-muted-foreground,
-.bg-benefits-section .text-muted-foreground,
-.bg-expert-section .text-muted-foreground,
-.bg-pricing-section .text-muted-foreground,
-.bg-final-cta-section .text-muted-foreground,
-.bg-faq-section .text-muted-foreground {
-  color: #cbd5e1;
-}
-
-/* Enhanced text colors for dark sections with #2399B4 accents */
-.bg-testimonials-section .text-primary,
-.bg-how-it-works-section .text-primary,
-.bg-benefits-section .text-primary,
-.bg-expert-section .text-primary,
-.bg-faq-section .text-primary {
-  color: #2399B4;
-}
-
-/* Interactive cards in all dark sections */
-.bg-testimonials-section .interactive-card:hover,
-.bg-how-it-works-section .interactive-card:hover,
-.bg-benefits-section .interactive-card:hover,
-.bg-expert-section .interactive-card:hover,
-.bg-faq-section .interactive-card:hover {
-  border-color: rgba(35, 153, 180, 0.6);
-  box-shadow: 0 10px 40px rgba(35, 153, 180, 0.15);
-}
-
-/* Enhanced borders with #2399B4 */
-.bg-testimonials-section .border-primary,
-.bg-how-it-works-section .border-primary,
-.bg-benefits-section .border-primary,
-.bg-expert-section .border-primary,
-.bg-faq-section .border-primary {
-  border-color: #2399B4;
-}
-
-/* === MOBILE SPACING IMPROVEMENTS === */
-@media (max-width: 768px) {
-  /* Better section padding on mobile */
-  section {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-
-  /* Ensure containers have proper padding */
-  .container {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-
-  /* Improved card spacing on mobile */
-  .interactive-card {
-    margin-bottom: 1rem;
-  }
-
-  /* Better text readability on mobile */
-  h1 {
-    line-height: 1.2;
-    margin-bottom: 1rem;
-  }
-
-  h2 {
-    line-height: 1.3;
-    margin-bottom: 0.75rem;
-  }
-
-  h3 {
-    line-height: 1.4;
-    margin-bottom: 0.5rem;
-  }
-
-  /* Improve button spacing on mobile */
-  button, .button, [role="button"] {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
-    min-height: 44px; /* Touch target size */
-  }
-
-  /* Card content padding on mobile */
-  .space-y-8 {
-    gap: 1.5rem;
-  }
-
-  .space-y-6 {
-    gap: 1.25rem;
-  }
-
-  .space-y-4 {
-    gap: 1rem;
-  }
-
-  /* Hero video play button - smaller on mobile */
-  .hero-video-container button div {
-    width: 4rem !important;  /* 64px - smaller than xl (112px) */
-    height: 4rem !important;
-  }
-
-  .hero-video-container button div svg {
-    width: 2rem !important;  /* 32px icon */
-    height: 2rem !important;
-  }
-}
-
-/* === TECH/AI TEXTURES === */
-
-/* Shadcn/ui style AI pattern for Hero section */
-.bg-hero-section::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    /* Subtle tech grid */
-    linear-gradient(90deg, rgba(35, 153, 180, 0.02) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(35, 153, 180, 0.02) 1px, transparent 1px),
-    /* AI beam 1 - top left to bottom right */
-    linear-gradient(135deg,
-      transparent 0%,
-      transparent 35%,
-      rgba(35, 153, 180, 0.08) 45%,
-      rgba(35, 153, 180, 0.12) 50%,
-      rgba(35, 153, 180, 0.08) 55%,
-      transparent 65%,
-      transparent 100%
-    ),
-    /* AI beam 2 - top right to bottom left */
-    linear-gradient(-135deg,
-      transparent 0%,
-      transparent 40%,
-      rgba(6, 182, 212, 0.06) 48%,
-      rgba(6, 182, 212, 0.10) 52%,
-      rgba(6, 182, 212, 0.06) 56%,
-      transparent 64%,
-      transparent 100%
-    ),
-    /* Glow orbs */
-    radial-gradient(ellipse 600px 400px at 20% 30%, rgba(35, 153, 180, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse 500px 350px at 80% 70%, rgba(6, 182, 212, 0.12) 0%, transparent 50%),
-    /* Central highlight */
-    radial-gradient(ellipse 800px 600px at 50% 50%, rgba(35, 153, 180, 0.08) 0%, transparent 60%);
-  background-size:
-    100px 100px,
-    100px 100px,
-    100% 100%,
-    100% 100%,
-    100% 100%,
-    100% 100%,
-    100% 100%;
-  background-position:
-    0 0,
-    0 0,
-    0 0,
-    0 0,
-    0 0,
-    0 0,
-    0 0;
-  filter: blur(1px);
-  mask-image: radial-gradient(ellipse 95% 80% at 50% 50%, black 0%, transparent 85%);
-  pointer-events: none;
-  opacity: 0.6;
-  z-index: 1;
-  animation: heroBeamPulse 8s ease-in-out infinite;
-}
-
-@keyframes heroBeamPulse {
-  0%, 100% {
-    opacity: 0.6;
-    filter: blur(1px);
-  }
-  50% {
-    opacity: 0.75;
-    filter: blur(2px);
-  }
-}
-
-
-/* Data matrix pattern for Benefits section */
-.bg-benefits-section::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    repeating-linear-gradient(
-      -45deg,
-      transparent,
-      transparent 50px,
-      rgba(35, 153, 180, 0.025) 50px,
-      rgba(35, 153, 180, 0.025) 52px
-    ),
-    radial-gradient(circle at 20% 30%, rgba(35, 153, 180, 0.06) 2px, transparent 2px),
-    radial-gradient(circle at 60% 50%, rgba(35, 153, 180, 0.06) 2px, transparent 2px),
-    radial-gradient(circle at 80% 80%, rgba(35, 153, 180, 0.06) 2px, transparent 2px);
-  background-size: 100% 100%, 150px 150px, 150px 150px, 150px 150px;
-  mask-image: radial-gradient(ellipse 90% 80% at 50% 50%, black 0%, transparent 85%);
-  pointer-events: none;
-  opacity: 0.5;
-  z-index: 1;
-}
-
-/* AI Brain pattern for Expert section */
-.bg-expert-section::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    radial-gradient(circle at 50% 50%, rgba(35, 153, 180, 0.12) 4px, transparent 4px),
-    radial-gradient(circle at 30% 40%, rgba(35, 153, 180, 0.08) 3px, transparent 3px),
-    radial-gradient(circle at 70% 40%, rgba(35, 153, 180, 0.08) 3px, transparent 3px),
-    radial-gradient(circle at 40% 70%, rgba(35, 153, 180, 0.08) 3px, transparent 3px),
-    radial-gradient(circle at 60% 70%, rgba(35, 153, 180, 0.08) 3px, transparent 3px),
-    repeating-radial-gradient(
-      circle at 50% 50%,
-      transparent 0px,
-      transparent 40px,
-      rgba(35, 153, 180, 0.03) 40px,
-      rgba(35, 153, 180, 0.03) 42px
-    );
-  background-size: 100% 100%;
-  mask-image: radial-gradient(ellipse 85% 75% at 50% 50%, black 0%, transparent 70%);
-  pointer-events: none;
-  opacity: 0.5;
-  z-index: 1;
-}
-
-/* Data flow pattern for Testimonials */
-.bg-testimonials-section::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 100px,
-      rgba(35, 153, 180, 0.04) 100px,
-      rgba(35, 153, 180, 0.04) 102px
-    ),
-    repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 100px,
-      rgba(35, 153, 180, 0.04) 100px,
-      rgba(35, 153, 180, 0.04) 102px
-    ),
-    radial-gradient(circle at 25% 25%, rgba(35, 153, 180, 0.06) 2px, transparent 2px),
-    radial-gradient(circle at 75% 25%, rgba(35, 153, 180, 0.06) 2px, transparent 2px),
-    radial-gradient(circle at 25% 75%, rgba(35, 153, 180, 0.06) 2px, transparent 2px),
-    radial-gradient(circle at 75% 75%, rgba(35, 153, 180, 0.06) 2px, transparent 2px);
-  background-size: 100% 100%, 100% 100%, 200px 200px, 200px 200px, 200px 200px, 200px 200px;
-  mask-image: radial-gradient(ellipse 90% 75% at 50% 50%, black 0%, transparent 80%);
-  pointer-events: none;
-  opacity: 0.4;
-  z-index: 1;
-}
-
-/* Tech grid for FAQ section */
-.bg-faq-section::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image:
-    linear-gradient(90deg, rgba(35, 153, 180, 0.025) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(35, 153, 180, 0.025) 1px, transparent 1px),
-    radial-gradient(circle at 50% 0%, rgba(35, 153, 180, 0.08) 3px, transparent 3px),
-    radial-gradient(circle at 0% 50%, rgba(35, 153, 180, 0.08) 3px, transparent 3px),
-    radial-gradient(circle at 100% 50%, rgba(35, 153, 180, 0.08) 3px, transparent 3px),
-    radial-gradient(circle at 50% 100%, rgba(35, 153, 180, 0.08) 3px, transparent 3px);
-  background-size: 60px 60px, 60px 60px, 100% 100%, 100% 100%, 100% 100%, 100% 100%;
-  mask-image: radial-gradient(ellipse 95% 85% at 50% 50%, black 0%, transparent 85%);
-  pointer-events: none;
-  opacity: 0.5;
-  z-index: 1;
-}
-
-/* === LOGIN PAGE STYLES === */
-
-.bg-login-page {
-  background: linear-gradient(135deg, #0F192F 0%, #131D37 50%, #1A2847 100%);
-}
-
-/* Grid pattern for login left side */
-.bg-grid-pattern {
-  background-image:
-    linear-gradient(90deg, rgba(35, 153, 180, 0.03) 1px, transparent 1px),
-    linear-gradient(0deg, rgba(35, 153, 180, 0.03) 1px, transparent 1px);
-  background-size: 50px 50px;
-  animation: gridFloat 20s ease-in-out infinite;
-}
-
-@keyframes gridFloat {
-  0%, 100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(10px, 10px);
-  }
-}
-
-/* Dark mode variations */
-.dark .bg-session-landing {
-  background: linear-gradient(135deg, 
-    rgba(15, 23, 42, 0.95) 0%, 
-    rgba(30, 41, 59, 0.92) 50%, 
-    rgba(15, 23, 42, 1) 100%
-  );
-}
-
-.dark .bg-session-landing::before {
-  background: radial-gradient(
-    circle at 20% 20%,
-    rgba(6, 182, 212, 0.08) 0%, 
-    rgba(34, 211, 238, 0.05) 25%, 
-    transparent 50%
-  );
-}
-
-.dark .bg-session-chat {
-  background: linear-gradient(135deg, 
-    rgba(30, 41, 59, 0.95) 0%, 
-    rgba(15, 23, 42, 0.98) 50%, 
-    rgba(15, 23, 42, 1) 100%
-  );
-}
-
-.dark .bg-session-chat::before {
-  background: 
-    radial-gradient(circle at 10% 20%, rgba(6, 182, 212, 0.04) 0%, transparent 50%),
-    radial-gradient(circle at 90% 80%, rgba(34, 211, 238, 0.03) 0%, transparent 50%);
-}
-
-.dark .bg-session-dashboard {
-  background: linear-gradient(135deg, 
-    rgba(30, 41, 59, 0.97) 0%, 
-    rgba(15, 23, 42, 0.95) 50%, 
-    rgba(15, 23, 42, 1) 100%
-  );
-}
-
-.dark .bg-session-dashboard::before {
-  background: 
-    linear-gradient(45deg, rgba(6, 182, 212, 0.03) 0%, transparent 50%),
-    linear-gradient(135deg, rgba(34, 211, 238, 0.02) 0%, transparent 50%);
+    linear-gradient(45deg, rgba(8, 145, 178, 0.05) 0%, transparent 60%),
+    linear-gradient(225deg, rgba(6, 182, 212, 0.05) 0%, transparent 60%);
+  z-index: 0;
 }
 
 .dark .bg-session-courses {
   background: linear-gradient(135deg, 
-    rgba(30, 41, 59, 0.96) 0%, 
-    rgba(15, 23, 42, 0.94) 50%, 
+    rgba(15, 23, 42, 0.8) 0%, 
+    rgba(15, 23, 42, 0.95) 50%, 
     rgba(15, 23, 42, 1) 100%
   );
 }
@@ -1560,33 +577,4 @@ body {
   .fixed-footer-content {
     padding: 1rem 1.5rem;
   }
-}
-
-@media (min-width: 1024px) {
-  .fixed-footer-content {
-    padding: 1rem 2rem;
-    max-width: 1200px;
-  }
-}
-
-/* Suporte para navegadores mais antigos */
-@supports not (backdrop-filter: blur(10px)) {
-  .fixed-footer-container {
-    background: var(--card);
-    opacity: 0.98;
-  }
-}
-
-/* Garantir que não há espaçamento após o footer do dashboard */
-footer {
-  display: block;
-  margin: 0 !important;
-}
-
-footer * {
-  margin-bottom: 0 !important;
-}
-
-main {
-  padding-bottom: 0 !important;
 }

@@ -83,6 +83,7 @@ import {
   normalizeTrialDays,
 } from "@/lib/trial"
 import { UserEditDialog } from "./user-edit-dialog"
+import { CreateVendedorDialog } from "./create-vendedor-dialog"
 
 export type UserRow = {
   id: string
@@ -134,7 +135,8 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
   const [trialDialogOpen, setTrialDialogOpen] = useState(false)
   const [roleDialogOpen, setRoleDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [newRole, setNewRole] = useState<"cliente" | "admin">("cliente")
+  const [createVendedorDialogOpen, setCreateVendedorDialogOpen] = useState(false)
+  const [newRole, setNewRole] = useState<"cliente" | "admin" | "vendedor">("cliente")
   const [planForm, setPlanForm] = useState({
     plan_type: "free" as "free" | "monthly" | "annual",
     subscription_status: "free" as "free" | "active" | "canceled" | "past_due" | "refunded",
@@ -154,7 +156,7 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
     message: string
   } | null>(null)
   const [bulkRoleEnabled, setBulkRoleEnabled] = useState(false)
-  const [bulkRole, setBulkRole] = useState<"cliente" | "admin">("cliente")
+  const [bulkRole, setBulkRole] = useState<"cliente" | "admin" | "vendedor">("cliente")
   const [bulkPlanEnabled, setBulkPlanEnabled] = useState(false)
   const [bulkPlanForm, setBulkPlanForm] = useState({
     plan_type: "free" as "free" | "monthly" | "annual",
@@ -222,6 +224,7 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
       total: users.length,
       admins: users.filter((u) => u.role === "admin").length,
       clients: users.filter((u) => u.role === "cliente" || !u.role).length,
+      vendedores: users.filter((u) => u.role === "vendedor").length,
       withSubscription: users.filter(
         (u) => u.plan_type && u.plan_type !== "free"
       ).length,
@@ -265,6 +268,13 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
       return (
         <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
           Admin
+        </Badge>
+      )
+    }
+    if (role === "vendedor") {
+      return (
+        <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30">
+          Vendedor
         </Badge>
       )
     }
@@ -448,7 +458,14 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
   const handleOpenRole = (user: UserRow) => {
     setSelectedUser(user)
     setDialogMessage(null)
-    setNewRole(user.role === "admin" ? "cliente" : "admin")
+    // Alterna entre os roles disponíveis
+    if (user.role === "admin") {
+      setNewRole("cliente")
+    } else if (user.role === "vendedor") {
+      setNewRole("admin")
+    } else {
+      setNewRole("admin")
+    }
     setRoleDialogOpen(true)
   }
 
@@ -700,7 +717,7 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
       )}
 
       {/* Estatísticas */}
-      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
         <div className="bg-[#131D37] border border-slate-700 rounded-lg p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
@@ -744,6 +761,20 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
         <div className="bg-[#131D37] border border-slate-700 rounded-lg p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
+              <p className="text-xs sm:text-sm text-slate-400 truncate">Vendedores</p>
+              <p className="text-xl sm:text-2xl font-bold text-blue-400 mt-1">
+                {stats.vendedores}
+              </p>
+            </div>
+            <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full bg-blue-500/10 flex items-center justify-center flex-shrink-0 ml-2">
+              <Users className="h-5 w-5 sm:h-6 sm:w-6 text-blue-400" />
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#131D37] border border-slate-700 rounded-lg p-3 sm:p-4">
+          <div className="flex items-center justify-between">
+            <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm text-slate-400 truncate">Com Assinatura</p>
               <p className="text-xl sm:text-2xl font-bold text-green-400 mt-1">
                 {stats.withSubscription}
@@ -772,6 +803,17 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
 
       {/* Barra de ações */}
       <div className="flex flex-col gap-3 sm:gap-4">
+        {/* Botão criar vendedor */}
+        <div className="flex justify-end">
+          <Button
+            onClick={() => setCreateVendedorDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            <Users className="mr-2 h-4 w-4" />
+            Criar Vendedor
+          </Button>
+        </div>
+
         {/* Busca */}
         <div className="relative w-full">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
@@ -800,6 +842,9 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
               </SelectItem>
               <SelectItem value="cliente" className="text-white">
                 Clientes
+              </SelectItem>
+              <SelectItem value="vendedor" className="text-white">
+                Vendedores
               </SelectItem>
             </SelectContent>
           </Select>
@@ -1276,7 +1321,7 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Select
                   value={bulkRole}
-                  onValueChange={(value) => setBulkRole(value as "cliente" | "admin")}
+                  onValueChange={(value) => setBulkRole(value as "cliente" | "admin" | "vendedor")}
                   disabled={!bulkRoleEnabled}
                 >
                   <SelectTrigger className="bg-[#131D37] border-slate-600 text-white disabled:opacity-50 disabled:cursor-not-allowed">
@@ -1288,6 +1333,9 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
                     </SelectItem>
                     <SelectItem value="admin" className="text-white">
                       Administrador
+                    </SelectItem>
+                    <SelectItem value="vendedor" className="text-white">
+                      Vendedor
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -1665,7 +1713,7 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
             <div className="space-y-3">
               <div className="space-y-2">
                 <Label className="text-slate-300">Função</Label>
-                <Select value={newRole} onValueChange={(value) => setNewRole(value as "cliente" | "admin")}>
+                <Select value={newRole} onValueChange={(value) => setNewRole(value as "cliente" | "admin" | "vendedor")}>
                   <SelectTrigger className="bg-[#131D37] border-slate-600 text-white">
                     <SelectValue />
                   </SelectTrigger>
@@ -1675,6 +1723,9 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
                     </SelectItem>
                     <SelectItem value="admin" className="text-white">
                       Administrador
+                    </SelectItem>
+                    <SelectItem value="vendedor" className="text-white">
+                      Vendedor
                     </SelectItem>
                   </SelectContent>
                 </Select>
@@ -2030,6 +2081,12 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Dialog de criação de vendedor */}
+      <CreateVendedorDialog
+        open={createVendedorDialogOpen}
+        onOpenChange={setCreateVendedorDialogOpen}
+      />
     </div>
   )
 }

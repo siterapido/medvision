@@ -11,6 +11,7 @@ type PipelineStage =
   | "implicacao"
   | "motivacao"
   | "convertido"
+  | "nao_convertido"
 
 export async function updatePipelineStage(userId: string, stage: PipelineStage | null) {
   const supabase = await createClient()
@@ -32,7 +33,7 @@ export async function updatePipelineStage(userId: string, stage: PipelineStage |
   }
 
   // Validar stage
-  if (stage && !["novo_usuario", "situacao", "problema", "implicacao", "motivacao", "convertido"].includes(stage)) {
+  if (stage && !["novo_usuario", "situacao", "problema", "implicacao", "motivacao", "convertido", "nao_convertido"].includes(stage)) {
     return { success: false, message: "Etapa inválida" }
   }
 

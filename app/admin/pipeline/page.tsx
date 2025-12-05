@@ -34,6 +34,8 @@ async function TrialPipelineContent() {
     .select(
       "id, name, email, whatsapp, profession, company, institution, plan_type, subscription_status, trial_started_at, trial_ends_at, trial_used, created_at, pipeline_stage"
     )
+    .neq("role", "admin")
+    .neq("role", "vendedor")
     .or(
       "trial_started_at.not.is.null,trial_ends_at.not.is.null,trial_used.eq.true,plan_type.neq.free,pipeline_stage.not.is.null"
     )

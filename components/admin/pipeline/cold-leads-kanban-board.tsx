@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Clock3, Phone, Mail, MoreHorizontal, Trash2, GripVertical } from "lucide-react"
+import { Clock3, Phone, Mail, MoreHorizontal, Trash2, GripVertical, MapPin, GraduationCap } from "lucide-react"
 import {
   DndContext,
   DragEndEvent,
@@ -17,8 +17,8 @@ import { formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
 
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -26,8 +26,16 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 import { updateLeadStatus, deleteLead, type Lead, type LeadStatus } from "@/app/actions/leads"
+import { PipelineFilters, type PipelineFiltersState } from "./pipeline-filters"
+import { BulkActionsBar } from "./bulk-actions-bar"
 
 type StageConfig = {
   id: LeadStatus
@@ -42,6 +50,7 @@ const STAGES: StageConfig[] = [
   { id: "implicacao", title: "Implicação (I)", color: "border-t-violet-400" },
   { id: "motivacao", title: "Motivação (M)", color: "border-t-fuchsia-400" },
   { id: "convertido", title: "Convertido", color: "border-t-green-400" },
+  { id: "nao_convertido", title: "Não Convertido", color: "border-t-red-400" },
 ]
 
 type LeadWithStage = Lead & { resolvedStage: LeadStatus }
@@ -60,14 +69,24 @@ interface ColdLeadCardProps {
   lead: LeadWithStage
   onStageChange: () => void
   isDragOverlay?: boolean
+  isSelected?: boolean
+  onSelect?: (id: string, selected: boolean) => void
+  selectionMode?: boolean
 }
 
-function ColdLeadCard({ lead, onStageChange, isDragOverlay = false }: ColdLeadCardProps) {
+function ColdLeadCard({ 
+  lead, 
+  onStageChange, 
+  isDragOverlay = false,
+  isSelected = false,
+  onSelect,
+  selectionMode = false
+}: ColdLeadCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: lead.id,
-    disabled: isDragOverlay,
+    disabled: isDragOverlay || selectionMode,
   })
 
   const style = transform
@@ -80,6 +99,19 @@ function ColdLeadCard({ lead, onStageChange, isDragOverlay = false }: ColdLeadCa
   const phoneDigits = sanitizePhone(lead.phone)
   const whatsappUrl = phoneDigits ? `https://wa.me/${phoneDigits}` : null
   const isConverted = lead.status === "convertido"
+
+  const handleCheckboxChange = (checked: boolean) => {
+    onSelect?.(lead.id, checked)
+  }
+
+  // Se estiver em modo de seleção, clicar no card seleciona
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (selectionMode) {
+      e.preventDefault()
+      e.stopPropagation() // Impede drag
+      onSelect?.(lead.id, !isSelected)
+    }
+  }
 
   const handleDelete = async () => {
     if (!confirm(`Tem certeza que deseja excluir o lead "${lead.name || lead.phone}"?`)) {
@@ -102,36 +134,57 @@ function ColdLeadCard({ lead, onStageChange, isDragOverlay = false }: ColdLeadCa
     <div
       ref={setNodeRef}
       style={style}
+      onClick={handleCardClick}
       className={cn(
         "group relative flex flex-col gap-2 rounded-md border border-slate-700 bg-slate-800/60 p-2.5 hover:border-slate-600 transition-all",
         isDragging && !isDragOverlay && "opacity-50",
-        !isDragOverlay && "cursor-grab active:cursor-grabbing",
-        isConverted && "border-l-2 border-l-green-400 bg-green-500/10"
+        !isDragOverlay && !selectionMode && "cursor-grab active:cursor-grabbing",
+        isConverted && "border-l-2 border-l-green-400 bg-green-500/10",
+        isSelected && "ring-1 ring-primary border-primary bg-primary/5"
       )}
     >
       {/* Header */}
       <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-1.5 mb-0.5">
-            <button
-              {...listeners}
-              {...attributes}
-              className="text-slate-600 hover:text-slate-400 -ml-1 cursor-grab active:cursor-grabbing"
-            >
-              <GripVertical className="h-3.5 w-3.5" />
-            </button>
-            <span className="font-medium text-sm text-slate-200 truncate block">
-              {lead.name || "Lead sem nome"}
-            </span>
+        <div className="flex-1 min-w-0 flex items-start gap-2">
+          {/* Checkbox para seleção (visível no hover ou quando selecionado) */}
+          <div className={cn(
+            "mt-0.5 transition-opacity duration-200",
+            isSelected || selectionMode ? "opacity-100" : "opacity-0 group-hover:opacity-100",
+            // Em mobile sempre mostra se houver algum selecionado (selectionMode)
+            "lg:opacity-0 lg:group-hover:opacity-100",
+            (isSelected || selectionMode) && "lg:opacity-100"
+          )}>
+            <Checkbox 
+              checked={isSelected}
+              onCheckedChange={handleCheckboxChange}
+              className="border-slate-600 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+            />
           </div>
-          <div className="flex items-center gap-2 text-[10px] text-slate-500 pl-4">
-            {lead.email && (
-              <>
-                <Mail className="h-3 w-3" />
-                <span className="truncate">{lead.email}</span>
-              </>
-            )}
-            <span>• {ageLabel}</span>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-1.5 mb-0.5">
+              {!selectionMode && (
+                <button
+                  {...listeners}
+                  {...attributes}
+                  className="text-slate-600 hover:text-slate-400 -ml-1 cursor-grab active:cursor-grabbing"
+                >
+                  <GripVertical className="h-3.5 w-3.5" />
+                </button>
+              )}
+              <span className="font-medium text-sm text-slate-200 truncate block">
+                {lead.name || "Lead sem nome"}
+              </span>
+            </div>
+            <div className="flex items-center gap-2 text-[10px] text-slate-500 pl-4">
+              {lead.email && (
+                <>
+                  <Mail className="h-3 w-3" />
+                  <span className="truncate">{lead.email}</span>
+                </>
+              )}
+              <span>• {ageLabel}</span>
+            </div>
           </div>
         </div>
 
@@ -184,13 +237,49 @@ function ColdLeadCard({ lead, onStageChange, isDragOverlay = false }: ColdLeadCa
         </DropdownMenu>
       </div>
 
+      {/* Info Rows */}
+      <div className="space-y-1 pl-4">
+        {(lead.state || lead.ies) && (
+          <div className="flex flex-wrap gap-2 text-[10px] text-slate-400">
+            {lead.state && (
+              <div className="flex items-center gap-1">
+                <MapPin className="h-3 w-3 text-slate-500" />
+                <span>{lead.state}</span>
+              </div>
+            )}
+            {lead.ies && (
+              <div className="flex items-center gap-1">
+                <GraduationCap className="h-3 w-3 text-slate-500" />
+                <span className="truncate max-w-[120px]">{lead.ies}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Badges */}
-      <div className="flex flex-wrap gap-1.5 pl-4">
+      <div className="flex flex-wrap gap-1.5 pl-4 mt-1">
         <span className="text-[10px] text-slate-400 font-mono">{lead.phone}</span>
         {lead.source && (
-          <span className="h-4 px-1.5 text-[9px] font-normal border border-slate-600 text-slate-300 rounded">
-            {lead.source}
-          </span>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <span className="h-4 px-1.5 text-[9px] font-normal border border-slate-600 text-slate-300 rounded cursor-help">
+                  {lead.source}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent className="bg-slate-900 border-slate-800 text-xs">
+                {lead.sheet_source_name ? (
+                  <>
+                    <p className="font-semibold">{lead.sheet_source_name}</p>
+                    {lead.sheet_source_description && <p className="opacity-70">{lead.sheet_source_description}</p>}
+                  </>
+                ) : (
+                  <p>Origem: {lead.source}</p>
+                )}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         )}
         {isConverted && (
           <span className="h-4 px-1.5 text-[9px] font-medium bg-green-400/20 text-green-200 rounded border-0">
@@ -207,12 +296,33 @@ interface DroppableColumnProps {
   leads: LeadWithStage[]
   isDragging: boolean
   onStageChange: () => void
+  selectedIds: string[]
+  onSelectLead: (id: string, selected: boolean) => void
+  onSelectAll: (ids: string[], selected: boolean) => void
+  selectionMode: boolean
 }
 
-function DroppableColumn({ stage, leads, isDragging, onStageChange }: DroppableColumnProps) {
+function DroppableColumn({ 
+  stage, 
+  leads, 
+  isDragging, 
+  onStageChange,
+  selectedIds,
+  onSelectLead,
+  onSelectAll,
+  selectionMode
+}: DroppableColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   })
+
+  const columnLeadIds = leads.map(lead => lead.id)
+  const allSelected = leads.length > 0 && columnLeadIds.every(id => selectedIds.includes(id))
+  const someSelected = columnLeadIds.some(id => selectedIds.includes(id))
+
+  const handleSelectAll = (checked: boolean) => {
+    onSelectAll(columnLeadIds, checked)
+  }
 
   return (
     <div
@@ -224,18 +334,44 @@ function DroppableColumn({ stage, leads, isDragging, onStageChange }: DroppableC
       )}
     >
       {/* Column Header */}
-      <div className="flex items-center justify-between px-3 py-2.5 shrink-0 bg-slate-700/30">
-        <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wide">{stage.title}</h3>
-        <span className="text-[10px] font-medium text-slate-400 bg-slate-800/60 px-1.5 py-0.5 rounded">
+      <div className="flex items-center justify-between px-3 py-2.5 shrink-0 bg-slate-700/30 gap-2">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          {leads.length > 0 && (
+            <div className="relative shrink-0">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={handleSelectAll}
+                className={cn(
+                  "border-slate-600 data-[state=checked]:bg-primary data-[state=checked]:border-primary",
+                  someSelected && !allSelected && "bg-primary/30 border-primary"
+                )}
+              />
+              {someSelected && !allSelected && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="h-2 w-2 bg-primary rounded-sm" />
+                </div>
+              )}
+            </div>
+          )}
+          <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wide truncate">{stage.title}</h3>
+        </div>
+        <span className="text-[10px] font-medium text-slate-400 bg-slate-800/60 px-1.5 py-0.5 rounded shrink-0">
           {leads.length}
         </span>
       </div>
 
       {/* Column Content */}
-      <ScrollArea className="flex-1">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         <div className={cn("p-2 space-y-2 min-h-[100px]")}>
           {leads.map((lead) => (
-            <ColdLeadCard key={lead.id} lead={lead} onStageChange={onStageChange} />
+            <ColdLeadCard 
+              key={lead.id} 
+              lead={lead} 
+              onStageChange={onStageChange} 
+              isSelected={selectedIds.includes(lead.id)}
+              onSelect={onSelectLead}
+              selectionMode={selectionMode}
+            />
           ))}
           {leads.length === 0 && (
             <div className="flex flex-col items-center justify-center gap-1.5 py-12 text-center opacity-40">
@@ -246,7 +382,7 @@ function DroppableColumn({ stage, leads, isDragging, onStageChange }: DroppableC
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   )
 }
@@ -260,6 +396,13 @@ export function ColdLeadsKanbanBoard({ leads }: ColdLeadsKanbanBoardProps) {
   const [refreshKey, setRefreshKey] = useState(0)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
+  const [filters, setFilters] = useState<PipelineFiltersState>({
+    source: [],
+    sheetName: [],
+    state: [],
+    ies: [],
+  })
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -269,19 +412,47 @@ export function ColdLeadsKanbanBoard({ leads }: ColdLeadsKanbanBoardProps) {
     })
   )
 
+  const filterOptions = useMemo(() => {
+    const uniqueSources = Array.from(new Set(leads.map(l => l.source).filter(Boolean))).sort() as string[]
+    const uniqueSheets = Array.from(new Set(leads.map(l => l.sheet_source_name).filter(Boolean))).sort() as string[]
+    const uniqueStates = Array.from(new Set(leads.map(l => l.state).filter(Boolean))).sort() as string[]
+    const uniqueIes = Array.from(new Set(leads.map(l => l.ies).filter(Boolean))).sort() as string[]
+
+    return {
+      sources: uniqueSources.map(v => ({ value: v, label: v, count: leads.filter(l => l.source === v).length })),
+      sheetNames: uniqueSheets.map(v => ({ value: v, label: v, count: leads.filter(l => l.sheet_source_name === v).length })),
+      states: uniqueStates.map(v => ({ value: v, label: v, count: leads.filter(l => l.state === v).length })),
+      ies: uniqueIes.map(v => ({ value: v, label: v, count: leads.filter(l => l.ies === v).length })),
+    }
+  }, [leads])
+
   const { groupedLeads, filteredCount, leadsMap } = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
+    
     const filtered = leads.filter((lead) => {
-      if (!normalizedSearch) return true
-      return [
+      // Filtro de texto
+      const matchesSearch = !normalizedSearch || [
         lead.name,
         lead.email,
         lead.phone,
         lead.source,
         lead.notes,
+        lead.state,
+        lead.ies,
+        lead.sheet_source_name
       ]
         .filter(Boolean)
         .some((value) => String(value).toLowerCase().includes(normalizedSearch))
+
+      if (!matchesSearch) return false
+
+      // Filtros estruturados
+      if (filters.source.length > 0 && (!lead.source || !filters.source.includes(lead.source))) return false
+      if (filters.sheetName.length > 0 && (!lead.sheet_source_name || !filters.sheetName.includes(lead.sheet_source_name))) return false
+      if (filters.state.length > 0 && (!lead.state || !filters.state.includes(lead.state))) return false
+      if (filters.ies.length > 0 && (!lead.ies || !filters.ies.includes(lead.ies))) return false
+
+      return true
     })
 
     const withStage: LeadWithStage[] = filtered.map((lead) => ({
@@ -296,6 +467,7 @@ export function ColdLeadsKanbanBoard({ leads }: ColdLeadsKanbanBoardProps) {
       implicacao: [],
       motivacao: [],
       convertido: [],
+      nao_convertido: [],
     }
 
     const map: Record<string, LeadWithStage> = {}
@@ -310,13 +482,16 @@ export function ColdLeadsKanbanBoard({ leads }: ColdLeadsKanbanBoardProps) {
       filteredCount: filtered.length,
       leadsMap: map,
     }
-  }, [leads, search, refreshKey])
+  }, [leads, search, refreshKey, filters])
 
   const handleStageChange = () => {
     setRefreshKey((prev) => prev + 1)
   }
 
   const handleDragStart = (event: DragStartEvent) => {
+    // Se tiver itens selecionados, não permite drag
+    if (selectedIds.length > 0) return
+    
     setActiveId(event.active.id as string)
     setIsDragging(true)
   }
@@ -350,56 +525,107 @@ export function ColdLeadsKanbanBoard({ leads }: ColdLeadsKanbanBoardProps) {
     setIsDragging(false)
   }
 
+  const handleSelectLead = (id: string, selected: boolean) => {
+    if (selected) {
+      setSelectedIds(prev => [...prev, id])
+    } else {
+      setSelectedIds(prev => prev.filter(i => i !== id))
+    }
+  }
+
+  const handleSelectAll = (ids: string[], selected: boolean) => {
+    if (selected) {
+      // Adiciona todos os IDs que ainda não estão selecionados
+      setSelectedIds(prev => {
+        const newIds = ids.filter(id => !prev.includes(id))
+        return [...prev, ...newIds]
+      })
+    } else {
+      // Remove todos os IDs da coluna
+      setSelectedIds(prev => prev.filter(id => !ids.includes(id)))
+    }
+  }
+
+  const handleClearSelection = () => {
+    setSelectedIds([])
+  }
+
+  const handleActionComplete = () => {
+    handleStageChange()
+  }
+
   const activeLead = activeId ? leadsMap[activeId] : null
+  const selectionMode = selectedIds.length > 0
 
   return (
-    <DndContext
-      sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
-    >
-      <div className="flex flex-col h-full bg-[#030711]">
-        {/* Minimalist Header */}
-        <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-slate-900">
-          <div className="flex items-baseline gap-3">
-            <h2 className="text-lg font-medium text-slate-100">Prospecção</h2>
-            <span className="text-xs text-slate-500 font-mono">
-              {filteredCount} leads
-            </span>
-          </div>
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Filtrar leads..."
-            className="h-8 w-64 bg-slate-950 border-slate-800 text-slate-300 placeholder:text-slate-600 text-xs focus:ring-1 focus:ring-slate-700"
-          />
-        </div>
-
-        {/* Board */}
-        <div className="flex-1 overflow-x-auto">
-          <div className="flex flex-row gap-3 p-4 min-w-max h-full items-stretch">
-            {STAGES.map((stage) => (
-              <DroppableColumn
-                key={stage.id}
-                stage={stage}
-                leads={groupedLeads[stage.id] || []}
-                isDragging={isDragging}
-                onStageChange={handleStageChange}
+    <>
+      <DndContext
+        sensors={sensors}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
+      >
+        <div className="flex flex-col h-full bg-[#030711]">
+          {/* Minimalist Header */}
+          <div className="flex flex-col gap-4 px-6 py-4 border-b border-slate-900">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-baseline gap-3">
+                <h2 className="text-lg font-medium text-slate-100">Prospecção</h2>
+                <span className="text-xs text-slate-500 font-mono">
+                  {filteredCount} leads
+                </span>
+              </div>
+              <Input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Filtrar (Nome, UF, IES, Origem...)"
+                className="h-8 w-64 bg-slate-950 border-slate-800 text-slate-300 placeholder:text-slate-600 text-xs focus:ring-1 focus:ring-slate-700"
               />
-            ))}
+            </div>
+            
+            {/* Filters Row */}
+            <PipelineFilters 
+              filters={filters} 
+              onFilterChange={setFilters} 
+              options={filterOptions} 
+            />
+          </div>
+
+          {/* Board */}
+          <div className="flex-1 overflow-x-auto">
+            <div className="flex flex-row gap-3 p-4 min-w-max h-full items-stretch">
+              {STAGES.map((stage) => (
+                <DroppableColumn
+                  key={stage.id}
+                  stage={stage}
+                  leads={groupedLeads[stage.id] || []}
+                  isDragging={isDragging}
+                  onStageChange={handleStageChange}
+                  selectedIds={selectedIds}
+                  onSelectLead={handleSelectLead}
+                  onSelectAll={handleSelectAll}
+                  selectionMode={selectionMode}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
 
-      <DragOverlay>
-        {activeLead ? (
-          <div className="opacity-80 rotate-2 cursor-grabbing scale-105">
-            <ColdLeadCard lead={activeLead} isDragOverlay onStageChange={handleStageChange} />
-          </div>
-        ) : null}
-      </DragOverlay>
-    </DndContext>
+        <DragOverlay>
+          {activeLead ? (
+            <div className="opacity-80 rotate-2 cursor-grabbing scale-105">
+              <ColdLeadCard lead={activeLead} isDragOverlay onStageChange={handleStageChange} />
+            </div>
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+
+      <BulkActionsBar 
+        selectedCount={selectedIds.length}
+        selectedIds={selectedIds}
+        onClearSelection={handleClearSelection}
+        onActionComplete={handleActionComplete}
+      />
+    </>
   )
 }
-

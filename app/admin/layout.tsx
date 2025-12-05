@@ -20,11 +20,11 @@ export default async function AdminLayout({
       redirect("/login")
     }
 
-    // Check if user is admin
+    // Check if user is admin or vendedor
     const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
     const userRole = resolveUserRole(profile?.role, user)
 
-    if (userRole !== "admin") {
+    if (userRole !== "admin" && userRole !== "vendedor") {
       redirect("/dashboard")
     }
 

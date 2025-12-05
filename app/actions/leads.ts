@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 
-export type LeadStatus = "novo_lead" | "situacao" | "problema" | "implicacao" | "motivacao" | "convertido"
+export type LeadStatus = "novo_lead" | "situacao" | "problema" | "implicacao" | "motivacao" | "convertido" | "nao_convertido"
 
 export type Lead = {
   id: string
@@ -13,6 +13,10 @@ export type Lead = {
   status: LeadStatus
   notes?: string | null
   source?: string | null
+  state?: string | null
+  ies?: string | null
+  sheet_source_name?: string | null
+  sheet_source_description?: string | null
   converted_at?: string | null
   converted_to_user_id?: string | null
   created_at: string
@@ -25,6 +29,25 @@ export type ImportLeadRow = {
   Email?: string
   Origem?: string
   Observações?: string
+  Estado?: string
+  IES?: string
+  [key: string]: string | undefined
+}
+
+export type ColumnMapping = {
+  name: string
+  phone: string
+  email: string
+  source: string
+  notes: string
+  state: string
+  ies: string
+}
+
+export type SheetMetadata = {
+  name: string
+  description?: string
+  updateDuplicates: boolean
 }
 
 /**
@@ -49,11 +72,120 @@ function parseLeadRow(row: Record<string, string>): ImportLeadRow | null {
     Email: row["Email"] || row["email"] || "",
     Origem: row["Origem"] || row["origem"] || row["Source"] || row["source"] || "",
     Observações: row["Observações"] || row["observações"] || row["Notas"] || row["notas"] || "",
+    Estado: row["Estado"] || row["estado"] || row["UF"] || row["uf"] || "",
+    IES: row["IES"] || row["ies"] || row["Universidade"] || row["universidade"] || "",
   }
 }
 
 /**
- * Importa leads de um arquivo CSV
+ * Importa leads de um array de objetos processados (suporta CSV e Excel via JSON)
+ */
+export async function importLeadsFromJson(
+  rows: ImportLeadRow[], 
+  metadata: SheetMetadata
+) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: "Usuário não autenticado" }
+  }
+
+  // Verificar se o usuário é admin
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (profile?.role !== "admin") {
+    return { success: false, message: "Apenas administradores podem importar leads" }
+  }
+
+  if (!metadata.name) {
+    return { success: false, message: "Nome da planilha é obrigatório" }
+  }
+
+  if (rows.length === 0) {
+    return { success: false, message: "Nenhum lead válido para importar" }
+  }
+
+  // Inserir leads no banco
+  let inserted = 0
+  let updated = 0
+  let skipped = 0
+  const errors: string[] = []
+
+  // TODO: Batch insert would be better, but we need to handle duplicates individually
+  // Or upsert. If updateDuplicates is true, we upsert.
+  
+  for (const lead of rows) {
+    // Normalizar telefone para garantir unicidade correta
+    const normalizedPhone = normalizePhone(lead.Telefone)
+    
+    // Dados para inserir/atualizar
+    const leadData = {
+      name: lead.Nome || null,
+      phone: normalizedPhone,
+      email: lead.Email || null,
+      source: lead.Origem || null,
+      notes: lead.Observações || null,
+      status: "novo_lead",
+      state: lead.Estado || null,
+      ies: lead.IES || null,
+      sheet_source_name: metadata.name,
+      sheet_source_description: metadata.description || null,
+    }
+
+    // Se deve atualizar duplicados, usamos upsert
+    if (metadata.updateDuplicates) {
+      const { error } = await supabase
+        .from("leads")
+        .upsert(leadData, { onConflict: "phone", ignoreDuplicates: false })
+      
+      if (error) {
+        errors.push(`Erro ao importar ${lead.Telefone}: ${error.message}`)
+      } else {
+        // Upsert retorna sucesso tanto para insert quanto update.
+        // É difícil distinguir sem fazer select antes, mas podemos assumir "processed"
+        // Para ser mais preciso, poderíamos fazer select count antes e depois, mas é custoso.
+        // Vamos apenas contar como inserido/atualizado.
+        inserted++ 
+      }
+    } else {
+      // Se NÃO deve atualizar, usamos insert e ignoramos erro de duplicidade
+      const { error } = await supabase
+        .from("leads")
+        .insert(leadData)
+        .select()
+        .maybeSingle()
+
+      if (error) {
+        if (error.code === "23505") {
+          // Unique constraint violation (duplicate phone)
+          skipped++
+        } else {
+          errors.push(`Erro ao importar ${lead.Telefone}: ${error.message}`)
+        }
+      } else {
+        inserted++
+      }
+    }
+  }
+
+  revalidatePath("/admin/pipeline")
+  
+  return {
+    success: true,
+    message: `Processamento concluído: ${inserted} leads processados, ${skipped} ignorados`,
+    inserted,
+    skipped,
+    errors: errors.length > 0 ? errors : undefined,
+  }
+}
+
+/**
+ * Importa leads de um arquivo CSV (LEGACY - Mantido para compatibilidade se necessário, mas ideal migrar)
  */
 export async function importLeads(formData: FormData) {
   const supabase = await createClient()
@@ -114,46 +246,13 @@ export async function importLeads(formData: FormData) {
       return { success: false, message: "Nenhum lead válido encontrado no CSV" }
     }
 
-    // Inserir leads no banco (ignorar duplicatas por phone)
-    let inserted = 0
-    let skipped = 0
-    const errors: string[] = []
+    // Reutilizar a lógica nova de inserção
+    return importLeadsFromJson(rows, {
+      name: file.name,
+      description: "Importação via CSV Legacy",
+      updateDuplicates: false
+    })
 
-    for (const lead of rows) {
-      const { error } = await supabase
-        .from("leads")
-        .insert({
-          name: lead.Nome || null,
-          phone: lead.Telefone,
-          email: lead.Email || null,
-          source: lead.Origem || null,
-          notes: lead.Observações || null,
-          status: "novo_lead",
-        })
-        .select()
-        .maybeSingle()
-
-      if (error) {
-        if (error.code === "23505") {
-          // Unique constraint violation (duplicate phone)
-          skipped++
-        } else {
-          errors.push(`Erro ao importar ${lead.Telefone}: ${error.message}`)
-        }
-      } else {
-        inserted++
-      }
-    }
-
-    revalidatePath("/admin/pipeline")
-    
-    return {
-      success: true,
-      message: `Importação concluída: ${inserted} leads importados, ${skipped} duplicados ignorados`,
-      inserted,
-      skipped,
-      errors: errors.length > 0 ? errors : undefined,
-    }
   } catch (error) {
     console.error("Erro ao processar CSV:", error)
     return { success: false, message: `Erro ao processar arquivo: ${error instanceof Error ? error.message : "Erro desconhecido"}` }
@@ -218,7 +317,7 @@ export async function updateLeadStatus(leadId: string, status: LeadStatus) {
   }
 
   // Validar status
-  if (!["novo_lead", "situacao", "problema", "implicacao", "motivacao", "convertido"].includes(status)) {
+  if (!["novo_lead", "situacao", "problema", "implicacao", "motivacao", "convertido", "nao_convertido"].includes(status)) {
     return { success: false, message: "Status inválido" }
   }
 
@@ -302,6 +401,46 @@ export async function deleteLead(leadId: string) {
   if (error) {
     console.error("Erro ao deletar lead:", error)
     return { success: false, message: "Erro ao deletar lead" }
+  }
+
+  revalidatePath("/admin/pipeline")
+  return { success: true }
+}
+
+/**
+ * Deleta múltiplos leads
+ */
+export async function deleteLeads(leadIds: string[]) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: "Usuário não autenticado" }
+  }
+
+  // Verificar se o usuário é admin
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (profile?.role !== "admin") {
+    return { success: false, message: "Apenas administradores podem deletar leads" }
+  }
+
+  if (!leadIds || leadIds.length === 0) {
+    return { success: false, message: "Nenhum lead selecionado" }
+  }
+
+  const { error } = await supabase
+    .from("leads")
+    .delete()
+    .in("id", leadIds)
+
+  if (error) {
+    console.error("Erro ao deletar leads em massa:", error)
+    return { success: false, message: "Erro ao deletar leads" }
   }
 
   revalidatePath("/admin/pipeline")

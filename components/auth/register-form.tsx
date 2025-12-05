@@ -124,12 +124,21 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
           const now = new Date()
           const trialEnd = calculateTrialEndDate(now, normalizedTrialDays)
 
+          // Busca o pipeline_stage atual para preservá-lo
+          const { data: currentProfile } = await supabase
+            .from("profiles")
+            .select("pipeline_stage")
+            .eq("id", data.user.id)
+            .single()
+
           const { error: trialUpdateError } = await supabase
             .from("profiles")
             .update({
               trial_started_at: now.toISOString(),
               trial_ends_at: trialEnd.toISOString(),
               trial_used: false,
+              // Preserva o pipeline_stage se já existir, caso contrário define como 'novo_usuario'
+              pipeline_stage: currentProfile?.pipeline_stage || "novo_usuario",
             })
             .eq("id", data.user.id)
 
