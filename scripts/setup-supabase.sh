@@ -57,3 +57,4 @@ echo -e "${BLUE}npm run db:status${NC}"
 echo -e "Para aplicar novas migrações:"
 echo -e "${BLUE}npm run db:push${NC}"
 
+

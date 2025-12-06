@@ -173,3 +173,4 @@ echo "NEXT_PUBLIC_MAX_ATTACHMENT_MB=1500" | vercel env add production
 - Documentação Next.js: https://nextjs.org/docs/basic-features/environment-variables
 
 
+

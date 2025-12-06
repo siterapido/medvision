@@ -231,3 +231,4 @@ export default async function MyPage({ params, searchParams }: PageProps) {
 ✅ Linter sem erros
 ✅ Limite de upload aumentado para 2GB
 
+

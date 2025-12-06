@@ -9,3 +9,4 @@ COMMENT ON COLUMN public.leads.ies IS 'Instituição de Ensino Superior do lead'
 COMMENT ON COLUMN public.leads.sheet_source_name IS 'Nome da planilha de origem da importação';
 COMMENT ON COLUMN public.leads.sheet_source_description IS 'Descrição da planilha de origem da importação';
 
+

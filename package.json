@@ -9,6 +9,7 @@
     "test": "rm -rf .tmp/test-run && tsc --project tsconfig.test.json && TS_NODE_PROJECT=tsconfig.test.paths.json node -r tsconfig-paths/register --test .tmp/test-run/tests/*.test.js",
     "start": "next start",
     "test:bunny": "tsx scripts/test-bunny-config.ts",
+    "validate:env": "tsx scripts/validate-env.ts",
     "db:status": "supabase migration list",
     "db:push": "supabase db push",
     "db:diff": "supabase db diff",

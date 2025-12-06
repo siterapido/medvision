@@ -57,3 +57,4 @@ echo ""
 echo "⚠️  IMPORTANTE: Não commite o arquivo .env.local (ele está no .gitignore)"
 
 
+

@@ -193,3 +193,4 @@ const handleCropComplete = async (croppedBlob: Blob) => {
 **Versão**: 1.0.0
 
 
+

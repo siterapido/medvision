@@ -110,3 +110,4 @@ Após aplicar a correção, foi verificado que:
 **Impacto**: Upload de thumbnails de Lives agora funciona corretamente
 
 
+
