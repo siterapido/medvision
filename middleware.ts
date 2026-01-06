@@ -2,12 +2,6 @@ import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
 import { resolveUserRole } from "@/lib/auth/roles"
 
-// Função simples para verificar expiração sem dependências pesadas
-function isTrialExpired(endsAt: string | null): boolean {
-  if (!endsAt) return true
-  return new Date(endsAt) < new Date()
-}
-
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
     request: {
@@ -47,6 +41,17 @@ export async function middleware(request: NextRequest) {
 
   const userRole = user ? resolveUserRole(undefined, user) : undefined
 
+  // Passar o pathname atual via header para os Server Components
+  const requestHeaders = new Headers(request.headers)
+  requestHeaders.set("x-pathname", request.nextUrl.pathname)
+
+  // Use a new response object with the modified headers
+  response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  })
+
   // Protected routes that require authentication
   const protectedPaths = ["/dashboard", "/settings", "/profile", "/admin"]
   const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path))
@@ -68,42 +73,6 @@ export async function middleware(request: NextRequest) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = userRole === "admin" ? "/admin" : "/dashboard"
     return NextResponse.redirect(redirectUrl)
-  }
-
-  // Verificar expiração do Trial para rotas do dashboard
-  if (user && request.nextUrl.pathname.startsWith("/dashboard")) {
-    // Buscar perfil para verificar trial
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("trial_ends_at, plan_type, trial_started_at")
-      .eq("id", user.id)
-      .single()
-
-    const hasActivePlan = profile?.plan_type && profile.plan_type !== "free"
-    const trialExpired = isTrialExpired(profile?.trial_ends_at)
-    const hasTrialStarted = !!profile?.trial_started_at
-
-    // Se não tem plano ativo E (trial expirou OU trial nunca começou mas deveria ter começado)
-    // Nota: A ativação do trial acontece no layout, então se não começou ainda, deixamos passar para o layout ativar
-    // Mas se já tem trial_started_at e expirou, bloqueia.
-    
-    if (!hasActivePlan && hasTrialStarted && trialExpired) {
-      // Rotas permitidas mesmo com trial expirado (upgrade, assinatura, perfil, api)
-      const allowedPaths = [
-        "/dashboard/upgrade",
-        "/dashboard/assinatura", 
-        "/dashboard/perfil",
-        "/api" // Permitir chamadas de API
-      ]
-      
-      const isAllowedPath = allowedPaths.some(path => request.nextUrl.pathname.startsWith(path))
-
-      if (!isAllowedPath) {
-        const redirectUrl = request.nextUrl.clone()
-        redirectUrl.pathname = "/dashboard/upgrade"
-        return NextResponse.redirect(redirectUrl)
-      }
-    }
   }
 
   return response

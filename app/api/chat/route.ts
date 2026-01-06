@@ -1,152 +1,101 @@
-import { type NextRequest, NextResponse } from "next/server"
+import { type NextRequest } from "next/server"
+import { openai } from "@ai-sdk/openai"
+import { streamText, type Message } from "ai"
+import { createClient } from "@/lib/supabase/server"
+import { DENTAL_SYSTEM_PROMPT, AI_CONFIG, AI_ERROR_MESSAGES } from "@/lib/ai/config"
 
-const DEFAULT_N8N_WEBHOOK =
-  "https://devthierryc.app.n8n.cloud/webhook/web"
+export const runtime = "edge"
+export const maxDuration = 30
 
 type ChatRequestBody = {
-  message?: string
-  user?: string
-}
-
-type N8nPayload = Record<string, unknown>
-
-const REPLY_KEYS = [
-  "reply",
-  "output",
-  "response",
-  "message",
-  "text",
-] as const
-
-function normalizeN8nPayload(body: unknown): N8nPayload {
-  if (Array.isArray(body)) {
-    for (const item of body) {
-      if (!item || typeof item !== "object") continue
-
-      if ("json" in item && item.json && typeof item.json === "object") {
-        return item.json as N8nPayload
-      }
-
-      return item as N8nPayload
-    }
-
-    return {}
-  }
-
-  if (body && typeof body === "object") {
-    return body as N8nPayload
-  }
-
-  return {}
-}
-
-function coerceToString(value: unknown): string | undefined {
-  if (typeof value === "string" && value.trim().length > 0) return value
-  if (typeof value === "number" || typeof value === "boolean") {
-    return String(value)
-  }
-
-  if (Array.isArray(value)) {
-    for (const candidate of value) {
-      const text = coerceToString(candidate)
-      if (text) {
-        return text
-      }
-    }
-    return undefined
-  }
-
-  if (value && typeof value === "object") {
-    const nestedFields = ["text", "message", "content", "response", "output"]
-    for (const field of nestedFields) {
-      if (field in value) {
-        const text = coerceToString(
-          (value as Record<string, unknown>)[field]
-        )
-        if (text) {
-          return text
-        }
-      }
-    }
-  }
-
-  return undefined
-}
-
-function extractReplyFromPayload(payload: N8nPayload): string | undefined {
-  for (const key of REPLY_KEYS) {
-    const text = coerceToString(payload[key])
-    if (text) {
-      return text
-    }
-  }
-
-  const nestedKeys = ["data", "result", "payload", "outputData"]
-  for (const key of nestedKeys) {
-    const nested = payload[key]
-    if (nested && typeof nested === "object") {
-      const reply = extractReplyFromPayload(
-        nested as N8nPayload
-      )
-      if (reply) {
-        return reply
-      }
-    }
-  }
-
-  return undefined
+  messages?: Message[]
+  message?: string // Fallback para compatibilidade
+  plan?: string
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const { message, user } = (await request.json()) as ChatRequestBody
+    // Autenticação do usuário
+    const supabase = await createClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
-    if (!message) {
-      return NextResponse.json(
-        { error: "Mensagem não informada." },
-        { status: 400 }
+    if (!user) {
+      return new Response(
+        JSON.stringify({ error: AI_ERROR_MESSAGES.unauthorized }),
+        { status: 401, headers: { "Content-Type": "application/json" } }
       )
     }
 
-    const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL ?? DEFAULT_N8N_WEBHOOK
-    console.log("Enviando mensagem para o webhook N8N:", n8nWebhookUrl)
+    // Verificar se OPENAI_API_KEY está configurada
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("[chat] OPENAI_API_KEY não configurada")
+      return new Response(
+        JSON.stringify({ error: AI_ERROR_MESSAGES.invalidKey }),
+        { status: 500, headers: { "Content-Type": "application/json" } }
+      )
+    }
 
-    const response = await fetch(n8nWebhookUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        phone: user || "demo-user",
-        text: {
-          message,
+    const body = (await request.json()) as ChatRequestBody
+
+    // Suporte para dois formatos:
+    // 1. { messages: [...] } - formato do useChat do AI SDK
+    // 2. { message: "..." } - formato legado
+    let messages: Message[]
+
+    if (body.messages && Array.isArray(body.messages)) {
+      messages = body.messages
+    } else if (body.message) {
+      // Formato legado - converter para array de mensagens
+      messages = [
+        {
+          id: Date.now().toString(),
+          role: "user" as const,
+          content: body.message,
         },
-      }),
+      ]
+    } else {
+      return new Response(
+        JSON.stringify({ error: AI_ERROR_MESSAGES.noMessage }),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      )
+    }
+
+    // Streaming com OpenAI
+    const result = streamText({
+      model: openai(AI_CONFIG.model),
+      system: DENTAL_SYSTEM_PROMPT,
+      messages,
+      maxTokens: AI_CONFIG.maxTokens,
+      temperature: AI_CONFIG.temperature,
+      // Metadados para logging
+      experimental_telemetry: {
+        isEnabled: true,
+        functionId: "odonto-gpt-chat",
+        metadata: {
+          userId: user.id,
+          plan: body.plan || "free",
+        },
+      },
     })
 
-    if (!response.ok) {
-      const errorText = await response.text()
-      console.error("Erro na chamada ao webhook N8N:", response.status, errorText)
-      return NextResponse.json(
-        { error: `Falha ao enviar mensagem: ${response.statusText}` },
-        { status: response.status }
+    // Retornar stream response
+    return result.toDataStreamResponse()
+  } catch (error) {
+    console.error("[chat] Erro ao processar mensagem:", error)
+
+    // Tratamento específico para rate limiting
+    if (error instanceof Error && error.message.includes("rate")) {
+      return new Response(
+        JSON.stringify({ error: AI_ERROR_MESSAGES.rateLimited }),
+        { status: 429, headers: { "Content-Type": "application/json" } }
       )
     }
 
-    const n8nData = await response.json()
-    console.log("Resposta do N8N:", n8nData)
-
-    const normalizedPayload = normalizeN8nPayload(n8nData)
-    const reply =
-      extractReplyFromPayload(normalizedPayload) ??
-      "O webhook do N8N não retornou uma resposta legível."
-
-    return NextResponse.json({ reply })
-  } catch (error) {
-    console.error("Erro interno na rota de chat:", error)
-    return NextResponse.json(
-      { error: "Erro ao processar mensagem. Tente novamente." },
-      { status: 500 }
+    return new Response(
+      JSON.stringify({ error: AI_ERROR_MESSAGES.apiError }),
+      { status: 500, headers: { "Content-Type": "application/json" } }
     )
   }
 }

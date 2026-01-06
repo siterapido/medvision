@@ -12,6 +12,8 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { Logo } from "@/components/logo"
+import { motion } from "motion/react"
+import { FadeIn, StaggerContainer, StaggerItem, HoverCard, ScaleIn } from "@/components/ui/animations"
 
 // Lazy load componentes pesados
 const YouTubePlayer = dynamic(() => import("@/components/video/youtube-player").then(mod => ({ default: mod.YouTubePlayer })), {
@@ -48,17 +50,33 @@ export default function LandingPage() {
             {/* Grid técnico suave em ciano */}
             <div className="hero-ai-grid" />
             {/* Beams/auroras em camadas para dar sensação de tecnologia/IA */}
-            <div
+            <motion.div
               className="hero-ai-beam"
-              style={{ top: "-10%", left: "-6%", ['--beam-color' as any]: "color-mix(in oklab, var(--accent) 45%, transparent)", animationDuration: "20s" }}
+              animate={{
+                rotate: [0, 10, 0],
+                scale: [1, 1.1, 1],
+                opacity: [0.3, 0.5, 0.3]
+              }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+              style={{ top: "-10%", left: "-6%", ['--beam-color' as any]: "color-mix(in oklab, var(--accent) 45%, transparent)" }}
             />
-            <div
+            <motion.div
               className="hero-ai-beam"
-              style={{ bottom: "-8%", right: "-4%", ['--beam-color' as any]: "color-mix(in oklab, var(--primary) 40%, transparent)", animationDuration: "22s" }}
+              animate={{
+                rotate: [0, -15, 0],
+                translateY: [0, 50, 0]
+              }}
+              transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
+              style={{ bottom: "-8%", right: "-4%", ['--beam-color' as any]: "color-mix(in oklab, var(--primary) 40%, transparent)" }}
             />
-            <div
+            <motion.div
               className="hero-ai-beam"
-              style={{ top: "30%", right: "35%", ['--beam-color' as any]: "color-mix(in oklab, var(--secondary) 35%, transparent)", animationDuration: "24s" }}
+              animate={{
+                scale: [1, 1.2, 1],
+                translateX: [0, -30, 0]
+              }}
+              transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
+              style={{ top: "30%", right: "35%", ['--beam-color' as any]: "color-mix(in oklab, var(--secondary) 35%, transparent)" }}
             />
           </div>
           <div className="container mx-auto">
@@ -82,31 +100,37 @@ export default function LandingPage() {
                   <Logo variant="white" width={140} height={30} />
                 </div>
 
-                <h1 className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-100 text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-balance">
-                  Inteligência Artificial{" "}
-                  <span className="bg-gradient-to-r from-primary via-accent to-cyan-400 bg-clip-text text-transparent">
-                    Especializada em Odontologia
-                  </span>
-                </h1>
+                <FadeIn delay={0.1} direction="up">
+                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-balance">
+                    Inteligência Artificial{" "}
+                    <span className="bg-gradient-to-r from-primary via-accent to-cyan-400 bg-clip-text text-transparent">
+                      Especializada em Odontologia
+                    </span>
+                  </h1>
+                </FadeIn>
 
-                <p className="animate-in fade-in slide-in-from-bottom-2 duration-700 delay-200 text-base sm:text-lg md:text-xl lg:text-2xl text-slate-300 text-balance leading-relaxed">
-                  Diagnóstico, planejamento e evidências clínicas sem perder tempo em buscas ou grupos.
-                </p>
+                <FadeIn delay={0.2} direction="up">
+                  <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-slate-300 text-balance leading-relaxed">
+                    Diagnóstico, planejamento e evidências clínicas sem perder tempo em buscas ou grupos.
+                  </p>
+                </FadeIn>
 
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 pt-4 md:pt-6">
-                  <Button
-                    size="xl"
-                    aria-label="Testar 7 dias grátis"
-                    variant="cta"
-                    className="group shadow-primary/25 w-full sm:w-auto"
-                    asChild
-                  >
-                    <Link href="/register">
-                      Testar 7 dias grátis
-                      <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
-                    </Link>
-                  </Button>
-                </div>
+                <FadeIn delay={0.3} direction="up">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 pt-4 md:pt-6">
+                    <Button
+                      size="xl"
+                      aria-label="Testar 7 dias grátis"
+                      variant="cta"
+                      className="group shadow-primary/25 w-full sm:w-auto"
+                      asChild
+                    >
+                      <Link href="/register">
+                        Testar 7 dias grátis
+                        <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+                      </Link>
+                    </Button>
+                  </div>
+                </FadeIn>
 
                 {/* Social Proof Metrics removidos conforme solicitado */}
               </div>
@@ -147,7 +171,7 @@ export default function LandingPage() {
 
             <div className="grid md:grid-cols-2 gap-8 items-center">
               {/* Sem Odonto GPT */}
-              <div className="relative group">
+              <FadeIn direction="right" delay={0.1} className="relative group">
                 {/* Alert red cloud gradient on hover (radial) - blur reduzido para melhor performance */}
                 <div
                   aria-hidden
@@ -184,10 +208,10 @@ export default function LandingPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
+              </FadeIn>
 
               {/* Com Odonto GPT */}
-              <div className="relative group">
+              <FadeIn direction="left" delay={0.2} className="relative group">
                 {/* Cloud gradient behind card (highlight) in #2399B4 - blur reduzido para melhor performance */}
                 <div
                   aria-hidden
@@ -224,7 +248,7 @@ export default function LandingPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </div>
+              </FadeIn>
             </div>
 
             <div className="flex justify-center mt-10">
@@ -421,51 +445,57 @@ export default function LandingPage() {
               align="center"
             />
 
-            <div className="grid md:grid-cols-3 gap-8 relative">
+            <StaggerContainer className="grid md:grid-cols-3 gap-8 relative">
               {/* Step 1 */}
-              <div className="relative">
-                <div className="absolute -top-4 -left-4 h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg z-10">
+              <StaggerItem className="relative">
+                <div className="absolute -top-4 -left-4 h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg z-10 scale-in-center">
                   1
                 </div>
-                <Card className="interactive-card pt-12 border-2 hover:shadow-lg transition-shadow">
-                  <CardContent className="space-y-4">
-                    <MessageSquare className="h-10 w-10 text-primary" />
-                    <h3 className="text-xl font-bold">Tire a Dúvida que Te Travava</h3>
-                    <p className="text-muted-foreground">Aquela questão de prova ou caso clínico que tira seu sono - mande pelo WhatsApp</p>
-                  </CardContent>
-                </Card>
-              </div>
+                <HoverCard>
+                  <Card className="pt-12 border-2 hover:shadow-lg transition-shadow h-full">
+                    <CardContent className="space-y-4">
+                      <MessageSquare className="h-10 w-10 text-primary" />
+                      <h3 className="text-xl font-bold">Tire a Dúvida que Te Travava</h3>
+                      <p className="text-muted-foreground">Aquela questão de prova ou caso clínico que tira seu sono - mande pelo WhatsApp</p>
+                    </CardContent>
+                  </Card>
+                </HoverCard>
+              </StaggerItem>
 
               {/* Step 2 */}
-              <div className="relative">
+              <StaggerItem className="relative">
                 <div className="absolute -top-4 -left-4 h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg z-10">
                   2
                 </div>
-                <Card className="interactive-card pt-12 border-2 hover:shadow-lg transition-shadow">
-                  <CardContent className="space-y-4">
-                    <Brain className="h-10 w-10 text-primary" />
-                    <h3 className="text-xl font-bold">Resposta com Respaldo Científico</h3>
-                    <p className="text-muted-foreground">Em segundos, receba a resposta fundamentada na literatura que seus professores exigem</p>
-                  </CardContent>
-                </Card>
-              </div>
+                <HoverCard>
+                  <Card className="pt-12 border-2 hover:shadow-lg transition-shadow h-full">
+                    <CardContent className="space-y-4">
+                      <Brain className="h-10 w-10 text-primary" />
+                      <h3 className="text-xl font-bold">Resposta com Respaldo Científico</h3>
+                      <p className="text-muted-foreground">Em segundos, receba a resposta fundamentada na literatura que seus professores exigem</p>
+                    </CardContent>
+                  </Card>
+                </HoverCard>
+              </StaggerItem>
 
               {/* Step 3 */}
-              <div className="relative">
+              <StaggerItem className="relative">
                 <div className="absolute -top-4 -left-4 h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg z-10">
                   3
                 </div>
-                <Card className="interactive-card pt-12 border-2 hover:shadow-lg transition-shadow">
-                  <CardContent className="space-y-4">
-                    <CheckCircle2 className="h-10 w-10 text-primary" />
-                    <h3 className="text-xl font-bold">Destaque-se na Multidão</h3>
-                    <p className="text-muted-foreground">
-                      Chegue na frente com conhecimento que impressiona professores e conquista os melhores estágios
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
+                <HoverCard>
+                  <Card className="pt-12 border-2 hover:shadow-lg transition-shadow h-full">
+                    <CardContent className="space-y-4">
+                      <CheckCircle2 className="h-10 w-10 text-primary" />
+                      <h3 className="text-xl font-bold">Destaque-se na Multidão</h3>
+                      <p className="text-muted-foreground">
+                        Chegue na frente com conhecimento que impressiona professores e conquista os melhores estágios
+                      </p>
+                    </CardContent>
+                  </Card>
+                </HoverCard>
+              </StaggerItem>
+            </StaggerContainer>
 
             <div className="text-center pt-8">
               <Link href="/register">
@@ -489,55 +519,79 @@ export default function LandingPage() {
               align="center"
             />
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="interactive-card border-2 hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6 space-y-3">
-                  <Zap className="h-8 w-8 text-primary" />
-                  <h3 className="text-lg font-bold">Agilidade Clínica</h3>
-                  <p className="text-sm text-muted-foreground">Respostas em segundos durante atendimentos.</p>
-                </CardContent>
-              </Card>
+            <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <StaggerItem>
+                <HoverCard className="h-full">
+                  <Card className="border-2 hover:shadow-lg transition-shadow h-full">
+                    <CardContent className="pt-6 space-y-3">
+                      <Zap className="h-8 w-8 text-primary" />
+                      <h3 className="text-lg font-bold">Agilidade Clínica</h3>
+                      <p className="text-sm text-muted-foreground">Respostas em segundos durante atendimentos.</p>
+                    </CardContent>
+                  </Card>
+                </HoverCard>
+              </StaggerItem>
 
-              <Card className="interactive-card border-2 hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6 space-y-3">
-                  <BookOpen className="h-8 w-8 text-primary" />
-                  <h3 className="text-lg font-bold">Apoio Educacional</h3>
-                  <p className="text-sm text-muted-foreground">Ajuda em estudos, residência e provas.</p>
-                </CardContent>
-              </Card>
+              <StaggerItem>
+                <HoverCard className="h-full">
+                  <Card className="border-2 hover:shadow-lg transition-shadow h-full">
+                    <CardContent className="pt-6 space-y-3">
+                      <BookOpen className="h-8 w-8 text-primary" />
+                      <h3 className="text-lg font-bold">Apoio Educacional</h3>
+                      <p className="text-sm text-muted-foreground">Ajuda em estudos, residência e provas.</p>
+                    </CardContent>
+                  </Card>
+                </HoverCard>
+              </StaggerItem>
 
-              <Card className="interactive-card border-2 hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6 space-y-3">
-                  <Shield className="h-8 w-8 text-primary" />
-                  <h3 className="text-lg font-bold">Respostas Seguras</h3>
-                  <p className="text-sm text-muted-foreground">Baseadas em literatura e evidências científicas.</p>
-                </CardContent>
-              </Card>
+              <StaggerItem>
+                <HoverCard className="h-full">
+                  <Card className="border-2 hover:shadow-lg transition-shadow h-full">
+                    <CardContent className="pt-6 space-y-3">
+                      <Shield className="h-8 w-8 text-primary" />
+                      <h3 className="text-lg font-bold">Respostas Seguras</h3>
+                      <p className="text-sm text-muted-foreground">Baseadas em literatura e evidências científicas.</p>
+                    </CardContent>
+                  </Card>
+                </HoverCard>
+              </StaggerItem>
 
-              <Card className="interactive-card border-2 hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6 space-y-3">
-                  <Clock className="h-8 w-8 text-primary" />
-                  <h3 className="text-lg font-bold">Disponibilidade 24/7</h3>
-                  <p className="text-sm text-muted-foreground">Ilimitado via WhatsApp, sempre que precisar.</p>
-                </CardContent>
-              </Card>
+              <StaggerItem>
+                <HoverCard className="h-full">
+                  <Card className="border-2 hover:shadow-lg transition-shadow h-full">
+                    <CardContent className="pt-6 space-y-3">
+                      <Clock className="h-8 w-8 text-primary" />
+                      <h3 className="text-lg font-bold">Disponibilidade 24/7</h3>
+                      <p className="text-sm text-muted-foreground">Ilimitado via WhatsApp, sempre que precisar.</p>
+                    </CardContent>
+                  </Card>
+                </HoverCard>
+              </StaggerItem>
 
-              <Card className="interactive-card border-2 hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6 space-y-3">
-                  <Award className="h-8 w-8 text-primary" />
-                  <h3 className="text-lg font-bold">Prescrições Personalizadas</h3>
-                  <p className="text-sm text-muted-foreground">Sugestões com dosagens adequadas.</p>
-                </CardContent>
-              </Card>
+              <StaggerItem>
+                <HoverCard className="h-full">
+                  <Card className="border-2 hover:shadow-lg transition-shadow h-full">
+                    <CardContent className="pt-6 space-y-3">
+                      <Award className="h-8 w-8 text-primary" />
+                      <h3 className="text-lg font-bold">Prescrições Personalizadas</h3>
+                      <p className="text-sm text-muted-foreground">Sugestões com dosagens adequadas.</p>
+                    </CardContent>
+                  </Card>
+                </HoverCard>
+              </StaggerItem>
 
-              <Card className="interactive-card border-2 hover:shadow-lg transition-shadow">
-                <CardContent className="pt-6 space-y-3">
-                  <MessageSquare className="h-8 w-8 text-primary" />
-                  <h3 className="text-lg font-bold">Interface Familiar</h3>
-                  <p className="text-sm text-muted-foreground">Funciona no WhatsApp, sem aprender nada novo.</p>
-                </CardContent>
-              </Card>
-            </div>
+              <StaggerItem>
+                <HoverCard className="h-full">
+                  <Card className="border-2 hover:shadow-lg transition-shadow h-full">
+                    <CardContent className="pt-6 space-y-3">
+                      <MessageSquare className="h-8 w-8 text-primary" />
+                      <h3 className="text-lg font-bold">Interface Familiar</h3>
+                      <p className="text-sm text-muted-foreground">Funciona no WhatsApp, sem aprender nada novo.</p>
+                    </CardContent>
+                  </Card>
+                </HoverCard>
+              </StaggerItem>
+            </StaggerContainer>
           </div>
         </section>
 
@@ -553,7 +607,7 @@ export default function LandingPage() {
             />
 
             <div className="grid md:grid-cols-2 gap-12 items-center mt-12">
-              <div className="space-y-6">
+              <FadeIn direction="right" delay={0.1} className="space-y-6">
                 <div className="relative flex justify-center">
                   <div className="relative w-72 h-72 bg-gradient-to-br from-primary/30 to-accent/30 rounded-full overflow-hidden shadow-2xl border-2 border-white/20 flex items-center justify-center">
                     <Image
@@ -565,9 +619,9 @@ export default function LandingPage() {
                     />
                   </div>
                 </div>
-              </div>
+              </FadeIn>
 
-              <div className="space-y-6">
+              <FadeIn direction="left" delay={0.2} className="space-y-6">
                 <div>
                   <h3 className="text-2xl font-bold text-primary">Roniery Costa</h3>
                   <p className="text-muted-foreground">Responsável Técnico - CRO 4616/PB</p>
@@ -605,7 +659,7 @@ export default function LandingPage() {
                     esteja sempre alinhada com as melhores práticas da odontologia moderna.&quot;
                   </p>
                 </div>
-              </div>
+              </FadeIn>
             </div>
           </div>
         </section>
@@ -624,148 +678,152 @@ export default function LandingPage() {
             {/* Planos Mensal e Anual */}
             <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
               {/* Plano Mensal */}
-              <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-border hover:border-primary/50 w-full min-h-[480px] flex flex-col">
-                <div className="text-center mb-5">
-                  <h3 className="text-xl font-bold mb-1">Plano Mensal</h3>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-3xl md:text-4xl font-extrabold text-primary">R$ 30</span>
-                    <span className="text-muted-foreground">/mês</span>
+              <HoverCard>
+                <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-border hover:border-primary/50 w-full min-h-[480px] flex flex-col h-full">
+                  <div className="text-center mb-5">
+                    <h3 className="text-xl font-bold mb-1">Plano Mensal</h3>
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className="text-3xl md:text-4xl font-extrabold text-primary">R$ 30</span>
+                      <span className="text-muted-foreground">/mês</span>
+                    </div>
                   </div>
-                </div>
 
-                <ul className="space-y-3 mb-6 flex-grow">
-                  <li className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-sm">Consultor 24/7 no WhatsApp - sem limite de perguntas</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-sm">Respostas fundamentadas em literatura científica</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-sm">Prescrições com dosagens corretas e protocolos atualizados</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-sm">Ajuda em provas, estágios e casos clínicos complexos</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-sm">Live exclusiva toda quarta-feira com Q&A</span>
-                  </li>
-                </ul>
+                  <ul className="space-y-3 mb-6 flex-grow">
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">Consultor 24/7 no WhatsApp - sem limite de perguntas</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">Respostas fundamentadas em literatura científica</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">Prescrições com dosagens corretas e protocolos atualizados</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">Ajuda em provas, estágios e casos clínicos complexos</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">Live exclusiva toda quarta-feira com Q&A</span>
+                    </li>
+                  </ul>
 
-                <div className="mt-auto space-y-4">
-                  <p className="text-center text-sm font-medium text-primary">
-                    Inclui teste grátis de 7 dias
-                  </p>
-                  <Link href="/register" className="block">
-                    <Button className="w-full shadow-lg" size="lg" variant="cta">
-                      Começar Teste Grátis
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  </Link>
-                </div>
-              </Card>
+                  <div className="mt-auto space-y-4">
+                    <p className="text-center text-sm font-medium text-primary">
+                      Inclui teste grátis de 7 dias
+                    </p>
+                    <Link href="/register" className="block">
+                      <Button className="w-full shadow-lg" size="lg" variant="cta">
+                        Começar Teste Grátis
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                    </Link>
+                  </div>
+                </Card>
+              </HoverCard>
 
               {/* Plano Anual - Mais Econômico */}
-              <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-primary shadow-2xl md:scale-[1.04] bg-gradient-to-b from-primary/10 to-transparent w-full min-h-[480px] flex flex-col">
-                {/* Fita de oferta especial apenas no plano anual */}
-                <div className="pointer-events-none absolute -right-14 top-6 rotate-45 z-10">
-                  <span className="bg-accent text-accent-foreground px-16 py-1 text-xs font-semibold shadow-md">Oferta Especial</span>
-                </div>
-                <div className="text-center mb-5">
-                  <div className="flex justify-center mb-2">
-                    <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">ESCOLHA INTELIGENTE</span>
+              <ScaleIn delay={0.2} className="h-full">
+                <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-primary shadow-2xl md:scale-[1.04] bg-gradient-to-b from-primary/10 to-transparent w-full min-h-[480px] flex flex-col h-full">
+                  {/* Fita de oferta especial apenas no plano anual */}
+                  <div className="pointer-events-none absolute -right-14 top-6 rotate-45 z-10">
+                    <span className="bg-accent text-accent-foreground px-16 py-1 text-xs font-semibold shadow-md">Oferta Especial</span>
                   </div>
-                  <h3 className="text-xl font-bold mb-1">Plano Anual</h3>
-                  <div className="flex flex-col items-center gap-1">
-                    <span className="text-xs md:text-sm text-muted-foreground line-through">Valor original: R$ 480/ano</span>
-                    <span className="text-xs md:text-sm font-semibold tracking-wide text-accent">50% OFF</span>
+                  <div className="text-center mb-5">
+                    <div className="flex justify-center mb-2">
+                      <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">ESCOLHA INTELIGENTE</span>
+                    </div>
+                    <h3 className="text-xl font-bold mb-1">Plano Anual</h3>
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-xs md:text-sm text-muted-foreground line-through">Valor original: R$ 480/ano</span>
+                      <span className="text-xs md:text-sm font-semibold tracking-wide text-accent">50% OFF</span>
+                    </div>
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className="text-3xl md:text-4xl font-extrabold text-primary">R$ 240</span>
+                      <span className="text-muted-foreground">/ano</span>
+                    </div>
+                    <div className="mt-2 text-xs md:text-sm font-medium text-primary">Preço de lançamento • Economize R$ 240 (equivalente a R$ 20/mês)</div>
                   </div>
-                  <div className="flex items-baseline justify-center gap-1">
-                    <span className="text-3xl md:text-4xl font-extrabold text-primary">R$ 240</span>
-                    <span className="text-muted-foreground">/ano</span>
+
+                  <ul className="space-y-3 mb-6 flex-grow">
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">Consultor 24/7 no WhatsApp - sem limite de perguntas</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">Respostas fundamentadas em literatura científica</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">Prescrições com dosagens corretas e protocolos atualizados</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">Ajuda em provas, estágios e casos clínicos complexos</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">Live exclusiva toda quarta-feira com Q&A</span>
+                    </li>
+
+                    {/* Bônus exclusivos do anual */}
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">🎁 <strong>Ebook exclusivo:</strong> Como Validar Seu Diploma nos EUA</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">🎁 <strong>Certificado mensal</strong> de participação nas lives</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">🎁 <strong>Acesso prioritário</strong> a novas funcionalidades</span>
+                    </li>
+                  </ul>
+
+                  <div className="mt-auto space-y-4">
+                    <p className="text-center text-sm font-medium text-primary">
+                      Inclui teste grátis de 7 dias
+                    </p>
+                    <Link href="/register" className="block">
+                      <Button className="w-full shadow-lg" size="lg" variant="cta">
+                        Começar Teste Grátis
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                    </Link>
                   </div>
-                  <div className="mt-2 text-xs md:text-sm font-medium text-primary">Preço de lançamento • Economize R$ 240 (equivalente a R$ 20/mês)</div>
-                </div>
-
-                <ul className="space-y-3 mb-6 flex-grow">
-                  <li className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-sm">Consultor 24/7 no WhatsApp - sem limite de perguntas</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-sm">Respostas fundamentadas em literatura científica</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-sm">Prescrições com dosagens corretas e protocolos atualizados</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-sm">Ajuda em provas, estágios e casos clínicos complexos</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-sm">Live exclusiva toda quarta-feira com Q&A</span>
-                  </li>
-
-                  {/* Bônus exclusivos do anual */}
-                  <li className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-sm">🎁 <strong>Ebook exclusivo:</strong> Como Validar Seu Diploma nos EUA</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-sm">🎁 <strong>Certificado mensal</strong> de participação nas lives</span>
-                  </li>
-                  <li className="flex items-start gap-3">
-                    <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    <span className="text-sm">🎁 <strong>Acesso prioritário</strong> a novas funcionalidades</span>
-                  </li>
-                </ul>
-
-                <div className="mt-auto space-y-4">
-                  <p className="text-center text-sm font-medium text-primary">
-                    Inclui teste grátis de 7 dias
-                  </p>
-                  <Link href="/register" className="block">
-                    <Button className="w-full shadow-lg" size="lg" variant="cta">
-                      Começar Teste Grátis
-                      <ArrowRight className="ml-2 h-5 w-5" />
-                    </Button>
-                  </Link>
-                </div>
-              </Card>
+                </Card>
+              </ScaleIn>
             </div>
 
             {/* Trust indicators */}

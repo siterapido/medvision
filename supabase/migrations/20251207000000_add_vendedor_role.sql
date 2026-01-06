@@ -64,3 +64,4 @@ CREATE POLICY "Vendedores podem atualizar o próprio perfil"
 -- (a política existente já permite que admins gerenciem todos os perfis)
 
 
+

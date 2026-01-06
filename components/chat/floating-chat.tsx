@@ -1,28 +1,33 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { usePathname } from "next/navigation"
+import { useChat } from "@ai-sdk/react"
 import { Logo } from "@/components/logo"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { X, Send, Bot, User, Loader2 } from "lucide-react"
 import { Streamdown } from "streamdown"
 
-type ChatMessage = {
-  role: "user" | "assistant"
-  content: string
-}
-
-export function FloatingChat() {
+export function FloatingChat({ isTrialExpired = false }: { isTrialExpired?: boolean }) {
   const pathname = usePathname()
-  const shouldHide = pathname === "/dashboard/chat"
-  const [open, setOpen] = useState(false)
-  const [messages, setMessages] = useState<ChatMessage[]>([])
-  const [input, setInput] = useState("")
-  const [sending, setSending] = useState(false)
+  const shouldHide = pathname === "/dashboard/chat" || isTrialExpired
+  const [open, setOpen] = React.useState(false)
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+  } = useChat({
+    api: "/api/chat",
+    id: "floating-chat", // ID único para manter estado separado
+  })
+
+  // Scroll to bottom when messages change
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
@@ -53,56 +58,15 @@ export function FloatingChat() {
     }
   }
 
-  const handleSend = async () => {
-    const text = input.trim()
-    if (!text || sending) return
-    setSending(true)
-    setMessages((m) => [...m, { role: "user", content: text }])
-    setInput("")
-
-    // Reset height of textarea
-    if (inputRef.current) {
-      inputRef.current.style.height = "auto"
-    }
-
-    try {
-      const res = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: text }),
-      })
-      if (!res.ok) {
-        const errText = await res.text()
-        setMessages((m) => [
-          ...m,
-          { role: "assistant", content: `Falha ao enviar: ${errText}` },
-        ])
-      } else {
-        const data = (await res.json()) as { reply?: string }
-        setMessages((m) => [
-          ...m,
-          { role: "assistant", content: data.reply ?? "(sem resposta)" },
-        ])
-      }
-    } catch (error) {
-      setMessages((m) => [
-        ...m,
-        { role: "assistant", content: "Erro de rede. Tente novamente." },
-      ])
-    } finally {
-      setSending(false)
-    }
-  }
-
   const handleInputKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
-      handleSend()
+      handleSubmit(e as unknown as React.FormEvent)
     }
   }
 
   const adjustTextareaHeight = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setInput(e.target.value)
+    handleInputChange(e)
     e.target.style.height = "auto"
     e.target.style.height = `${Math.min(e.target.scrollHeight, 120)}px`
   }
@@ -170,7 +134,7 @@ export function FloatingChat() {
           ) : (
             messages.map((m, i) => (
               <div
-                key={i}
+                key={m.id || i}
                 className={cn(
                   "flex gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300",
                   m.role === "user" ? "flex-row-reverse" : "flex-row"
@@ -205,7 +169,7 @@ export function FloatingChat() {
               </div>
             ))
           )}
-          {sending && (
+          {isLoading && messages[messages.length - 1]?.role === "user" && (
             <div className="flex gap-3 animate-in fade-in slide-in-from-bottom-2">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
                 <Bot className="w-4 h-4 text-white" />
@@ -223,10 +187,7 @@ export function FloatingChat() {
         <div className="p-4 bg-slate-900 border-t border-slate-800">
           <form
             className="relative flex items-end gap-2"
-            onSubmit={(e) => {
-              e.preventDefault()
-              handleSend()
-            }}
+            onSubmit={handleSubmit}
           >
             <textarea
               ref={inputRef}
@@ -241,14 +202,14 @@ export function FloatingChat() {
             <Button
               type="submit"
               size="icon"
-              disabled={!input.trim() || sending}
+              disabled={!input.trim() || isLoading}
               className={cn(
                 "h-[44px] w-[44px] rounded-xl transition-all duration-200 shadow-lg",
                 "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500",
                 "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-cyan-500 disabled:hover:to-blue-600"
               )}
             >
-              {sending ? (
+              {isLoading ? (
                 <Loader2 className="w-5 h-5 animate-spin text-white" />
               ) : (
                 <Send className="w-5 h-5 text-white ml-0.5" />
@@ -293,3 +254,6 @@ export function FloatingChat() {
     </div>
   )
 }
+
+// Need to import React for useState
+import React from "react"

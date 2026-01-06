@@ -182,10 +182,16 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
     }
   }
 
+  const isTrialExpired = 
+    profile?.plan_type === 'free' && 
+    profile?.trial_ends_at && 
+    new Date(profile.trial_ends_at) < new Date()
+
   return (
-    <div className={`h-screen supports-[height:100dvh]:h-[100dvh] flex overflow-hidden ${pathname === '/dashboard/chat' || pathname?.startsWith('/dashboard/cursos') || pathname?.startsWith('/dashboard/resumos') ? 'bg-slate-950' : 'bg-slate-50'}`}>
+    <div className={`h-screen supports-[height:100dvh]:h-[100dvh] flex overflow-hidden ${pathname === '/dashboard/chat' || pathname?.startsWith('/dashboard/cursos') || pathname?.startsWith('/dashboard/resumos') || pathname === '/dashboard/upgrade' ? 'bg-slate-950' : 'bg-slate-50'}`}>
       <DashboardSidebar
         isVisible={isSidebarVisible}
+        isTrialExpired={!!isTrialExpired}
       />
       <div className={`flex flex-1 flex-col min-h-0 ${pathname === '/dashboard/chat' ? 'overflow-hidden' : ''}`}>
         
@@ -209,12 +215,14 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
         <main
           className={`flex flex-1 flex-col min-h-0 ${pathname === "/dashboard/chat" || pathname?.startsWith("/dashboard/cursos") || pathname?.startsWith("/dashboard/resumos")
               ? "bg-transparent p-0 overflow-hidden"
+              : pathname === "/dashboard/upgrade"
+              ? "bg-transparent p-0 overflow-y-auto"
               : "bg-[#eff4fb] pt-4 px-4 md:pt-6 md:px-6 lg:pt-8 lg:px-8 overflow-y-auto"
             }`}
         >
           {children}
         </main>
-        <FloatingChat />
+        <FloatingChat isTrialExpired={!!isTrialExpired} />
       </div>
 
       <>
@@ -240,6 +248,7 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
                 isLoggedIn={Boolean(user)}
                 isLoggingOut={isLoggingOut}
                 onLogout={handleLogout}
+                isTrialExpired={!!isTrialExpired}
               />
             </div>
           </div>

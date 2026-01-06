@@ -1,22 +1,34 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { Send, Loader2, User, Bot, Copy, RotateCcw } from "lucide-react"
+import { useChat } from "@ai-sdk/react"
+import { Send, Loader2, User, Bot, Copy, RotateCcw, CheckCheck } from "lucide-react"
 import { Streamdown } from "streamdown"
 
-type Message = {
-  id: string
-  role: "user" | "assistant"
-  content: string
-  timestamp: Date
+type ChatInterfaceProps = {
+  plan?: string
 }
 
-export function ChatInterface() {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [input, setInput] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+export function ChatInterface({ plan = "free" }: ChatInterfaceProps) {
+  const [copied, setCopied] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  const {
+    messages,
+    input,
+    handleInputChange,
+    handleSubmit,
+    isLoading,
+    reload,
+    error,
+  } = useChat({
+    api: "/api/chat",
+    body: { plan },
+    onError: (err) => {
+      console.error("[Chat] Erro:", err)
+    },
+  })
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -28,106 +40,30 @@ export function ChatInterface() {
     }
   }, [messages])
 
-  const sendMessage = async () => {
-    if (!input.trim() || isLoading) return
-
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      role: "user",
-      content: input.trim(),
-      timestamp: new Date(),
-    }
-
-    setMessages((prev) => [...prev, userMessage])
-    setInput("")
-    setIsLoading(true)
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: "demo-user",
-          message: userMessage.content,
-          plan: "free",
-        }),
-      })
-
-      const data = await response.json()
-
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: data.reply || "Desculpe, não consegui processar sua mensagem.",
-        timestamp: new Date(),
-      }
-
-      setMessages((prev) => [...prev, assistantMessage])
-    } catch (error) {
-      const errorMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        role: "assistant",
-        content: "Desculpe, ocorreu um erro. Tente novamente.",
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, errorMessage])
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  // Focus input on mount
+  useEffect(() => {
+    inputRef.current?.focus()
+  }, [])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
-      sendMessage()
+      handleSubmit(e as unknown as React.FormEvent)
     }
   }
 
-  const copyMessage = (content: string) => {
-    navigator.clipboard.writeText(content)
+  const copyMessage = async (content: string, messageId: string) => {
+    await navigator.clipboard.writeText(content)
+    setCopied(messageId)
+    setTimeout(() => setCopied(null), 2000)
   }
 
-  const regenerateLastMessage = async () => {
-    if (messages.length < 2 || isLoading) return
-
-    const lastUserMessage = [...messages].reverse().find(m => m.role === "user")
-    if (!lastUserMessage) return
-
-    setMessages((prev) => prev.slice(0, -1))
-    setIsLoading(true)
-
-    try {
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: "demo-user",
-          message: lastUserMessage.content,
-          plan: "free",
-        }),
-      })
-
-      const data = await response.json()
-
-      const assistantMessage: Message = {
-        id: Date.now().toString(),
-        role: "assistant",
-        content: data.reply || "Desculpe, não consegui processar sua mensagem.",
-        timestamp: new Date(),
-      }
-
-      setMessages((prev) => [...prev, assistantMessage])
-    } catch (error) {
-      const errorMessage: Message = {
-        id: Date.now().toString(),
-        role: "assistant",
-        content: "Desculpe, ocorreu um erro. Tente novamente.",
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, errorMessage])
-    } finally {
-      setIsLoading(false)
-    }
+  const handleSuggestionClick = (suggestion: string) => {
+    // Simular digitação da sugestão
+    const syntheticEvent = {
+      target: { value: suggestion },
+    } as React.ChangeEvent<HTMLTextAreaElement>
+    handleInputChange(syntheticEvent)
   }
 
   return (
@@ -151,7 +87,7 @@ export function ChatInterface() {
               {/* Suggestion Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
                 <button
-                  onClick={() => setInput("Quais são os principais sinais de periodontite?")}
+                  onClick={() => handleSuggestionClick("Quais são os principais sinais de periodontite?")}
                   className="p-4 rounded-xl bg-slate-900/40 border border-slate-700/50 hover:border-primary/50 hover:bg-slate-800/50 transition-all text-left group"
                 >
                   <p className="text-sm text-slate-300 group-hover:text-white font-medium">
@@ -159,7 +95,7 @@ export function ChatInterface() {
                   </p>
                 </button>
                 <button
-                  onClick={() => setInput("Como diagnosticar cárie profunda?")}
+                  onClick={() => handleSuggestionClick("Como diagnosticar cárie profunda?")}
                   className="p-4 rounded-xl bg-slate-900/40 border border-slate-700/50 hover:border-primary/50 hover:bg-slate-800/50 transition-all text-left group"
                 >
                   <p className="text-sm text-slate-300 group-hover:text-white font-medium">
@@ -167,7 +103,7 @@ export function ChatInterface() {
                   </p>
                 </button>
                 <button
-                  onClick={() => setInput("Protocolo de tratamento endodôntico")}
+                  onClick={() => handleSuggestionClick("Protocolo de tratamento endodôntico")}
                   className="p-4 rounded-xl bg-slate-900/40 border border-slate-700/50 hover:border-primary/50 hover:bg-slate-800/50 transition-all text-left group"
                 >
                   <p className="text-sm text-slate-300 group-hover:text-white font-medium">
@@ -175,13 +111,24 @@ export function ChatInterface() {
                   </p>
                 </button>
                 <button
-                  onClick={() => setInput("Orientações pós-operatórias para implante")}
+                  onClick={() => handleSuggestionClick("Orientações pós-operatórias para implante")}
                   className="p-4 rounded-xl bg-slate-900/40 border border-slate-700/50 hover:border-primary/50 hover:bg-slate-800/50 transition-all text-left group"
                 >
                   <p className="text-sm text-slate-300 group-hover:text-white font-medium">
                     Orientações pós-operatórias para implante
                   </p>
                 </button>
+              </div>
+            </div>
+          )}
+
+          {/* Error State */}
+          {error && (
+            <div className="flex justify-center">
+              <div className="bg-red-500/10 border border-red-500/30 rounded-xl px-6 py-4 max-w-md">
+                <p className="text-red-400 text-sm text-center">
+                  {error.message || "Ocorreu um erro. Tente novamente."}
+                </p>
               </div>
             </div>
           )}
@@ -200,11 +147,10 @@ export function ChatInterface() {
 
               <div className={`flex flex-col ${message.role === "user" ? "items-end" : "items-start"} max-w-[80%]`}>
                 <div
-                  className={`rounded-2xl px-6 py-4 ${
-                    message.role === "user"
+                  className={`rounded-2xl px-6 py-4 ${message.role === "user"
                       ? "bg-[linear-gradient(135deg,#0891b2_0%,#06b6d4_100%)] text-white shadow-lg"
                       : "bg-slate-800/80 border border-slate-700/50 text-slate-100 shadow-lg"
-                  }`}
+                    }`}
                 >
                   <div className="text-sm leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_em]:italic [&_code]:bg-black/20 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_pre]:bg-black/20 [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:mb-1 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:text-base [&_h2]:font-bold [&_h3]:text-sm [&_h3]:font-semibold [&_blockquote]:border-l-4 [&_blockquote]:border-white/30 [&_blockquote]:pl-4 [&_blockquote]:italic">
                     <Streamdown>{message.content}</Streamdown>
@@ -214,14 +160,18 @@ export function ChatInterface() {
                 {message.role === "assistant" && message.id === messages[messages.length - 1]?.id && !isLoading && (
                   <div className="flex gap-2 mt-2">
                     <button
-                      onClick={() => copyMessage(message.content)}
+                      onClick={() => copyMessage(message.content, message.id)}
                       className="p-2 rounded-lg bg-slate-900/40 border border-slate-700/50 text-slate-400 hover:border-primary/50 hover:bg-slate-800/50 hover:text-white transition-all"
                       title="Copiar"
                     >
-                      <Copy className="w-4 h-4" />
+                      {copied === message.id ? (
+                        <CheckCheck className="w-4 h-4 text-green-400" />
+                      ) : (
+                        <Copy className="w-4 h-4" />
+                      )}
                     </button>
                     <button
-                      onClick={regenerateLastMessage}
+                      onClick={() => reload()}
                       className="p-2 rounded-lg bg-slate-900/40 border border-slate-700/50 text-slate-400 hover:border-primary/50 hover:bg-slate-800/50 hover:text-white transition-all"
                       title="Regenerar"
                     >
@@ -240,7 +190,7 @@ export function ChatInterface() {
           ))}
 
           {/* Loading State */}
-          {isLoading && (
+          {isLoading && messages[messages.length - 1]?.role === "user" && (
             <div className="flex gap-4 justify-start">
               <div className="flex-shrink-0 w-10 h-10 flex items-center justify-center">
                 <Bot className="w-6 h-6 text-slate-400" />
@@ -263,12 +213,12 @@ export function ChatInterface() {
       {/* Input Area */}
       <div className="flex-shrink-0 border-t border-slate-800/50 bg-slate-900/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom,0px)]">
         <div className="max-w-4xl mx-auto p-4">
-          <div className="flex gap-3 items-center">
+          <form onSubmit={handleSubmit} className="flex gap-3 items-center">
             <div className="flex-1 relative">
               <textarea
                 ref={inputRef}
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 placeholder="Digite sua pergunta..."
                 rows={1}
@@ -280,13 +230,13 @@ export function ChatInterface() {
               />
             </div>
             <button
-              onClick={sendMessage}
+              type="submit"
               disabled={!input.trim() || isLoading}
               className="flex-shrink-0 w-12 h-12 rounded-xl bg-[linear-gradient(135deg,#0891b2_0%,#06b6d4_100%)] hover:bg-[linear-gradient(135deg,#0e7490_0%,#0891b2_100%)] disabled:bg-slate-800 disabled:opacity-50 text-white flex items-center justify-center shadow-lg transition-all disabled:cursor-not-allowed active:scale-95"
             >
               <Send className="w-5 h-5" />
             </button>
-          </div>
+          </form>
         </div>
       </div>
     </div>

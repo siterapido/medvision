@@ -176,3 +176,4 @@ Se o problema persistir após seguir este guia:
 4. Revise as permissões e políticas RLS no banco de dados
 
 
+

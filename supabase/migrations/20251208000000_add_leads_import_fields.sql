@@ -10,3 +10,4 @@ COMMENT ON COLUMN public.leads.sheet_source_name IS 'Nome da planilha de origem 
 COMMENT ON COLUMN public.leads.sheet_source_description IS 'Descrição da planilha de origem da importação';
 
 
+

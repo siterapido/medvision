@@ -43,3 +43,4 @@ COMMENT ON COLUMN public.profiles.pipeline_stage IS 'Etapa atual do lead no pipe
 
 
 
+

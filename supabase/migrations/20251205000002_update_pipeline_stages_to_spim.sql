@@ -36,3 +36,4 @@ WHERE pipeline_stage IN ('necessidade_beneficio', 'proposta_enviada', 'perdido')
 
 
 
+

@@ -2,17 +2,15 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { format, formatDistanceToNow } from "date-fns"
+import { formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import {
   ArrowUpRight,
-  ChevronDown,
-  Clock3,
   GripVertical,
-  Mail,
   MessageSquare,
   MoreHorizontal,
   Phone,
+  Maximize2,
 } from "lucide-react"
 import { useDraggable } from "@dnd-kit/core"
 
@@ -28,7 +26,7 @@ import {
 import { cn } from "@/lib/utils"
 import { getRemainingTrialDays } from "@/lib/trial"
 import { updatePipelineStage } from "@/app/actions/pipeline"
-import { NotesModal } from "./notes-modal"
+import { LeadDetailsDialog } from "./lead-details-dialog"
 
 type PipelineLead = {
   id: string
@@ -78,7 +76,7 @@ interface LeadCardProps {
 }
 
 export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCardProps) {
-  const [notesOpen, setNotesOpen] = useState(false)
+  const [detailsOpen, setDetailsOpen] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
@@ -131,9 +129,10 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
         className={cn(
           "group relative flex flex-col gap-2 rounded-md border border-slate-700 bg-slate-800/60 p-2.5 hover:border-slate-600 transition-all",
           isDragging && !isDragOverlay && "opacity-50",
-          !isDragOverlay && "cursor-grab active:cursor-grabbing",
+          !isDragOverlay && "cursor-pointer active:cursor-grabbing",
           isUrgent && "border-l-2 border-l-red-400 bg-red-500/10"
         )}
+        onClick={() => !isDragOverlay && setDetailsOpen(true)}
       >
         {/* Header Compacto */}
         <div className="flex items-start justify-between gap-2">
@@ -142,7 +141,8 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
               <button
                 {...listeners}
                 {...attributes}
-                className="text-slate-600 hover:text-slate-400 -ml-1 cursor-grab active:cursor-grabbing"
+                className="text-slate-600 hover:text-slate-400 -ml-1 cursor-grab active:cursor-grabbing p-0.5 hover:bg-slate-700/50 rounded"
+                onClick={(e) => e.stopPropagation()}
               >
                 <GripVertical className="h-3.5 w-3.5" />
               </button>
@@ -156,58 +156,70 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
             </div>
           </div>
           
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-6 w-6 text-slate-400 hover:text-slate-200"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 bg-slate-800 border-slate-700">
-              <div className="px-2 py-1.5 text-xs font-semibold text-slate-400">
-                Mover para...
-              </div>
-              {Object.entries(STAGE_LABELS).map(([key, label]) => (
-                <DropdownMenuItem
-                  key={key}
-                  onClick={() => handleStageChange(key as PipelineStage)}
-                  className={cn(
-                    "text-xs cursor-pointer",
-                    currentStage === key && "bg-slate-800 text-cyan-400"
-                  )}
+          <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+            <Button
+               variant="ghost"
+               size="icon"
+               className="h-6 w-6 text-slate-500 hover:text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity"
+               onClick={() => setDetailsOpen(true)}
+               title="Expandir detalhes"
+            >
+              <Maximize2 className="h-3.5 w-3.5" />
+            </Button>
+            
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-6 w-6 text-slate-400 hover:text-slate-200"
                 >
-                  {label}
-                </DropdownMenuItem>
-              ))}
-              <DropdownMenuSeparator className="bg-slate-700" />
-              {whatsappUrl && (
-                <DropdownMenuItem asChild>
-                  <a 
-                    href={whatsappUrl} 
-                    target="_blank" 
-                    rel="noreferrer"
-                    className="text-xs cursor-pointer flex items-center"
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-slate-800 border-slate-700">
+                <div className="px-2 py-1.5 text-xs font-semibold text-slate-400">
+                  Mover para...
+                </div>
+                {Object.entries(STAGE_LABELS).map(([key, label]) => (
+                  <DropdownMenuItem
+                    key={key}
+                    onClick={() => handleStageChange(key as PipelineStage)}
+                    className={cn(
+                      "text-xs cursor-pointer",
+                      currentStage === key && "bg-slate-800 text-cyan-400"
+                    )}
                   >
-                    <Phone className="h-3 w-3 mr-2" />
-                    WhatsApp
-                  </a>
+                    {label}
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator className="bg-slate-700" />
+                {whatsappUrl && (
+                  <DropdownMenuItem asChild>
+                    <a 
+                      href={whatsappUrl} 
+                      target="_blank" 
+                      rel="noreferrer"
+                      className="text-xs cursor-pointer flex items-center"
+                    >
+                      <Phone className="h-3 w-3 mr-2" />
+                      WhatsApp
+                    </a>
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={() => setDetailsOpen(true)} className="text-xs cursor-pointer">
+                  <MessageSquare className="h-3 w-3 mr-2" />
+                  Ver detalhes e notas
                 </DropdownMenuItem>
-              )}
-              <DropdownMenuItem onClick={() => setNotesOpen(true)} className="text-xs cursor-pointer">
-                <MessageSquare className="h-3 w-3 mr-2" />
-                Ver notas
-              </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <Link href={`/admin/usuarios/${lead.id}`} className="text-xs cursor-pointer flex items-center">
-                  <ArrowUpRight className="h-3 w-3 mr-2" />
-                  Ver perfil
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem asChild>
+                  <Link href={`/admin/usuarios/${lead.id}`} className="text-xs cursor-pointer flex items-center">
+                    <ArrowUpRight className="h-3 w-3 mr-2" />
+                    Ver perfil
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
 
         {/* Badges Minimalistas */}
@@ -244,11 +256,12 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
         </div>
       </div>
 
-      <NotesModal
-        open={notesOpen}
-        onOpenChange={setNotesOpen}
-        userId={lead.id}
-        userName={lead.name}
+      <LeadDetailsDialog
+        open={detailsOpen}
+        onOpenChange={setDetailsOpen}
+        leadId={lead.id}
+        leadName={lead.name}
+        onStageChange={onStageChange}
       />
     </>
   )

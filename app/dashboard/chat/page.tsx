@@ -1,7 +1,25 @@
-"use client"
+import { ChatShell } from "@/components/chat/chat-shell"
+import { createClient } from "@/lib/supabase/server"
+import { redirect } from "next/navigation"
 
-import { ChatInterface } from "@/components/chat/chat-interface"
+export default async function ChatPage() {
+  const supabase = await createClient()
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser()
 
-export default function ChatPage() {
-  return <ChatInterface />
+  if (error || !user) {
+    redirect("/login")
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("plan_type")
+    .eq("id", user.id)
+    .single()
+
+  const plan = profile?.plan_type || "free"
+
+  return <ChatShell plan={plan} />
 }

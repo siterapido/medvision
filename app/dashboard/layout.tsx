@@ -1,5 +1,6 @@
 import type React from "react"
 import { redirect } from "next/navigation"
+import { headers } from "next/headers"
 
 import { startTrial } from "@/app/actions/trial"
 import { DashboardLayoutShell } from "@/components/dashboard/shell"
@@ -78,9 +79,31 @@ export default async function DashboardLayout({
       .select("*")
       .eq("id", user.id)
       .single<DashboardProfile>()
-      
+
     if (updatedProfile) {
       Object.assign(profile, updatedProfile)
+    }
+  }
+
+  // Verificação de expiração do Trial (Movido do middleware para cá para evitar timeout)
+  const headerList = await headers()
+  const pathname = headerList.get("x-pathname") || ""
+
+  const trialExpired = isTrialExpired(profile?.trial_ends_at)
+  const hasTrialStarted = !!profile?.trial_started_at
+
+  if (!hasActivePlan && hasTrialStarted && trialExpired) {
+    // Rotas permitidas mesmo com trial expirado
+    const allowedPaths = [
+      "/dashboard/upgrade",
+      "/dashboard/assinatura",
+      "/dashboard/perfil",
+    ]
+
+    const isAllowedPath = allowedPaths.some((path) => pathname.startsWith(path))
+
+    if (!isAllowedPath) {
+      redirect("/dashboard/upgrade")
     }
   }
 
