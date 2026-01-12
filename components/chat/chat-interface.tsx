@@ -5,6 +5,8 @@ import { useChat } from "@ai-sdk/react"
 import { Send, Loader2, User, Bot, Copy, RotateCcw, CheckCheck } from "lucide-react"
 import { Streamdown } from "streamdown"
 
+import { nanoid } from "nanoid"
+
 type ChatInterfaceProps = {
   plan?: string
 }
@@ -13,6 +15,9 @@ export function ChatInterface({ plan = "free" }: ChatInterfaceProps) {
   const [copied, setCopied] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Generate a stable session ID for this component instance
+  const [sessionId] = useState(() => nanoid())
 
   const {
     messages,
@@ -24,7 +29,10 @@ export function ChatInterface({ plan = "free" }: ChatInterfaceProps) {
     error,
   } = useChat({
     api: "/api/chat",
-    body: { plan },
+    body: {
+      plan,
+      sessionId
+    },
     onError: (err) => {
       console.error("[Chat] Erro:", err)
     },
@@ -148,8 +156,8 @@ export function ChatInterface({ plan = "free" }: ChatInterfaceProps) {
               <div className={`flex flex-col ${message.role === "user" ? "items-end" : "items-start"} max-w-[80%]`}>
                 <div
                   className={`rounded-2xl px-6 py-4 ${message.role === "user"
-                      ? "bg-[linear-gradient(135deg,#0891b2_0%,#06b6d4_100%)] text-white shadow-lg"
-                      : "bg-slate-800/80 border border-slate-700/50 text-slate-100 shadow-lg"
+                    ? "bg-[linear-gradient(135deg,#0891b2_0%,#06b6d4_100%)] text-white shadow-lg"
+                    : "bg-slate-800/80 border border-slate-700/50 text-slate-100 shadow-lg"
                     }`}
                 >
                   <div className="text-sm leading-relaxed [&>*:first-child]:mt-0 [&>*:last-child]:mb-0 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_em]:italic [&_code]:bg-black/20 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_code]:text-xs [&_pre]:bg-black/20 [&_pre]:p-3 [&_pre]:rounded-lg [&_pre]:overflow-x-auto [&_ul]:list-disc [&_ul]:ml-4 [&_ol]:list-decimal [&_ol]:ml-4 [&_li]:mb-1 [&_h1]:text-lg [&_h1]:font-bold [&_h2]:text-base [&_h2]:font-bold [&_h3]:text-sm [&_h3]:font-semibold [&_blockquote]:border-l-4 [&_blockquote]:border-white/30 [&_blockquote]:pl-4 [&_blockquote]:italic">

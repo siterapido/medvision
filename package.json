@@ -13,7 +13,10 @@
     "db:status": "supabase migration list",
     "db:push": "supabase db push",
     "db:diff": "supabase db diff",
-    "db:reset": "supabase db reset"
+    "db:reset": "supabase db reset",
+    "test:auth": "tsx scripts/test-db-auth.ts",
+    "agno:dev": "cd odonto-gpt-agno-service && python3 -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --env-file .env",
+    "agno:install": "cd odonto-gpt-agno-service && python3 -m pip install -r requirements.txt"
   },
   "dependencies": {
     "@ai-sdk/react": "^2.0.89",
@@ -88,12 +91,15 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@next/swc-darwin-arm64": "^16.1.1",
     "@tailwindcss/postcss": "^4.1.9",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
+    "baseline-browser-mapping": "^2.9.14",
+    "dotenv": "^17.2.3",
     "eslint": "^9.39.1",
     "eslint-config-next": "^16.0.1",
     "patch-package": "^8.0.1",

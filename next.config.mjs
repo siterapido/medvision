@@ -17,7 +17,7 @@ const nextConfig = {
       bodySizeLimit: '2gb',
     },
     // Aumentar limite para rotas API e middleware (vídeos podem ser grandes)
-    middlewareClientMaxBodySize: '2gb',
+    proxyClientMaxBodySize: '2gb',
   },
   // Otimizações adicionais
   compress: true,

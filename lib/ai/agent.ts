@@ -145,10 +145,10 @@ export async function getOrCreateWhatsAppConversation(
 }
 
 /**
- * Processa uma mensagem e retorna a resposta do agente
+ * Processa uma mensagem e retorna a resposta do agente via AGNO Service
  * 
  * @param options - Opções de processamento
- * @returns Para streaming, retorna o resultado do streamText. Para não-streaming, retorna o texto.
+ * @returns Para streaming, retorna o ReadableStream. Para não-streaming, retorna o texto.
  */
 export async function processMessage(options: ProcessMessageOptions) {
     const {
@@ -160,61 +160,51 @@ export async function processMessage(options: ProcessMessageOptions) {
         metadata = {},
     } = options
 
-    // Verificar se OpenAI está configurada
-    if (!process.env.OPENAI_API_KEY) {
-        throw new Error(AI_ERROR_MESSAGES.invalidKey)
-    }
-
-    // Obter system prompt baseado no canal
-    const systemPrompt = await getSystemPrompt(channel)
-
-    // Buscar histórico de mensagens
-    const history = await getConversationHistory(userId, threadId, channel)
-
-    // Montar array de mensagens
-    const messages: CoreMessage[] = [
-        ...history,
-        { role: "user" as const, content: message },
-    ]
+    // Obter system prompt (opcional, já que o AGNO gerencia isso)
+    // Manter lógica de histórico se quisermos passar contexto, mas AGNO tem memória
+    // Para simplificar, confiamos no backend AGNO, mas passamos histórico se necessário
+    // Por enquanto, vamos passar apenas a mensagem atual, já que o AGNO lida com sessão se tiver sessionId
 
     // Salvar mensagem do usuário
     if (threadId) {
         await saveMessage(userId, threadId, "user", message, channel)
     }
 
-    if (streaming) {
-        // Para chat web - usar streaming
-        const result = streamText({
-            model: openai(AI_CONFIG.model),
-            system: systemPrompt,
-            messages,
-            maxTokens: AI_CONFIG.maxTokens,
-            temperature: AI_CONFIG.temperature,
-            onFinish: async ({ text }) => {
-                // Salvar resposta do assistente após streaming completo
-                if (threadId && text) {
-                    await saveMessage(userId, threadId, "assistant", text, channel)
-                }
-            },
-        })
+    // Chamar serviço AGNO
+    // Usamos threadId como sessionId para manter contexto no lado do Python se suportado
+    const stream = await import("./agno-service").then(m => m.streamAgnoChat(
+        message,
+        userId,
+        threadId, // Session ID
+        "auto"
+    ))
 
-        return result
+    if (streaming) {
+        // Retornar o stream para quem chamou (ex: route handler customizado)
+        // Nota: app/api/chat/route.ts já usa streamAgnoChat diretamente
+        return stream
     } else {
-        // Para WhatsApp - sem streaming, resposta completa
-        const result = await generateText({
-            model: openai(AI_CONFIG.model),
-            system: systemPrompt,
-            messages,
-            maxTokens: AI_CONFIG.maxTokens,
-            temperature: AI_CONFIG.temperature,
-        })
+        // Para WhatsApp/Sync - consumir o stream e retornar texto completo
+        const decoder = new TextDecoder()
+        const reader = stream.getReader()
+        let fullResponse = ""
+
+        try {
+            while (true) {
+                const { done, value } = await reader.read()
+                if (done) break
+                fullResponse += decoder.decode(value, { stream: true })
+            }
+        } finally {
+            reader.releaseLock()
+        }
 
         // Salvar resposta do assistente
         if (threadId) {
-            await saveMessage(userId, threadId, "assistant", result.text, channel)
+            await saveMessage(userId, threadId, "assistant", fullResponse, channel)
         }
 
-        return result.text
+        return fullResponse
     }
 }
 
@@ -240,7 +230,7 @@ export async function processMessageSync(
 
         return response as string
     } catch (error) {
-        console.error("[AI Agent] Erro ao processar mensagem WhatsApp:", error)
+        console.error("[AI Agent] Erro ao processar mensagem WhatsApp via AGNO:", error)
         return "Desculpe, ocorreu um erro ao processar sua mensagem. Por favor, tente novamente."
     }
 }

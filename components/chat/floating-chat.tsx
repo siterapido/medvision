@@ -9,12 +9,17 @@ import { cn } from "@/lib/utils"
 import { X, Send, Bot, User, Loader2 } from "lucide-react"
 import { Streamdown } from "streamdown"
 
+import { nanoid } from "nanoid"
+
 export function FloatingChat({ isTrialExpired = false }: { isTrialExpired?: boolean }) {
   const pathname = usePathname()
   const shouldHide = pathname === "/dashboard/chat" || isTrialExpired
   const [open, setOpen] = React.useState(false)
   const scrollRef = useRef<HTMLDivElement | null>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Generate a unique session ID for the floating chat
+  const [sessionId] = React.useState(() => nanoid())
 
   const {
     messages,
@@ -25,6 +30,7 @@ export function FloatingChat({ isTrialExpired = false }: { isTrialExpired?: bool
   } = useChat({
     api: "/api/chat",
     id: "floating-chat", // ID único para manter estado separado
+    body: { sessionId },
   })
 
   // Scroll to bottom when messages change
