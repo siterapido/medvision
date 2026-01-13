@@ -5,3 +5,7 @@ dist
 .trae
 .log
 .figma
+odonto-gpt-agno-service
+.venv
+venv
+__pycache__

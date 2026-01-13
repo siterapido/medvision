@@ -16,8 +16,9 @@ app = FastAPI(
 )
 
 # CORS Configuration
-# Allow all origins for development, restrict in production
-origins = ["*"]
+# Read allowed origins from environment variable for production
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "*")
+origins = allowed_origins.split(",") if allowed_origins != "*" else ["*"]
 
 app.add_middleware(
     CORSMiddleware,
