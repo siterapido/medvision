@@ -136,6 +136,52 @@ class HealthResponse(BaseModel):
 
 
 # ============================================================================
+# WhatsApp Integration Models
+# ============================================================================
+
+class WhatsAppWebhookMessage(BaseModel):
+    """Incoming WhatsApp message from Z-API webhook"""
+    phone: str
+    messageId: str
+    isGroup: bool = False
+    fromMe: bool = False
+    text: Optional[Dict[str, str]] = None
+    image: Optional[Dict[str, Any]] = None
+    audio: Optional[Dict[str, Any]] = None
+    document: Optional[Dict[str, Any]] = None
+    senderName: Optional[str] = None
+    chatName: Optional[str] = None
+
+
+class WhatsAppWebhookPayload(BaseModel):
+    """Z-API webhook payload"""
+    type: Literal["ReceivedCallback", "StatusCallback"]
+    phone: str
+    body: WhatsAppWebhookMessage
+
+
+class WhatsAppRequest(BaseModel):
+    """Direct request for WhatsApp messaging (without webhook)"""
+    phone: str = Field(..., description="Phone number (will be formatted)")
+    message: str = Field(..., description="Message to send")
+    userId: Optional[str] = Field(None, description="User ID for session tracking")
+    sessionId: Optional[str] = Field(None, description="Session ID for continuity")
+    agentType: Optional[Literal["image-analysis", "qa", "auto"]] = Field(
+        "auto",
+        description="Which agent to use"
+    )
+
+
+class WhatsAppResponse(BaseModel):
+    """Response from WhatsApp endpoint"""
+    success: bool
+    message: str
+    phone: str
+    agentType: str
+    sessionId: Optional[str] = None
+
+
+# ============================================================================
 # Error Models
 # ============================================================================
 

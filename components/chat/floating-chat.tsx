@@ -208,7 +208,7 @@ export function FloatingChat({ isTrialExpired = false }: { isTrialExpired?: bool
             <Button
               type="submit"
               size="icon"
-              disabled={!input.trim() || isLoading}
+              disabled={!(input ?? '').trim() || isLoading}
               className={cn(
                 "h-[44px] w-[44px] rounded-xl transition-all duration-200 shadow-lg",
                 "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500",

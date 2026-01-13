@@ -1,5 +1,8 @@
-
 from fastapi import FastAPI
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import router as api_router
 from app.models.schemas import HealthResponse

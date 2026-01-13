@@ -2,19 +2,24 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useChat } from "@ai-sdk/react"
-import { Send, Loader2, User, Bot, Copy, RotateCcw, CheckCheck } from "lucide-react"
+import { Send, Loader2, User, Bot, Copy, RotateCcw, CheckCheck, ImagePlus, X } from "lucide-react"
 import { Streamdown } from "streamdown"
+import Image from "next/image"
 
 import { nanoid } from "nanoid"
+import { ImageUpload, type UploadedImage } from "./image-upload"
 
 type ChatInterfaceProps = {
   plan?: string
+  userId?: string
 }
 
-export function ChatInterface({ plan = "free" }: ChatInterfaceProps) {
+export function ChatInterface({ plan = "free", userId = "" }: ChatInterfaceProps) {
   const [copied, setCopied] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+  const [showImageUpload, setShowImageUpload] = useState(false)
+  const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
 
   // Generate a stable session ID for this component instance
   const [sessionId] = useState(() => nanoid())
@@ -27,14 +32,21 @@ export function ChatInterface({ plan = "free" }: ChatInterfaceProps) {
     isLoading,
     reload,
     error,
+    setMessages,
   } = useChat({
     api: "/api/chat",
     body: {
       plan,
-      sessionId
+      sessionId,
+      imageUrl: uploadedImages.length > 0 ? uploadedImages[0].url : undefined,
     },
     onError: (err) => {
       console.error("[Chat] Erro:", err)
+    },
+    onFinish: () => {
+      // Clear uploaded images after message is sent
+      setUploadedImages([])
+      setShowImageUpload(false)
     },
   })
 
@@ -53,10 +65,10 @@ export function ChatInterface({ plan = "free" }: ChatInterfaceProps) {
     inputRef.current?.focus()
   }, [])
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault()
-      handleSubmit(e as unknown as React.FormEvent)
+      handleSubmit()
     }
   }
 
@@ -72,6 +84,7 @@ export function ChatInterface({ plan = "free" }: ChatInterfaceProps) {
       target: { value: suggestion },
     } as React.ChangeEvent<HTMLTextAreaElement>
     handleInputChange(syntheticEvent)
+    inputRef.current?.focus()
   }
 
   return (
@@ -220,17 +233,61 @@ export function ChatInterface({ plan = "free" }: ChatInterfaceProps) {
 
       {/* Input Area */}
       <div className="flex-shrink-0 border-t border-slate-800/50 bg-slate-900/95 backdrop-blur-sm pb-[env(safe-area-inset-bottom,0px)]">
-        <div className="max-w-4xl mx-auto p-4">
+        <div className="max-w-4xl mx-auto p-4 space-y-3">
+          {/* Image Upload Section */}
+          {showImageUpload && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowImageUpload(false)}
+                className="absolute -top-2 -right-2 p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white transition-colors z-10"
+              >
+                <X className="w-4 h-4" />
+              </button>
+              <ImageUpload
+                images={uploadedImages}
+                onImagesChange={setUploadedImages}
+                maxFiles={1}
+                userId={userId}
+                disabled={isLoading}
+              />
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="flex gap-3 items-center">
+            {/* Image Upload Toggle Button */}
+            <button
+              type="button"
+              onClick={() => setShowImageUpload(!showImageUpload)}
+              className={`
+                flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center transition-all border-2
+                ${
+                  showImageUpload || uploadedImages.length > 0
+                    ? "bg-primary/20 border-primary/50 text-primary"
+                    : "bg-slate-800/80 border-slate-700/50 text-slate-400 hover:border-slate-600 hover:text-slate-300"
+                }
+                ${isLoading ? "opacity-50 cursor-not-allowed" : ""}
+              `}
+              title={showImageUpload ? "Fechar upload" : "Adicionar imagem"}
+              disabled={isLoading}
+            >
+              <ImagePlus className="w-5 h-5" />
+            </button>
+
             <div className="flex-1 relative">
               <textarea
                 ref={inputRef}
                 value={input}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
-                placeholder="Digite sua pergunta..."
+                placeholder={
+                  uploadedImages.length > 0
+                    ? "Descreva o que você quer analisar na imagem..."
+                    : "Digite sua pergunta..."
+                }
                 rows={1}
-                className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-700/50 focus:border-primary/50 focus:outline-none resize-none bg-slate-800/80 text-slate-100 placeholder:text-slate-500 transition-all backdrop-blur-sm"
+                disabled={isLoading}
+                className="w-full px-4 py-3 pr-12 rounded-xl border border-slate-700/50 focus:border-primary/50 focus:outline-none resize-none bg-slate-800/80 text-slate-100 placeholder:text-slate-500 transition-all backdrop-blur-sm disabled:opacity-50"
                 style={{
                   minHeight: "48px",
                   maxHeight: "120px",
@@ -239,12 +296,24 @@ export function ChatInterface({ plan = "free" }: ChatInterfaceProps) {
             </div>
             <button
               type="submit"
-              disabled={!input.trim() || isLoading}
+              disabled={(!input.trim() && uploadedImages.length === 0) || isLoading}
               className="flex-shrink-0 w-12 h-12 rounded-xl bg-[linear-gradient(135deg,#0891b2_0%,#06b6d4_100%)] hover:bg-[linear-gradient(135deg,#0e7490_0%,#0891b2_100%)] disabled:bg-slate-800 disabled:opacity-50 text-white flex items-center justify-center shadow-lg transition-all disabled:cursor-not-allowed active:scale-95"
             >
-              <Send className="w-5 h-5" />
+              {isLoading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Send className="w-5 h-5" />
+              )}
             </button>
           </form>
+
+          {/* Upload Status */}
+          {uploadedImages.length > 0 && uploadedImages.some((img) => img.uploading) && (
+            <div className="flex items-center gap-2 text-xs text-slate-500">
+              <Loader2 className="w-3 h-3 animate-spin" />
+              <span>Fazendo upload das imagens...</span>
+            </div>
+          )}
         </div>
       </div>
     </div>

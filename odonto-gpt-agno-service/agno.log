@@ -1,0 +1,69 @@
+INFO:     Will watch for changes in these directories: ['/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service']
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process [8416] using WatchFiles
+INFO:     Started server process [8458]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:60954 - "GET /health HTTP/1.1" 200 OK
+ERROR    Error checking if table exists: (psycopg2.OperationalError) could not  
+         translate host name "db.[project].supabase.co" to address: nodename nor
+         servname provided, or not known                                        
+                                                                                
+         (Background on this error at: https://sqlalche.me/e/20/e3q8)           
+ERROR    Error checking if table exists: (psycopg2.OperationalError) could not  
+         translate host name "db.[project].supabase.co" to address: nodename nor
+         servname provided, or not known                                        
+                                                                                
+         (Background on this error at: https://sqlalche.me/e/20/e3q8)           
+WARNING  Could not create schema ai: (psycopg2.OperationalError) could not      
+         translate host name "db.[project].supabase.co" to address: nodename nor
+         servname provided, or not known                                        
+                                                                                
+         (Background on this error at: https://sqlalche.me/e/20/e3q8)           
+ERROR    Error checking if table exists: (psycopg2.OperationalError) could not  
+         translate host name "db.[project].supabase.co" to address: nodename nor
+         servname provided, or not known                                        
+                                                                                
+         (Background on this error at: https://sqlalche.me/e/20/e3q8)           
+ERROR    Could not create table ai.agent_sessions: (psycopg2.OperationalError)  
+         could not translate host name "db.[project].supabase.co" to address:   
+         nodename nor servname provided, or not known                           
+                                                                                
+         (Background on this error at: https://sqlalche.me/e/20/e3q8)           
+ERROR    Exception upserting into sessions table: (psycopg2.OperationalError)   
+         could not translate host name "db.[project].supabase.co" to address:   
+         nodename nor servname provided, or not known                           
+                                                                                
+         (Background on this error at: https://sqlalche.me/e/20/e3q8)           
+Traceback (most recent call last):
+  File "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 143, in __init__
+    self._dbapi_connection = engine.raw_connection()
+                             ~~~~~~~~~~~~~~~~~~~~~^^
+  File "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 3309, in raw_connection
+    return self.pool.connect()
+           ~~~~~~~~~~~~~~~~~^^
+  File "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/pool/base.py", line 447, in connect
+    return _ConnectionFairy._checkout(self)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+psycopg2.OperationalError: could not translate host name "db.[project].supabase.co" to address: nodename nor servname provided, or not known
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/agent/agent.py", line 6843, in _upsert_session
+    return self.db.upsert_session(session=session)  # type: ignore
+           ~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/db/postgres/postgres.py", line 867, in upsert_session
+    raise e
+  File "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/db/postgres/postgres.py", line 733, in upsert_session
+    table = self._get_table(table_type="sessions", create_table_if_not_found=True)
+sqlalchemy.exc.OperationalError: (psycopg2.OperationalError) could not translate host name "db.[project].supabase.co" to address: nodename nor servname provided, or not known
+
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+WARNING  Error upserting session into db: (psycopg2.OperationalError) could not 
+         translate host name "db.[project].supabase.co" to address: nodename nor
+         servname provided, or not known                                        
+                                                                                
+         (Background on this error at: https://sqlalche.me/e/20/e3q8)           
+INFO:     127.0.0.1:60983 - "POST /api/v1/whatsapp HTTP/1.1" 200 OK

@@ -3,7 +3,6 @@ import { type NextRequest } from "next/server"
 import { createClient } from "@/lib/supabase/server"
 import { streamAgnoChat } from "@/lib/ai/agno-service"
 import { AI_ERROR_MESSAGES } from "@/lib/ai/config"
-import { LangChainAdapter } from "ai"
 
 export const runtime = "edge"
 export const maxDuration = 60 // Extended duration for agent processing
@@ -13,6 +12,7 @@ type ChatRequestBody = {
   message?: string
   plan?: string
   sessionId?: string
+  imageUrl?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -24,59 +24,66 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser()
 
     if (!user) {
-      return new Response(
-        JSON.stringify({ error: AI_ERROR_MESSAGES.unauthorized }),
-        { status: 401, headers: { "Content-Type": "application/json" } }
-      )
+      console.error("[chat] Usuário não autenticado")
+      return new Response("Unauthorized", { status: 401 })
     }
 
     const body = (await request.json()) as ChatRequestBody
 
+    console.log("[chat] Recebida requisição:", {
+      hasMessages: !!body.messages,
+      messagesCount: body.messages?.length,
+      hasMessage: !!body.message,
+      hasImageUrl: !!body.imageUrl,
+      sessionId: body.sessionId
+    })
+
     let lastMessageContent = ""
     let images: string[] = []
 
+    // Extract message content from the request
     if (body.messages && Array.isArray(body.messages) && body.messages.length > 0) {
+      // useChat SDK sends messages array
       const lastMsg = body.messages[body.messages.length - 1]
-      lastMessageContent = lastMsg.content
-      // Check for images in experimental_attachments or typical content structure
-      // For now, assuming text content
+      lastMessageContent = lastMsg.content || ""
+      console.log("[chat] Mensagem extraída do array messages:", lastMessageContent)
     } else if (body.message) {
+      // Fallback for direct message
       lastMessageContent = body.message
+      console.log("[chat] Mensagem extraída de body.message:", lastMessageContent)
     } else {
-      return new Response(
-        JSON.stringify({ error: AI_ERROR_MESSAGES.noMessage }),
-        { status: 400, headers: { "Content-Type": "application/json" } }
-      )
+      console.error("[chat] Nenhuma mensagem encontrada na requisição")
+      return new Response("No message provided", { status: 400 })
     }
 
+    // Add imageUrl to images array if provided
+    if (body.imageUrl) {
+      images = [body.imageUrl]
+      console.log("[chat] Imagem incluída:", body.imageUrl)
+    }
+
+    // Determine agent type based on presence of images
+    const agentType = images.length > 0 ? "image-analysis" : "auto"
+    console.log("[chat] Tipo de agente:", agentType)
+
     // Call AGNO Service
+    console.log("[chat] Chamando Agno service...")
     const stream = await streamAgnoChat(
       lastMessageContent,
       user.id,
-      body.sessionId, // User provided or component generated session ID
-      "auto"
+      body.sessionId,
+      agentType,
+      images
     )
 
-    // Convert the raw text stream (Uint8Array) to Agno stream compatible with AI SDK
-    // LangChainAdapter.toDataStreamResponse handles a stream of strings
-    // We need to decode the byte stream to strings
-    const decoder = new TextDecoder()
-    const textStream = new ReadableStream({
-      async start(controller) {
-        const reader = stream.getReader()
-        try {
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) break
-            controller.enqueue(decoder.decode(value, { stream: true }))
-          }
-        } finally {
-          reader.releaseLock()
-        }
+    // Return stream directly with proper headers for useChat
+    console.log("[chat] Retornando stream")
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "text/plain; charset=utf-8",
+        "x-vercel-ai-message-stream": "v1"
       }
     })
-
-    return LangChainAdapter.toDataStreamResponse(textStream)
 
   } catch (error) {
     console.error("[chat] Erro ao processar mensagem via AGNO:", error)

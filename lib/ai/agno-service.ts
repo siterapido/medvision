@@ -22,14 +22,30 @@ export async function streamAgnoChat(
         imageUrl: images.length > 0 ? images[0] : undefined, // Simple support for 1 image for now
     }
 
+    console.log("[AgnoService] Iniciando requisição:", {
+        url,
+        hasMessage: !!message,
+        messageLength: message?.length,
+        userId,
+        sessionId,
+        agentType,
+        hasImage: !!body.imageUrl
+    })
+
     let response;
     try {
+        console.log("[AgnoService] Fazendo fetch para:", url)
         response = await fetch(url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
             },
             body: JSON.stringify(body),
+        })
+        console.log("[AgnoService] Response recebido:", {
+            status: response.status,
+            ok: response.ok,
+            hasBody: !!response.body
         })
     } catch (e) {
         // Catch network errors (e.g., service not running)
@@ -44,8 +60,10 @@ export async function streamAgnoChat(
     }
 
     if (!response.body) {
+        console.error("[AgnoService] No response body received")
         throw new Error("No response body received from AGNO service")
     }
 
+    console.log("[AgnoService] Retornando stream com sucesso")
     return response.body
 }

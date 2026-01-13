@@ -1,31 +1,52 @@
-"""Knowledge base tools for RAG (Retrieval-Augmented Generation)"""
+"""Knowledge base tools for RAG (Retrieval-Augmented Generation)
+
+Enhanced with hybrid search (vector + full-text) and rich metadata support
+for optimal dental education content retrieval.
+"""
 
 import os
 from openai import OpenAI
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Literal
 from psycopg2.extras import RealDictCursor
 from .database.supabase import get_supabase_connection
 from dotenv import load_dotenv
 
 load_dotenv()
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(
+    api_key=os.getenv("OPENROUTER_API_KEY"),
+    base_url="https://openrouter.ai/api/v1"
+)
+
+# Search types for different use cases
+SearchType = Literal["vector", "hybrid", "text"]
 
 
-def generate_embedding(text: str) -> List[float]:
+def generate_embedding(
+    text: str,
+    model: Optional[str] = None,
+    dimensions: int = 1536
+) -> List[float]:
     """
-    Generate embedding for text using OpenAI API.
+    Generate embedding for text using OpenAI API (via OpenRouter).
 
     Args:
         text: Text to embed
+        model: Model to use (defaults to OPENROUTER_MODEL_EMBEDDING env var)
+        dimensions: Embedding dimensions (default: 1536 for text-embedding-3-small)
 
     Returns:
-        List of embedding values (1536 dimensions for text-embedding-3-small)
+        List of embedding values
     """
     try:
+        # Use provided model or default to env var
+        if model is None:
+            model = os.getenv("OPENROUTER_MODEL_EMBEDDING", "openai/text-embedding-3-small")
+
         response = client.embeddings.create(
-            model="text-embedding-3-small",
-            input=text
+            model=model,
+            input=text,
+            dimensions=dimensions if "text-embedding-3" in model else None
         )
         return response.data[0].embedding
     except Exception as e:
@@ -36,19 +57,24 @@ def search_knowledge_base(
     query: str,
     specialty: Optional[str] = None,
     match_threshold: float = 0.7,
-    match_count: int = 5
+    match_count: int = 5,
+    search_type: SearchType = "hybrid"
 ) -> List[Dict[str, Any]]:
     """
-    Search knowledge base using vector similarity search.
+    Search knowledge base using vector similarity, hybrid, or full-text search.
+
+    Hybrid search combines semantic similarity (vector) with keyword matching (full-text)
+    for optimal results on technical/medical content.
 
     Args:
         query: Search query
         specialty: Optional specialty filter (periodontia, endodontia, etc.)
         match_threshold: Minimum similarity score (0-1)
         match_count: Maximum number of results
+        search_type: "vector" (semantic), "hybrid" (vector + text), or "text" (keyword only)
 
     Returns:
-        List of relevant knowledge base entries
+        List of relevant knowledge base entries with similarity scores
     """
     try:
         # Generate query embedding
@@ -58,62 +84,153 @@ def search_knowledge_base(
         conn = get_supabase_connection()
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
-        # Check if knowledge_base table exists and has pgvector
+        # Try vector/hybrid search first (requires knowledge_base table with pgvector)
         try:
-            # Try using the match function (requires pgvector extension)
-            cur.execute("""
-                SELECT
-                    id,
-                    title,
-                    content,
-                    specialty,
-                    source_type,
-                    source_id,
-                    1 - (embedding <=> %s::vector) as similarity
-                FROM knowledge_base
-                WHERE
-                    1 - (embedding <=> %s::vector) > %s
-                    AND (%s IS NULL OR specialty = %s)
-                ORDER BY embedding <=> %s::vector
-                LIMIT %s
-            """, (query_embedding, query_embedding, match_threshold,
-                 specialty, specialty, query_embedding, match_count))
+            if search_type in ["vector", "hybrid"]:
+                # Vector similarity search
+                cur.execute("""
+                    SELECT
+                        id,
+                        title,
+                        content,
+                        specialty,
+                        source_type,
+                        source_id,
+                        metadata,
+                        1 - (embedding <=> %s::vector) as similarity
+                    FROM knowledge_base
+                    WHERE
+                        1 - (embedding <=> %s::vector) > %s
+                        AND (%s IS NULL OR specialty = %s)
+                    ORDER BY embedding <=> %s::vector
+                    LIMIT %s
+                """, (query_embedding, query_embedding, match_threshold,
+                     specialty, specialty, query_embedding, match_count))
 
-            results = cur.fetchall()
-            return [dict(row) for row in results]
+                results = [dict(row) for row in cur.fetchall()]
 
-        except Exception as e:
+                # If hybrid search, also run full-text and merge results
+                if search_type == "hybrid" and results:
+                    # Run full-text search
+                    cur.execute("""
+                        SELECT
+                            id,
+                            title,
+                            content,
+                            specialty,
+                            source_type,
+                            source_id,
+                            metadata,
+                            ts_rank_cd(
+                                to_tsvector('portuguese', title || ' ' || COALESCE(content, '')),
+                                plainto_tsquery('portuguese', %s)
+                            ) as text_rank
+                        FROM knowledge_base
+                        WHERE
+                            to_tsvector('portuguese', title || ' ' || COALESCE(content, ''))
+                                @@ plainto_tsquery('portuguese', %s)
+                            AND (%s IS NULL OR specialty = %s)
+                        ORDER BY text_rank DESC
+                        LIMIT %s
+                    """, (query, query, specialty, specialty, match_count))
+
+                    text_results = [dict(row) for row in cur.fetchall()]
+
+                    # Merge results, prioritizing vector similarity but boosting text matches
+                    seen_ids = {r['id'] for r in results}
+                    for text_result in text_results:
+                        if text_result['id'] not in seen_ids:
+                            # Add text-only results with lower similarity
+                            text_result['similarity'] = min(text_result.get('text_rank', 0) * 0.5, match_threshold)
+                            results.append(text_result)
+
+                    # Re-sort by combined score
+                    results.sort(key=lambda x: x.get('similarity', 0), reverse=True)
+                    results = results[:match_count]
+
+                return results
+
+            elif search_type == "text":
+                # Full-text search only
+                cur.execute("""
+                    SELECT
+                        id,
+                        title,
+                        content,
+                        specialty,
+                        source_type,
+                        source_id,
+                        metadata,
+                        ts_rank_cd(
+                            to_tsvector('portuguese', title || ' ' || COALESCE(content, '')),
+                            plainto_tsquery('portuguese', %s)
+                        ) as similarity
+                    FROM knowledge_base
+                    WHERE
+                        to_tsvector('portuguese', title || ' ' || COALESCE(content, ''))
+                            @@ plainto_tsquery('portuguese', %s)
+                        AND (%s IS NULL OR specialty = %s)
+                    ORDER BY similarity DESC
+                    LIMIT %s
+                """, (query, query, specialty, specialty, match_count))
+
+                return [dict(row) for row in cur.fetchall()]
+
+        except Exception as vector_error:
             # Fallback: If knowledge_base doesn't exist or no pgvector,
-            # search in courses/lessons tables
-            print(f"Vector search not available, using fallback: {e}")
+            # search in courses/lessons tables using full-text
+            print(f"Vector search not available ({search_type}), using fallback: {vector_error}")
 
             cur.execute("""
                 SELECT
                     id,
                     title,
-                    content,
+                    COALESCE(description, '') as content,
                     NULL as specialty,
                     'course' as source_type,
-                    id as source_id
+                    id as source_id,
+                    NULL as metadata,
+                    ts_rank_cd(
+                        to_tsvector('portuguese', title || ' ' || COALESCE(description, '')),
+                        plainto_tsquery('portuguese', %s)
+                    ) as similarity
                 FROM courses
                 WHERE
-                    to_tsvector('portuguese', title || ' ' || COALESCE(description, '')) @@
-                    plainto_tsquery('portuguese', %s)
+                    to_tsvector('portuguese', title || ' ' || COALESCE(description, ''))
+                        @@ plainto_tsquery('portuguese', %s)
+                ORDER BY similarity DESC
                 LIMIT %s
-            """, (query, match_count))
+            """, (query, query, match_count))
 
-            results = cur.fetchall()
+            results = [dict(row) for row in cur.fetchall()]
 
-            # Add similarity scores (cosine similarity on title/description)
-            for result in results:
-                # Simple similarity heuristic
-                query_words = set(query.lower().split())
-                result_words = set(result['title'].lower().split())
-                intersection = query_words & result_words
-                union = query_words | result_words
-                result['similarity'] = len(intersection) / len(union) if union else 0
+            # If no results in courses, try lessons
+            if not results:
+                cur.execute("""
+                    SELECT
+                        l.id,
+                        l.title,
+                        l.content,
+                        l.specialty,
+                        'lesson' as source_type,
+                        l.id as source_id,
+                        NULL as metadata,
+                        ts_rank_cd(
+                            to_tsvector('portuguese', l.title || ' ' || COALESCE(l.content, '')),
+                            plainto_tsquery('portuguese', %s)
+                        ) as similarity
+                    FROM lessons l
+                    WHERE
+                        to_tsvector('portuguese', l.title || ' ' || COALESCE(l.content, ''))
+                            @@ plainto_tsquery('portuguese', %s)
+                        AND (%s IS NULL OR l.specialty = %s)
+                    ORDER BY similarity DESC
+                    LIMIT %s
+                """, (query, query, specialty, specialty, match_count))
 
-            return [dict(row) for row in results]
+                results = [dict(row) for row in cur.fetchall()]
+
+            return results
 
     except Exception as e:
         raise Exception(f"Knowledge base search failed: {str(e)}")
@@ -122,6 +239,30 @@ def search_knowledge_base(
             cur.close()
         if 'conn' in locals():
             conn.close()
+
+
+def search_by_specialty(
+    specialty: str,
+    query: Optional[str] = None,
+    match_count: int = 10
+) -> List[Dict[str, Any]]:
+    """
+    Search knowledge base filtered by dental specialty.
+
+    Args:
+        specialty: Specialty name (periodontia, endodontia, cirurgia, etc.)
+        query: Optional search query within specialty
+        match_count: Maximum results
+
+    Returns:
+        List of knowledge base entries for the specialty
+    """
+    return search_knowledge_base(
+        query=query or specialty,
+        specialty=specialty,
+        match_count=match_count,
+        search_type="hybrid"
+    )
 
 
 def get_course_content(course_id: str) -> Optional[Dict[str, Any]]:
