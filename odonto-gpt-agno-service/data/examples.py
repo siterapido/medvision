@@ -5,7 +5,7 @@ Provides example question-answer pairs to establish response patterns,
 structure, and quality standards for the dental education assistant.
 """
 
-from typing import List, Dict
+from typing import List, Dict, Optional
 from agno.models.message import Message
 
 
