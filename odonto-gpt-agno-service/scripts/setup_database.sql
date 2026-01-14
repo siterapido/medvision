@@ -27,7 +27,7 @@ CREATE INDEX IF NOT EXISTS idx_agent_sessions_user_id ON agent_sessions(user_id)
 -- Note: Logic to populate this is currently MISSING in api.py
 CREATE TABLE IF NOT EXISTS agent_messages (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    session_id UUID REFERENCES agent_sessions(id) ON DELETE CASCADE,
+    session_id TEXT REFERENCES agent_sessions(id) ON DELETE CASCADE,
     agent_id TEXT,
     role TEXT, -- 'user', 'assistant', 'system'
     content TEXT,

@@ -254,15 +254,19 @@ async def create_session(request: dict):
             "metadata": metadata
         }
 
-        # Allow passing a custom ID (e.g. for demo user sessions)
+        # Allow passing a custom ID (must be valid UUID for production schema)
+        # If not provided, Supabase will auto-generate one via gen_random_uuid()
         if request.get("id"):
             session_data["id"] = request.get("id")
 
+        logger.info(f"Creating session for user {user_id} with agent_type {agent_type}")
         result = supabase.table("agent_sessions").insert(session_data).execute()
 
         if not result.data:
+            logger.error("Failed to create session: No data returned from Supabase")
             raise HTTPException(status_code=500, detail="Failed to create session")
 
+        logger.info(f"Session created successfully: {result.data[0]['id']}")
         return {
             "id": result.data[0]["id"],
             "agentType": result.data[0]["agent_type"],
@@ -271,7 +275,10 @@ async def create_session(request: dict):
             "createdAt": result.data[0]["created_at"],
             "updatedAt": result.data[0]["updated_at"]
         }
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Error creating session: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 

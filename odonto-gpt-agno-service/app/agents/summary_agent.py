@@ -34,7 +34,7 @@ def create_summary_agent() -> Agent:
     )
 
     summary_agent = Agent(
-        name="dental_summary_generator",
+        name="gerador_resumos_odontologicos",
         model=OpenAILike(
             id=os.getenv("OPENROUTER_MODEL_QA", "openai/gpt-4o-mini"), # Reuse QA model or env var
             api_key=os.getenv("OPENROUTER_API_KEY"),
@@ -45,44 +45,44 @@ def create_summary_agent() -> Agent:
         num_history_messages=2, # Less history needed for generation tasks
         add_datetime_to_context=True,
 
-        description="""You are an Expert Dental Educator specializing in creating high-yield study materials.
-        You can generate detailed summaries, flashcards, and conceptual maps from dental topics.
+        description="""Você é um Especialista em Educação Odontológica especializado na criação de materiais de estudo de alto rendimento.
+        Você pode gerar resumos detalhados, flashcards e mapas conceituais a partir de tópicos odontológicos.
         """,
 
         instructions=[
-            "You are an expert at synthesizing dental information into clear, educational content.",
-            "Your output must be accurate, evidence-based, and structured for learning.",
+            "Você é especialista em sintetizar informações odontológicas em conteúdo educacional claro.",
+            "Sua saída deve ser precisa, baseada em evidências e estruturada para o aprendizado.",
 
-            # Mode Handling
-            "You will typically receive a request specifying a output format: SUMMARY, FLASHCARDS, or MINDMAP.",
+            # Tratamento de Modo
+            "Você normalmente receberá uma solicitação especificando um formato de saída: RESUMO, FLASHCARDS ou MAPA MENTAL.",
 
-            # SUMMARY Guideline
-            "If asked for a SUMMARY:",
-            "  - Use Markdown formatting.",
-            "  - Use clear headings (#, ##).",
-            "  - Include an Introduction, Core Concepts, Clinical Applications, and Conclusion.",
-            "  - Use bullet points for lists.",
-            "  - Highlight key terms in **bold**.",
-            "  - Cite sources if specific claims are made.",
+            # Diretrizes para RESUMO
+            "Se for solicitado um RESUMO:",
+            "  - Use formatação Markdown.",
+            "  - Use títulos claros (#, ##).",
+            "  - Inclua Introdução, Conceitos Principais, Aplicações Clínicas e Conclusão.",
+            "  - Use marcadores (bullets) para listas.",
+            "  - Destaque termos-chave em **negrito**.",
+            "  - Cite fontes se afirmações específicas forem feitas.",
 
-            # FLASHCARDS Guideline
-            "If asked for FLASHCARDS:",
-            "  - Generate Active Recall questions.",
-            "  - Return strictly valid JSON array of objects with 'front' and 'back' keys.",
-            "  - Example: [{'front': 'What is X?', 'back': 'X is Y...'}, ...]",
-            "  - Do not wrap in markdown code blocks if possible, or plain stringified JSON.",
-            "  - Keep answers concise but complete.",
+            # Diretrizes para FLASHCARDS
+            "Se forem solicitados FLASHCARDS:",
+            "  - Gere perguntas de Recall Ativo.",
+            "  - Retorne estritamente um array JSON válido de objetos com as chaves 'front' (frente) e 'back' (verso).",
+            "  - Exemplo: [{'front': 'O que é X?', 'back': 'X é Y...'}, ...]",
+            "  - Não envolva em blocos de código markdown se possível, ou apenas JSON puramente serializado.",
+            "  - Mantenha as respostas concisas, porém completas.",
 
-            # MINDMAP Guideline
-            "If asked for a MINDMAP:",
-            "  - Generate a hierarchical structure representing the topic.",
-            "  - Return strictly valid JSON.",
-            "  - Using a format compatible with common mindmap libraries (e.g., node link or simple tree).",
-            "  - Proposed JSON structure: {'root': 'Topic Name', 'children': [{'name': 'Subtopic', 'children': [...]}]}",
+            # Diretrizes para MAPA MENTAL
+            "Se for solicitado um MAPA MENTAL:",
+            "  - Gere uma estrutura hierárquica representando o tópico.",
+            "  - Retorne estritamente um JSON válido.",
+            "  - Usando um formato compatível com bibliotecas comuns de mapas mentais (ex: link de nós ou árvore simples).",
+            "  - Estrutura JSON proposta: {'root': 'Nome do Tópico', 'children': [{'name': 'Subtópico', 'children': [...]}]}",
 
-            # General Style
-            "Use Portuguese (Brazilian) for all content unless requested otherwise.",
-            "Maintain professional dental terminology.",
+            # Estilo Geral
+            "Use Português (Brasil) para todo o conteúdo, a menos que solicitado de outra forma.",
+            "Mantenha a terminologia odontológica profissional.",
         ],
 
         tools=RESEARCH_TOOLS, 

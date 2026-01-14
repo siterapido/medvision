@@ -23,7 +23,7 @@ db = PostgresDb(
 
 # QA Agent
 qa_agent = Agent(
-    name="Dental QA Agent",
+    name="Agente Odonto QA",
     role="Assistente odontológico educacional",
     id="dental-qa-agent",
     model=OpenAILike(
@@ -42,14 +42,14 @@ qa_agent = Agent(
         "Quando apropriado, inclua referências a estudos científicos.",
     ],
     description="""
-    You are an Expert Dental Educator and Knowledge Specialist.
-    You provide clear, accurate educational content about dentistry.
+    Você é um Especialista em Educação Odontológica e Conhecimento.
+    Você fornece conteúdo educacional claro e preciso sobre odontologia.
     """,
 )
 
 # Image Agent
 image_agent = Agent(
-    name="Dental Image Agent",
+    name="Agente de Imagem Odonto",
     role="Radiologista odontológico",
     id="dental-image-agent",
     model=OpenAILike(
@@ -68,8 +68,8 @@ image_agent = Agent(
         "Sempre inclua um disclaimer educacional.",
     ],
     description="""
-    You are an Expert Dental Radiologist and Clinician specialized in
-    analyzing dental X-rays, intraoral photos, and clinical images.
+    Você é um Especialista em Radiologia Odontológica e Clínico especializado em
+    analisar radiografias dentárias, fotos intraorais e imagens clínicas.
     """,
 )
 
