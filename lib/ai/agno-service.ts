@@ -1,7 +1,7 @@
 
 import { AI_CONFIG } from "./config"
 
-const AGNO_SERVICE_URL = process.env.AGNO_SERVICE_URL || "http://localhost:8000/api/v1"
+const AGNO_SERVICE_URL = process.env.AGNO_SERVICE_URL || "https://v0-odonto-gpt-ui-production.up.railway.app/api/v1"
 
 export async function streamAgnoChat(
     message: string,
