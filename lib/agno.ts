@@ -115,6 +115,7 @@ export interface ChatMessage {
     role: "user" | "agent"
     content: string
     created_at: number
+    agent_id?: string  // ID do agente que respondeu (dr-ciencia, prof-estudo, dr-redator, etc)
     tool_calls?: ToolCall[]
     images?: string[]
     videos?: string[]

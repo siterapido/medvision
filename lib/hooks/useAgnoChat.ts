@@ -129,9 +129,21 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                     }
                 }
 
-                // 2. Send message to chat endpoint
-                const endpoint = "/chat"
+                // 2. Determine the correct endpoint based on agent
+                let endpoint = "/chat" // default fallback
 
+                // Map agent IDs to their specific endpoints
+                const agentEndpoints: Record<string, string> = {
+                    "dr-ciencia": "/agentes/dr-ciencia/chat",
+                    "prof-estudo": "/agentes/prof-estudo/chat",
+                    "dr-redator": "/agentes/dr-redator/chat",
+                    "analise-imagem": "/image/analyze",
+                    "equipe": "/equipe/chat"
+                }
+
+                endpoint = agentEndpoints[agent.id] || "/chat"
+
+                // 3. Send message to appropriate endpoint
                 const response = await fetch(`${baseUrl}${endpoint}`, {
                     method: "POST",
                     headers: {
@@ -278,11 +290,12 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                 if (data && data.messages) {
                     const loadedMessages: ChatMessage[] = data.messages.map((msg: any) => ({
                         id: msg.id,
-                        role: msg.role === "user" ? "user" : "agent",
-                        content: msg.content || "",
-                        created_at: new Date(msg.createdAt).getTime() / 1000,
+                        role: msg.role,
+                        content: msg.content,
+                        created_at: msg.createdAt || Date.now() / 1000,
+                        agent_id: msg.agentId || msg.agent_id,  // Extrair agent_id do backend
+                        tool_calls: msg.toolCalls,
                         images: msg.metadata?.images,
-                        tool_calls: msg.toolCalls
                     }))
 
                     setMessages(loadedMessages)

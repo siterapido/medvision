@@ -8,7 +8,7 @@ import os
 from openai import OpenAI
 from typing import List, Dict, Any, Optional, Literal
 from psycopg2.extras import RealDictCursor
-from .database.supabase import get_supabase_connection
+from .database.supabase import get_supabase_client
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -81,7 +81,7 @@ def search_knowledge_base(
         query_embedding = generate_embedding(query)
 
         # Connect to database
-        conn = get_supabase_connection()
+        conn = get_supabase_client()
         cur = conn.cursor(cursor_factory=RealDictCursor)
 
         # Try vector/hybrid search first (requires knowledge_base table with pgvector)
@@ -275,7 +275,7 @@ def get_course_content(course_id: str) -> Optional[Dict[str, Any]]:
     Returns:
         Course data with lessons and materials
     """
-    conn = get_supabase_connection()
+    conn = get_supabase_client()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:
@@ -337,7 +337,7 @@ def index_course_content(course_id: str) -> bool:
         if not course:
             raise Exception(f"Course {course_id} not found")
 
-        conn = get_supabase_connection()
+        conn = get_supabase_client()
         cur = conn.cursor()
 
         # Check if knowledge_base table exists
@@ -414,7 +414,7 @@ def initialize_knowledge_base() -> Dict[str, Any]:
     Returns:
         Dict with indexing statistics
     """
-    conn = get_supabase_connection()
+    conn = get_supabase_client()
     cur = conn.cursor(cursor_factory=RealDictCursor)
 
     try:

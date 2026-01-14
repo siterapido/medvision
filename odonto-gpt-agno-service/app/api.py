@@ -13,6 +13,11 @@ from app.models.schemas import (
 from app.agents.qa_agent import dental_qa_agent
 from app.agents.image_agent import dental_image_agent
 from app.agents.summary_agent import dental_summary_agent
+# Novos agentes especializados
+from app.agents.science_agent import dr_ciencia
+from app.agents.study_agent import prof_estudo
+from app.agents.writer_agent import dr_redator
+from app.agents.team import rotear_para_agente_apropriado
 from app.tools.database.supabase import get_supabase_client
 from app.database.supabase import save_agent_message
 from app.tools.whatsapp import send_whatsapp_message
@@ -336,6 +341,177 @@ async def delete_session(session_id: str):
         return {"success": True}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# Novos Endpoints dos Agentes Especializados
+# ============================================================================
+
+@router.post("/agentes/dr-ciencia/chat")
+async def chat_dr_ciencia(request: ChatRequest):
+    """
+    Chat com Dr. Ciência - Especialista em Pesquisa Científica.
+    
+    Capacidades:
+    - Busca em PubMed e arXiv
+    - Formatação de citações (ABNT, APA, Vancouver)
+    - Síntese de literatura científica
+    - Análise de níveis de evidência
+    """
+    return StreamingResponse(
+        stream_generator(dr_ciencia, request.message, session_id=request.sessionId, agent_id="dr-ciencia"),
+        media_type="text/plain",
+        headers={"Content-Type": "text/plain; charset=utf-8"}
+    )
+
+
+@router.post("/agentes/prof-estudo/chat")
+async def chat_prof_estudo(request: ChatRequest):
+    """
+    Chat com Prof. Estudo - Especialista em Questões e Simulados.
+    
+    Capacidades:
+    - Geração de questões de múltipla escolha
+    - Criação de questões dissertativas
+    - Simulados personalizados (ENADE, Residência)
+    - Explicações pedagógicas detalhadas
+    """
+    return StreamingResponse(
+        stream_generator(prof_estudo, request.message, session_id=request.sessionId, agent_id="prof-estudo"),
+        media_type="text/plain",
+        headers={"Content-Type": "text/plain; charset=utf-8"}
+    )
+
+
+@router.post("/agentes/dr-redator/chat")
+async def chat_dr_redator(request: ChatRequest):
+    """
+    Chat com Dr. Redator - Especialista em Escrita Acadêmica.
+    
+    Capacidades:
+    - Estruturas de TCC por especialidade
+    - Templates de artigos científicos (IMRAD)
+    - Revisão de textos acadêmicos
+    - Sugestões de metodologia de pesquisa
+    - Formatação de referências
+    """
+    return StreamingResponse(
+        stream_generator(dr_redator, request.message, session_id=request.sessionId, agent_id="dr-redator"),
+        media_type="text/plain",
+        headers={"Content-Type": "text/plain; charset=utf-8"}
+    )
+
+
+@router.post("/equipe/chat")
+async def chat_equipe(request: ChatRequest):
+    """
+    Chat com roteamento inteligente automático para o agente apropriado.
+    
+    A equipe analisa a mensagem e roteia para:
+    - Dr. Ciência: pesquisa, artigos, evidências
+    - Prof. Estudo: questões, simulados, avaliação
+    - Dr. Redator: TCCs, artigos, escrita
+    - Dental Image: análise de imagens
+    - Equipe: quando múltiplos agentes são necessários
+    """
+    # Rotear automaticamente
+    tipo_agente = rotear_para_agente_apropriado(
+        mensagem_usuario=request.message,
+        tem_imagem=bool(request.imageUrl) if hasattr(request, 'imageUrl') else False
+    )
+    
+    # Mapear tipo de agente para o agente correto
+    agent_map = {
+        'ciencia': (dr_ciencia, 'dr-ciencia'),
+        'estudo': (prof_estudo, 'prof-estudo'),
+        'redator': (dr_redator, 'dr-redator'),
+        'imagem': (dental_image_agent, 'analise-imagem'),
+    }
+    
+    agent, agent_id = agent_map.get(tipo_agente, (dr_ciencia, 'dr-ciencia'))
+    
+    # Se tem imagem, usar stream_generator_with_images
+    if hasattr(request, 'imageUrl') and request.imageUrl:
+        return StreamingResponse(
+            stream_generator_with_images(agent, request.message, [request.imageUrl], session_id=request.sessionId, agent_id=agent_id),
+            media_type="text/plain",
+            headers={"Content-Type": "text/plain; charset=utf-8"}
+        )
+    
+    return StreamingResponse(
+        stream_generator(agent, request.message, session_id=request.sessionId, agent_id=agent_id),
+        media_type="text/plain",
+        headers={"Content-Type": "text/plain; charset=utf-8"}
+    )
+
+
+@router.get("/agentes")
+async def listar_agentes():
+    """
+    Lista todos os agentes disponíveis com suas capacidades.
+    """
+    return {
+        "agentes": [
+            {
+                "id": "dr-ciencia",
+                "nome": "Dr. Ciência",
+                "descricao": "Especialista em pesquisa científica odontológica",
+                "capacidades": [
+                    "Busca em PubMed e arXiv",
+                    "Formatação de citações (ABNT/APA/Vancouver)",
+                    "Síntese de literatura",
+                    "Análise de níveis de evidência"
+                ],
+                "endpoint": "/agentes/dr-ciencia/chat"
+            },
+            {
+                "id": "prof-estudo",
+                "nome": "Prof. Estudo",
+                "descricao": "Especialista em questões e simulados educacionais",
+                "capacidades": [
+                    "Geração de questões (múltipla escolha, dissertativas)",
+                    "Criação de simulados (ENADE, Residência)",
+                    "Explicações pedagógicas detalhadas",
+                    "Avaliação adaptativa"
+                ],
+                "endpoint": "/agentes/prof-estudo/chat"
+            },
+            {
+                "id": "dr-redator",
+                "nome": "Dr. Redator",
+                "descricao": "Especialista em escrita acadêmica e científica",
+                "capacidades": [
+                    "Estruturas de TCC completas",
+                    "Templates de artigos (IMRAD)",
+                    "Revisão de textos acadêmicos",
+                    "Sugestões de metodologia",
+                    "Formatação de referências"
+                ],
+                "endpoint": "/agentes/dr-redator/chat"
+            },
+            {
+                "id": "analise-imagem",
+                "nome": "Análise de Imagem",
+                "descricao": "Especialista em análise de imagens odontológicas",
+                "capacidades": [
+                    "Análise de radiografias",
+                    "Interpretação de imagens clínicas",
+                    "Diagnóstico por imagem"
+                ],
+                "endpoint": "/image/analyze"
+            },
+            {
+                "id": "equipe",
+                "nome": "Equipe Educacional",
+                "descricao": "Roteamento inteligente automático",
+                "capacidades": [
+                    "Roteamento automático para agente apropriado",
+                    "Coordenação multi-agente quando necessário"
+                ],
+                "endpoint": "/equipe/chat"
+            }
+        ]
+    }
 
 
 # ============================================================================

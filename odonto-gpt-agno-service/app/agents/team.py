@@ -1,24 +1,32 @@
-"""Multi-agent team for coordinated dental AI tasks"""
+"""Equipe multi-agente para tarefas educacionais odontológicas coordenadas
+
+Agentes especializados:
+- Dr. Ciência: Pesquisa científica e literatura
+- Prof. Estudo: Questões, simulados e avaliação
+- Dr. Redator: Escrita acadêmica (TCCs, artigos)
+- Dental Image Agent: Análise de imagens (mantido do original)
+"""
 
 from agno import Team
 from agno.models.openai import OpenAIChat
 from .image_agent import dental_image_agent
-from .qa_agent import dental_qa_agent
+from .science_agent import dr_ciencia
+from .study_agent import prof_estudo
+from .writer_agent import dr_redator
 from typing import List, Dict, Any, Optional
+import os
 
 
-def create_dental_care_team() -> Team:
+def create_dental_education_team() -> Team:
     """
-    Create a multi-agent team for coordinated dental care tasks.
-
+    Cria equipe multi-agente para educação odontológica coordenada.
+    
     Returns:
         Configured Agno Team instance
     """
-
     
     # Configure storage
     from agno.storage.agent.postgres import PostgresAgentStorage
-    import os
     
     db_url = os.getenv("SUPABASE_DB_URL")
     if db_url and db_url.startswith("postgres://"):
@@ -30,138 +38,210 @@ def create_dental_care_team() -> Team:
     )
 
     dental_team = Team(
-        name="dental_care_team",
-        agents=[dental_image_agent, dental_qa_agent],
+        name="equipe_educacao_odontologica",
+        agents=[dr_ciencia, prof_estudo, dr_redator, dental_image_agent],
         storage=storage,
-        # add_history_to_messages=True, # Team manages history implicitly usually
         instructions=[
-            "Coordinate effectively to provide comprehensive dental insights",
-            "Share relevant context between agents when beneficial",
-            "Prioritize patient safety and professional standards",
-            "Ensure all responses include appropriate disclaimers",
-            "When both image analysis and Q&A are needed, work sequentially:",
-            "  1. Image analyzer provides clinical findings",
-            "  2. Q&A agent supplements with educational context",
-            "  3. Synthesize coherent response combining both insights",
-            "Avoid redundant information in team responses",
-            "Each agent should focus on their specialty"
+            "Coordene efetivamente para fornecer insights educacionais abrangentes em odontologia",
+            "Compartilhe contexto relevante entre agentes quando benéfico",
+            "Priorize segurança do paciente e padrões profissionais",
+            "Garanta que todas as respostas incluam disclaimers apropriados",
+            
+            # Especialização dos agentes
+            "Dr. Ciência: Especialista em pesquisa científica, PubMed, arXiv, citações",
+            "Prof. Estudo: Especialista em questões, simulados, avaliação educacional",
+            "Dr. Redator: Especialista em TCCs, artigos científicos, escrita acadêmica",
+            "Image Agent: Especialista em análise de imagens, radiografias",
+            
+            # Coordenação
+            "Quando questão requer múltiplos agentes, trabalhe sequencialmente:",
+            "  Exemplo 1: TCC com pesquisa → Dr. Ciência busca literatura → Dr. Redator estrutura TCC",
+            "  Exemplo 2: Questão com imagem → Image Agent analisa → Prof. Estudo cria questão baseada",
+            "  Exemplo 3: Artigo científico → Dr. Ciência revisa evidências → Dr. Redator formata IMRAD",
+            
+            "Evite informações redundantes nas respostas da equipe",
+            "Cada agente deve focar em sua especialidade",
         ],
-        process="sequential",  # Agents work in sequence
-        # manager_llm="gpt-4o",  # Manager uses more capable model
+        process="sequential",  # Agentes trabalham em sequência
         model=OpenAIChat(
-            id=os.getenv("OPENROUTER_MODEL_QA", "openai/gpt-4o"),
+            id=os.getenv("OPENROUTER_MODEL_QA", "google/gemma-2-27b-it:free"),
             base_url="https://openrouter.ai/api/v1",
             api_key=os.getenv("OPENROUTER_API_KEY"),
         ),
-        description="Multi-agent team for dental image analysis and Q&A"
+        description="Equipe multi-agente para educação odontológica: pesquisa, questões e escrita acadêmica"
     )
 
     return dental_team
 
 
 # Create singleton instance
-dental_team = create_dental_care_team()
+equipe_dental = create_dental_education_team()
 
 
-def route_to_appropriate_agent(
-    user_message: str,
-    has_image: bool = False
+def rotear_para_agente_apropriado(
+    mensagem_usuario: str,
+    tem_imagem: bool = False,
+    contexto: Optional[Dict[str, Any]] = None
 ) -> str:
     """
-    Route request to appropriate agent based on content.
-
+    Roteia requisição para agente apropriado baseado no conteúdo.
+    
     Args:
-        user_message: User's message
-        has_image: Whether an image is attached
-
+        mensagem_usuario: Mensagem do usuário
+        tem_imagem: Se há imagem anexada
+        contexto: Contexto adicional (opcional)
+    
     Returns:
-        Agent type: 'image', 'qa', or 'team'
+        Tipo de agente: 'ciencia', 'estudo', 'redator', 'imagem', ou 'equipe'
     """
-    # Image-related keywords
-    image_keywords = [
-        'analyze', 'diagnos', 'x-ray', 'radiograph', 'photo', 'image',
-        'picture', 'show', 'look at', 'examine', 'interpret'
+    mensagem_lower = mensagem_usuario.lower()
+    
+    # Keywords por agente
+    keywords_ciencia = [
+        'pesquisar', 'pesquisa', 'artigos', 'artigo', 'evidências', 'evidência',
+        'pubmed', 'estudos', 'estudo', 'literatura', 'científico', 'científica',
+        'revisão sistemática', 'meta-análise', 'rct', 'ensaio clínico',
+        'referências', 'citação', 'citar', 'fonte', 'fontes'
     ]
-
-    # Q&A keywords
-    qa_keywords = [
-        'what is', 'how to', 'explain', 'why', 'when to', 'definition',
-        'difference', 'compare', 'procedure', 'technique', 'protocol'
+    
+    keywords_estudo = [
+        'questão', 'questões', 'simulado', 'simulados', 'prova', 'teste',
+        'exercício', 'exercícios', 'avaliar', 'avaliação', 'gabarito',
+        'enade', 'residência', 'concurso', 'múltipla escolha', 'dissertativa'
     ]
-
-    message_lower = user_message.lower()
-
-    has_image_request = any(keyword in message_lower for keyword in image_keywords)
-    has_qa_request = any(keyword in message_lower for keyword in qa_keywords)
-
-    if has_image and has_image_request:
-        # If image present and analysis requested
-        if has_qa_request:
-            # Both image analysis and explanation needed
-            return 'team'
-        return 'image'
-    elif has_qa_request:
-        return 'qa'
+    
+    keywords_redator = [
+        'tcc', 'monografia', 'artigo científico', 'paper', 'escrever',
+        'escrita', 'metodologia', 'imrad', 'abstract', 'resumo',
+        'introdução', 'discussão', 'conclusão', 'revisão de literatura',
+        'revisar texto', 'corrigir', 'formatação', 'abnt', 'vancouver', 'apa'
+    ]
+    
+    keywords_imagem = [
+        'imagem', 'radiografia', 'raio-x', 'raio x', 'rx', 'foto',
+        'analisar imagem', 'interpretar', 'diagnóstico por imagem'
+    ]
+    
+    # Count matches
+    matches_ciencia = sum(1 for kw in keywords_ciencia if kw in mensagem_lower)
+    matches_estudo = sum(1 for kw in keywords_estudo if kw in mensagem_lower)
+    matches_redator = sum(1 for kw in keywords_redator if kw in mensagem_lower)
+    matches_imagem = sum(1 for kw in keywords_imagem if kw in mensagem_lower)
+    
+    # Imagem tem prioridade se presente
+    if tem_imagem or matches_imagem > 0:
+        # Se também menciona outros agentes, usar equipe
+        if matches_ciencia > 0 or matches_estudo > 0:
+            return 'equipe'
+        return 'imagem'
+    
+    # Se múltiplos agentes têm alto match, usar equipe
+    high_matches = sum([
+        matches_ciencia >= 2,
+        matches_estudo >= 2,
+        matches_redator >= 2
+    ])
+    
+    if high_matches >= 2:
+        return 'equipe'
+    
+    # Roteamento por maior número de matches
+    max_matches = max(matches_ciencia, matches_estudo, matches_redator)
+    
+    if max_matches == 0:
+        # Default: Dr. Ciência para questões gerais
+        return 'ciencia'
+    
+    if matches_ciencia == max_matches:
+        return 'ciencia'
+    elif matches_estudo == max_matches:
+        return 'estudo'
+    elif matches_redator == max_matches:
+        return 'redator'
     else:
-        # Default: use Q&A agent for general questions
-        return 'qa'
+        return 'ciencia'  # fallback
 
 
-async def run_agent(
-    agent_type: str,
-    message: str,
-    context: Optional[Dict[str, Any]] = None
+async def executar_agente(
+    tipo_agente: str,
+    mensagem: str,
+    contexto: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
-    Run appropriate agent or team based on type.
-
+    Executa agente ou equipe apropriado baseado no tipo.
+    
     Args:
-        agent_type: Type of agent ('image', 'qa', 'team')
-        message: User message
-        context: Additional context (image URL, session ID, etc.)
-
+        tipo_agente: Tipo de agente ('ciencia', 'estudo', 'redator', 'imagem', 'equipe')
+        mensagem: Mensagem do usuário
+        contexto: Contexto adicional (imagem URL, session ID, etc.)
+    
     Returns:
-        Agent response
+        Resposta do agente
     """
     try:
-        if agent_type == 'image':
+        if tipo_agente == 'imagem':
             # Image analysis agent
             response = await dental_image_agent.run(
-                message,
-                context=context or {}
+                mensagem,
+                context=contexto or {}
             )
             return {
                 'response': response.response,
-                'agent': 'image-analysis',
+                'agent': 'analise-imagem',
                 'tool_calls': response.tool_calls if hasattr(response, 'tool_calls') else []
             }
 
-        elif agent_type == 'qa':
-            # Q&A agent
-            response = await dental_qa_agent.run(
-                message,
-                context=context or {}
+        elif tipo_agente == 'ciencia':
+            # Dr. Ciência - Scientific research
+            response = await dr_ciencia.run(
+                mensagem,
+                context=contexto or {}
             )
             return {
                 'response': response.response,
-                'agent': 'qa',
+                'agent': 'dr-ciencia',
                 'sources': response.sources if hasattr(response, 'sources') else []
             }
 
-        elif agent_type == 'team':
-            # Multi-agent team
-            response = await dental_team.run(
-                message,
-                context=context or {}
+        elif tipo_agente == 'estudo':
+            # Prof. Estudo - Questions and exams
+            response = await prof_estudo.run(
+                mensagem,
+                context=contexto or {}
             )
             return {
                 'response': response.response,
-                'agent': 'team',
+                'agent': 'prof-estudo',
+                'metadata': response.metadata if hasattr(response, 'metadata') else {}
+            }
+
+        elif tipo_agente == 'redator':
+            # Dr. Redator - Academic writing
+            response = await dr_redator.run(
+                mensagem,
+                context=contexto or {}
+            )
+            return {
+                'response': response.response,
+                'agent': 'dr-redator',
+                'metadata': response.metadata if hasattr(response, 'metadata') else {}
+            }
+
+        elif tipo_agente == 'equipe':
+            # Multi-agent team
+            response = await equipe_dental.run(
+                mensagem,
+                context=contexto or {}
+            )
+            return {
+                'response': response.response,
+                'agent': 'equipe',
                 'participants': response.participants if hasattr(response, 'participants') else []
             }
 
         else:
-            raise ValueError(f"Unknown agent type: {agent_type}")
+            raise ValueError(f"Tipo de agente desconhecido: {tipo_agente}")
 
     except Exception as e:
-        raise Exception(f"Agent execution failed: {str(e)}")
+        raise Exception(f"Execução do agente falhou: {str(e)}")
+

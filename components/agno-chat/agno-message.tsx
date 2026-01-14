@@ -3,6 +3,8 @@
 import { Bot, User, Copy, CheckCheck, AlertCircle, Loader2 } from "lucide-react"
 import { useState } from "react"
 import type { ChatMessage } from "@/lib/agno"
+import { getAgentInfo } from "@/lib/agent-config"
+import { cn } from "@/lib/utils"
 
 interface AgnoMessageProps {
     message: ChatMessage
@@ -12,6 +14,10 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
     const [copied, setCopied] = useState(false)
     const isUser = message.role === "user"
     const hasError = message.streamingError
+
+    // Get agent info for styling
+    const agent = getAgentInfo(message.agent_id)
+    const AgentIcon = agent.icon
 
     const copyContent = async () => {
         await navigator.clipboard.writeText(message.content)
@@ -145,8 +151,23 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
             className={`flex gap-4 ${isUser ? "justify-end" : "justify-start"}`}
         >
             {!isUser && (
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center">
-                    <Bot className="w-5 h-5 text-white" />
+                <div className="flex flex-col items-center gap-1">
+                    <div className={cn(
+                        "relative flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center shadow-lg",
+                        `bg-gradient-to-br ${agent.gradient}`
+                    )}>
+                        <AgentIcon className="w-5 h-5 text-white" />
+
+                        {/* Animated ring */}
+                        {message.isStreaming && (
+                            <div className="absolute inset-0 rounded-full animate-ping opacity-20 bg-white" />
+                        )}
+                    </div>
+
+                    {/* Agent name label */}
+                    <span className="text-[9px] text-slate-500 font-medium truncate max-w-[60px] text-center">
+                        {agent.name}
+                    </span>
                 </div>
             )}
 

@@ -8,6 +8,7 @@ import { useImageUpload } from "@/lib/hooks/useImageUpload"
 import { AgentSelector } from "./agent-selector"
 import { AgnoMessage } from "./agno-message"
 import { AgnoInput } from "./agno-input"
+import { ActiveAgentIndicator } from "./agent-badge"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { cn } from "@/lib/utils"
@@ -178,13 +179,25 @@ export function AgnoChat({ userId }: AgnoChatProps) {
                             />
                         </div>
 
-                        {/* Connection Badge - only visible on generic header space */}
-                        <div className={`hidden sm:flex items-center gap-2 text-xs px-3 py-1 rounded-full border ${isConnected
-                            ? "bg-green-500/10 border-green-500/20 text-green-400"
-                            : "bg-red-500/10 border-red-500/20 text-red-400"
-                            }`}>
-                            <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-green-400" : "bg-red-400"} ${isConnected ? "animate-pulse" : ""}`} />
-                            {isConnected ? "Online" : "Offline"}
+                        <div className="flex items-center gap-3">
+                            {/* Active Agent Indicator */}
+                            {selectedAgent && isStreaming && messages.length > 0 && (
+                                <div className="animate-fade-in">
+                                    <ActiveAgentIndicator
+                                        agentId={messages[messages.length - 1].agent_id || selectedAgent.id}
+                                        className="border-slate-700/50 bg-slate-800/50"
+                                    />
+                                </div>
+                            )}
+
+                            {/* Connection Badge - only visible on generic header space */}
+                            <div className={`hidden sm:flex items-center gap-2 text-xs px-3 py-1 rounded-full border ${isConnected
+                                ? "bg-green-500/10 border-green-500/20 text-green-400"
+                                : "bg-red-500/10 border-red-500/20 text-red-400"
+                                }`}>
+                                <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-green-400" : "bg-red-400"} ${isConnected ? "animate-pulse" : ""}`} />
+                                {isConnected ? "Online" : "Offline"}
+                            </div>
                         </div>
                     </div>
                 </div>

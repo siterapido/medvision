@@ -35,19 +35,35 @@ export function useAgnoAgents(options: UseAgnoAgentsOptions = {}): UseAgnoAgents
         setError(null)
 
         try {
-            // First check if AgentOS is healthy
-            const healthy = await checkHealth(baseUrl)
-            setIsConnected(healthy)
+            // Check if backend is available
+            const backendUrl = process.env.NEXT_PUBLIC_AGNO_SERVICE_URL || "http://localhost:8000/api/v1"
 
-            if (!healthy) {
-                setError("AgentOS não está disponível. Verifique se o servidor está rodando.")
+            const healthCheck = await fetch(`${backendUrl}/health`).catch(() => ({ ok: false }))
+            setIsConnected(healthCheck.ok)
+
+            if (!healthCheck.ok) {
+                setError("Serviço OdontoGPT não está disponível. Verifique se o backend está rodando.")
                 setAgents([])
                 setSelectedAgent(null)
                 return
             }
 
-            // Fetch agents
-            const agentList = await fetchAgents(baseUrl)
+            // Fetch agents from our backend (not AgentOS)
+            const response = await fetch(`${backendUrl}/agentes`)
+
+            if (!response.ok) {
+                throw new Error("Erro ao carregar agentes")
+            }
+
+            const data = await response.json()
+
+            // Map backend agents to AgentDetails format
+            const agentList: AgentDetails[] = data.agentes.map((agent: any) => ({
+                id: agent.id,
+                name: agent.nome,
+                description: agent.descricao,
+            }))
+
             setAgents(agentList)
 
             // Auto-select first agent if enabled and no agent is selected
@@ -61,7 +77,7 @@ export function useAgnoAgents(options: UseAgnoAgentsOptions = {}): UseAgnoAgents
         } finally {
             setIsLoading(false)
         }
-    }, [baseUrl, autoSelect, selectedAgent])
+    }, [autoSelect, selectedAgent])
 
     // Load agents on mount
     useEffect(() => {
