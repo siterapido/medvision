@@ -80,8 +80,7 @@ export async function POST(request: NextRequest) {
     console.log("[chat] Retornando stream")
     return new Response(stream, {
       headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "x-vercel-ai-message-stream": "v1"
+        "Content-Type": "text/plain; charset=utf-8"
       }
     })
 
