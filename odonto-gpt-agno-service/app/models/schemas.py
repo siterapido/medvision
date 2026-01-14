@@ -172,6 +172,7 @@ class WhatsAppRequest(BaseModel):
     )
 
 
+
 class WhatsAppResponse(BaseModel):
     """Response from WhatsApp endpoint"""
     success: bool
@@ -179,6 +180,25 @@ class WhatsAppResponse(BaseModel):
     phone: str
     agentType: str
     sessionId: Optional[str] = None
+
+
+# ============================================================================
+# Summary Models
+# ============================================================================
+
+class SummaryGenerationRequest(BaseModel):
+    """Request to generate study material"""
+    userId: str = Field(..., description="User ID from Supabase")
+    summaryId: str = Field(..., description="ID of the summary record in database")
+    topics: List[str] = Field(..., description="List of topics to cover")
+    format: Literal["SUMMARY", "FLASHCARDS", "MINDMAP"] = Field(..., description="Format to generate")
+    complexity: Literal["basic", "medium", "advanced"] = "medium"
+
+class SummaryPreviewRequest(BaseModel):
+    """Request to preview summary scope"""
+    topics: List[str] = Field(..., description="Selected topics")
+    complexity: Literal["basic", "medium", "advanced"] = "medium"
+
 
 
 # ============================================================================

@@ -6,11 +6,9 @@ CREATE EXTENSION IF NOT EXISTS vector;
 -- We must support both or ensure Agno adapts.
 -- Agno (PostgresDb) requires: session_id (text), session_data (jsonb), created_at, updated_at
 CREATE TABLE IF NOT EXISTS agent_sessions (
-    id UUID PRIMARY KEY DEFAULT gen_random_uuid(), -- Used by api.py as 'id'
-    session_id TEXT GENERATED ALWAYS AS (id::text) STORED, -- Computed for Agno compatibility if needed
-    
+    id TEXT PRIMARY KEY, -- Changed from UUID to allow custom IDs
     -- Fields required by api.py
-    user_id UUID NOT NULL REFERENCES auth.users(id), -- Assuming Supabase Auth
+    user_id TEXT NOT NULL, -- Changed from UUID to allow custom IDs (no FK to auth.users)
     agent_type TEXT,
     status TEXT DEFAULT 'active',
     metadata JSONB DEFAULT '{}',

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { FloatingChat } from "@/components/chat/floating-chat"
+
 import { DashboardHeader } from "@/components/dashboard/header"
 import {
   DashboardSidebar,
@@ -182,9 +182,9 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
     }
   }
 
-  const isTrialExpired = 
-    profile?.plan_type === 'free' && 
-    profile?.trial_ends_at && 
+  const isTrialExpired =
+    profile?.plan_type === 'free' &&
+    profile?.trial_ends_at &&
     new Date(profile.trial_ends_at) < new Date()
 
   return (
@@ -194,11 +194,11 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
         isTrialExpired={!!isTrialExpired}
       />
       <div className={`flex flex-1 flex-col min-h-0 ${pathname === '/dashboard/chat' ? 'overflow-hidden' : ''}`}>
-        
+
         {/* Banner de Trial */}
-        <TrialCountdownBanner 
-          trialEndsAt={profile?.trial_ends_at} 
-          planType={profile?.plan_type} 
+        <TrialCountdownBanner
+          trialEndsAt={profile?.trial_ends_at}
+          planType={profile?.plan_type}
         />
 
         <div className="shrink-0 z-20 relative">
@@ -214,15 +214,15 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
         </div>
         <main
           className={`flex flex-1 flex-col min-h-0 ${pathname === "/dashboard/chat" || pathname?.startsWith("/dashboard/cursos") || pathname?.startsWith("/dashboard/resumos")
-              ? "bg-transparent p-0 overflow-hidden"
-              : pathname === "/dashboard/upgrade"
+            ? "bg-transparent p-0 overflow-hidden"
+            : pathname === "/dashboard/upgrade"
               ? "bg-transparent p-0 overflow-y-auto"
               : "bg-[#eff4fb] pt-4 px-4 md:pt-6 md:px-6 lg:pt-8 lg:px-8 overflow-y-auto"
             }`}
         >
           {children}
         </main>
-        <FloatingChat isTrialExpired={!!isTrialExpired} />
+
       </div>
 
       <>

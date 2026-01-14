@@ -21,12 +21,12 @@ def get_supabase_client() -> Client:
 
     if _supabase_client is None:
         supabase_url = os.getenv("SUPABASE_URL")
-        supabase_key = os.getenv("SUPABASE_ANON_KEY")
+        supabase_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
 
         if not supabase_url:
             raise ValueError("SUPABASE_URL environment variable is required")
         if not supabase_key:
-            raise ValueError("SUPABASE_ANON_KEY environment variable is required")
+            raise ValueError("SUPABASE_SERVICE_ROLE_KEY environment variable is required")
 
         _supabase_client = create_client(supabase_url, supabase_key)
 

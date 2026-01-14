@@ -6,10 +6,13 @@ from app.models.schemas import (
     ImageAnalysisRequest,
     QARequest,
     WhatsAppRequest,
-    WhatsAppResponse
+    WhatsAppResponse,
+    SummaryGenerationRequest,
+    SummaryPreviewRequest
 )
 from app.agents.qa_agent import dental_qa_agent
 from app.agents.image_agent import dental_image_agent
+from app.agents.summary_agent import dental_summary_agent
 from app.tools.database.supabase import get_supabase_client
 from app.database.supabase import save_agent_message
 from app.tools.whatsapp import send_whatsapp_message
@@ -206,6 +209,27 @@ async def stream_generator_with_images(agent, message: str, images: list, sessio
 # Session Management Endpoints
 # ============================================================================
 
+@router.get("/sessions")
+async def get_sessions(userId: str):
+    """
+    List all sessions for a user.
+    """
+    try:
+        supabase = get_supabase_client()
+        
+        # Select fields needed for the sidebar list
+        result = supabase.table("agent_sessions").select(
+            "id, agent_type, status, metadata, created_at, updated_at"
+        ).eq("user_id", userId).order("updated_at", desc=True).execute()
+
+        if not result.data:
+            return []
+
+        return result.data
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/sessions")
 async def create_session(request: dict):
     """
@@ -229,6 +253,10 @@ async def create_session(request: dict):
             "status": "active",
             "metadata": metadata
         }
+
+        # Allow passing a custom ID (e.g. for demo user sessions)
+        if request.get("id"):
+            session_data["id"] = request.get("id")
 
         result = supabase.table("agent_sessions").insert(session_data).execute()
 
@@ -377,3 +405,141 @@ async def whatsapp_chat(request: WhatsAppRequest):
     except Exception as e:
         logger.error(f"Error processing WhatsApp request: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============================================================================
+# Summary Endpoints
+# ============================================================================
+
+@router.post("/resumos/generate")
+async def generate_summary(request: SummaryGenerationRequest):
+    """
+    Generate dental study materials (Summary, Flashcards, or Mindmap).
+    Streams the response from the Agno agent.
+    """
+    # 1. Update status to 'generating' in Supabase (optional, usually handled by frontend before call)
+    # But good to ensure here. 
+    # For now, we assume frontend creates the record with 'generating' status.
+    
+    # 2. Construct prompt
+    prompt = f"Please generate a {request.format} for the following dental topics: {', '.join(request.topics)}."
+    prompt += f"\nComplexity Level: {request.complexity}"
+    
+    if request.format == "FLASHCARDS":
+        prompt += "\nReturn a VALID JSON array of flashcards. Do not include markdown code blocks."
+    elif request.format == "MINDMAP":
+        prompt += "\nReturn a VALID JSON object representing the mindmap structure."
+    
+    # 3. Stream response
+    # We use a session ID linked to the summary ID for tracking
+    session_id = f"summary_{request.summaryId}"
+    
+    return StreamingResponse(
+        stream_summary_generator(dental_summary_agent, prompt, request.summaryId, request.format, session_id=session_id, agent_id="summary"),
+        media_type="text/plain",
+        headers={
+            "Content-Type": "text/plain; charset=utf-8"
+        }
+    )
+
+async def stream_summary_generator(agent, message: str, summary_id: str, format: str, session_id: str = None, agent_id: str = "summary") -> AsyncGenerator[str, None]:
+    """Generate streaming response and update appropriate tables based on format"""
+    full_response = ""
+    try:
+        response_stream = agent.run(message, stream=True, session_id=session_id)
+        
+        for chunk in response_stream:
+            chunk_content = ""
+            if hasattr(chunk, "content"):
+                chunk_content = chunk.content or ""
+            elif isinstance(chunk, str):
+                chunk_content = chunk
+            else:
+                chunk_content = str(chunk)
+            
+            full_response += chunk_content
+            yield chunk_content
+            
+    except Exception as e:
+        logger.error(f"Error in stream generation: {e}")
+        yield f"Error: {str(e)}"
+        # Update summary status to failed if it was a summary generation
+        if format == "SUMMARY":
+            try:
+                supabase = get_supabase_client()
+                supabase.table("summaries").update({
+                    "status": "failed",
+                    "content": str(e)
+                }).eq("id", summary_id).execute()
+            except:
+                pass
+    finally:
+        # Save complete content to DB based on format
+        if full_response:
+            try:
+                supabase = get_supabase_client()
+                
+                if format == "SUMMARY":
+                    supabase.table("summaries").update({
+                        "content": full_response,
+                        "status": "ready",
+                        "updated_at": datetime.utcnow().isoformat()
+                    }).eq("id", summary_id).execute()
+                    
+                elif format == "FLASHCARDS":
+                    # Clean markdown code blocks if present
+                    json_str = full_response.replace("```json", "").replace("```", "").strip()
+                    flashcards_data = json.loads(json_str)
+                    
+                    # Prepare inserts
+                    inserts = []
+                    for card in flashcards_data:
+                        inserts.append({
+                            "summary_id": summary_id,
+                            "front": card.get("front", ""),
+                            "back": card.get("back", "")
+                        })
+                    
+                    if inserts:
+                        # Delete existing flashcards for this summary to avoid duplicates/mess (optional strategy)
+                        # For now, let's just insert. A clearer strategy might be needed later.
+                        supabase.table("flashcards").insert(inserts).execute()
+                        
+                elif format == "MINDMAP":
+                    # Clean markdown code blocks
+                    json_str = full_response.replace("```json", "").replace("```", "").strip()
+                    mindmap_data = json.loads(json_str)
+                    
+                    supabase.table("mind_maps").insert({
+                        "summary_id": summary_id,
+                        "structure": mindmap_data
+                    }).execute()
+                    
+            except Exception as e:
+                logger.error(f"Failed to save generated content to DB: {e}")
+
+@router.post("/resumos/preview")
+async def preview_summary(request: SummaryPreviewRequest):
+    """
+    Calculate estimates for the summary generation.
+    Returns estimated token count, time, and content size.
+    """
+    # Simple estimation logic based on topic count and complexity
+    num_topics = len(request.topics)
+    multiplier = 1.0
+    if request.complexity == "advanced":
+        multiplier = 1.5
+    elif request.complexity == "basic":
+        multiplier = 0.8
+        
+    estimated_words = num_topics * 500 * multiplier
+    estimated_time_seconds = (estimated_words / 15) # Assume ~15 words/sec generation speed
+    
+    return {
+        "estimatedWords": int(estimated_words),
+        "estimatedTimeSeconds": int(estimated_time_seconds),
+        "estimatedFlashcards": int(num_topics * 5),
+        "estimatedDiagrams": int(num_topics * 1),
+        "complexity": request.complexity
+    }
+

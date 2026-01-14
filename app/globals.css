@@ -578,3 +578,28 @@ body {
     padding: 1rem 1.5rem;
   }
 }
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #summary-content, #summary-content * {
+    visibility: visible;
+  }
+  #summary-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  header, nav, aside, button, .no-print {
+    display: none !important;
+  }
+  /* Ensure text area expands */
+  textarea {
+    height: auto !important;
+    overflow: visible !important;
+    border: none !important;
+    resize: none !important;
+  }
+}

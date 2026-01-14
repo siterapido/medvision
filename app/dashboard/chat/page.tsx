@@ -1,6 +1,11 @@
-import { ChatShell } from "@/components/chat/chat-shell"
+import { AgnoChat } from "@/components/agno-chat/agno-chat"
 import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
+
+export const metadata = {
+  title: "Chat IA | Odonto GPT",
+  description: "Converse com nosso assistente de IA especializado em odontologia",
+}
 
 export default async function ChatPage() {
   const supabase = await createClient()
@@ -13,13 +18,5 @@ export default async function ChatPage() {
     redirect("/login")
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("plan_type")
-    .eq("id", user.id)
-    .single()
-
-  const plan = profile?.plan_type || "free"
-
-  return <ChatShell plan={plan} />
+  return <AgnoChat userId={user.id} />
 }

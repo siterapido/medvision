@@ -207,6 +207,16 @@ Se preferir começar apenas com o essencial para teste:
 - Reinicie o servidor (`npm run dev`)
 - Veja troubleshooting em `supabase/README.md`
 
+### 2. Validar Variáveis de Ambiente (RECOMENDADO)
+
+Para garantir que todas as chaves estão corretas e sincronizadas com a URL do projeto, execute:
+
+```bash
+npx tsx scripts/validate-env.ts
+```
+
+Este script verificará se a URL e as chaves batem entre si e se a conexão com o Supabase está ativa.
+
 ### 1. Testar Cadastro
 
 ```bash

@@ -24,7 +24,7 @@ type NavItem = {
 }
 
 export const dashboardNavigation: NavItem[] = [
-  { name: "Odonto GPT", href: "/dashboard/chat", icon: BotIcon },
+  { name: "OdontoGPT Chat", href: "/dashboard/chat", icon: BotIcon },
   { name: "Cursos", href: "/dashboard/cursos", icon: GraduationCap },
   { name: "Resumos", href: "/dashboard/resumos", icon: FileText },
   { name: "Materiais", href: "/dashboard/materiais", icon: BookOpen },
@@ -96,14 +96,14 @@ export function DashboardSidebarContent({
                   ? "bg-gradient-to-r from-primary/20 to-primary/5 text-white border border-primary/30 shadow-md shadow-primary/5"
                   : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-100 border border-transparent hover:border-slate-700/50",
               )}
-              >
-                <Icon className={cn("h-4 w-4 transition-transform group-hover:scale-110", isActive && "text-primary")} />
-                <span className="text-xs">{item.name}</span>
-              </Link>
-            )
-          })}
+            >
+              <Icon className={cn("h-4 w-4 transition-transform group-hover:scale-110", isActive && "text-primary")} />
+              <span className="text-xs">{item.name}</span>
+            </Link>
+          )
+        })}
       </nav>
-      
+
       {/* Card do WhatsApp no final */}
       {!isTrialExpired ? (
         <div className="mt-auto pt-4 px-3">
