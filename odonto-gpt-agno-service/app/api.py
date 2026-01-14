@@ -62,7 +62,7 @@ async def chat_qa(request: QARequest):
         stream_generator(dental_qa_agent, request.question, session_id=request.sessionId),
         media_type="text/plain",
         headers={
-            "x-vercel-ai-message-stream": "v1"
+            "Content-Type": "text/plain; charset=utf-8"
         }
     )
 
@@ -123,7 +123,7 @@ async def general_chat(request: ChatRequest):
         stream_generator_with_images(target_agent, prompt, images, session_id=request.sessionId) if images else stream_generator(target_agent, prompt, session_id=request.sessionId),
         media_type="text/plain",
         headers={
-            "x-vercel-ai-message-stream": "v1"
+            "Content-Type": "text/plain; charset=utf-8"
         }
     )
 

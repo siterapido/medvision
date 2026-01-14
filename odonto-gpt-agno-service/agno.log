@@ -356,3 +356,8 @@ WARNING  Error upserting session into db: (psycopg2.OperationalError) could not
          servname provided, or not known                                        
                                                                                 
          (Background on this error at: https://sqlalche.me/e/20/e3q8)           
+WARNING:  WatchFiles detected changes in 'app/api.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.
+INFO:     Finished server process [10691]
