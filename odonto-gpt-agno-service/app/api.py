@@ -11,6 +11,7 @@ from app.models.schemas import (
 from app.agents.qa_agent import dental_qa_agent
 from app.agents.image_agent import dental_image_agent
 from app.tools.database.supabase import get_supabase_client
+from app.database.supabase import save_agent_message
 from app.tools.whatsapp import send_whatsapp_message
 from typing import AsyncGenerator, Optional
 from datetime import datetime
@@ -31,26 +32,53 @@ def get_agent_response(agent, message: str, stream: bool = True):
         print(f"Error running agent: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-async def stream_generator(agent, message: str, session_id:str = None) -> AsyncGenerator[str, None]:
-    """Generate streaming response from AGNO agent"""
+async def stream_generator(agent, message: str, session_id: str = None, agent_id: str = "qa") -> AsyncGenerator[str, None]:
+    """Generate streaming response from AGNO agent and save to database"""
+    full_response = ""
     try:
+        # Save user message first (if session_id provided)
+        if session_id:
+            try:
+                save_agent_message(
+                    session_id=session_id,
+                    agent_id=agent_id,
+                    role="user",
+                    content=message
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save user message: {e}")
+
         # Agent.run returns a generator when stream=True
         response_stream = agent.run(message, stream=True, session_id=session_id)
         
         for chunk in response_stream:
             # Check the structure of the chunk returned by AGNO
-            # Usually it returns an object with content or just a string depending on configuration
-            # We assume it sends string chunks or objects with .content based on standard patterns
+            chunk_content = ""
             if hasattr(chunk, "content"):
-                yield chunk.content
+                chunk_content = chunk.content or ""
             elif isinstance(chunk, str):
-                yield chunk
+                chunk_content = chunk
             else:
-                 # Fallback for other types
-                 yield str(chunk)
+                chunk_content = str(chunk)
+            
+            full_response += chunk_content
+            yield chunk_content
                  
     except Exception as e:
         yield f"Error: {str(e)}"
+        full_response = f"Error: {str(e)}"
+    finally:
+        # Save assistant response after streaming completes
+        if session_id and full_response:
+            try:
+                save_agent_message(
+                    session_id=session_id,
+                    agent_id=agent_id,
+                    role="assistant",
+                    content=full_response
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save assistant message: {e}")
 
 @router.post("/qa/chat")
 async def chat_qa(request: QARequest):
@@ -109,36 +137,69 @@ async def general_chat(request: ChatRequest):
     Uses Vercel AI SDK Text Stream Protocol.
     """
     target_agent = dental_qa_agent
-    stream = True
+    agent_id = "qa"
 
     prompt = request.message
     images = []
 
     if request.imageUrl or request.agentType == "image-analysis":
         target_agent = dental_image_agent
+        agent_id = "image-analysis"
         if request.imageUrl:
             images = [request.imageUrl]
 
     return StreamingResponse(
-        stream_generator_with_images(target_agent, prompt, images, session_id=request.sessionId) if images else stream_generator(target_agent, prompt, session_id=request.sessionId),
+        stream_generator_with_images(target_agent, prompt, images, session_id=request.sessionId, agent_id=agent_id) if images else stream_generator(target_agent, prompt, session_id=request.sessionId, agent_id=agent_id),
         media_type="text/plain",
         headers={
             "Content-Type": "text/plain; charset=utf-8"
         }
     )
 
-async def stream_generator_with_images(agent, message: str, images: list, session_id: str = None) -> AsyncGenerator[str, None]:
+async def stream_generator_with_images(agent, message: str, images: list, session_id: str = None, agent_id: str = "image-analysis") -> AsyncGenerator[str, None]:
+    """Generate streaming response with images and save to database"""
+    full_response = ""
     try:
+        # Save user message first
+        if session_id:
+            try:
+                save_agent_message(
+                    session_id=session_id,
+                    agent_id=agent_id,
+                    role="user",
+                    content=message,
+                    metadata={"images": images} if images else None
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save user message: {e}")
+
         response_stream = agent.run(message, images=images, stream=True, session_id=session_id)
         for chunk in response_stream:
-             if hasattr(chunk, "content"):
-                yield chunk.content
-             elif isinstance(chunk, str):
-                yield chunk
-             else:
-                 yield str(chunk)
+            chunk_content = ""
+            if hasattr(chunk, "content"):
+                chunk_content = chunk.content or ""
+            elif isinstance(chunk, str):
+                chunk_content = chunk
+            else:
+                chunk_content = str(chunk)
+            
+            full_response += chunk_content
+            yield chunk_content
     except Exception as e:
         yield f"Error: {str(e)}"
+        full_response = f"Error: {str(e)}"
+    finally:
+        # Save assistant response
+        if session_id and full_response:
+            try:
+                save_agent_message(
+                    session_id=session_id,
+                    agent_id=agent_id,
+                    role="assistant",
+                    content=full_response
+                )
+            except Exception as e:
+                logger.warning(f"Failed to save assistant message: {e}")
 
 
 # ============================================================================
