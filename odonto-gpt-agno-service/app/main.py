@@ -17,7 +17,7 @@ app = FastAPI(
 
 # CORS Configuration
 # Read allowed origins from environment variable for production
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "*")
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "https://odontogpt.vercel.app,http://localhost:3000")
 origins = allowed_origins.split(",") if allowed_origins != "*" else ["*"]
 
 app.add_middleware(
