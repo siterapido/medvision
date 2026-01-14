@@ -20,15 +20,14 @@ export function ChatInterface({ plan = "free", userId = "" }: ChatInterfaceProps
   const inputRef = useRef<HTMLTextAreaElement>(null)
   const [showImageUpload, setShowImageUpload] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
+  const [inputValue, setInputValue] = useState("")
 
   // Generate a stable session ID for this component instance
   const [sessionId] = useState(() => nanoid())
 
   const {
     messages,
-    input,
-    handleInputChange,
-    handleSubmit,
+    sendMessage,
     isLoading,
     reload,
     error,
@@ -49,6 +48,25 @@ export function ChatInterface({ plan = "free", userId = "" }: ChatInterfaceProps
       setShowImageUpload(false)
     },
   })
+
+  // Local handlers for input management
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInputValue(e.target.value)
+  }
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    e?.preventDefault()
+
+    if ((!inputValue.trim() && uploadedImages.length === 0) || isLoading) {
+      return
+    }
+
+    await sendMessage({
+      content: inputValue,
+    })
+
+    setInputValue("")
+  }
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -277,7 +295,7 @@ export function ChatInterface({ plan = "free", userId = "" }: ChatInterfaceProps
             <div className="flex-1 relative">
               <textarea
                 ref={inputRef}
-                value={input}
+                value={inputValue}
                 onChange={handleInputChange}
                 onKeyDown={handleKeyDown}
                 placeholder={
@@ -296,7 +314,7 @@ export function ChatInterface({ plan = "free", userId = "" }: ChatInterfaceProps
             </div>
             <button
               type="submit"
-              disabled={(!input.trim() && uploadedImages.length === 0) || isLoading}
+              disabled={(!inputValue.trim() && uploadedImages.length === 0) || isLoading}
               className="flex-shrink-0 w-12 h-12 rounded-xl bg-[linear-gradient(135deg,#0891b2_0%,#06b6d4_100%)] hover:bg-[linear-gradient(135deg,#0e7490_0%,#0891b2_100%)] disabled:bg-slate-800 disabled:opacity-50 text-white flex items-center justify-center shadow-lg transition-all disabled:cursor-not-allowed active:scale-95"
             >
               {isLoading ? (

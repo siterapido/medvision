@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server"
 import { streamAgnoChat } from "@/lib/ai/agno-service"
 import { AI_ERROR_MESSAGES } from "@/lib/ai/config"
 
-export const runtime = "edge"
+export const runtime = "nodejs"
 export const maxDuration = 60 // Extended duration for agent processing
 
 type ChatRequestBody = {
