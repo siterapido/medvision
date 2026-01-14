@@ -1,6 +1,7 @@
 """Multi-agent team for coordinated dental AI tasks"""
 
 from agno import Team
+from agno.models.openai import OpenAIChat
 from .image_agent import dental_image_agent
 from .qa_agent import dental_qa_agent
 from typing import List, Dict, Any, Optional
@@ -19,9 +20,13 @@ def create_dental_care_team() -> Team:
     from agno.storage.agent.postgres import PostgresAgentStorage
     import os
     
+    db_url = os.getenv("SUPABASE_DB_URL")
+    if db_url and db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+
     storage = PostgresAgentStorage(
         table_name="team_sessions",
-        db_url=os.getenv("SUPABASE_DB_URL")
+        db_url=db_url
     )
 
     dental_team = Team(

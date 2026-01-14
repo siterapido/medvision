@@ -56,7 +56,7 @@ def test_supabase_connection():
     print("="*60)
 
     try:
-        from app.tools.database.supabase import get_supabase_connection
+        from app.database.supabase import get_supabase_connection
 
         conn = get_supabase_connection()
         cur = conn.cursor()

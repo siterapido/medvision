@@ -32,9 +32,13 @@ def create_image_analysis_agent() -> Agent:
     # Configure storage
     from agno.db.postgres import PostgresDb
 
+    db_url = os.getenv("SUPABASE_DB_URL")
+    if db_url and db_url.startswith("postgres://"):
+        db_url = db_url.replace("postgres://", "postgresql://", 1)
+
     db = PostgresDb(
         session_table="agent_sessions",
-        db_url=os.getenv("SUPABASE_DB_URL")
+        db_url=db_url
     )
 
     image_agent = Agent(
