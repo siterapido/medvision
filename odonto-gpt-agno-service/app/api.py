@@ -31,6 +31,11 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+@router.get("/health")
+async def health_check():
+    """Health check endpoint to verify backend availability"""
+    return {"status": "ok", "service": "odonto-gpt-agno-service"}
+
 def get_agent_response(agent, message: str, stream: bool = True):
     """Get response from AGNO agent"""
     try:
@@ -556,7 +561,7 @@ async def whatsapp_chat(request: WhatsAppRequest):
             agent_type = "odonto-vision"
 
         # Generate or use provided session ID
-        session_id = request.sessionId or f"wa_{request.phone}_{uuid.uuid4().hex[:8]}"
+        session_id = request.sessionId or str(uuid.uuid4())
 
         # Get response from agent (non-streaming for WhatsApp)
         response = target_agent.run(

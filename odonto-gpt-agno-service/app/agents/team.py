@@ -7,7 +7,7 @@ Agentes especializados:
 - Dental Image Agent: Análise de imagens (mantido do original)
 """
 
-from agno import Team
+from agno.team import Team
 from agno.models.openai import OpenAIChat
 from .image_agent import odonto_vision
 from .science_agent import odonto_research
@@ -26,21 +26,21 @@ def create_dental_education_team() -> Team:
     """
     
     # Configure storage
-    from agno.storage.agent.postgres import PostgresAgentStorage
+    from agno.db.postgres import PostgresDb
     
     db_url = os.getenv("SUPABASE_DB_URL")
     if db_url and db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://", 1)
 
-    storage = PostgresAgentStorage(
-        table_name="team_sessions",
+    db = PostgresDb(
+        session_table="team_sessions",
         db_url=db_url
     )
 
     odonto_flow = Team(
         name="odonto_flow",
-        agents=[odonto_research, odonto_practice, odonto_write, odonto_vision],
-        storage=storage,
+        members=[odonto_research, odonto_practice, odonto_write, odonto_vision],
+        db=db,
         instructions=[
             "Você é o Odonto Flow, a central inteligente que entende a necessidade do usuário e ativa o módulo certo automaticamente dentro da Odonto Suite.",
             "Coordene efetivamente para fornecer insights educacionais abrangentes em odontologia",
@@ -63,7 +63,7 @@ def create_dental_education_team() -> Team:
             "Evite informações redundantes nas respostas da equipe",
             "Cada módulo deve focar em sua especialidade",
         ],
-        process="sequential",  # Agentes trabalham em sequência
+        # process="sequential",  # Removed as it's not in the new API
         model=OpenAIChat(
             id=os.getenv("OPENROUTER_MODEL_QA", "google/gemma-2-27b-it:free"),
             base_url="https://openrouter.ai/api/v1",
