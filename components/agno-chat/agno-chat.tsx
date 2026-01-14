@@ -213,7 +213,7 @@ export function AgnoChat({ userId }: AgnoChatProps) {
                                 </div>
 
                                 <h1 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
-                                    Odonto GPT
+                                    Odonto Flow
                                     <Sparkles className="w-5 h-5 text-cyan-400" />
                                 </h1>
 
@@ -280,7 +280,7 @@ export function AgnoChat({ userId }: AgnoChatProps) {
                             }
                         />
                         <p className="text-center text-[10px] text-slate-600 mt-2">
-                            OdontoGPT pode cometer erros. Verifique informações importantes.
+                            Odonto Suite pode cometer erros. Verifique informações importantes.
                         </p>
                     </div>
                 </div>

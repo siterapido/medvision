@@ -101,7 +101,7 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
                                 userId,
-                                agentType: agent.id === "image-analysis" ? "image-analysis" : "qa",
+                                agentType: agent.id === "odonto-vision" ? "odonto-vision" : "qa",
                                 metadata: {
                                     title: message.substring(0, 50) + (message.length > 50 ? "..." : "")
                                 }
@@ -134,11 +134,11 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
 
                 // Map agent IDs to their specific endpoints
                 const agentEndpoints: Record<string, string> = {
-                    "dr-ciencia": "/agentes/dr-ciencia/chat",
-                    "prof-estudo": "/agentes/prof-estudo/chat",
-                    "dr-redator": "/agentes/dr-redator/chat",
-                    "analise-imagem": "/image/analyze",
-                    "equipe": "/equipe/chat"
+                    "odonto-research": "/agentes/dr-ciencia/chat",
+                    "odonto-practice": "/agentes/prof-estudo/chat",
+                    "odonto-write": "/agentes/dr-redator/chat",
+                    "odonto-vision": "/image/analyze",
+                    "odonto-flow": "/equipe/chat"
                 }
 
                 endpoint = agentEndpoints[agent.id] || "/chat"
@@ -154,7 +154,7 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                         imageUrl,
                         userId,
                         sessionId: currentSessionId, // Use the ensured session ID
-                        agentType: agent.id === "image-analysis" ? "image-analysis" : "qa",
+                        agentType: agent.id === "odonto-vision" ? "odonto-vision" : "qa",
                     }),
                     signal: abortControllerRef.current.signal,
                 })

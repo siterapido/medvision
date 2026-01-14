@@ -102,9 +102,9 @@ export default function LandingPage() {
 
                 <FadeIn delay={0.1} direction="up">
                   <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-balance">
-                    Inteligência Artificial{" "}
+                    Odonto Suite -{" "}
                     <span className="bg-gradient-to-r from-primary via-accent to-cyan-400 bg-clip-text text-transparent">
-                      Especializada em Odontologia
+                      AI Especializada em Odontologia
                     </span>
                   </h1>
                 </FadeIn>
@@ -185,7 +185,7 @@ export default function LandingPage() {
                       <span className="inline-flex items-center justify-center rounded-md p-1.5 bg-destructive/10 ring-1 ring-destructive/40">
                         <XCircle className="h-8 w-8 text-destructive" />
                       </span>
-                      <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-destructive">Estudante Sem Odonto GPT</h3>
+                      <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-destructive">Estudante Sem Odonto Suite</h3>
                     </div>
 
                     <div className="space-y-4 text-sm md:text-base">
@@ -225,7 +225,7 @@ export default function LandingPage() {
                       <span className="inline-flex items-center justify-center rounded-md p-1.5 bg-[#2399B4]/10 ring-1 ring-[#2399B4]/40">
                         <CheckCircle2 className="h-8 w-8 text-primary" />
                       </span>
-                      <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Estudante Com Odonto GPT</h3>
+                      <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Estudante Com Odonto Suite</h3>
                     </div>
 
                     <div className="space-y-4 text-sm md:text-base">
@@ -270,7 +270,7 @@ export default function LandingPage() {
                 label="Histórias Reais de Sucesso"
                 icon={Video}
                 title="Resultados Reais: Segurança, Velocidade e Acertos"
-                description="Veja como o Odonto GPT está transformando a jornada acadêmica de estudantes que já estão colhendo os frutos"
+                description="Veja como a Odonto Suite está transformando a jornada acadêmica de estudantes que já estão colhendo os frutos"
                 align="center"
               />
 
@@ -290,7 +290,7 @@ export default function LandingPage() {
                       >
                         <YouTubePlayer
                           videoId="loPD53clzR4"
-                          title="Depoimento Dr. Carlos Silva - Odonto GPT"
+                          title="Depoimento Dr. Carlos Silva - Odonto Suite"
                           aspect="portrait"
                           className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
                           controls={0}
@@ -324,7 +324,7 @@ export default function LandingPage() {
                       >
                         <YouTubePlayer
                           videoId="loPD53clzR4"
-                          title="Depoimento Dra. Ana Oliveira - Odonto GPT"
+                          title="Depoimento Dra. Ana Oliveira - Odonto Suite"
                           aspect="portrait"
                           className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
                           controls={0}
@@ -358,7 +358,7 @@ export default function LandingPage() {
                       >
                         <YouTubePlayer
                           videoId="loPD53clzR4"
-                          title="Depoimento Dr. Rodrigo Santos - Odonto GPT"
+                          title="Depoimento Dr. Rodrigo Santos - Odonto Suite"
                           aspect="portrait"
                           className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
                           controls={0}
@@ -383,7 +383,7 @@ export default function LandingPage() {
           </section>
         )}
 
-        {/* What is Odonto GPT */}
+        {/* What is Odonto Suite */}
         <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-how-it-works-section">
           <div className="mx-auto max-w-5xl space-y-10 md:space-y-12">
             <SectionHeader
@@ -602,7 +602,7 @@ export default function LandingPage() {
               label="Responsabilidade Técnica"
               icon={Award}
               title="Conhecimento com Respaldo de Quem Entende da Área"
-              description="Por trás de cada resposta do Odonto GPT, está a experiência de um profissional que já viveu suas dúvidas e desafios"
+              description="Por trás de cada resposta da Odonto Suite, está a experiência de um profissional que já viveu suas dúvidas e desafios"
               align="center"
             />
 
@@ -612,7 +612,7 @@ export default function LandingPage() {
                   <div className="relative w-72 h-72 bg-gradient-to-br from-primary/30 to-accent/30 rounded-full overflow-hidden shadow-2xl border-2 border-white/20 flex items-center justify-center">
                     <Image
                       src="/Imagens /roniery.jpg"
-                      alt="Roniery Costa - Responsável Técnico do Odonto GPT"
+                      alt="Roniery Costa - Responsável Técnico da Odonto Suite"
                       width={288}
                       height={288}
                       className="w-72 h-72 object-contain object-center"
@@ -629,7 +629,7 @@ export default function LandingPage() {
 
                 <div className="space-y-4">
                   <p className="text-lg font-semibold text-white leading-relaxed border-l-4 border-primary pl-4 py-2 bg-primary/5">
-                    &quot;Criei o Odonto GPT para ser o consultor que eu gostaria de ter tido durante minha formação -
+                    &quot;Criei a Odonto Suite para ser o consultor que eu gostaria de ter tido durante minha formação -
                     acessível 24/7, sem julgamentos, e com respostas fundamentadas na literatura que realmente importa.&quot;
                   </p>
                 </div>

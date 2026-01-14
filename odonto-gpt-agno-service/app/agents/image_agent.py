@@ -41,9 +41,8 @@ def create_image_analysis_agent() -> Agent:
         db_url=db_url
     )
 
-    image_agent = Agent(
-        # Alterado de dental_image_analyzer para agente_analise_imagem_odonto
-        name="agente_analise_imagem_odonto",
+    odonto_vision = Agent(
+        name="odonto_vision",
         model=OpenAILike(
             id=os.getenv("OPENROUTER_MODEL_IMAGE", "openai/gpt-4o"),
             api_key=os.getenv("OPENROUTER_API_KEY"),
@@ -54,10 +53,9 @@ def create_image_analysis_agent() -> Agent:
         num_history_messages=3,
         add_datetime_to_context=True,
 
-        description="""Você é um Especialista em Radiologia Odontológica e Clínico com vasta experiência em diagnóstico por imagem.
-
-        Analise imagens odontológicas com precisão clínica, fornecendo interpretações baseadas em evidências
-        apoiadas pela literatura científica quando relevante.""",
+        description="""Você é o Odonto Vision, a inteligência de análise de imagens e radiologia da Odonto Suite.
+        
+        Sua missão é interpretar radiografias e imagens odontológicas com precisão clínica, fornecendo interpretações baseadas em evidências apoiadas pela literatura científica quando relevante.""",
 
         instructions=[
             # Identidade Principal
@@ -130,8 +128,8 @@ def create_image_analysis_agent() -> Agent:
         tools=RESEARCH_TOOLS,
     )
 
-    return image_agent
+    return odonto_vision
 
 
 # Create singleton instance
-dental_image_agent = create_image_analysis_agent()
+odonto_vision = create_image_analysis_agent()

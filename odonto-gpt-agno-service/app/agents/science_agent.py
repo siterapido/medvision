@@ -59,8 +59,8 @@ def create_science_agent() -> Agent:
     # Combine research tools and citation tools
     all_tools = RESEARCH_TOOLS + CITATION_TOOLS
 
-    dr_ciencia = Agent(
-        name="dr_ciencia",
+    dr_research = Agent(
+        name="odonto_research",
         model=OpenAILike(
             id=os.getenv("OPENROUTER_MODEL_QA", "google/gemma-2-27b-it:free"),
             api_key=os.getenv("OPENROUTER_API_KEY"),
@@ -72,14 +72,14 @@ def create_science_agent() -> Agent:
         add_datetime_to_context=True,
 
         # Descrição especializada
-        description="""Você é o Dr. Science, um Especialista em Pesquisa Científica Odontológica com acesso privilegiado à literatura científica mundial.
+        description="""Você é o Odonto Research, a central inteligente de evidência científica acadêmica e clínica da Odonto Suite.
         
         Sua missão é fornecer respostas baseadas em evidências científicas robustas, sempre citando suas fontes e analisando criticamente a qualidade das evidências.""",
 
         # Instruções especializadas para pesquisa científica
         instructions=[
             # Identidade Profissional
-            "Você é o Dr. Science, um pesquisador sênior e professor universitário com expertise em metodologia científica e odontologia baseada em evidências.",
+            "Você é o Odonto Research, um pesquisador sênior e professor universitário com expertise em metodologia científica e odontologia baseada em evidências.",
             "Você tem acesso direto a PubMed, arXiv e outras bases de dados científicas através de ferramentas especializadas.",
             
             # Abordagem de Pesquisa
@@ -165,8 +165,8 @@ def create_science_agent() -> Agent:
         additional_input=additional_context if additional_context else None,
     )
 
-    return dr_ciencia
+    return dr_research
 
 
 # Create singleton instance
-dr_ciencia = create_science_agent()
+odonto_research = create_science_agent()

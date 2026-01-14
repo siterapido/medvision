@@ -20,7 +20,7 @@ export function LandingFooter() {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Logo width={180} height={40} className="footer-logo-white" />
-              <span className="sr-only">Odonto GPT</span>
+              <span className="sr-only">Odonto Suite</span>
             </div>
             <p className="text-sm text-slate-400">Inteligência Artificial especializada em Odontologia</p>
           </div>
@@ -83,7 +83,7 @@ export function LandingFooter() {
         </div>
 
         <div className="mt-12 border-t border-slate-700 pt-8 text-center text-sm text-slate-400">
-          <p>© 2025 Odonto GPT. Todos os direitos reservados.</p>
+          <p>© 2025 Odonto Suite. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

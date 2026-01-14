@@ -165,7 +165,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               <Badge className="border-white/20 bg-white/10 text-[0.65rem] uppercase tracking-[0.25em] text-white">
                 Perfil clínico
               </Badge>
-              <span className="text-xs text-white/60">Sincronizado com a IA do Odonto GPT</span>
+              <span className="text-xs text-white/60">Sincronizado com a IA do Odonto Suite</span>
             </div>
             <CardTitle className="text-2xl font-semibold text-white">Informações Pessoais</CardTitle>
             <CardDescription className="max-w-2xl text-white/70">

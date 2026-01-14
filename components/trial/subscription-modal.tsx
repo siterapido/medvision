@@ -29,17 +29,17 @@ export function SubscriptionModal({ trigger }: SubscriptionModalProps) {
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-center text-white">Escolha seu plano</DialogTitle>
           <DialogDescription className="text-center text-slate-400">
-            Desbloqueie todo o potencial do Odonto GPT hoje mesmo.
+            Desbloqueie todo o potencial do Odonto Suite hoje mesmo.
           </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4 md:grid-cols-2 items-stretch">
           {plans.map((plan) => (
-            <div 
+            <div
               key={plan.id}
               className={cn(
                 "relative rounded-xl border p-6 shadow-sm transition-all flex flex-col",
-                plan.popular 
-                  ? "border-emerald-500/50 bg-slate-900 hover:border-emerald-500" 
+                plan.popular
+                  ? "border-emerald-500/50 bg-slate-900 hover:border-emerald-500"
                   : "border-slate-800 bg-slate-900/50 hover:border-slate-700 hover:bg-slate-900"
               )}
             >
@@ -48,7 +48,7 @@ export function SubscriptionModal({ trigger }: SubscriptionModalProps) {
                   MAIS POPULAR
                 </div>
               )}
-              
+
               <div className="space-y-2 mb-4">
                 <h3 className="font-bold text-white flex items-center gap-2">
                   {plan.name}
@@ -71,12 +71,12 @@ export function SubscriptionModal({ trigger }: SubscriptionModalProps) {
                 ))}
               </ul>
 
-              <Button 
-                asChild 
+              <Button
+                asChild
                 className={cn(
                   "w-full mt-auto",
-                  plan.popular 
-                    ? "bg-emerald-500 hover:bg-emerald-600 text-white font-bold shadow-emerald-500/20 shadow-lg" 
+                  plan.popular
+                    ? "bg-emerald-500 hover:bg-emerald-600 text-white font-bold shadow-emerald-500/20 shadow-lg"
                     : "bg-slate-800 hover:bg-slate-700 text-white"
                 )}
               >

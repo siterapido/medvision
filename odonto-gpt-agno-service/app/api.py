@@ -11,13 +11,13 @@ from app.models.schemas import (
     SummaryPreviewRequest
 )
 from app.agents.qa_agent import dental_qa_agent
-from app.agents.image_agent import dental_image_agent
+from app.agents.image_agent import odonto_vision
 from app.agents.summary_agent import dental_summary_agent
 # Novos agentes especializados
-from app.agents.science_agent import dr_ciencia
-from app.agents.study_agent import prof_estudo
-from app.agents.writer_agent import dr_redator
-from app.agents.team import rotear_para_agente_apropriado
+from app.agents.science_agent import odonto_research
+from app.agents.study_agent import odonto_practice
+from app.agents.writer_agent import odonto_write
+from app.agents.team import rotear_para_agente_apropriado, odonto_flow
 from app.tools.database.supabase import get_supabase_client
 from app.database.supabase import save_agent_message
 from app.tools.whatsapp import send_whatsapp_message
@@ -128,7 +128,7 @@ async def analyze_image(request: ImageAnalysisRequest):
     # we usually pass images parameter to agent.run() or print_response().
     
     try:
-        response = dental_image_agent.run(
+        response = odonto_vision.run(
             message, 
             images=[request.imageUrl],
             stream=False, # Image analysis usually better as complete response
@@ -150,9 +150,9 @@ async def general_chat(request: ChatRequest):
     prompt = request.message
     images = []
 
-    if request.imageUrl or request.agentType == "image-analysis":
-        target_agent = dental_image_agent
-        agent_id = "image-analysis"
+    if request.imageUrl or request.agentType == "odonto-vision":
+        target_agent = odonto_vision
+        agent_id = "odonto-vision"
         if request.imageUrl:
             images = [request.imageUrl]
 
@@ -359,7 +359,7 @@ async def chat_dr_ciencia(request: ChatRequest):
     - Análise de níveis de evidência
     """
     return StreamingResponse(
-        stream_generator(dr_ciencia, request.message, session_id=request.sessionId, agent_id="dr-ciencia"),
+        stream_generator(odonto_research, request.message, session_id=request.sessionId, agent_id="odonto-research"),
         media_type="text/plain",
         headers={"Content-Type": "text/plain; charset=utf-8"}
     )
@@ -377,7 +377,7 @@ async def chat_prof_estudo(request: ChatRequest):
     - Explicações pedagógicas detalhadas
     """
     return StreamingResponse(
-        stream_generator(prof_estudo, request.message, session_id=request.sessionId, agent_id="prof-estudo"),
+        stream_generator(odonto_practice, request.message, session_id=request.sessionId, agent_id="odonto-practice"),
         media_type="text/plain",
         headers={"Content-Type": "text/plain; charset=utf-8"}
     )
@@ -396,7 +396,7 @@ async def chat_dr_redator(request: ChatRequest):
     - Formatação de referências
     """
     return StreamingResponse(
-        stream_generator(dr_redator, request.message, session_id=request.sessionId, agent_id="dr-redator"),
+        stream_generator(odonto_write, request.message, session_id=request.sessionId, agent_id="odonto-write"),
         media_type="text/plain",
         headers={"Content-Type": "text/plain; charset=utf-8"}
     )
@@ -422,13 +422,13 @@ async def chat_equipe(request: ChatRequest):
     
     # Mapear tipo de agente para o agente correto
     agent_map = {
-        'ciencia': (dr_ciencia, 'dr-ciencia'),
-        'estudo': (prof_estudo, 'prof-estudo'),
-        'redator': (dr_redator, 'dr-redator'),
-        'imagem': (dental_image_agent, 'analise-imagem'),
+        'ciencia': (odonto_research, 'odonto-research'),
+        'estudo': (odonto_practice, 'odonto-practice'),
+        'redator': (odonto_write, 'odonto-write'),
+        'imagem': (odonto_vision, 'odonto-vision'),
     }
     
-    agent, agent_id = agent_map.get(tipo_agente, (dr_ciencia, 'dr-ciencia'))
+    agent, agent_id = agent_map.get(tipo_agente, (odonto_research, 'odonto-research'))
     
     # Se tem imagem, usar stream_generator_with_images
     if hasattr(request, 'imageUrl') and request.imageUrl:
@@ -453,9 +453,9 @@ async def listar_agentes():
     return {
         "agentes": [
             {
-                "id": "dr-ciencia",
-                "nome": "Dr. Ciência",
-                "descricao": "Especialista em pesquisa científica odontológica",
+                "id": "odonto-research",
+                "nome": "Odonto Research",
+                "descricao": "Encontre evidência científica odontológica em segundos. Busca, resume e valida artigos, guidelines e referências clínicas com precisão.",
                 "capacidades": [
                     "Busca em PubMed e arXiv",
                     "Formatação de citações (ABNT/APA/Vancouver)",
@@ -465,9 +465,9 @@ async def listar_agentes():
                 "endpoint": "/agentes/dr-ciencia/chat"
             },
             {
-                "id": "prof-estudo",
-                "nome": "Prof. Estudo",
-                "descricao": "Especialista em questões e simulados educacionais",
+                "id": "odonto-practice",
+                "nome": "Odonto Practice",
+                "descricao": "Treine para provas, concursos e residência com simulados inteligentes. Questões comentadas, repetição adaptativa e foco no que precisa melhorar.",
                 "capacidades": [
                     "Geração de questões (múltipla escolha, dissertativas)",
                     "Criação de simulados (ENADE, Residência)",
@@ -477,9 +477,9 @@ async def listar_agentes():
                 "endpoint": "/agentes/prof-estudo/chat"
             },
             {
-                "id": "dr-redator",
-                "nome": "Dr. Redator",
-                "descricao": "Especialista em escrita acadêmica e científica",
+                "id": "odonto-write",
+                "nome": "Odonto Write",
+                "descricao": "Produza textos acadêmicos e documentação clínica impecáveis. Crie artigos, TCCs, resumos e relatórios com linguagem técnica correta.",
                 "capacidades": [
                     "Estruturas de TCC completas",
                     "Templates de artigos (IMRAD)",
@@ -490,9 +490,9 @@ async def listar_agentes():
                 "endpoint": "/agentes/dr-redator/chat"
             },
             {
-                "id": "analise-imagem",
-                "nome": "Análise de Imagem",
-                "descricao": "Especialista em análise de imagens odontológicas",
+                "id": "odonto-vision",
+                "nome": "Odonto Vision",
+                "descricao": "Interprete radiografias e imagens odontológicas com apoio de IA. Auxílio na leitura clínica, identificação de padrões e geração de laudos.",
                 "capacidades": [
                     "Análise de radiografias",
                     "Interpretação de imagens clínicas",
@@ -501,9 +501,9 @@ async def listar_agentes():
                 "endpoint": "/image/analyze"
             },
             {
-                "id": "equipe",
-                "nome": "Equipe Educacional",
-                "descricao": "Roteamento inteligente automático",
+                "id": "odonto-flow",
+                "nome": "Odonto Flow",
+                "descricao": "Central inteligente que entende a necessidade do usuário e ativa o módulo certo automaticamente.",
                 "capacidades": [
                     "Roteamento automático para agente apropriado",
                     "Coordenação multi-agente quando necessário"
@@ -548,12 +548,12 @@ async def whatsapp_chat(request: WhatsAppRequest):
     """
     try:
         # Determine which agent to use
-        target_agent = dental_qa_agent
-        agent_type = "qa"
+        target_agent = odonto_research
+        agent_type = "odonto-research"
 
-        if request.agentType == "image-analysis":
-            target_agent = dental_image_agent
-            agent_type = "image-analysis"
+        if request.agentType == "odonto-vision":
+            target_agent = odonto_vision
+            agent_type = "odonto-vision"
 
         # Generate or use provided session ID
         session_id = request.sessionId or f"wa_{request.phone}_{uuid.uuid4().hex[:8]}"

@@ -55,8 +55,8 @@ def create_writer_agent() -> Agent:
     # Combine tools
     all_tools = ACADEMIC_TOOLS + CITATION_TOOLS + [search_pubmed, search_arxiv]
 
-    dr_redator = Agent(
-        name="dr_redator",
+    odonto_write = Agent(
+        name="odonto_write",
         model=OpenAILike(
             id=os.getenv("OPENROUTER_MODEL_QA", "google/gemma-2-27b-it:free"),
             api_key=os.getenv("OPENROUTER_API_KEY"),
@@ -68,14 +68,14 @@ def create_writer_agent() -> Agent:
         add_datetime_to_context=True,
 
         # Descrição especializada
-        description="""Você é o Dr. Writer, um Orientador Acadêmico Experiente e Especialista em Escrita Científica.
+        description="""Você é o Odonto Write, o Assistente de Escrita Acadêmica e Documentação da Odonto Suite.
         
         Sua missão é apoiar estudantes e pesquisadores na elaboração de TCCs, artigos científicos e outros trabalhos acadêmicos com excelência, rigor metodológico e clareza de comunicação.""",
 
         # Instruções especializadas para escrita acadêmica
         instructions=[
             # Identidade Profissional
-"Você é o Dr. Writer, um professor titular com décadas de experiência orientando TCCs, dissertações e artigos científicos em odontologia.",
+            "Você é o Odonto Write, um professor titular com décadas de experiência orientando TCCs, dissertações e artigos científicos em odontologia.",
             "Você é rigoroso com qualidade, mas paciente e construtivo no feedback.",
             "Seu objetivo é desenvolver competências de escrita científica, não apenas 'corrigir erros'.",
             
@@ -261,8 +261,8 @@ def create_writer_agent() -> Agent:
         tools=all_tools,
     )
 
-    return dr_redator
+    return odonto_write
 
 
 # Create singleton instance
-dr_redator = create_writer_agent()
+odonto_write = create_writer_agent()

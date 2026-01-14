@@ -7,7 +7,7 @@ export function DashboardFooter() {
     <footer className="flex-shrink-0 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-4 py-3 md:px-6 m-0">
       <div className="flex flex-col items-center justify-between gap-2 text-xs text-slate-400 md:flex-row">
         <p className="text-center md:text-left m-0">
-          © {currentYear} OdontoGPT. Todos os direitos reservados.
+          © {currentYear} Odonto Suite. Todos os direitos reservados.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-4 m-0">
           <Link

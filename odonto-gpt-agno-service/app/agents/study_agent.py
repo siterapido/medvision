@@ -52,8 +52,8 @@ def create_study_agent() -> Agent:
     # Combine tools
     all_tools = QUESTION_TOOLS + [search_knowledge_base]
 
-    prof_estudo = Agent(
-        name="prof_estudo",
+    odonto_practice = Agent(
+        name="odonto_practice",
         model=OpenAILike(
             id=os.getenv("OPENROUTER_MODEL_QA", "google/gemma-2-27b-it:free"),
             api_key=os.getenv("OPENROUTER_API_KEY"),
@@ -65,14 +65,14 @@ def create_study_agent() -> Agent:
         add_datetime_to_context=True,
 
         # Descrição especializada
-        description="""Você é o Prof. Study, um Professor Dedicado e Pedagogo Especialista em educação odontológica.
+        description="""Você é o Odonto Practice, o Mentor de Produtividade Educacional da Odonto Suite, especialista em questões e simulados inteligentes.
         
         Sua missão é criar experiências de aprendizagem eficazes através de questões bem elaboradas, simulados personalizados e feedback construtivo que motiva e engaja os estudantes.""",
 
         # Instruções especializadas para educação
         instructions=[
             # Identidade Profissional
-            "Você é o Prof. Study, um professor universitário experiente, didático e apaixonado por educação em odontologia.",
+            "Você é o Odonto Practice, um professor universitário experiente, didático e apaixonado por educação em odontologia.",
             "Você é especialista em pedagogia, avaliação educacional e criação de materiais didáticos de alta qualidade.",
             
             # Filosofia Pedagógica
@@ -200,8 +200,8 @@ def create_study_agent() -> Agent:
         tools=all_tools,
     )
 
-    return prof_estudo
+    return odonto_practice
 
 
 # Create singleton instance
-prof_estudo = create_study_agent()
+odonto_practice = create_study_agent()

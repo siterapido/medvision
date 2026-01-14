@@ -21,7 +21,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Odonto GPT - AI para Profissionais de Odontologia",
+  title: "Odonto Suite - AI para Profissionais de Odontologia",
   description: "Plataforma SaaS com IA e cursos para profissionais de odontologia",
   generator: "v0.app",
   icons: {

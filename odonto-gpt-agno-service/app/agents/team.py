@@ -9,10 +9,10 @@ Agentes especializados:
 
 from agno import Team
 from agno.models.openai import OpenAIChat
-from .image_agent import dental_image_agent
-from .science_agent import dr_ciencia
-from .study_agent import prof_estudo
-from .writer_agent import dr_redator
+from .image_agent import odonto_vision
+from .science_agent import odonto_research
+from .study_agent import odonto_practice
+from .writer_agent import odonto_write
 from typing import List, Dict, Any, Optional
 import os
 
@@ -37,30 +37,31 @@ def create_dental_education_team() -> Team:
         db_url=db_url
     )
 
-    dental_team = Team(
-        name="equipe_educacao_odontologica",
-        agents=[dr_ciencia, prof_estudo, dr_redator, dental_image_agent],
+    odonto_flow = Team(
+        name="odonto_flow",
+        agents=[odonto_research, odonto_practice, odonto_write, odonto_vision],
         storage=storage,
         instructions=[
+            "Você é o Odonto Flow, a central inteligente que entende a necessidade do usuário e ativa o módulo certo automaticamente dentro da Odonto Suite.",
             "Coordene efetivamente para fornecer insights educacionais abrangentes em odontologia",
             "Compartilhe contexto relevante entre agentes quando benéfico",
             "Priorize segurança do paciente e padrões profissionais",
             "Garanta que todas as respostas incluam disclaimers apropriados",
             
-            # Especialização dos agentes
-            "Dr. Ciência: Especialista em pesquisa científica, PubMed, arXiv, citações",
-            "Prof. Estudo: Especialista em questões, simulados, avaliação educacional",
-            "Dr. Redator: Especialista em TCCs, artigos científicos, escrita acadêmica",
-            "Image Agent: Especialista em análise de imagens, radiografias",
+            # Especialização dos módulos
+            "Odonto Research: Especialista em pesquisa científica, PubMed, arXiv, citações",
+            "Odonto Practice: Especialista em questões, simulados, avaliação educacional",
+            "Odonto Write: Especialista em TCCs, artigos científicos, escrita acadêmica",
+            "Odonto Vision: Especialista em análise de imagens, radiografias",
             
             # Coordenação
-            "Quando questão requer múltiplos agentes, trabalhe sequencialmente:",
-            "  Exemplo 1: TCC com pesquisa → Dr. Ciência busca literatura → Dr. Redator estrutura TCC",
-            "  Exemplo 2: Questão com imagem → Image Agent analisa → Prof. Estudo cria questão baseada",
-            "  Exemplo 3: Artigo científico → Dr. Ciência revisa evidências → Dr. Redator formata IMRAD",
+            "Quando questão requer múltiplos módulos, trabalhe sequencialmente:",
+            "  Exemplo 1: TCC com pesquisa → Odonto Research busca literatura → Odonto Write estrutura TCC",
+            "  Exemplo 2: Questão com imagem → Odonto Vision analisa → Odonto Practice cria questão baseada",
+            "  Exemplo 3: Artigo científico → Odonto Research revisa evidências → Odonto Write formata IMRAD",
             
             "Evite informações redundantes nas respostas da equipe",
-            "Cada agente deve focar em sua especialidade",
+            "Cada módulo deve focar em sua especialidade",
         ],
         process="sequential",  # Agentes trabalham em sequência
         model=OpenAIChat(
@@ -68,14 +69,14 @@ def create_dental_education_team() -> Team:
             base_url="https://openrouter.ai/api/v1",
             api_key=os.getenv("OPENROUTER_API_KEY"),
         ),
-        description="Equipe multi-agente para educação odontológica: pesquisa, questões e escrita acadêmica"
+        description="Odonto Flow: Central inteligente que entende a necessidade do usuário e ativa o módulo certo automaticamente."
     )
 
-    return dental_team
+    return odonto_flow
 
 
 # Create singleton instance
-equipe_dental = create_dental_education_team()
+odonto_flow = create_dental_education_team()
 
 
 def rotear_para_agente_apropriado(
@@ -181,61 +182,61 @@ async def executar_agente(
     try:
         if tipo_agente == 'imagem':
             # Image analysis agent
-            response = await dental_image_agent.run(
+            response = await odonto_vision.run(
                 mensagem,
                 context=contexto or {}
             )
             return {
                 'response': response.response,
-                'agent': 'analise-imagem',
+                'agent': 'odonto-vision',
                 'tool_calls': response.tool_calls if hasattr(response, 'tool_calls') else []
             }
 
         elif tipo_agente == 'ciencia':
-            # Dr. Ciência - Scientific research
-            response = await dr_ciencia.run(
+            # Odonto Research - Scientific research
+            response = await odonto_research.run(
                 mensagem,
                 context=contexto or {}
             )
             return {
                 'response': response.response,
-                'agent': 'dr-ciencia',
+                'agent': 'odonto-research',
                 'sources': response.sources if hasattr(response, 'sources') else []
             }
 
         elif tipo_agente == 'estudo':
-            # Prof. Estudo - Questions and exams
-            response = await prof_estudo.run(
+            # Odonto Practice - Questions and exams
+            response = await odonto_practice.run(
                 mensagem,
                 context=contexto or {}
             )
             return {
                 'response': response.response,
-                'agent': 'prof-estudo',
+                'agent': 'odonto-practice',
                 'metadata': response.metadata if hasattr(response, 'metadata') else {}
             }
 
         elif tipo_agente == 'redator':
-            # Dr. Redator - Academic writing
-            response = await dr_redator.run(
+            # Odonto Write - Academic writing
+            response = await odonto_write.run(
                 mensagem,
                 context=contexto or {}
             )
             return {
                 'response': response.response,
-                'agent': 'dr-redator',
+                'agent': 'odonto-write',
                 'metadata': response.metadata if hasattr(response, 'metadata') else {}
             }
 
         elif tipo_agente == 'equipe':
             # Multi-agent team
-            response = await equipe_dental.run(
+            response = await odonto_flow.run(
                 mensagem,
                 context=contexto or {}
             )
             return {
                 'response': response.response,
-                'agent': 'equipe',
+                'agent': 'odonto-flow',
                 'participants': response.participants if hasattr(response, 'participants') else []
             }
 

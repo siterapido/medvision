@@ -18,7 +18,7 @@ export function Logo({ width = 120, height = 40, className = '', variant = 'auto
     return (
       <img
         src="/Imagens%20/logo-odonto-gpt-branca.png"
-        alt="Odonto GPT"
+        alt="Odonto Suite"
         width={width}
         height={height}
         className={className}
@@ -31,14 +31,14 @@ export function Logo({ width = 120, height = 40, className = '', variant = 'auto
       {/* Fallback: renderiza só a branca se a preta não existir */}
       <img
         src="/Imagens%20/logo-odonto-gpt-branca.png"
-        alt="Odonto GPT"
+        alt="Odonto Suite"
         width={width}
         height={height}
         className={`hidden dark:block ${className}`}
       />
       <img
         src="/Imagens%20/logo-odonto-gpt-branca.png"
-        alt="Odonto GPT"
+        alt="Odonto Suite"
         width={width}
         height={height}
         className={`block dark:hidden ${className}`}
