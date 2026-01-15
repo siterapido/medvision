@@ -14,8 +14,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import research tools
 from app.tools.research import RESEARCH_TOOLS
-# Import navigation tools
-from app.tools.navigation import NAVIGATION_TOOLS
+# Import database config
+from app.database.supabase import get_agent_config
 
 
 def create_image_analysis_agent() -> Agent:
@@ -43,12 +43,35 @@ def create_image_analysis_agent() -> Agent:
         db_url=db_url
     )
 
+    # Fetch configuration from DB
+    config = get_agent_config("odonto-vision")
+    
+    model_id = os.getenv("OPENROUTER_MODEL_IMAGE", "openai/gpt-4o")
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    base_url = "https://openrouter.ai/api/v1"
+    
+    # Só usa config do DB se for OpenRouter (evita modelos inválidos de outros providers)
+    if config:
+        metadata = config.get("metadata", {}) or {}
+        config_base_url = metadata.get("base_url", "")
+        
+        # Validar se é OpenRouter antes de usar config do DB
+        is_openrouter = "openrouter" in config_base_url.lower() if config_base_url else True
+        
+        if is_openrouter:
+            if config.get("model_id"):
+                model_id = config.get("model_id")
+            if metadata.get("api_key"):
+                api_key = metadata.get("api_key")
+            if config_base_url:
+                base_url = config_base_url
+
     odonto_vision = Agent(
         name="odonto-vision",
         model=OpenAILike(
-            id=os.getenv("OPENROUTER_MODEL_IMAGE", "openai/gpt-4o"),
-            api_key=os.getenv("OPENROUTER_API_KEY"),
-            base_url="https://openrouter.ai/api/v1",
+            id=model_id,
+            api_key=api_key,
+            base_url=base_url,
         ), # GPT-4o tem capacidades nativas de visão
         db=db,
         add_history_to_context=True,

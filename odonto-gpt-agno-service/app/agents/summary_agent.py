@@ -45,15 +45,21 @@ def create_summary_agent() -> Agent:
     api_key = os.getenv("OPENROUTER_API_KEY")
     base_url = "https://openrouter.ai/api/v1"
     
+    # Só usa config do DB se for OpenRouter (evita modelos inválidos de outros providers)
     if config:
-        if config.get("model_id"):
-            model_id = config.get("model_id")
-        
         metadata = config.get("metadata", {}) or {}
-        if metadata.get("api_key"):
-            api_key = metadata.get("api_key")
-        if metadata.get("base_url"):
-            base_url = metadata.get("base_url")
+        config_base_url = metadata.get("base_url", "")
+        
+        # Validar se é OpenRouter antes de usar config do DB
+        is_openrouter = "openrouter" in config_base_url.lower() if config_base_url else True
+        
+        if is_openrouter:
+            if config.get("model_id"):
+                model_id = config.get("model_id")
+            if metadata.get("api_key"):
+                api_key = metadata.get("api_key")
+            if config_base_url:
+                base_url = config_base_url
 
     summary_agent = Agent(
         name="odonto-summary",
