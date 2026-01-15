@@ -2,438 +2,126 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Project Overview
-
-Odonto GPT UI is a Next.js 16 SaaS platform for dental professionals, featuring AI-powered tools, online courses, and lead management. The platform includes a Python-based AI agent service powered by Agno framework for intelligent dental Q&A and image analysis. The project was created using v0.app and syncs with deployments automatically.
+> **📖 New Documentation System**: This project now uses an LLM-optimized modular documentation system. See [`.docs/INDEX.md`](.docs/INDEX.md) for the complete documentation index.
 
 ## Quick Start
 
-### First Time Setup
+### 📚 Documentation Navigation
 
-1. **Clone and install dependencies:**
-   ```bash
-   git clone <repository-url>
-   cd v0-odonto-gpt-ui
-   npm install
-   ```
+For detailed information, see the modular documentation in `.docs/`:
 
-2. **Set up environment variables:**
-   ```bash
-   cp .env.example .env.local
-   # Edit .env.local with your configuration
-   npm run validate:env  # Verify configuration
-   ```
+- **[`.docs/INDEX.md`](.docs/INDEX.md)** - Documentation index and overview
+- **[`.docs/01_PROJECT_OVERVIEW.md`](.docs/01_PROJECT_OVERVIEW.md)** - Project identity, tech stack, setup
+- **[`.docs/02_ARCHITECTURE.md`](.docs/02_ARCHITECTURE.md)** - System architecture and patterns
+- **[`.docs/03_DATABASE_SCHEMA.md`](.docs/03_DATABASE_SCHEMA.md)** - Database tables and migrations
+- **[`.docs/04_AI_AGENTS.md`](.docs/04_AI_AGENTS.md)** - Agno AI service details
+- **[`.docs/05_AUTHORIZATION.md`](.docs/05_AUTHORIZATION.md)** - Auth and authorization
+- **[`.docs/06_API_ENDPOINTS.md`](.docs/06_API_ENDPOINTS.md)** - API routes and webhooks
+- **[`.docs/07_PATTERNS.md`](.docs/07_PATTERNS.md)** - Common code patterns (READ THIS!)
+- **[`.docs/08_INTEGRATIONS.md`](.docs/08_INTEGRATIONS.md)** - External services
+- **[`.docs/09_DEPLOYMENT.md`](.docs/09_DEPLOYMENT.md)** - Production deployment
+- **[`.docs/10_TROUBLESHOOTING.md`](.docs/10_TROUBLESHOOTING.md)** - Common issues
 
-3. **Set up the database:**
-   ```bash
-   npm run db:push  # Apply migrations
-   npm run db:status  # Verify migration status
-   ```
+### 🚀 5-Minute Setup
 
-4. **Start the development server:**
-   ```bash
-   npm run dev  # Next.js frontend at http://localhost:3000
-   ```
-
-5. **Start the Agno AI service (optional, for AI features):**
-   ```bash
-   cd odonto-gpt-agno-service
-   pip install -r requirements.txt
-   cp .env.example .env
-   # Edit .env with OPENROUTER_API_KEY and other configs
-   python -m uvicorn app.main:app --reload
-   # Service starts at http://localhost:8000
-   ```
-
-See [`odonto-gpt-agno-service/QUICKSTART.md`](odonto-gpt-agno-service/QUICKSTART.md) for detailed Agno service setup.
-
-## Development Commands
-
-### Build & Run
 ```bash
-npm run dev          # Start development server
-npm run build        # Build for production
-npm run start        # Start production server
-npm run lint         # ESLint checking
+# 1. Install dependencies
+npm install
+
+# 2. Configure environment
+cp .env.example .env.local
+# Edit .env.local with your configuration
+npm run validate:env
+
+# 3. Setup database
+npm run db:push
+npm run db:status
+
+# 4. Start development
+npm run dev  # Frontend at http://localhost:3000
+
+# 5. Start AI service (optional)
+cd odonto-gpt-agno-service
+pip install -r requirements.txt
+cp .env.example .env
+# Edit .env with OPENROUTER_API_KEY
+python -m uvicorn app.main:app --reload
+# AI service at http://localhost:8000
 ```
+
+## Project Overview
+
+**Odonto GPT UI** is a Next.js 16 SaaS platform for dental professionals featuring:
+- AI-powered dental Q&A with multi-agent system (Agno framework)
+- Dental image analysis (X-rays, intraoral photos)
+- Online courses with video delivery
+- Lead management and subscription system
+
+### Tech Stack
+
+**Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS 4, shadcn/ui
+**Backend**: Supabase (PostgreSQL + Auth + Storage)
+**AI**: Agno (Python), FastAPI, OpenRouter
+**Hosting**: Vercel (frontend), Railway/Render (AI service)
+**Integrations**: Cakto (payments), Bunny CDN (media), Z-API (WhatsApp)
+
+## Key Commands
+
+```bash
+# Development
+npm run dev              # Start frontend
+npm run build           # Build for production
+npm run lint            # ESLint check
+
+# Database
+npm run db:push         # Apply migrations
+npm run db:status       # Check migration status
+npm run db:diff         # Generate migration diff
+
+# AI Service
+npm run agno:install    # Install Python dependencies
+npm run agno:dev        # Start Agno service
+
+# Testing & Validation
+npm run validate:env    # Validate environment variables
+npm run test:bunny      # Test Bunny CDN
+npm run test            # Run test suite
+```
+
+## Architecture Highlights
+
+### Frontend (Next.js 16)
+- **App Router** with Server Components and Server Actions
+- **Streaming responses** for AI chat
+- **Middleware** for route protection and session refresh
+- **Mobile-first** responsive design
+
+### AI Service (Python/Agno)
+- **Multi-agent system**: QA Agent, Image Agent, Team Coordinator
+- **Streaming endpoints** for real-time responses
+- **Tool calling**: Web search, WhatsApp, database query, RAG
+- **Session persistence** in Supabase
 
 ### Database (Supabase)
-```bash
-npm run db:status    # Check migration status
-npm run db:push      # Push database changes
-npm run db:diff      # Generate migration diff
-npm run db:reset     # Reset database
-```
+- **Row Level Security (RLS)** on all tables
+- **UUID primary keys** with audit timestamps
+- **agent_sessions** and **agent_messages** for chat history
+- **profiles, courses, subscriptions, leads** for business logic
 
-### Testing & Validation
-```bash
-npm run test              # Run test suite
-npm run validate:env      # Validate environment variables
-npm run test:bunny        # Test Bunny CDN configuration
-```
+## Common Patterns
 
-### Agno AI Service (Python)
-```bash
-npm run agno:install      # Install Python dependencies
-npm run agno:dev          # Start Agno service development server
-cd odonto-gpt-agno-service && python -m uvicorn app.main:app --reload
-```
+### Reading Current User
 
-The Agno service runs on port 8000 and provides:
-- `/api/v1/qa/chat` - Dental Q&A chat endpoint (streaming)
-- `/api/v1/image/analyze` - Image analysis endpoint
-- `/api/v1/chat` - Unified chat with automatic agent routing
-- `/health` - Health check endpoint
-
-### Agno Playground (Development & Testing)
-
-The service provides several playground scripts for interactive testing:
-
-```bash
-cd odonto-gpt-agno-service
-source venv/bin/activate  # or activate your virtual environment
-
-# Playground options:
-python playground.py           # Main playground with all features
-python playground_no_db.py     # Start playground without database
-python playground_simple.py    # Start simple playground
-python playground_agentos.py   # Start agents-specific playground
-python chat.py                 # Interactive chat interface
-```
-
-**Playground Features:**
-- Interactive web UI at `http://localhost:8000` for testing agents
-- Real-time agent response streaming
-- Image upload and analysis testing
-- Session history tracking
-- Debug mode for troubleshooting
-
-See [`odonto-gpt-agno-service/PLAYGROUND_GUIDE.md`](odonto-gpt-agno-service/PLAYGROUND_GUIDE.md) for detailed usage instructions.
-
-### AgentUI Dashboard
-
-AgentUI is a web-based dashboard for monitoring and interacting with Agno agents in real-time:
-
-```bash
-cd odonto-gpt-agno-service
-./start_agentui.sh  # Start AgentUI dashboard
-```
-
-**Features:**
-- Real-time agent conversation monitoring
-- Interactive chat interface with agents
-- Session history and replay
-- Performance metrics and logs
-- Tool execution tracking
-
-The dashboard runs at `http://localhost:8000/ui` by default. See [`odonto-gpt-agno-service/AGENTOS_GUIDE.md`](odonto-gpt-agno-service/AGENTOS_GUIDE.md) for details.
-
-## Architecture & Tech Stack
-
-### Core Technologies
-- **Next.js 16** with App Router and React Server Components
-- **React 19** and TypeScript
-- **Supabase** for database, authentication, and storage
-- **Tailwind CSS 4** with shadcn/ui components
-- **Server Actions** for data mutations
-- **Agno (Python)** - AI agent framework for multi-agent orchestration
-- **FastAPI** - Python async web framework for AI service
-- **OpenRouter** - Unified API access to multiple LLM providers
-- **OpenAI AI SDK** for AI-powered features
-
-### Key External Services
-- **Cakto** - Brazilian payment gateway for subscriptions
-- **Bunny CDN** - Content delivery for videos and materials
-- **Z-API** - WhatsApp integration for notifications and customer support
-- **Resend** - Email delivery
-- **Vercel** - Hosting and deployment
-- **Sentry** - Error monitoring and performance tracking
-- **OpenRouter** - Unified LLM API gateway for AI models
-
-## Agno AI Service
-
-The Odonto GPT Agno Service ([`odonto-gpt-agno-service/`](odonto-gpt-agno-service/)) is a Python-based microservice that provides intelligent AI agents for dental education and image analysis.
-
-### Architecture
-
-The service uses **Agno** (formerly Phidata) framework for multi-agent orchestration:
-
-- **QA Agent** ([`app/agents/qa_agent.py`](odonto-gpt-agno-service/app/agents/qa_agent.py)) - Dental education assistant for answering questions about dental procedures, techniques, and theory
-- **Image Agent** ([`app/agents/image_agent.py`](odonto-gpt-agno-service/app/agents/image_agent.py)) - Dental radiologist for analyzing X-rays, intraoral photos, and clinical images
-- **Team Coordinator** ([`app/agents/team.py`](odonto-gpt-agno-service/app/agents/team.py)) - Orchestrates multi-agent workflows when both analysis and Q&A are needed
-
-### Research Tools
-
-The agents have access to specialized research tools ([`app/tools/research.py`](odonto-gpt-agno-service/app/tools/research.py)):
-- **Web Search** - Search the web for current dental research and guidelines
-- **WhatsApp Integration** - Send and receive WhatsApp messages for customer support
-- **Database Query** - Query Supabase database for patient data and course information
-
-See [`odonto-gpt-agno-service/RESEARCH_TOOLS_GUIDE.md`](odonto-gpt-agno-service/RESEARCH_TOOLS_GUIDE.md) for details.
-
-### Knowledge Base Integration
-
-The agents can access course materials through vector similarity search ([`app/tools/knowledge.py`](odonto-gpt-agno-service/app/tools/knowledge.py)):
-- Uses pgvector for semantic search across courses and lessons
-- Falls back to PostgreSQL full-text search if vector embeddings unavailable
-- Supports specialty filtering (periodontia, endodontia, etc.)
-
-### API Endpoints
-
-**Base URL:** `http://localhost:8000/api/v1` (development)
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/qa/chat` | POST | Streaming dental Q&A (uses `QARequest` schema) |
-| `/image/analyze` | POST | Analyze dental images (uses `ImageAnalysisRequest`) |
-| `/chat` | POST | Unified chat with auto-routing (uses `ChatRequest`) |
-| `/sessions` | POST | Create a new agent session |
-| `/sessions/{id}` | GET | Get session with messages |
-| `/sessions/{id}` | DELETE | Delete a session |
-| `/health` | GET | Service health check |
-
-### Directory Structure
-
-```
-odonto-gpt-agno-service/
-├── app/
-│   ├── agents/
-│   │   ├── qa_agent.py       # Q&A agent definition
-│   │   ├── image_agent.py    # Image analysis agent
-│   │   └── team.py           # Multi-agent coordination
-│   ├── tools/
-│   │   ├── knowledge.py      # RAG knowledge base search
-│   │   ├── vision.py         # Image processing utilities
-│   │   ├── research.py       # Web search and WhatsApp tools
-│   │   ├── whatsapp.py       # WhatsApp integration
-│   │   └── database/
-│   │       └── supabase.py   # Supabase connection helpers
-│   ├── models/
-│   │   └── schemas.py        # Pydantic request/response models
-│   ├── api.py                # API routes
-│   └── main.py               # FastAPI application entry
-├── agent-ui/                 # AgentUI dashboard for monitoring
-├── data/                     # Knowledge base and training data
-├── scripts/                  # Utility scripts
-├── requirements.txt          # Python dependencies
-├── .env.example             # Environment variables template
-├── README.md                # Service documentation
-├── QUICKSTART.md            # Quick start guide
-├── PLAYGROUND_GUIDE.md      # Playground usage guide
-├── AGENTOS_GUIDE.md         # AgentUI monitoring guide
-├── RAG_GUIDE.md             # RAG implementation guide
-├── RESEARCH_TOOLS_GUIDE.md  # Research tools documentation
-├── SETUP_CHECKLIST.md       # Setup verification checklist
-└── IMPLEMENTATION_SUMMARY.md # Architecture overview
-```
-
-### Development Workflow
-
-1. **Install dependencies:**
-   ```bash
-   npm run agno:install
-   # or
-   cd odonto-gpt-agno-service && pip install -r requirements.txt
-   ```
-
-2. **Configure environment:**
-   ```bash
-   cd odonto-gpt-agno-service
-   cp .env.example .env
-   # Edit .env with your API keys
-   ```
-
-3. **Run development server:**
-   ```bash
-   npm run agno:dev
-   # Service starts at http://localhost:8000
-   ```
-
-4. **Test health endpoint:**
-   ```bash
-   curl http://localhost:8000/health
-   ```
-
-5. **Run playground for interactive testing:**
-   ```bash
-   cd odonto-gpt-agno-service
-   python playground.py
-   # Access at http://localhost:8000
-   ```
-
-6. **Start AgentUI dashboard:**
-   ```bash
-   ./start_agentui.sh
-   # Access at http://localhost:8000/ui
-   ```
-
-**Development Tips:**
-- Use the playground for quick agent testing without frontend
-- Monitor agent behavior in real-time with AgentUI
-- Check logs in `odonto-gpt-agno-service/agno.log` for debugging
-- Run tests with `pytest` (if configured)
-- See `odonto-gpt-agno-service/SETUP_CHECKLIST.md` for verification steps
-
-## Database Schema
-
-The database uses PostgreSQL with Row Level Security (RLS). Key tables include:
-
-- **profiles** - User profiles linked to auth.users with role-based access
-- **courses, modules, lessons** - Hierarchical course structure
-- **materials** - Learning materials and attachments
-- **subscriptions, transactions** - Payment and subscription management
-- **pipeline, leads** - Lead management system for sales
-- **chat_threads** - AI chat conversation history
-- **notifications** - User notifications
-- **live_events** - Live streaming events
-- **agent_sessions** - Agno AI agent session storage for conversation history
-  - Stores session metadata (agent_type, status, created_at, updated_at)
-  - Links to user who created the session
-  - Tracks session type: 'qa', 'image-analysis', or 'team'
-- **agent_messages** - Individual messages within agent sessions
-  - Links to parent session
-  - Stores role (user/assistant) and content
-  - Includes metadata like images, tool calls, and tokens used
-- **knowledge_base** - Vector embeddings for RAG (optional, requires pgvector)
-
-All tables use UUID primary keys and include audit timestamps (created_at, updated_at).
-
-**Recent Migrations:**
-- `20260113000000_add_agent_sessions.sql` - Adds agent_sessions and agent_messages tables for conversation persistence
-
-## Chat & Image Upload Features
-
-### Image Upload with Bunny CDN
-
-The platform supports uploading dental images for AI analysis through Bunny CDN integration:
-
-**Components:**
-- `components/chat/image-upload.tsx` - React-dropzone based upload component
-- `lib/bunny/upload.ts` - Upload utilities for Bunny CDN
-- `components/chat/chat-interface.tsx` - Updated chat UI with image support
-
-**Features:**
-- Drag-and-drop image upload
-- Real-time upload progress
-- Image preview before and during upload
-- Automatic file validation (type, size)
-- Support for JPEG, PNG, GIF, WebP (max 10MB)
-- One-year cache on CDN for performance
-
-**Usage Example:**
 ```typescript
-import { ImageUpload, type UploadedImage } from "@/components/chat/image-upload"
+import { createClient } from "@/lib/supabase/server"
+import { resolveUserRole } from "@/lib/auth/roles"
 
-function MyComponent() {
-  const [images, setImages] = useState<UploadedImage[]>([])
-
-  return (
-    <ImageUpload
-      images={images}
-      onImagesChange={setImages}
-      maxFiles={3}
-      userId={user.id}
-      disabled={isLoading}
-    />
-  )
-}
+const supabase = await createClient()
+const { data: { user } } = await supabase.auth.getUser()
+const role = user ? resolveUserRole(undefined, user) : undefined
 ```
 
-### Session Management
-
-Agent sessions are persisted in the database and accessible via API:
-
-**Database Tables:**
-- `agent_sessions` - Stores session metadata (agent_type, status, created_at, etc.)
-- `agent_messages` - Stores individual messages within sessions
-
-**Session API Endpoints:**
-- `GET /api/sessions` - List all sessions for current user
-- `POST /api/sessions` - Create a new session
-- `GET /api/sessions/{id}` - Get session with messages
-- `DELETE /api/sessions/{id}` - Delete a session
-- `PATCH /api/sessions/{id}` - Update session status/metadata
-
-**Session Cache:**
-Client-side caching via `lib/ai/session-cache.ts`:
-- `fetchSessions()` - Fetch with cache support
-- `getCachedSessions()` - Get from localStorage
-- `updateCachedSession()` - Add/update cache entry
-- `deleteSession()` - Delete via API and update cache
-
-**Session History Page:**
-`app/dashboard/chat/history/page.tsx` - View and manage past conversations
-
-### Chat Flow with Images
-
-1. **User uploads image** → Bunny CDN via `uploadChatImage()`
-2. **User sends message** → `/api/chat` with `imageUrl`
-3. **API routes to Agno** → Determines agent type (image-analysis vs qa)
-4. **Agno processes** → Image agent analyzes image, returns response
-5. **Response streamed** → Frontend displays analysis
-
-**Example:**
-```typescript
-// In chat-interface.tsx
-const { images } = useChat({
-  api: "/api/chat",
-  body: {
-    imageUrl: uploadedImages[0]?.url,
-    sessionId: sessionId
-  }
-})
-```
-
-### AI Features Overview
-
-The platform provides three main AI-powered features:
-
-**1. Dental Q&A Chat (`qa` agent)**
-- Ask questions about dental procedures, techniques, and theory
-- Access course materials through RAG knowledge base
-- Specialty-specific responses (periodontia, endodontia, etc.)
-- See `app/agents/qa_agent.py` for implementation
-
-**2. Image Analysis (`image-analysis` agent)**
-- Upload dental X-rays, intraoral photos, and clinical images
-- AI-powered radiologist analysis
-- Supports follow-up questions about the image
-- See `app/agents/image_agent.py` for implementation
-
-**3. Multi-Agent Workflows (`team` coordinator)**
-- Combines QA and Image agents when needed
-- Orchestrates complex multi-step conversations
-- Automatic agent routing based on user input
-- See `app/agents/team.py` for implementation
-
-**Configuration:**
-- Set agent type in API request or let auto-routing decide
-- Configure models via environment variables in Agno service
-- Custom prompts and behaviors per agent type
-- Session persistence across all agent types
-
-## Authentication & Authorization
-
-### User Roles
-- **admin** - Full system access
-- **cliente** - Regular customer access (default)
-- **vendedor** - Sales representative access
-
-### Auth Flow
-- Email/password authentication via Supabase Auth
-- Role determination via `lib/auth/roles.ts` (checks profile table, then app_metadata/user_metadata)
-- Middleware protection for protected routes (`/dashboard`, `/admin`, `/settings`, `/profile`)
-- Auto-redirect: authenticated users from `/login`/`/register` → appropriate panel based on role
-
-### Important Patterns
-- Always use `createClient()` from `lib/supabase/server.ts` in Server Components/Actions
-- Use `createAdminClient()` from `lib/supabase/admin.ts` for operations bypassing RLS
-- Never cache Supabase clients in global variables (especially for Fluid compute)
-- Middleware (`middleware.ts`) handles session refresh and route protection
-
-## Server Actions Pattern
-
-Server actions are in `app/actions/` and follow this pattern:
+### Server Action Pattern
 
 ```typescript
 "use server"
@@ -444,225 +132,24 @@ import { revalidatePath } from "next/cache"
 export async function someAction(params: Params): Promise<ActionResult> {
   const supabase = await createClient()
 
-  // Validation with Zod schemas
+  // Validation
   const parsed = schema.safeParse(params)
   if (!parsed.success) {
-    return { success: false, error: "Validation failed", fieldErrors: ... }
+    return { success: false, error: "Validation failed" }
   }
 
-  // Database operations
-  const { data, error } = await supabase.from("table").select("*")
+  // Database operation
+  const { data, error } = await supabase.from("table").insert(parsed.data)
 
-  // Revalidate affected paths
+  // Revalidate
   revalidatePath("/some-path")
 
   return { success: true, data }
 }
 ```
 
-All actions return `ActionResult<T>` type with `{ success: boolean, data?: T, error?: string }`.
-
-## Component Structure
-
-### Directories
-- **app/** - Next.js App Router pages and layouts
-- **app/actions/** - Server actions for data operations
-- **app/api/** - API routes (webhooks, external integrations)
-  - **app/api/sessions/** - Agent session management endpoints
-- **app/dashboard/chat/history/** - Chat session history page
-- **components/ui/** - shadcn/ui base components
-- **components/auth/** - Authentication forms and flows
-- **components/ai-elements/** - AI-powered components
-- **components/chat/** - Chat interface components with image upload support
-- **components/layout/** - Layout components (Header, Shell, Sidebar)
-- **lib/** - Utility functions and configurations
-  - **lib/ai/** - AI service integrations and session caching
-  - **lib/bunny/** - Bunny CDN upload utilities
-- **lib/supabase/** - Supabase client configurations
-- **lib/auth/** - Authentication utilities
-- **odonto-gpt-agno-service/** - Python microservice for AI agents (Agno framework)
-- **supabase/migrations/** - Database migration files
-
-### UI Components
-- Uses shadcn/ui with Radix UI primitives
-- All components in `components/ui/` are auto-generated from shadcn
-- Custom components extend base UI components
-- **Tabs component** (`components/ui/tabs.tsx`) - For tabbed interfaces in chat and settings
-- Follow mobile-first responsive design (see `docs/mobile-first-guidelines.md`)
-
-**Key UI Patterns:**
-- Floating chat widget (`components/chat/floating-chat.tsx`) - AI assistant accessible from any page
-- Image upload with drag-and-drop (`components/chat/image-upload.tsx`)
-- Session history with tabs for different conversation types
-- Mobile-responsive sidebar with overlay pattern on small screens
-
-## Mobile-First Design
-
-All pages must follow mobile-first responsive patterns:
-- Start with stacked layouts for mobile (320px+)
-- Use Tailwind classes in progressive enhancement: `<base> md:<tablet> lg:<desktop> xl:<large>`
-- Breakpoints: sm (480px), md (768px), lg (1024px), xl (1280px)
-- Sidebar uses overlay pattern on mobile, docked on desktop
-- Test on iPhone SE, Pixel 5, iPad mini, and desktop
-
-See `docs/mobile-first-guidelines.md` for detailed guidelines.
-
-## Environment Variables
-
-### Required (Public)
-- `NEXT_PUBLIC_SUPABASE_URL` - Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase anonymous key
-- `NEXT_PUBLIC_SITE_URL` - Production site URL
-
-### Required (Server-only)
-- `SUPABASE_SERVICE_ROLE_KEY` - Supabase service role key (bypasses RLS)
-- `BUNNY_STORAGE_ZONE` - Bunny CDN storage zone name
-- `BUNNY_STORAGE_API_KEY` - Bunny CDN access key
-- `BUNNY_CDN_BASE_URL` - Bunny CDN pull zone URL
-- `BUNNY_STORAGE_HOST` - (optional) Bunny storage host (default: storage.bunnycdn.com)
-
-### Agno Service Environment Variables (odonto-gpt-agno-service/.env)
-- `OPENROUTER_API_KEY` - OpenRouter API key for LLM access (required)
-- `OPENROUTER_MODEL_QA` - Model for Q&A agent (default: `openai/gpt-4o-mini`)
-- `OPENROUTER_MODEL_IMAGE` - Model for image analysis (default: `openai/gpt-4o`)
-- `OPENROUTER_MODEL_EMBEDDING` - Model for embeddings (default: `openai/text-embedding-3-small`)
-- `SUPABASE_DB_URL` - PostgreSQL connection string for agent session storage
-- `PORT` - Service port (default: 8000)
-- `ENVIRONMENT` - Environment mode (development/production)
-- `ALLOWED_ORIGINS` - CORS allowed origins (comma-separated)
-
-### Optional (Server-only)
-- `OPENAI_API_KEY` - OpenAI API key for AI features
-- `CAKTO_WEBHOOK_SECRET` - Cakto payment webhook secret
-- `ZAPI_SECRET` - Z-API WhatsApp integration secret
-- `RESEND_API_KEY` - Resend email API key
-- `N8N_WEBHOOK_URL` - N8N automation webhook URL
-- `NEXT_PUBLIC_SENTRY_DSN` - Sentry error tracking
-- `SENTRY_AUTH_TOKEN` - Sentry authentication token
-
-**Important**: Use `npm run validate:env` to verify environment configuration.
-
-## Key Integrations
-
-### Cakto Payment Gateway
-- Webhook endpoint: `app/api/webhooks/cakto/route.ts`
-- Handles subscription creation, payment updates, and cancellations
-- Must configure `CAKTO_WEBHOOK_SECRET` for webhook verification
-- See `docs/guia-integracao-cakto-local.md` for local testing
-
-### Bunny CDN
-- Used for video and material storage
-- Configuration in `lib/bunny/` (check for existence)
-- Test configuration: `npm run test:bunny`
-- See `docs/bunny-cdn-setup.md` for setup instructions
-
-### WhatsApp (Z-API)
-- Used for customer notifications
-- Configuration in environment with `ZAPI_SECRET`
-
-### Email (Resend)
-- Transactional emails for notifications
-- Configure `RESEND_API_KEY`
-
-### OpenRouter (AI Models)
-- Unified API access to multiple LLM providers (OpenAI, Anthropic, etc.)
-- Used by Agno service for all AI agent operations
-- Configure `OPENROUTER_API_KEY` in `odonto-gpt-agno-service/.env`
-- Supports model selection via environment variables:
-  - `OPENROUTER_MODEL_QA` - Model for Q&A agent (default: `openai/gpt-4o-mini`)
-  - `OPENROUTER_MODEL_IMAGE` - Model for image analysis (default: `openai/gpt-4o`)
-  - `OPENROUTER_MODEL_EMBEDDING` - Model for embeddings (default: `openai/text-embedding-3-small`)
-
-### WhatsApp Integration (Z-API)
-The platform integrates with Z-API for WhatsApp notifications and customer communication:
-
-**Features:**
-- Send notifications about subscriptions, payments, and updates
-- Customer support via WhatsApp
-- Webhook handling for incoming messages (optional)
-
-**Configuration:**
-- Set `ZAPI_SECRET` in environment variables
-- Configure Z-API webhook URL in Z-API dashboard
-- See `docs/WHATSAPP_SETUP_GUIDE.md` for complete setup instructions
-- See `docs/whatsapp-agno-integration.md` for integration with Agno AI service
-
-**API Usage:**
-```typescript
-// Sending WhatsApp message
-import { sendWhatsAppMessage } from '@/lib/integrations/zapi'
-
-await sendWhatsAppMessage({
-  phone: '5511999999999',
-  message: 'Sua assinatura foi confirmada!'
-})
-```
-
-## Deployment
-
-### Production Deployment
-- Deployed on Vercel: https://vercel.com/insightfy/v0-odonto-gpt-ui
-- See `docs/DEPLOY_PRODUCTION.md` for complete deployment guide
-- Use Vercel CLI: `npx vercel deploy --prod`
-- Set environment variables in Vercel dashboard (not in `.env.local` for production)
-
-### Pre-deployment Checklist
-1. All migrations applied: `npm run db:status`
-2. Environment variables validated: `npm run validate:env`
-3. Build succeeds: `npm run build`
-4. Test Bunny CDN: `npm run test:bunny`
-5. Check RLS policies on Supabase
-6. Verify auth redirects work correctly
-7. **For AI features:** Deploy Agno service (see deployment guide)
-
-### Deploying Agno Service in Production
-
-The Agno service should be deployed separately from the Next.js frontend:
-
-**Deployment Options:**
-1. **Railway, Render, or Fly.io** - Recommended for Python/FastAPI services
-2. **Docker container** - For Kubernetes or container orchestration
-3. **AWS EC2/ECS** - For AWS-based deployments
-4. **Vercel Serverless** - With adaptation for serverless functions
-
-**Production Configuration:**
-```bash
-# In odonto-gpt-agno-service/.env
-ENVIRONMENT=production
-OPENROUTER_API_KEY=sk-...
-SUPABASE_DB_URL=postgresql://...
-ALLOWED_ORIGINS=https://your-domain.com
-PORT=8000
-```
-
-**Health Check:**
-- The `/health` endpoint should return `{"status": "healthy"}`
-- Configure load balancer health checks to this endpoint
-- Monitor service logs for errors and performance issues
-
-See `docs/DEPLOY_PRODUCTION.md` for complete deployment instructions.
-
-## v0.app Integration
-
-This project was created using v0.app and syncs automatically:
-- Changes made in v0.app are pushed to this repository
-- Manual code changes should NOT be made to files that v0.app manages
-- The project is linked to: https://v0.app/chat/sahgokuYUIU
-
-## Common Patterns
-
-### Reading Current User
-```typescript
-// In Server Component
-import { createClient } from "@/lib/supabase/server"
-import { resolveUserRole } from "@/lib/auth/roles"
-
-const supabase = await createClient()
-const { data: { user } } = await supabase.auth.getUser()
-const role = user ? resolveUserRole(undefined, user) : undefined
-```
-
 ### Role-Based Rendering
+
 ```typescript
 import { isAdmin, isVendedor } from "@/lib/auth/roles"
 
@@ -670,29 +157,11 @@ import { isAdmin, isVendedor } from "@/lib/auth/roles"
 {isVendedor(role) && <SalesComponent />}
 ```
 
-### Protected API Routes
-```typescript
-// In API route
-import { createClient } from "@/lib/supabase/server"
-import { resolveUserRole } from "@/lib/auth/roles"
-
-const supabase = await createClient()
-const { data: { user } } = await supabase.auth.getUser()
-
-if (!user) {
-  return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-}
-
-const role = resolveUserRole(undefined, user)
-if (!isAdmin(role)) {
-  return NextResponse.json({ error: "Forbidden" }, { status: 403 })
-}
-```
-
 ### Database Queries with RLS
+
 ```typescript
 // Regular queries respect RLS for current user
-const { data, error } = await supabase
+const { data } = await supabase
   .from("courses")
   .select("*")
   .eq("published", true)
@@ -703,141 +172,174 @@ const adminSupabase = createAdminClient()
 const { data } = await adminSupabase.from("users").select("*")
 ```
 
-### Calling Agno AI Service
+### AI Chat Integration
+
 ```typescript
-// Streaming response from Q&A agent
-async function streamQAQuestion(question: string, sessionId?: string) {
-  const response = await fetch('http://localhost:8000/api/v1/qa/chat', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      question,
-      userId: user.id,
-      sessionId,
-      specialty: 'periodontia' // optional
-    })
-  })
+// Client-side streaming chat
+import { useChat } from 'ai/react'
 
-  // Read streaming response
-  const reader = response.body?.getReader()
-  const decoder = new TextDecoder()
-
-  while (true) {
-    const { done, value } = await reader!.read()
-    if (done) break
-    console.log(decoder.decode(value))
+const { messages, input, handleSubmit } = useChat({
+  api: '/api/chat',
+  body: {
+    sessionId: 'session-123',
+    imageUrl: uploadedImage?.url
   }
-}
-
-// Image analysis
-async function analyzeDentalImage(imageUrl: string, question?: string) {
-  const response = await fetch('http://localhost:8000/api/v1/image/analyze', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      imageUrl,
-      question: question || "Analyze this dental image",
-      userId: user.id
-    })
-  })
-
-  const { analysis, metadata } = await response.json()
-  return { analysis, metadata }
-}
+})
 ```
 
-## Important Notes
+## Important Files
 
-### Security
-- Never commit API keys or secrets to the repository
-- Always use service role key sparingly and only in server contexts
-- Validate all user inputs with Zod schemas
-- Check RLS policies after schema changes with Supabase Advisors: `npm run db:status` then check advisors in Supabase dashboard
+### Frontend
+- `middleware.ts` - Route protection and auth
+- `lib/auth/roles.ts` - Role resolution and helpers
+- `lib/supabase/server.ts` - Supabase client for Server Components
+- `lib/supabase/admin.ts` - Admin client (bypasses RLS)
+- `app/api/chat/route.ts` - Chat API endpoint
+- `app/actions/` - Server actions for mutations
 
-### Performance
-- Use Server Components by default
-- Only mark components as `'use client'` when necessary (interactivity, browser APIs)
-- Lazy load heavy components with `next/dynamic`
-- Use `next/image` for all images
-- Leverage Next.js Image optimization for Bunny CDN assets
+### AI Service (Python)
+- `odonto-gpt-agno-service/app/main.py` - FastAPI app entry
+- `odonto-gpt-agno-service/app/agents/` - Agent definitions
+- `odonto-gpt-agno-service/app/tools/` - Agent tools
+- `odonto-gpt-agno-service/app/api.py` - API routes
 
-### Error Handling
-- Sentry is configured for error tracking (`@sentry/nextjs`)
-- Server actions return `ActionResult` type with success/error states
-- Check browser console and Sentry dashboard for runtime errors
-- Use `console.error` with context for debugging server actions
+### Database
+- `supabase/migrations/` - Database migrations
+- Latest migration: `20260113000000_add_agent_sessions.sql`
 
-### Testing Database Changes
-1. Create migration: `supabase migration new <name>`
-2. Apply locally: `npm run db:push`
-3. Test in development
-4. Review RLS policies in Supabase dashboard
-5. Run security advisors: Get advisors in Supabase → Database → Advisors
-6. Deploy: Migration applies automatically in production via Supabase
+## User Roles
+
+- **admin** - Full system access, user management
+- **cliente** - Regular customer (default)
+- **vendedor** - Sales representative, lead management
+
+## Environment Variables
+
+### Required (Frontend)
+```bash
+NEXT_PUBLIC_SUPABASE_URL=your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
+NEXT_PUBLIC_SITE_URL=http://localhost:3000
+
+BUNNY_STORAGE_ZONE=your-zone
+BUNNY_STORAGE_API_KEY=your-key
+BUNNY_CDN_BASE_URL=https://your-cdn.b-cdn.net
+```
+
+### Required (AI Service)
+```bash
+# odonto-gpt-agno-service/.env
+OPENROUTER_API_KEY=sk-or-...
+SUPABASE_DB_URL=postgresql://...
+ENVIRONMENT=development
+ALLOWED_ORIGINS=http://localhost:3000
+```
+
+### Optional
+```bash
+CAKTO_WEBHOOK_SECRET=...   # Payment webhooks
+ZAPI_SECRET=...             # WhatsApp integration
+RESEND_API_KEY=...          # Email delivery
+NEXT_PUBLIC_SENTRY_DSN=...  # Error tracking
+```
 
 ## Troubleshooting
 
-### Build Issues
-- **Missing environment variables**: Check `npm run validate:env`
-- **Font download failures**: Next.js uses Google Fonts, requires network access during build
-- **Type errors**: Run `tsc --noEmit` to see detailed type errors
+### Frontend Issues
+- **Missing env vars**: Run `npm run validate:env`
+- **Build fails**: Check env vars, run `npm run build` locally first
+- **Auth not working**: Check middleware, verify Supabase URL/keys
 
-### Auth Issues
-- **Session not refreshing**: Check middleware configuration
-- **401 errors**: Verify `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- **Role detection failing**: Check `profiles` table has role column, fallback to app_metadata
+### AI Service Issues
+- **Service won't start**: Check Python 3.9+, install dependencies
+- **Agent errors**: Verify `OPENROUTER_API_KEY` in service `.env`
+- **Connection refused**: Ensure service running on port 8000
 
 ### Database Issues
-- **RLS policies blocking queries**: Check policies in Supabase dashboard, test with service role
-- **Migration stuck**: Use `npm run db:reset` (development only)
+- **RLS blocking**: Check policies in Supabase dashboard
+- **Migration stuck**: Use `npm run db:reset` (dev only)
 - **Connection errors**: Verify Supabase project is active
 
-### Payment/Webhook Issues
-- **Cakto webhook failing**: Check `CAKTO_WEBHOOK_SECRET` matches Cakto dashboard
-- **Missing notifications**: Verify webhook is receiving requests (check Supabase logs)
-- See `docs/cakto-webhook-fix.md` and `docs/cakto-webhook-status.md`
+## Documentation System
 
-### Bunny CDN Issues
-- **Uploads failing**: Run `npm run test:bunny` to diagnose
-- **Videos not loading**: Check `BUNNY_CDN_BASE_URL` and pull zone configuration
-- See `docs/bunny-cdn-setup.md` and troubleshooting guides in `docs/`
+This project uses an LLM-optimized modular documentation system. See [`.docs/INDEX.md`](.docs/INDEX.md) for the complete index.
 
-### Agno Service Issues
-- **Service not starting**: Check Python version (3.9+) and dependencies with `npm run agno:install`
-- **Connection refused**: Ensure service is running on port 8000 with `npm run agno:dev`
-- **Agent errors**: Verify `OPENROUTER_API_KEY` is set and valid in `odonto-gpt-agno-service/.env`
-- **Database connection errors**: Check `SUPABASE_DB_URL` format and network access
-- **CORS errors**: Verify `ALLOWED_ORIGINS` includes your frontend URL in service `.env`
-- **Streaming not working**: Check that frontend is calling correct endpoint with proper headers
+### Key Documentation Files
+- [`.docs/01_PROJECT_OVERVIEW.md`](.docs/01_PROJECT_OVERVIEW.md) - Start here for complete overview
+- [`.docs/07_PATTERNS.md`](.docs/07_PATTERNS.md) - Code patterns and examples
+- [`.docs/10_TROUBLESHOOTING.md`](.docs/10_TROUBLESHOOTING.md) - Common issues
 
-### WhatsApp Integration Issues
-- **Messages not sending**: Verify `ZAPI_SECRET` is configured correctly
-- **Webhook not receiving**: Check Z-API webhook URL configuration in dashboard
-- **Authentication errors**: Validate Z-API instance ID and token
-- **Rate limiting**: Z-API has rate limits, implement exponential backoff
-- See `docs/WHATSAPP_SETUP_GUIDE.md` for troubleshooting steps
+### Agno Service Documentation
+- `odonto-gpt-agno-service/README.md` - Service overview
+- `odonto-gpt-agno-service/QUICKSTART.md` - Setup guide
+- `odonto-gpt-agno-service/PLAYGROUND_GUIDE.md` - Testing guide
+- `odonto-gpt-agno-service/AGENTOS_GUIDE.md` - Monitoring dashboard
 
-### Session Management Issues
-- **Sessions not persisting**: Check migration `20260113000000_add_agent_sessions.sql` is applied
-- **History not loading**: Verify RLS policies on agent_sessions and agent_messages tables
-- **Cache inconsistency**: Clear localStorage or use `deleteSession()` to reset
-- See `docs/chat-image-sessions-guide.md` for session management details
+## Best Practices
 
-## Documentation
+### Security
+- Never commit API keys or secrets
+- Always use service role key sparingly in server contexts
+- Validate inputs with Zod schemas
+- Check RLS policies after schema changes
 
-- `odonto-gpt-agno-service/README.md` - Agno AI service documentation
-- `odonto-gpt-agno-service/AGENTOS_GUIDE.md` - Guide to using AgentUI for agent monitoring
-- `odonto-gpt-agno-service/QUICKSTART.md` - Quick start guide for the Agno service
-- `odonto-gpt-agno-service/PLAYGROUND_GUIDE.md` - Interactive playground for testing agents
-- `odonto-gpt-agno-service/RAG_GUIDE.md` - RAG knowledge base implementation guide
-- `odonto-gpt-agno-service/RESEARCH_TOOLS_GUIDE.md` - Research tools documentation
-- `odonto-gpt-agno-service/SETUP_CHECKLIST.md` - Service setup and verification checklist
-- `odonto-gpt-agno-service/IMPLEMENTATION_SUMMARY.md` - Architecture and implementation overview
-- `docs/DEPLOY_PRODUCTION.md` - Complete production deployment guide
-- `docs/mobile-first-guidelines.md` - Mobile-first design patterns
-- `docs/bunny-cdn-setup.md` - Bunny CDN configuration
-- `docs/WHATSAPP_SETUP_GUIDE.md` - WhatsApp integration setup
-- `docs/whatsapp-agno-integration.md` - WhatsApp-Agno integration guide
-- `docs/chat-image-sessions-guide.md` - Chat with images and session management
-- `docs/guia-integracao-cakto-local.md` - Local Cakto webhook testing
-- `docs/` - Additional integration and troubleshooting guides
+### Performance
+- Use Server Components by default
+- Only use `'use client'` when necessary
+- Lazy load heavy components with `next/dynamic`
+- Use `next/image` for all images
+
+### Code Style
+- Use TypeScript strict mode
+- Follow existing file structure
+- Keep Server Actions in `app/actions/`
+- Use Zod for validation schemas
+
+## External Integrations
+
+### Cakto (Payment Gateway)
+- Webhook: `app/api/webhooks/cakto/route.ts`
+- Handles subscriptions and payments
+- Configure `CAKTO_WEBHOOK_SECRET`
+
+### Bunny CDN (Media Storage)
+- Utilities in `lib/bunny/`
+- Test with `npm run test:bunny`
+- Used for videos and images
+
+### Z-API (WhatsApp)
+- Notifications and customer support
+- Configure `ZAPI_SECRET`
+- See `docs/WHATSAPP_SETUP_GUIDE.md`
+
+### OpenRouter (AI Models)
+- Multi-provider LLM gateway
+- Used by Agno service
+- Configure `OPENROUTER_API_KEY`
+
+## Deployment
+
+### Frontend (Vercel)
+```bash
+npm run build
+npx vercel deploy --prod
+```
+
+### AI Service (Railway/Render)
+```bash
+cd odonto-gpt-agno-service
+# Deploy to Railway, Render, or Fly.io
+# Set environment variables in platform dashboard
+```
+
+## Related Docs
+
+- **Deployment**: [`.docs/09_DEPLOYMENT.md`](.docs/09_DEPLOYMENT.md)
+- **Patterns**: [`.docs/07_PATTERNS.md`](.docs/07_PATTERNS.md)
+- **Troubleshooting**: [`.docs/10_TROUBLESHOOTING.md`](.docs/10_TROUBLESHOOTING.md)
+- **Complete Index**: [`.docs/INDEX.md`](.docs/INDEX.md)
+
+---
+
+**Last Updated**: 2025-01-15
+**Documentation System**: v1.0 (LLM-Optimized)

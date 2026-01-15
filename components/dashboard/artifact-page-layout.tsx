@@ -34,7 +34,7 @@ export function ArtifactPageLayout({
             {/* Main Content */}
             <div className={cn(
                 "flex-1 overflow-y-auto transition-all duration-300 custom-scrollbar",
-                chatOpen ? "w-[70%]" : "w-full"
+                chatOpen ? "md:w-[70%]" : "w-full"
             )}>
                 {children}
 
@@ -57,7 +57,7 @@ export function ArtifactPageLayout({
 
             {/* Chat Panel */}
             {chatOpen && (
-                <div className="w-[30%] min-w-[320px] max-w-[450px] relative">
+                <div className="hidden md:block w-[30%] min-w-[320px] max-w-[450px] relative border-l border-slate-800/50">
                     <Button
                         size="icon"
                         variant="ghost"

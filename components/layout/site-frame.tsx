@@ -17,6 +17,14 @@ interface SiteFrameProps {
 export function SiteFrame({ children }: SiteFrameProps) {
   const pathname = usePathname() ?? "/"
   const showLandingShell = pathname === "/"
+  const isChatOrArtifactRoute =
+    pathname === "/dashboard/chat" ||
+    pathname.includes("/dashboard/pesquisas") ||
+    pathname.includes("/dashboard/resumos") ||
+    pathname.includes("/dashboard/questionarios") ||
+    pathname.includes("/dashboard/flashcards") ||
+    pathname.includes("/dashboard/mindmaps") ||
+    pathname.includes("/dashboard/escritor")
 
   return (
     <div className="app-frame flex min-h-screen flex-col bg-session-landing text-white">
@@ -26,7 +34,7 @@ export function SiteFrame({ children }: SiteFrameProps) {
           {children}
           {showLandingShell ? <LandingFooter /> : null}
         </AppScrollArea>
-        {!showLandingShell && (
+        {!showLandingShell && !isChatOrArtifactRoute && (
           <aside className="hidden lg:block w-[30%] min-w-[320px] max-w-[500px] border-l border-slate-800 bg-slate-950/50 backdrop-blur-xl">
             <CopilotChatSidebar className="h-full bg-transparent border-none" />
           </aside>
