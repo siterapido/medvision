@@ -7,6 +7,7 @@ import { DashboardLayoutShell } from "@/components/dashboard/shell"
 import type { DashboardProfile } from "@/components/dashboard/types"
 import { calculateTrialEndDate, getTrialDurationFromDates, isTrialExpired, normalizeTrialDays } from "@/lib/trial"
 import { createClient } from "@/lib/supabase/server"
+import { CopilotProvider } from "@/components/copilot-provider"
 
 export default async function DashboardLayout({
   children,
@@ -108,8 +109,10 @@ export default async function DashboardLayout({
   }
 
   return (
-    <DashboardLayoutShell user={user} profile={profile}>
-      {children}
-    </DashboardLayoutShell>
+    <CopilotProvider>
+      <DashboardLayoutShell user={user} profile={profile}>
+        {children}
+      </DashboardLayoutShell>
+    </CopilotProvider>
   )
 }

@@ -9,6 +9,7 @@ import { resolveUserRole } from "@/lib/auth/roles"
 import { createClient } from "@/lib/supabase/client"
 import {
   BookOpen,
+  Bot,
   FileText,
   LayoutDashboard,
   LogOut,
@@ -47,6 +48,7 @@ const allNavigationItems: NavItem[] = [
   { name: "Materiais", href: "/admin/materiais", icon: FileText },
   { name: "Cadastrar Lives", href: "/admin/lives", icon: Calendar },
   { name: "Notificações", href: "/admin/notifications", icon: MessageSquare },
+  { name: "Agentes IA", href: "/admin/agentes", icon: Bot },
   { name: "Pipeline", href: "/admin/pipeline", icon: Workflow },
   { name: "Trials", href: "/admin/trials", icon: Sparkles },
   { name: "Usuários", href: "/admin/usuarios", icon: Users },
@@ -67,7 +69,7 @@ export function AdminSidebar({ user, profile, isVisible = true }: AdminSidebarPr
   const userName = profile?.name || user.email?.split("@")[0] || "Usuário"
   const resolvedRole = resolveUserRole(profile?.role, user)
   const userRoleLabel = resolvedRole === "admin" ? "Administrador" : resolvedRole === "vendedor" ? "Vendedor" : "Cliente"
-  
+
   // Filtrar navegação baseado no role
   const navigation = resolvedRole === "vendedor" ? vendedorNavigationItems : allNavigationItems
 
@@ -115,7 +117,7 @@ export function AdminSidebar({ user, profile, isVisible = true }: AdminSidebarPr
               return pathname === navItem.href || pathname.startsWith(navItem.href + "/")
             })
             .sort((a, b) => b.href.length - a.href.length)[0] // Ordena por maior comprimento (mais específico)
-          
+
           const isActive = matchingItem?.href === item.href
 
           return (

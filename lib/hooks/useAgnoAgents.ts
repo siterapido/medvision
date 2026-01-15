@@ -66,9 +66,10 @@ export function useAgnoAgents(options: UseAgnoAgentsOptions = {}): UseAgnoAgents
 
             setAgents(agentList)
 
-            // Auto-select first agent if enabled and no agent is selected
+            // Auto-select Odonto Flow (orchestrator) as default agent
             if (autoSelect && agentList.length > 0 && !selectedAgent) {
-                setSelectedAgent(agentList[0])
+                const flowAgent = agentList.find(a => a.id === 'odonto-flow')
+                setSelectedAgent(flowAgent || agentList[0])
             }
         } catch (err) {
             const message = err instanceof Error ? err.message : "Erro ao carregar agentes"

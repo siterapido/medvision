@@ -14,6 +14,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import research tools
 from app.tools.research import RESEARCH_TOOLS
+# Import navigation tools
+from app.tools.navigation import NAVIGATION_TOOLS
 
 
 def create_image_analysis_agent() -> Agent:
@@ -50,8 +52,9 @@ def create_image_analysis_agent() -> Agent:
         ), # GPT-4o tem capacidades nativas de visão
         db=db,
         add_history_to_context=True,
-        num_history_messages=3,
+        markdown=True,
         add_datetime_to_context=True,
+        stream_events=True,
 
         description="""Você é o Odonto Vision, a inteligência de análise de imagens e radiologia da Odonto Suite.
         
@@ -122,10 +125,15 @@ def create_image_analysis_agent() -> Agent:
             "Sugira exames 3D (TCFC) quando os achados justificarem investigação adicional.",
             "Recomende correlação clínica com os sintomas e exame físico.",
             "Forneça próximos passos específicos e acionáveis para o clínico.",
+            
+            # Contexto e Navegação (CopilotKit)
+            "Você tem consciência do que o usuário está vendo na tela através do 'Additional Context' no prompt.",
+            "Utilize as informações da tela para entender se o usuário está visualizando outros exames ou pesquisas relacionadas à mesma região anatômica.",
+            "Você pode sugerir a navegação para diferentes partes do app. No momento, o sistema de navegação é assistido; você pode indicar para onde o usuário deve ir.",
         ],
 
         # Add research tools for evidence-based practice
-        tools=RESEARCH_TOOLS,
+        tools=RESEARCH_TOOLS + NAVIGATION_TOOLS,
     )
 
     return odonto_vision

@@ -30,6 +30,11 @@ class ChatRequest(BaseModel):
         description="Additional context for the conversation"
     )
     imageUrl: Optional[str] = Field(None, description="Image URL for analysis")
+    forceAgent: Optional[str] = Field(
+        None, 
+        description="Force routing to specific agent (bypasses automatic routing). "
+                    "Valid values: 'odonto-research', 'odonto-practice', 'odonto-write', 'odonto-vision'"
+    )
 
 
 class ChatResponse(BaseModel):

@@ -14,6 +14,12 @@ import {
   X,
   FileText,
   MessageCircle,
+  Microscope,
+  ClipboardList,
+  PenTool,
+  Image as ImageIcon,
+  LayoutGrid,
+  Network,
   type LucideIcon,
 } from "lucide-react"
 
@@ -25,8 +31,14 @@ type NavItem = {
 
 export const dashboardNavigation: NavItem[] = [
   { name: "Odonto Flow", href: "/dashboard/chat", icon: BotIcon },
-  { name: "Cursos", href: "/dashboard/cursos", icon: GraduationCap },
+  { name: "Pesquisas", href: "/dashboard/pesquisas", icon: Microscope },
+  { name: "Questionários", href: "/dashboard/questionarios", icon: ClipboardList },
+  { name: "Escritor", href: "/dashboard/escritor", icon: PenTool },
+  { name: "Imagens", href: "/dashboard/imagens", icon: ImageIcon },
   { name: "Resumos", href: "/dashboard/resumos", icon: FileText },
+  { name: "Flashcards", href: "/dashboard/flashcards", icon: LayoutGrid },
+  { name: "Mapas Mentais", href: "/dashboard/mindmaps", icon: Network },
+  { name: "Cursos", href: "/dashboard/cursos", icon: GraduationCap },
   { name: "Materiais", href: "/dashboard/materiais", icon: BookOpen },
   { name: "Perfil", href: "/dashboard/perfil", icon: UserRound },
   { name: "Assinatura", href: "/dashboard/assinatura", icon: Sparkles },

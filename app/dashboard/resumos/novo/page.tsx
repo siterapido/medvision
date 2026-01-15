@@ -97,12 +97,12 @@ export default function NewSummaryPage() {
                     </div>
                 </div>
 
-                <Card>
+                <Card className="bg-white text-slate-900 border-slate-200/80 shadow-xl">
                     {step === 1 && (
                         <>
                             <CardHeader>
                                 <CardTitle>Selecione os Tópicos</CardTitle>
-                                <CardDescription>
+                                <CardDescription className="text-slate-500">
                                     Escolha os temas que você deseja incluir no seu resumo. A IA irá conectar os conceitos.
                                 </CardDescription>
                             </CardHeader>
@@ -131,7 +131,7 @@ export default function NewSummaryPage() {
                         <>
                             <CardHeader>
                                 <CardTitle>Configuração e Prévia</CardTitle>
-                                <CardDescription>
+                                <CardDescription className="text-slate-500">
                                     Personalize como seu resumo será gerado.
                                 </CardDescription>
                             </CardHeader>
@@ -140,7 +140,7 @@ export default function NewSummaryPage() {
                                     <div className="grid gap-2">
                                         <Label htmlFor="complexity">Nível de Detalhe</Label>
                                         <Select value={complexity} onValueChange={setComplexity}>
-                                            <SelectTrigger id="complexity">
+                                            <SelectTrigger id="complexity" className="bg-white border-slate-200 text-slate-700">
                                                 <SelectValue placeholder="Selecione o nível" />
                                             </SelectTrigger>
                                             <SelectContent>
@@ -151,9 +151,9 @@ export default function NewSummaryPage() {
                                         </Select>
                                     </div>
 
-                                    <Separator />
+                                    <Separator className="bg-slate-200" />
 
-                                    <div className="rounded-lg border p-4 bg-muted/20">
+                                    <div className="rounded-lg border border-slate-200 p-4 bg-slate-50">
                                         <h3 className="font-semibold mb-3 flex items-center gap-2">
                                             <Sparkles className="h-4 w-4 text-primary" />
                                             O que será gerado:

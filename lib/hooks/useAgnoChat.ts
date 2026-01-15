@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef } from "react"
+import { useCopilotContext } from "@copilotkit/react-core"
 import {
     generateMessageId,
     type ChatMessage,
@@ -44,6 +45,8 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
     const [isStreaming, setIsStreaming] = useState(false)
     const [isLoadingSessions, setIsLoadingSessions] = useState(false)
     const [error, setError] = useState<string | null>(null)
+
+    const { actions } = useCopilotContext()
 
     const abortControllerRef = useRef<AbortController | null>(null)
 
@@ -129,19 +132,15 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                     }
                 }
 
-                // 2. Determine the correct endpoint based on agent
-                let endpoint = "/chat" // default fallback
+                // 2. Determine the correct endpoint
+                // SIMPLIFICADO: Usar sempre /equipe/chat com forceAgent
+                // O backend cuida do roteamento (automático ou forçado)
+                let endpoint = "/equipe/chat"
 
-                // Map agent IDs to their specific endpoints
-                const agentEndpoints: Record<string, string> = {
-                    "odonto-research": "/agentes/dr-ciencia/chat",
-                    "odonto-practice": "/agentes/prof-estudo/chat",
-                    "odonto-write": "/agentes/dr-redator/chat",
-                    "odonto-vision": "/image/analyze",
-                    "odonto-flow": "/equipe/chat"
+                // Exceção: análise de imagem usa endpoint específico
+                if (agent.id === "odonto-vision") {
+                    endpoint = "/image/analyze"
                 }
-
-                endpoint = agentEndpoints[agent.id] || "/chat"
 
                 // 3. Send message to appropriate endpoint
                 const response = await fetch(`${baseUrl}${endpoint}`, {
@@ -153,8 +152,12 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                         message,
                         imageUrl,
                         userId,
-                        sessionId: currentSessionId, // Use the ensured session ID
+                        sessionId: currentSessionId,
                         agentType: agent.id === "odonto-vision" ? "odonto-vision" : "qa",
+                        // Se não for odonto-flow, forçar o agente específico (bypass de roteamento)
+                        forceAgent: agent.id !== 'odonto-flow' ? agent.id : undefined,
+                        // Context must be an object, not a string (backend expects Dict[str, Any])
+                        context: {},
                     }),
                     signal: abortControllerRef.current.signal,
                 })
@@ -163,28 +166,147 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                     throw new Error(`Erro na requisição: ${response.statusText}`)
                 }
 
+
+
                 const reader = response.body?.getReader()
                 if (!reader) {
                     throw new Error("Não foi possível ler a resposta")
                 }
 
                 const decoder = new TextDecoder()
-                let fullContent = ""
+                let buffer = ""
 
                 while (true) {
                     const { done, value } = await reader.read()
                     if (done) break
 
-                    const chunkText = decoder.decode(value, { stream: true })
-                    fullContent += chunkText
+                    buffer += decoder.decode(value, { stream: true })
 
-                    setMessages((prev) =>
-                        prev.map((msg) =>
-                            msg.id === agentMessageId
-                                ? { ...msg, content: fullContent }
-                                : msg
-                        )
-                    )
+                    // Split by newlines to process NDJSON
+                    const lines = buffer.split('\n')
+
+                    // Keep the last chunk in buffer if it's not a complete line
+                    buffer = lines.pop() || ""
+
+                    for (const line of lines) {
+                        if (!line.trim()) continue
+
+                        try {
+                            const event = JSON.parse(line)
+
+                            switch (event.type) {
+                                case "run.started":
+                                    // Could handle run start
+                                    break
+
+                                case "agent.switch":
+                                    if (event.agentId && event.agentId !== agent.id) {
+                                        setMessages((prev) =>
+                                            prev.map((msg) =>
+                                                msg.id === agentMessageId
+                                                    ? { ...msg, agent_id: event.agentId }
+                                                    : msg
+                                            )
+                                        )
+                                    }
+                                    break
+
+                                case "text.delta":
+                                    setMessages((prev) =>
+                                        prev.map((msg) =>
+                                            msg.id === agentMessageId
+                                                ? { ...msg, content: (msg.content || "") + event.content }
+                                                : msg
+                                        )
+                                    )
+                                    break
+
+                                case "artifact.created":
+                                    console.log("Artifact created:", event.artifact)
+                                    break
+
+                                case "tool_call.start":
+                                    // Intercept for CopilotKit Actions (Frontend Actions)
+                                    if (event.toolCallName && actions[event.toolCallName]) {
+                                        try {
+                                            const args = typeof event.args === 'string' ? JSON.parse(event.args) : (event.args || {});
+                                            console.log(`[CopilotAction] Triggering ${event.toolCallName}`, args);
+                                            actions[event.toolCallName].handler(args);
+                                        } catch (e) {
+                                            console.error(`Failed to trigger Copilot action ${event.toolCallName}:`, e);
+                                        }
+                                    }
+
+                                    setMessages((prev) =>
+                                        prev.map((msg) => {
+                                            if (msg.id === agentMessageId) {
+                                                const newToolCalls = [...(msg.tool_calls || [])]
+                                                newToolCalls.push({
+                                                    tool_call_id: event.toolCallId,
+                                                    tool_name: event.toolCallName,
+                                                    result: undefined // In progress
+                                                })
+                                                return { ...msg, tool_calls: newToolCalls }
+                                            }
+                                            return msg
+                                        })
+                                    )
+                                    break
+
+                                case "tool_call.result":
+                                    setMessages((prev) =>
+                                        prev.map((msg) => {
+                                            if (msg.id === agentMessageId && msg.tool_calls && msg.tool_calls.length > 0) {
+                                                const newToolCalls = [...msg.tool_calls]
+                                                // If ID is 'unknown', check the last one without result
+                                                // Or just assume the last one is the one completing (simplification)
+                                                // Ideally use ID matching
+                                                const lastIndex = newToolCalls.length - 1
+                                                if (lastIndex >= 0) {
+                                                    const updatedToolCall = { ...newToolCalls[lastIndex], result: event.result }
+                                                    newToolCalls[lastIndex] = updatedToolCall
+                                                }
+                                                return { ...msg, tool_calls: newToolCalls }
+                                            }
+                                            return msg
+                                        })
+                                    )
+                                    break
+
+                                case "error":
+                                    throw new Error(event.message)
+                            }
+                        } catch (e) {
+                            // Fallback for non-JSON lines (legacy support or plain text)
+                            // Treat as raw text if parsing fails (useful during migration)
+                            console.warn("Failed to parse event:", line, e)
+                            setMessages((prev) =>
+                                prev.map((msg) =>
+                                    msg.id === agentMessageId
+                                        ? { ...msg, content: (msg.content || "") + line }
+                                        : msg
+                                )
+                            )
+                        }
+                    }
+                }
+
+                // Process remaining buffer
+                if (buffer.trim()) {
+                    try {
+                        const event = JSON.parse(buffer)
+                        if (event.type === "text.delta") {
+                            setMessages((prev) =>
+                                prev.map((msg) =>
+                                    msg.id === agentMessageId
+                                        ? { ...msg, content: (msg.content || "") + event.content }
+                                        : msg
+                                )
+                            )
+                        }
+                    } catch (e) {
+                        // ignore or append
+                    }
                 }
 
             } catch (err) {

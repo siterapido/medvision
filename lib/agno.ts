@@ -11,7 +11,7 @@
 
 export const AGNO_CONFIG = {
     // Base URL for AgentOS - can be overridden by env variable
-    baseUrl: process.env.NEXT_PUBLIC_AGNO_URL || "http://localhost:7777",
+    baseUrl: process.env.NEXT_PUBLIC_AGNO_SERVICE_URL || "http://127.0.0.1:8000/api/v1",
 
     // Endpoints
     endpoints: {

@@ -23,7 +23,10 @@ export function WhatsAppModal({
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md p-0 overflow-hidden border border-emerald-500/20 bg-slate-950 shadow-2xl shadow-emerald-900/20 gap-0">
+      <DialogContent
+        suppressHydrationWarning
+        className="sm:max-w-md p-0 overflow-hidden border border-emerald-500/20 bg-slate-950 shadow-2xl shadow-emerald-900/20 gap-0"
+      >
         <div className="relative overflow-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 p-6 border-b border-emerald-500/10">
           {/* Decorative background elements matching sidebar style */}
           <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 pointer-events-none" />

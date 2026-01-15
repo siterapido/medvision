@@ -45,7 +45,7 @@ def get_agent_response(agent, message: str, stream: bool = True):
         print(f"Error running agent: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
-async def stream_generator(agent, message: str, session_id: str = None, agent_id: str = "qa") -> AsyncGenerator[str, None]:
+async def stream_generator(agent, message: str, session_id: str = None, agent_id: str = "qa", context_str: str = None) -> AsyncGenerator[str, None]:
     """Generate streaming response from AGNO agent and save to database"""
     full_response = ""
     try:
@@ -61,37 +61,117 @@ async def stream_generator(agent, message: str, session_id: str = None, agent_id
             except Exception as e:
                 logger.warning(f"Failed to save user message: {e}")
 
+        # Prepare message with context if provided
+        run_message = message
+        if context_str:
+            run_message = f"{context_str}\n\n{message}"
+
         # Agent.run returns a generator when stream=True
-        response_stream = agent.run(message, stream=True, session_id=session_id)
+        # With stream_events=True, we get Event objects
+        response_stream = agent.run(run_message, stream=True, stream_events=True, session_id=session_id)
         
+        current_agent_id = agent_id
+
+        # Emit initial run started
+        yield json.dumps({"type": "run.started", "agent_id": agent_id}, ensure_ascii=False) + "\n"
+
         for chunk in response_stream:
-            # Check the structure of the chunk returned by AGNO
-            chunk_content = ""
-            if hasattr(chunk, "content"):
-                chunk_content = chunk.content or ""
-            elif isinstance(chunk, str):
-                chunk_content = chunk
-            else:
-                chunk_content = str(chunk)
-            
-            full_response += chunk_content
-            yield chunk_content
-                 
-    except Exception as e:
-        yield f"Error: {str(e)}"
-        full_response = f"Error: {str(e)}"
-    finally:
-        # Save assistant response after streaming completes
-        if session_id and full_response:
+            try:
+                # Handle legacy string chunks (fallback)
+                if isinstance(chunk, str):
+                    yield json.dumps({"type": "text.delta", "content": chunk}, ensure_ascii=False) + "\n"
+                    full_response += chunk
+                    continue
+
+                # Handle Agno Events
+                event_type = getattr(chunk, "event", None)
+                
+                # Check for agent switch first
+                chunk_agent_id = getattr(chunk, "agent_id", None)
+                chunk_agent_name = getattr(chunk, "agent_name", None)
+                
+                # If we detect a different agent ID running, emit switch
+                if chunk_agent_name and chunk_agent_name.lower().replace(" ", "-") != current_agent_id:
+                     # Simple normalization for now
+                     new_agent_id = chunk_agent_name.lower().replace(" ", "-")
+                     current_agent_id = new_agent_id
+                     yield json.dumps({"type": "agent.switch", "agentId": new_agent_id}, ensure_ascii=False) + "\n"
+
+                if event_type == "RunStarted":
+                    # Already handled manually at start, but if it's a sub-run...
+                    pass
+
+                elif event_type == "RunContent":
+                    content = getattr(chunk, "content", "")
+                    if content:
+                        yield json.dumps({"type": "text.delta", "content": content}, ensure_ascii=False) + "\n"
+                        full_response += content
+
+                elif event_type == "ToolCallStarted":
+                    tool_call = getattr(chunk, "tool_call", {})
+                    # Need to extract name and ID. 
+                    # Structure depends on Agno version, trying generic access
+                    tool_name = "unknown_tool"
+                    tool_id = str(uuid.uuid4())
+                    
+                    if hasattr(chunk, "tool_name"):
+                         tool_name = chunk.tool_name
+                    elif hasattr(chunk, "tool_call") and hasattr(chunk.tool_call, "function"):
+                         tool_name = chunk.tool_call.function.name
+
+                    tool_args = "{}"
+                    if hasattr(chunk, "tool_args"):
+                         tool_args = chunk.tool_args
+                    elif hasattr(chunk, "tool_call") and hasattr(chunk.tool_call, "function"):
+                         tool_args = chunk.tool_call.function.arguments
+
+                    yield json.dumps({
+                        "type": "tool_call.start",
+                        "toolCallId": tool_id,
+                        "toolCallName": tool_name,
+                        "args": tool_args
+                    }, ensure_ascii=False) + "\n"
+
+                elif event_type == "ToolCallCompleted":
+                    # We might want to stream the result, or just end it
+                    # Generative UI often wants the result to display the card final state
+                    tool_output = getattr(chunk, "tool_output", None)
+                    content = ""
+                    if tool_output:
+                         content = str(tool_output.content) if hasattr(tool_output, "content") else str(tool_output)
+                    
+                    yield json.dumps({
+                        "type": "tool_call.result",
+                        "toolCallId": "unknown", # matching IDs is hard without state, frontend usually waits for next text
+                        "result": content
+                    }, ensure_ascii=False) + "\n"
+                    
+                elif event_type == "RunCompleted":
+                    yield json.dumps({"type": "run.finished"}, ensure_ascii=False) + "\n"
+                
+                elif event_type == "RunError":
+                     err_msg = getattr(chunk, "content", "Unknown error")
+                     yield json.dumps({"type": "error", "message": err_msg}, ensure_ascii=False) + "\n"
+
+            except Exception as e:
+                logger.warning(f"Error processing chunk: {e}")
+                continue
+
+        # Save the full agent message to the database
+        if session_id:
             try:
                 save_agent_message(
                     session_id=session_id,
                     agent_id=agent_id,
-                    role="assistant",
+                    role="agent",
                     content=full_response
                 )
             except Exception as e:
-                logger.warning(f"Failed to save assistant message: {e}")
+                logger.warning(f"Failed to save agent message: {e}")
+
+    except Exception as e:
+        logger.error(f"Error in stream_generator: {e}")
+        yield json.dumps({"type": "error", "message": str(e)}, ensure_ascii=False) + "\n"
 
 @router.post("/qa/chat")
 async def chat_qa(request: QARequest):
@@ -99,11 +179,14 @@ async def chat_qa(request: QARequest):
     Chat with the Q&A Dental Agent.
     Supports streaming response using Vercel AI SDK Text Stream Protocol.
     """
+    ctx = f"Context: Current User ID is '{request.userId}'."
+    if request.context:
+        ctx += f"\nAdditional Context: {json.dumps(request.context, ensure_ascii=False)}"
     return StreamingResponse(
-        stream_generator(dental_qa_agent, request.question, session_id=request.sessionId),
-        media_type="text/plain",
+        stream_generator(dental_qa_agent, request.question, session_id=request.sessionId, context_str=ctx),
+        media_type="application/x-ndjson",
         headers={
-            "Content-Type": "text/plain; charset=utf-8"
+            "Content-Type": "application/x-ndjson"
         }
     )
 
@@ -162,14 +245,14 @@ async def general_chat(request: ChatRequest):
             images = [request.imageUrl]
 
     return StreamingResponse(
-        stream_generator_with_images(target_agent, prompt, images, session_id=request.sessionId, agent_id=agent_id) if images else stream_generator(target_agent, prompt, session_id=request.sessionId, agent_id=agent_id),
-        media_type="text/plain",
+        stream_generator_with_images(target_agent, prompt, images, session_id=request.sessionId, agent_id=agent_id, context_str=f"Context: Current User ID is '{request.userId}'.") if images else stream_generator(target_agent, prompt, session_id=request.sessionId, agent_id=agent_id, context_str=f"Context: Current User ID is '{request.userId}'."),
+        media_type="application/x-ndjson",
         headers={
-            "Content-Type": "text/plain; charset=utf-8"
+            "Content-Type": "application/x-ndjson"
         }
     )
 
-async def stream_generator_with_images(agent, message: str, images: list, session_id: str = None, agent_id: str = "image-analysis") -> AsyncGenerator[str, None]:
+async def stream_generator_with_images(agent, message: str, images: list, session_id: str = None, agent_id: str = "image-analysis", context_str: str = None) -> AsyncGenerator[str, None]:
     """Generate streaming response with images and save to database"""
     full_response = ""
     try:
@@ -186,33 +269,47 @@ async def stream_generator_with_images(agent, message: str, images: list, sessio
             except Exception as e:
                 logger.warning(f"Failed to save user message: {e}")
 
-        response_stream = agent.run(message, images=images, stream=True, session_id=session_id)
+        # Prepare message with context
+        run_message = message
+        if context_str:
+            run_message = f"{context_str}\n\n{message}"
+
+        # Yield run started event
+        yield json.dumps({"type": "run.started"}, ensure_ascii=False) + "\n"
+        yield json.dumps({"type": "agent.switch", "agentId": agent_id}, ensure_ascii=False) + "\n"
+
+        response_stream = agent.run(run_message, images=images, stream=True, session_id=session_id)
         for chunk in response_stream:
             chunk_content = ""
             if hasattr(chunk, "content"):
-                chunk_content = chunk.content or ""
+                chunk_content = chunk.content
             elif isinstance(chunk, str):
                 chunk_content = chunk
-            else:
-                chunk_content = str(chunk)
+            elif isinstance(chunk, dict) and "content" in chunk:
+                chunk_content = chunk["content"]
             
-            full_response += chunk_content
-            yield chunk_content
-    except Exception as e:
-        yield f"Error: {str(e)}"
-        full_response = f"Error: {str(e)}"
-    finally:
-        # Save assistant response
-        if session_id and full_response:
+            if chunk_content:
+                yield json.dumps({"type": "text.delta", "content": chunk_content}, ensure_ascii=False) + "\n"
+                full_response += chunk_content
+        
+        yield json.dumps({"type": "run.finished"}, ensure_ascii=False) + "\n"
+
+        # Save the full agent message to the database
+        if session_id:
             try:
                 save_agent_message(
                     session_id=session_id,
                     agent_id=agent_id,
-                    role="assistant",
-                    content=full_response
+                    role="agent",
+                    content=full_response,
+                    metadata={"images": images} if images else None
                 )
             except Exception as e:
-                logger.warning(f"Failed to save assistant message: {e}")
+                logger.warning(f"Failed to save agent message: {e}")
+
+    except Exception as e:
+        logger.error(f"Error in stream_generator_with_images: {e}")
+        yield json.dumps({"type": "error", "message": str(e)}, ensure_ascii=False) + "\n"
 
 
 # ============================================================================
@@ -363,10 +460,13 @@ async def chat_dr_ciencia(request: ChatRequest):
     - Síntese de literatura científica
     - Análise de níveis de evidência
     """
+    ctx = f"Context: Current User ID is '{request.userId}'."
+    if request.context:
+        ctx += f"\nAdditional Context: {json.dumps(request.context, ensure_ascii=False)}"
     return StreamingResponse(
-        stream_generator(odonto_research, request.message, session_id=request.sessionId, agent_id="odonto-research"),
-        media_type="text/plain",
-        headers={"Content-Type": "text/plain; charset=utf-8"}
+        stream_generator(odonto_research, request.message, session_id=request.sessionId, agent_id="odonto-research", context_str=ctx),
+        media_type="application/x-ndjson",
+        headers={"Content-Type": "application/x-ndjson"}
     )
 
 
@@ -381,10 +481,13 @@ async def chat_prof_estudo(request: ChatRequest):
     - Simulados personalizados (ENADE, Residência)
     - Explicações pedagógicas detalhadas
     """
+    ctx = f"Context: Current User ID is '{request.userId}'."
+    if request.context:
+        ctx += f"\nAdditional Context: {json.dumps(request.context, ensure_ascii=False)}"
     return StreamingResponse(
-        stream_generator(odonto_practice, request.message, session_id=request.sessionId, agent_id="odonto-practice"),
-        media_type="text/plain",
-        headers={"Content-Type": "text/plain; charset=utf-8"}
+        stream_generator(odonto_practice, request.message, session_id=request.sessionId, agent_id="odonto-practice", context_str=ctx),
+        media_type="application/x-ndjson",
+        headers={"Content-Type": "application/x-ndjson"}
     )
 
 
@@ -400,10 +503,13 @@ async def chat_dr_redator(request: ChatRequest):
     - Sugestões de metodologia de pesquisa
     - Formatação de referências
     """
+    ctx = f"Context: Current User ID is '{request.userId}'."
+    if request.context:
+        ctx += f"\nAdditional Context: {json.dumps(request.context, ensure_ascii=False)}"
     return StreamingResponse(
-        stream_generator(odonto_write, request.message, session_id=request.sessionId, agent_id="odonto-write"),
-        media_type="text/plain",
-        headers={"Content-Type": "text/plain; charset=utf-8"}
+        stream_generator(odonto_write, request.message, session_id=request.sessionId, agent_id="odonto-write", context_str=ctx),
+        media_type="application/x-ndjson",
+        headers={"Content-Type": "application/x-ndjson"}
     )
 
 
@@ -418,36 +524,89 @@ async def chat_equipe(request: ChatRequest):
     - Dr. Redator: TCCs, artigos, escrita
     - Dental Image: análise de imagens
     - Equipe: quando múltiplos agentes são necessários
-    """
-    # Rotear automaticamente
-    tipo_agente = rotear_para_agente_apropriado(
-        mensagem_usuario=request.message,
-        tem_imagem=bool(request.imageUrl) if hasattr(request, 'imageUrl') else False
-    )
     
+    Se `forceAgent` for especificado, o roteamento automático é ignorado.
+    """
     # Mapear tipo de agente para o agente correto
     agent_map = {
         'ciencia': (odonto_research, 'odonto-research'),
         'estudo': (odonto_practice, 'odonto-practice'),
         'redator': (odonto_write, 'odonto-write'),
         'imagem': (odonto_vision, 'odonto-vision'),
+        # Mapeamento por ID (para forceAgent)
+        'odonto-research': (odonto_research, 'odonto-research'),
+        'odonto-practice': (odonto_practice, 'odonto-practice'),
+        'odonto-write': (odonto_write, 'odonto-write'),
+        'odonto-vision': (odonto_vision, 'odonto-vision'),
     }
+    
+    # Verificar se foi solicitado bypass do roteamento
+    if request.forceAgent:
+        # Bypass do roteamento - usar agente especificado diretamente
+        if request.forceAgent not in agent_map:
+            logger.warning(f"forceAgent inválido: {request.forceAgent}, usando roteamento automático")
+            tipo_agente = rotear_para_agente_apropriado(
+                mensagem_usuario=request.message,
+                tem_imagem=bool(request.imageUrl) if hasattr(request, 'imageUrl') else False
+            )
+        else:
+            # Usar agente forçado
+            agent, agent_id = agent_map[request.forceAgent]
+            logger.info(f"Bypass de roteamento: usando agente forçado {request.forceAgent}")
+            
+            ctx = f"Context: Current User ID is '{request.userId}'."
+            if request.context:
+                ctx += f"\nAdditional Context: {json.dumps(request.context, ensure_ascii=False)}"
+            
+            # Se tem imagem, usar stream_generator_with_images
+            if hasattr(request, 'imageUrl') and request.imageUrl:
+                return StreamingResponse(
+                    stream_generator_with_images(agent, request.message, [request.imageUrl], session_id=request.sessionId, agent_id=agent_id, context_str=ctx),
+                    media_type="application/x-ndjson",
+                    headers={"Content-Type": "application/x-ndjson"}
+                )
+            
+            return StreamingResponse(
+                stream_generator(agent, request.message, session_id=request.sessionId, agent_id=agent_id, context_str=ctx),
+                media_type="application/x-ndjson",
+                headers={"Content-Type": "application/x-ndjson"}
+            )
+    
+    # Roteamento automático
+    tipo_agente = rotear_para_agente_apropriado(
+        mensagem_usuario=request.message,
+        tem_imagem=bool(request.imageUrl) if hasattr(request, 'imageUrl') else False
+    )
     
     agent, agent_id = agent_map.get(tipo_agente, (odonto_research, 'odonto-research'))
     
+    ctx = f"Context: Current User ID is '{request.userId}'."
+    if request.context:
+        ctx += f"\nAdditional Context: {json.dumps(request.context, ensure_ascii=False)}"
+
     # Se tem imagem, usar stream_generator_with_images
     if hasattr(request, 'imageUrl') and request.imageUrl:
         return StreamingResponse(
-            stream_generator_with_images(agent, request.message, [request.imageUrl], session_id=request.sessionId, agent_id=agent_id),
-            media_type="text/plain",
-            headers={"Content-Type": "text/plain; charset=utf-8"}
+            stream_generator_with_images(agent, request.message, [request.imageUrl], session_id=request.sessionId, agent_id=agent_id, context_str=ctx),
+            media_type="application/x-ndjson",
+            headers={"Content-Type": "application/x-ndjson"}
         )
     
     return StreamingResponse(
-        stream_generator(agent, request.message, session_id=request.sessionId, agent_id=agent_id),
-        media_type="text/plain",
-        headers={"Content-Type": "text/plain; charset=utf-8"}
+        stream_generator(agent, request.message, session_id=request.sessionId, agent_id=agent_id, context_str=ctx),
+        media_type="application/x-ndjson",
+        headers={"Content-Type": "application/x-ndjson"}
     )
+
+
+async def stream_with_agent_id(generator, agent_id: str):
+    """
+    Wraps an existing generator and prefixes the stream with the Agent ID.
+    Protocol: __AGENT_ID__:<id>|
+    """
+    yield f"__AGENT_ID__:{agent_id}|"
+    async for chunk in generator:
+        yield chunk
 
 
 @router.get("/agentes")

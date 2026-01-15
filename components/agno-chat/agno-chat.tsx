@@ -5,10 +5,11 @@ import { MessageSquarePlus, Bot, Sparkles, X, History, MessageSquare, Trash2 } f
 import { useAgnoAgents } from "@/lib/hooks/useAgnoAgents"
 import { useAgnoChat } from "@/lib/hooks/useAgnoChat"
 import { useImageUpload } from "@/lib/hooks/useImageUpload"
+import { getAgentInfo } from "@/lib/agent-config"
 import { AgentSelector } from "./agent-selector"
 import { AgnoMessage } from "./agno-message"
 import { AgnoInput } from "./agno-input"
-import { ActiveAgentIndicator } from "./agent-badge"
+import { InlineHandoff } from "./agent-transition"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { cn } from "@/lib/utils"
@@ -52,6 +53,33 @@ export function AgnoChat({ userId }: AgnoChatProps) {
     } = useAgnoChat({ userId })
 
     const { uploadImage, isUploading } = useImageUpload()
+
+    // Track active agent from messages and detect transitions
+    const [activeAgentId, setActiveAgentId] = useState<string | null>(null)
+    const [handoffInfo, setHandoffInfo] = useState<{ fromId: string, toId: string } | null>(null)
+
+    // Detect agent changes and show inline handoff animation
+    // IMPORTANTE: NÃO alterar o selectedAgent aqui - respeitar escolha do usuário
+    useEffect(() => {
+        if (messages.length > 0) {
+            const lastAgentMessage = [...messages].reverse().find(m => m.role === 'agent' && m.agent_id)
+            if (lastAgentMessage?.agent_id && lastAgentMessage.agent_id !== activeAgentId) {
+                // Agent changed in the response - show handoff animation
+                // Isso acontece quando o Flow roteia para outro agente internamente
+                if (activeAgentId && activeAgentId !== lastAgentMessage.agent_id) {
+                    setHandoffInfo({ fromId: activeAgentId, toId: lastAgentMessage.agent_id })
+
+                    // NÃO atualizar selectedAgent - deixar o usuário no controle
+                    // O dropdown mostra a INTENÇÃO do usuário, não o agente que respondeu
+                    // As mensagens já mostram qual agente respondeu através do agent_id
+
+                    // Clear handoff info after animation
+                    setTimeout(() => setHandoffInfo(null), 3000)
+                }
+                setActiveAgentId(lastAgentMessage.agent_id)
+            }
+        }
+    }, [messages, activeAgentId])
 
     // Load sessions on mount
     useEffect(() => {
@@ -177,26 +205,38 @@ export function AgnoChat({ userId }: AgnoChatProps) {
                                 isConnected={isConnected}
                                 error={agentsError}
                             />
+
+                            {/* Mode Indicator */}
+                            {selectedAgent && (
+                                <div className={cn(
+                                    "hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all",
+                                    selectedAgent.id === 'odonto-flow'
+                                        ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
+                                        : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                )}>
+                                    {selectedAgent.id === 'odonto-flow' ? (
+                                        <>
+                                            <Sparkles className="w-3 h-3" />
+                                            <span>Auto</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Bot className="w-3 h-3" />
+                                            <span>Direto</span>
+                                        </>
+                                    )}
+                                </div>
+                            )}
                         </div>
 
                         <div className="flex items-center gap-3">
-                            {/* Active Agent Indicator */}
-                            {selectedAgent && isStreaming && messages.length > 0 && (
-                                <div className="animate-fade-in">
-                                    <ActiveAgentIndicator
-                                        agentId={messages[messages.length - 1].agent_id || selectedAgent.id}
-                                        className="border-slate-700/50 bg-slate-800/50"
-                                    />
-                                </div>
-                            )}
-
-                            {/* Connection Badge - only visible on generic header space */}
-                            <div className={`hidden sm:flex items-center gap-2 text-xs px-3 py-1 rounded-full border ${isConnected
-                                ? "bg-green-500/10 border-green-500/20 text-green-400"
-                                : "bg-red-500/10 border-red-500/20 text-red-400"
+                            {/* Connection indicator - compact */}
+                            <div className={`flex items-center gap-1.5 text-xs px-2 py-1 rounded-full ${isConnected
+                                ? "text-green-400"
+                                : "text-red-400"
                                 }`}>
-                                <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-green-400" : "bg-red-400"} ${isConnected ? "animate-pulse" : ""}`} />
-                                {isConnected ? "Online" : "Offline"}
+                                <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? "bg-green-400 animate-pulse" : "bg-red-400"}`} />
+                                <span className="hidden sm:inline">{isConnected ? "Ativo" : "Offline"}</span>
                             </div>
                         </div>
                     </div>
@@ -205,11 +245,16 @@ export function AgnoChat({ userId }: AgnoChatProps) {
                 {/* Messages Area */}
                 <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
                     <div className="max-w-3xl mx-auto space-y-6">
-                        {/* Welcome State */}
+                        {/* Welcome State - Multi-Agent Focused */}
                         {messages.length === 0 && (
                             <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4 animate-fade-in">
-                                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center mb-6 ring-1 ring-cyan-500/30">
-                                    <Bot className="w-8 h-8 text-cyan-400" />
+                                {/* Flow Agent - Central Hero */}
+                                <div className="relative mb-6">
+                                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-500/30 animate-pulse-glow glow-cyan">
+                                        <Bot className="w-10 h-10 text-white" />
+                                    </div>
+                                    {/* Orbital ring effect */}
+                                    <div className="absolute inset-0 -m-4 rounded-full border border-cyan-500/20 animate-spin-slow" />
                                 </div>
 
                                 <h1 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
@@ -217,10 +262,46 @@ export function AgnoChat({ userId }: AgnoChatProps) {
                                     <Sparkles className="w-5 h-5 text-cyan-400" />
                                 </h1>
 
+                                <p className="text-sm text-slate-400 mb-2 max-w-md">
+                                    Orquestrador inteligente que delega automaticamente para especialistas
+                                </p>
+
+                                {/* Specialized Agents Showcase */}
+                                <div className="flex flex-wrap justify-center gap-3 mb-6 max-w-xl">
+                                    {agents.filter(a => a.id !== 'odonto-flow').slice(0, 4).map((agent) => {
+                                        const config = getAgentInfo(agent.id)
+                                        const AgentIcon = config.icon
+                                        return (
+                                            <div
+                                                key={agent.id}
+                                                className={cn(
+                                                    "group relative flex items-center gap-2 px-3 py-2 rounded-xl",
+                                                    "bg-slate-800/50 border border-slate-700/50",
+                                                    "hover:border-slate-600 hover:bg-slate-800 transition-all cursor-default"
+                                                )}
+                                                title={config.description}
+                                            >
+                                                <div className={cn(
+                                                    "w-7 h-7 rounded-lg flex items-center justify-center",
+                                                    `bg-gradient-to-br ${config.gradient}`
+                                                )}>
+                                                    <AgentIcon className="w-4 h-4 text-white" />
+                                                </div>
+                                                <span className="text-xs text-slate-300 font-medium">{agent.name.replace('Odonto ', '')}</span>
+
+                                                {/* Tooltip */}
+                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 rounded-lg bg-slate-900 border border-slate-700 text-[10px] text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                                    {config.description}
+                                                </div>
+                                            </div>
+                                        )
+                                    })}
+                                </div>
+
                                 <p className="text-base text-slate-400 mb-8 max-w-md">
                                     {selectedAgent
-                                        ? `Converse com ${selectedAgent.name}. Faça suas perguntas e obtenha respostas baseadas em conhecimento especializado.`
-                                        : "Selecione um agente para começar a conversa."}
+                                        ? `Faça sua pergunta e ${selectedAgent.name} vai encaminhar para o especialista certo.`
+                                        : "Carregando agentes..."}
                                 </p>
 
                                 {/* Suggestion Cards */}
@@ -253,9 +334,19 @@ export function AgnoChat({ userId }: AgnoChatProps) {
                             </div>
                         )}
 
-                        {/* Messages List */}
-                        {messages.map((message) => (
-                            <AgnoMessage key={message.id} message={message} />
+                        {/* Messages List with Handoff Indicator */}
+                        {messages.map((message, index) => (
+                            <div key={message.id}>
+                                <AgnoMessage message={message} />
+
+                                {/* Show inline handoff after last message if agent just changed */}
+                                {handoffInfo && index === messages.length - 1 && message.role === 'agent' && (
+                                    <InlineHandoff
+                                        fromAgentId={handoffInfo.fromId}
+                                        toAgentId={handoffInfo.toId}
+                                    />
+                                )}
+                            </div>
                         ))}
 
                         <div ref={messagesEndRef} />

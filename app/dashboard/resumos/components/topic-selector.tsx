@@ -60,14 +60,14 @@ export function TopicSelector({ selectedTopics, onTopicsChange }: TopicSelectorP
 
     return (
         <div className="space-y-4">
-            <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border rounded-md bg-background">
+            <div className="flex flex-wrap gap-2 min-h-[40px] p-2 border border-slate-200 rounded-md bg-slate-50">
                 {selectedTopics.length === 0 && (
-                    <span className="text-muted-foreground text-sm self-center ml-2">
+                    <span className="text-slate-500 text-sm self-center ml-2">
                         Nenhum tópico selecionado...
                     </span>
                 )}
                 {selectedTopics.map((topic) => (
-                    <Badge key={topic} variant="secondary" className="pl-2 pr-1 py-1 flex items-center gap-1">
+                    <Badge key={topic} variant="secondary" className="pl-2 pr-1 py-1 flex items-center gap-1 bg-cyan-100 text-cyan-800 border-cyan-200">
                         {topic}
                         <button
                             onClick={() => handleRemoveTopic(topic)}
@@ -86,7 +86,7 @@ export function TopicSelector({ selectedTopics, onTopicsChange }: TopicSelectorP
                             variant="outline"
                             role="combobox"
                             aria-expanded={open}
-                            className="w-full justify-between"
+                            className="w-full justify-between bg-white border-slate-200 text-slate-700 hover:bg-slate-50"
                         >
                             <span className="flex items-center gap-2">
                                 <Search className="h-4 w-4 opacity-50" />
