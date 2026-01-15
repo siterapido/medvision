@@ -41,6 +41,13 @@ export function AgnoChat({ userId }: AgnoChatProps) {
     } = useAgnoAgents()
 
     const {
+        messages,
+        isStreaming,
+        error: chatError,
+        sendMessage,
+        clearChat,
+        sessions,
+        loadSession,
         loadSessions,
         isLoadingSessions,
         sessionId
