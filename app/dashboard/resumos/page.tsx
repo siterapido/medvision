@@ -21,5 +21,19 @@ export default async function ResumosPage() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
 
-  return <ResumosClient userId={user.id} summaries={summaries} />
+  // Fetch flashcard decks
+  const { data: decks } = await supabase
+    .from("flashcard_decks")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+
+  // Fetch mind maps
+  const { data: maps } = await supabase
+    .from("mind_map_artifacts")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+
+  return <ResumosClient userId={user.id} summaries={summaries} decks={decks} maps={maps} />
 }

@@ -52,11 +52,19 @@ export function useAgentChat({
                 "odonto-flow": "flow"
             }
 
-            const endpoint = agentEndpoints[agentId] || agentId
+            const agentPath = agentEndpoints[agentId] || agentId
+
+            // Build the URL safely - avoid double /api/v1
+            let endpoint = ""
+            if (baseUrl.endsWith("/api/v1")) {
+                endpoint = `${baseUrl}/agentes/${agentPath}/chat`
+            } else {
+                endpoint = `${baseUrl}/api/v1/agentes/${agentPath}/chat`
+            }
 
             abortControllerRef.current = new AbortController()
 
-            const response = await fetch(`${baseUrl}/api/v1/agentes/${endpoint}/chat`, {
+            const response = await fetch(endpoint, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

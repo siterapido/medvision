@@ -36,9 +36,14 @@ export function useAgnoAgents(options: UseAgnoAgentsOptions = {}): UseAgnoAgents
 
         try {
             // Check if backend is available
-            const backendUrl = process.env.NEXT_PUBLIC_AGNO_SERVICE_URL || "http://localhost:8000/api/v1"
+            const agnoServiceUrl = process.env.NEXT_PUBLIC_AGNO_SERVICE_URL || "http://localhost:8000/api/v1"
+            const baseUrl = agnoServiceUrl.replace(/\/$/, "")
 
-            const healthCheck = await fetch(`${backendUrl}/health`).catch(() => ({ ok: false }))
+            const healthUrl = baseUrl.endsWith("/api/v1")
+                ? baseUrl.replace("/api/v1", "/health")
+                : `${baseUrl}/health`
+
+            const healthCheck = await fetch(healthUrl).catch(() => ({ ok: false }))
             setIsConnected(healthCheck.ok)
 
             if (!healthCheck.ok) {
@@ -48,8 +53,12 @@ export function useAgnoAgents(options: UseAgnoAgentsOptions = {}): UseAgnoAgents
                 return
             }
 
-            // Fetch agents from our backend (not AgentOS)
-            const response = await fetch(`${backendUrl}/agentes`)
+            // Fetch agents from our backend
+            const agentsUrl = baseUrl.endsWith("/api/v1")
+                ? `${baseUrl}/agentes`
+                : `${baseUrl}/api/v1/agentes`
+
+            const response = await fetch(agentsUrl)
 
             if (!response.ok) {
                 throw new Error("Erro ao carregar agentes")

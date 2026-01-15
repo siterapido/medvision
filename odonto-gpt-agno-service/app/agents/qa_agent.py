@@ -19,6 +19,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import research tools
 from app.tools.research import RESEARCH_TOOLS, search_pubmed, search_arxiv, get_latest_dental_research
+
+# Import database config
+from app.database.supabase import get_agent_config
 # Import few-shot examples
 from data.examples import DENTAL_QA_EXAMPLES
 
@@ -49,6 +52,28 @@ def create_qa_agent() -> Agent:
         db_url=db_url
     )
 
+    # Fetch configuration from DB
+    config = get_agent_config("odonto-qa")  # Assuming id is 'odonto-qa' or 'qa'? let's check route.ts
+    # route.ts uses "qa" or "dental_qa_agent". In AGENT_CONFIGS lib/agent-config.ts it's "odonto-flow" usually orchestration but... 
+    # Wait, the QA agent usually is generic. In team.py: "model=OpenAIChat..."
+    # In `agents_config_manager.tsx`, configs come from `AGENT_CONFIGS`.
+    # `qa_agent.py` declares name="odonto-qa".
+    # I should use "odonto-qa" here.
+
+    model_id = os.getenv("OPENROUTER_MODEL_QA", "openai/gpt-4o-mini")
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    base_url = "https://openrouter.ai/api/v1"
+
+    if config:
+        if config.get("model_id"):
+            model_id = config.get("model_id")
+        
+        metadata = config.get("metadata", {}) or {}
+        if metadata.get("api_key"):
+            api_key = metadata.get("api_key")
+        if metadata.get("base_url"):
+            base_url = metadata.get("base_url")
+
     # Prepare few-shot examples (convert to format expected by Agno)
     # Note: Agno may expect examples in different format, adjust as needed
     additional_context = "\n\n".join([
@@ -57,11 +82,12 @@ def create_qa_agent() -> Agent:
     ])
 
     qa_agent = Agent(
-        name="agente_educacao_odontologica",
+        name="odonto-qa",
         model=OpenAILike(
-            id=os.getenv("OPENROUTER_MODEL_QA", "openai/gpt-4o-mini"),
-            api_key=os.getenv("OPENROUTER_API_KEY"),
-            base_url="https://openrouter.ai/api/v1"),
+            id=model_id,
+            api_key=api_key,
+            base_url=base_url
+        ),
         db=db,
         add_history_to_context=True,
         num_history_messages=5,

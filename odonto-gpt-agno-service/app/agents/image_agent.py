@@ -44,7 +44,7 @@ def create_image_analysis_agent() -> Agent:
     )
 
     odonto_vision = Agent(
-        name="odonto_vision",
+        name="odonto-vision",
         model=OpenAILike(
             id=os.getenv("OPENROUTER_MODEL_IMAGE", "openai/gpt-4o"),
             api_key=os.getenv("OPENROUTER_API_KEY"),

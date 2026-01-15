@@ -24,6 +24,8 @@ from app.tools.question_generator import QUESTION_TOOLS
 from app.tools.knowledge import search_knowledge_base
 # Import persistence tools
 from app.tools.artifacts_db import save_practice_exam
+# Import database config
+from app.database.supabase import get_agent_config
 # Import navigation tools
 from app.tools.navigation import NAVIGATION_TOOLS
 
@@ -55,15 +57,32 @@ def create_study_agent() -> Agent:
         db_url=db_url
     )
 
+    # Fetch configuration from DB
+    config = get_agent_config("odonto-practice")
+    
+    model_id = os.getenv("OPENROUTER_MODEL_QA", "google/gemma-2-27b-it:free")
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    base_url = "https://openrouter.ai/api/v1"
+    
+    if config:
+        if config.get("model_id"):
+            model_id = config.get("model_id")
+        
+        metadata = config.get("metadata", {}) or {}
+        if metadata.get("api_key"):
+            api_key = metadata.get("api_key")
+        if metadata.get("base_url"):
+            base_url = metadata.get("base_url")
+
     # Combine tools
     all_tools = QUESTION_TOOLS + [search_knowledge_base, save_practice_exam] + NAVIGATION_TOOLS
 
     odonto_practice = Agent(
-        name="odonto_practice",
+        name="odonto-practice",
         model=OpenAILike(
-            id=os.getenv("OPENROUTER_MODEL_QA", "google/gemma-2-27b-it:free"),
-            api_key=os.getenv("OPENROUTER_API_KEY"),
-            base_url="https://openrouter.ai/api/v1"
+            id=model_id,
+            api_key=api_key,
+            base_url=base_url
         ),
         db=db,
         add_history_to_context=True,

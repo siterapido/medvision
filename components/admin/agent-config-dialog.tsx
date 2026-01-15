@@ -74,6 +74,8 @@ export function AgentConfigDialog({
     const [manualModelId, setManualModelId] = useState("")
     const [temperature, setTemperature] = useState(0.7)
     const [maxTokens, setMaxTokens] = useState(4096)
+    const [apiKey, setApiKey] = useState("")
+    const [baseURL, setBaseURL] = useState("")
 
     // Fetch available models
     useEffect(() => {
@@ -112,6 +114,15 @@ export function AgentConfigDialog({
 
             setTemperature(Number(config.temperature))
             setMaxTokens(config.max_tokens)
+
+            // Safe access to metadata
+            const metadata = config.metadata as Record<string, unknown> || {}
+            setApiKey(typeof metadata.api_key === 'string' ? metadata.api_key : "")
+            setBaseURL(typeof metadata.base_url === 'string' ? metadata.base_url : "")
+        } else {
+            // Reset fields for new agent (though currently we only edit)
+            setApiKey("")
+            setBaseURL("")
         }
     }, [config, models])
 
@@ -127,10 +138,25 @@ export function AgentConfigDialog({
 
         try {
             setSaving(true)
+
+            // Preserve existing metadata
+            const currentMetadata = config.metadata as Record<string, unknown> || {}
+
             await onSave({
                 model_id: selectedModelId,
                 temperature,
                 max_tokens: maxTokens,
+                metadata: {
+                    ...currentMetadata,
+                    api_key: apiKey || undefined, // Only save if not empty, or consider saving empty string to clear? 
+                    // Let's save undefined to remove key if empty, or keep empty string if user cleared it.
+                    // Actually, if user clears it, we probably want to remove it.
+                    // If apiKey is empty string, let's treat as "remove/use env var" or just empty.
+                    ...(apiKey ? { api_key: apiKey } : { api_key: null }), // null might not remove key in jsonb, but key with null value.
+                    // A cleaner way for updates:
+                    api_key: apiKey || null,
+                    base_url: baseURL || null
+                }
             })
         } finally {
             setSaving(false)
@@ -308,6 +334,41 @@ export function AgentConfigDialog({
                         <p className="text-xs text-slate-500">
                             Limite máximo de tokens na resposta do modelo (256 - 128.000)
                         </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 gap-4 pt-2 border-t border-slate-800">
+                        <div className="space-y-2">
+                            <Label className="text-slate-300">API Key (Opcional)</Label>
+                            <div className="relative">
+                                <Input
+                                    type="password"
+                                    value={apiKey}
+                                    onChange={e => setApiKey(e.target.value)}
+                                    placeholder="sk-..."
+                                    className="bg-slate-800 border-slate-700 text-slate-200 pr-9"
+                                />
+                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-500">
+                                    <EyeOff className="h-4 w-4" />
+                                </div>
+                            </div>
+                            <p className="text-xs text-slate-500">
+                                Chave de API específica para este agente. Se vazio, usa a chave de ambiente.
+                            </p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label className="text-slate-300">Base URL (Opcional)</Label>
+                            <Input
+                                type="text"
+                                value={baseURL}
+                                onChange={e => setBaseURL(e.target.value)}
+                                placeholder="https://..."
+                                className="bg-slate-800 border-slate-700 text-slate-200"
+                            />
+                            <p className="text-xs text-slate-500">
+                                URL base para a API (ex: para modelos locais ou proxies).
+                            </p>
+                        </div>
                     </div>
                 </div>
 

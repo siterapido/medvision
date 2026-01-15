@@ -21,6 +21,7 @@ from app.agents.team import rotear_para_agente_apropriado, odonto_flow
 from app.tools.database.supabase import get_supabase_client
 from app.database.supabase import save_agent_message
 from app.tools.whatsapp import send_whatsapp_message
+from app.services.stream_processor import StreamEventProcessor
 from typing import AsyncGenerator, Optional
 from datetime import datetime
 import json
@@ -47,7 +48,6 @@ def get_agent_response(agent, message: str, stream: bool = True):
 
 async def stream_generator(agent, message: str, session_id: str = None, agent_id: str = "qa", context_str: str = None) -> AsyncGenerator[str, None]:
     """Generate streaming response from AGNO agent and save to database"""
-    full_response = ""
     try:
         # Save user message first (if session_id provided)
         if session_id:
@@ -67,104 +67,21 @@ async def stream_generator(agent, message: str, session_id: str = None, agent_id
             run_message = f"{context_str}\n\n{message}"
 
         # Agent.run returns a generator when stream=True
-        # With stream_events=True, we get Event objects
         response_stream = agent.run(run_message, stream=True, stream_events=True, session_id=session_id)
         
-        current_agent_id = agent_id
-
-        # Emit initial run started
-        yield json.dumps({"type": "run.started", "agent_id": agent_id}, ensure_ascii=False) + "\n"
-
-        for chunk in response_stream:
-            try:
-                # Handle legacy string chunks (fallback)
-                if isinstance(chunk, str):
-                    yield json.dumps({"type": "text.delta", "content": chunk}, ensure_ascii=False) + "\n"
-                    full_response += chunk
-                    continue
-
-                # Handle Agno Events
-                event_type = getattr(chunk, "event", None)
-                
-                # Check for agent switch first
-                chunk_agent_id = getattr(chunk, "agent_id", None)
-                chunk_agent_name = getattr(chunk, "agent_name", None)
-                
-                # If we detect a different agent ID running, emit switch
-                if chunk_agent_name and chunk_agent_name.lower().replace(" ", "-") != current_agent_id:
-                     # Simple normalization for now
-                     new_agent_id = chunk_agent_name.lower().replace(" ", "-")
-                     current_agent_id = new_agent_id
-                     yield json.dumps({"type": "agent.switch", "agentId": new_agent_id}, ensure_ascii=False) + "\n"
-
-                if event_type == "RunStarted":
-                    # Already handled manually at start, but if it's a sub-run...
-                    pass
-
-                elif event_type == "RunContent":
-                    content = getattr(chunk, "content", "")
-                    if content:
-                        yield json.dumps({"type": "text.delta", "content": content}, ensure_ascii=False) + "\n"
-                        full_response += content
-
-                elif event_type == "ToolCallStarted":
-                    tool_call = getattr(chunk, "tool_call", {})
-                    # Need to extract name and ID. 
-                    # Structure depends on Agno version, trying generic access
-                    tool_name = "unknown_tool"
-                    tool_id = str(uuid.uuid4())
-                    
-                    if hasattr(chunk, "tool_name"):
-                         tool_name = chunk.tool_name
-                    elif hasattr(chunk, "tool_call") and hasattr(chunk.tool_call, "function"):
-                         tool_name = chunk.tool_call.function.name
-
-                    tool_args = "{}"
-                    if hasattr(chunk, "tool_args"):
-                         tool_args = chunk.tool_args
-                    elif hasattr(chunk, "tool_call") and hasattr(chunk.tool_call, "function"):
-                         tool_args = chunk.tool_call.function.arguments
-
-                    yield json.dumps({
-                        "type": "tool_call.start",
-                        "toolCallId": tool_id,
-                        "toolCallName": tool_name,
-                        "args": tool_args
-                    }, ensure_ascii=False) + "\n"
-
-                elif event_type == "ToolCallCompleted":
-                    # We might want to stream the result, or just end it
-                    # Generative UI often wants the result to display the card final state
-                    tool_output = getattr(chunk, "tool_output", None)
-                    content = ""
-                    if tool_output:
-                         content = str(tool_output.content) if hasattr(tool_output, "content") else str(tool_output)
-                    
-                    yield json.dumps({
-                        "type": "tool_call.result",
-                        "toolCallId": "unknown", # matching IDs is hard without state, frontend usually waits for next text
-                        "result": content
-                    }, ensure_ascii=False) + "\n"
-                    
-                elif event_type == "RunCompleted":
-                    yield json.dumps({"type": "run.finished"}, ensure_ascii=False) + "\n"
-                
-                elif event_type == "RunError":
-                     err_msg = getattr(chunk, "content", "Unknown error")
-                     yield json.dumps({"type": "error", "message": err_msg}, ensure_ascii=False) + "\n"
-
-            except Exception as e:
-                logger.warning(f"Error processing chunk: {e}")
-                continue
+        processor = StreamEventProcessor(agent_id=agent_id, session_id=session_id)
+        
+        async for chunk in processor.process(response_stream):
+            yield chunk
 
         # Save the full agent message to the database
         if session_id:
             try:
                 save_agent_message(
                     session_id=session_id,
-                    agent_id=agent_id,
+                    agent_id=agent_id, # Or processor.current_agent_id if we want to track switch? Usually we attribute to starting agent or current
                     role="agent",
-                    content=full_response
+                    content=processor.full_response
                 )
             except Exception as e:
                 logger.warning(f"Failed to save agent message: {e}")
@@ -254,7 +171,6 @@ async def general_chat(request: ChatRequest):
 
 async def stream_generator_with_images(agent, message: str, images: list, session_id: str = None, agent_id: str = "image-analysis", context_str: str = None) -> AsyncGenerator[str, None]:
     """Generate streaming response with images and save to database"""
-    full_response = ""
     try:
         # Save user message first
         if session_id:
@@ -274,25 +190,15 @@ async def stream_generator_with_images(agent, message: str, images: list, sessio
         if context_str:
             run_message = f"{context_str}\n\n{message}"
 
-        # Yield run started event
-        yield json.dumps({"type": "run.started"}, ensure_ascii=False) + "\n"
-        yield json.dumps({"type": "agent.switch", "agentId": agent_id}, ensure_ascii=False) + "\n"
-
-        response_stream = agent.run(run_message, images=images, stream=True, session_id=session_id)
-        for chunk in response_stream:
-            chunk_content = ""
-            if hasattr(chunk, "content"):
-                chunk_content = chunk.content
-            elif isinstance(chunk, str):
-                chunk_content = chunk
-            elif isinstance(chunk, dict) and "content" in chunk:
-                chunk_content = chunk["content"]
-            
-            if chunk_content:
-                yield json.dumps({"type": "text.delta", "content": chunk_content}, ensure_ascii=False) + "\n"
-                full_response += chunk_content
+        # Yield run started event manually as images path might be different?
+        # Processor handles run.started, but we want to ensure agentId is emitted correctly if needed.
+        # But processor does that.
         
-        yield json.dumps({"type": "run.finished"}, ensure_ascii=False) + "\n"
+        response_stream = agent.run(run_message, images=images, stream=True, session_id=session_id)
+        
+        processor = StreamEventProcessor(agent_id=agent_id, session_id=session_id)
+        async for chunk in processor.process(response_stream):
+            yield chunk
 
         # Save the full agent message to the database
         if session_id:
@@ -301,7 +207,7 @@ async def stream_generator_with_images(agent, message: str, images: list, sessio
                     session_id=session_id,
                     agent_id=agent_id,
                     role="agent",
-                    content=full_response,
+                    content=processor.full_response,
                     metadata={"images": images} if images else None
                 )
             except Exception as e:
@@ -533,11 +439,13 @@ async def chat_equipe(request: ChatRequest):
         'estudo': (odonto_practice, 'odonto-practice'),
         'redator': (odonto_write, 'odonto-write'),
         'imagem': (odonto_vision, 'odonto-vision'),
+        'resumo': (dental_summary_agent, 'odonto-summary'),
         # Mapeamento por ID (para forceAgent)
         'odonto-research': (odonto_research, 'odonto-research'),
         'odonto-practice': (odonto_practice, 'odonto-practice'),
         'odonto-write': (odonto_write, 'odonto-write'),
         'odonto-vision': (odonto_vision, 'odonto-vision'),
+        'odonto-summary': (dental_summary_agent, 'odonto-summary'),
     }
     
     # Verificar se foi solicitado bypass do roteamento

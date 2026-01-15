@@ -294,3 +294,38 @@ def get_user_chat_history(user_id: str, thread_id: str, limit: int = 20) -> List
     finally:
         cur.close()
         conn.close()
+
+# ============================================================================
+# Agent Configuration
+# ============================================================================
+
+def get_agent_config(agent_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Retrieve agent configuration from agent_configs table.
+
+    Args:
+        agent_id: Agent identifier (e.g., 'odonto-research')
+
+    Returns:
+        Dict with config data or None if not found
+    """
+    conn = get_supabase_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+
+    try:
+        cur.execute("""
+            SELECT * FROM agent_configs
+            WHERE agent_id = %s
+            AND is_enabled = true
+        """, (agent_id,))
+
+        result = cur.fetchone()
+        return dict(result) if result else None
+
+    except Exception as e:
+        # Log error but don't crash, return None to use defaults
+        print(f"Warning: Failed to get agent config for {agent_id}: {str(e)}")
+        return None
+    finally:
+        cur.close()
+        conn.close()

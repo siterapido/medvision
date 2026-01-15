@@ -15,10 +15,15 @@ export function ChatClient({ userId }: ChatClientProps) {
         const typeMap: Record<string, string> = {
             'literature_review': 'pesquisas',
             'summary': 'resumos',
-            'practice_exam': 'flashcards',
+            'practice_exam': 'questionarios', // Corrigido para questionarios
+            'exam': 'questionarios',
             'mind_map': 'mindmaps',
             'flashcards': 'flashcards',
-            'exam': 'questionarios'
+            // Fallbacks para tipos normalizados ou antigos
+            'pesquisa': 'pesquisas',
+            'resumo': 'resumos',
+            'questionario': 'questionarios',
+            'mindmap': 'mindmaps'
         }
 
         const path = typeMap[artifact.type] || 'resumos'

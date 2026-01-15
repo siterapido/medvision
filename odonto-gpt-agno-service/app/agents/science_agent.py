@@ -25,6 +25,8 @@ from app.tools.citation_formatter import CITATION_TOOLS
 from app.tools.artifacts_db import save_research
 # Import navigation tools
 from app.tools.navigation import NAVIGATION_TOOLS
+# Import database config
+from app.database.supabase import get_agent_config
 # Import few-shot examples
 from data.examples import DENTAL_QA_EXAMPLES
 
@@ -56,6 +58,23 @@ def create_science_agent() -> Agent:
         db_url=db_url
     )
 
+    # Fetch configuration from DB
+    config = get_agent_config("odonto-research")
+    
+    model_id = os.getenv("OPENROUTER_MODEL_QA", "google/gemma-2-27b-it:free")
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    base_url = "https://openrouter.ai/api/v1"
+    
+    if config:
+        if config.get("model_id"):
+            model_id = config.get("model_id")
+        
+        metadata = config.get("metadata", {}) or {}
+        if metadata.get("api_key"):
+            api_key = metadata.get("api_key")
+        if metadata.get("base_url"):
+            base_url = metadata.get("base_url")
+
     # Prepare few-shot examples
     additional_context = "\n\n".join([
         f"User: {msg.content}\nAssistant: " if msg.role == "user" else msg.content
@@ -66,11 +85,11 @@ def create_science_agent() -> Agent:
     all_tools = RESEARCH_TOOLS + CITATION_TOOLS + [save_research] + NAVIGATION_TOOLS
 
     dr_research = Agent(
-        name="odonto_research",
+        name="odonto-research",
         model=OpenAILike(
-            id=os.getenv("OPENROUTER_MODEL_QA", "google/gemma-2-27b-it:free"),
-            api_key=os.getenv("OPENROUTER_API_KEY"),
-            base_url="https://openrouter.ai/api/v1"
+            id=model_id,
+            api_key=api_key,
+            base_url=base_url
         ),
         db=db,
         add_history_to_context=True,

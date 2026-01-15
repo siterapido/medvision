@@ -8,6 +8,7 @@ import {
     type AgentDetails,
     type SessionEntry,
 } from "@/lib/agno"
+import { AGENT_IDS } from "@/lib/constants"
 
 interface UseAgnoChatOptions {
     baseUrl?: string
@@ -106,7 +107,7 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
                                 userId,
-                                agentType: agent.id === "odonto-vision" ? "odonto-vision" : "qa",
+                                agentType: agent.id === AGENT_IDS.VISION ? AGENT_IDS.VISION : AGENT_IDS.QA,
                                 metadata: {
                                     title: message.substring(0, 50) + (message.length > 50 ? "..." : "")
                                 }
@@ -140,7 +141,7 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                 let endpoint = "/equipe/chat"
 
                 // Exceção: análise de imagem usa endpoint específico
-                if (agent.id === "odonto-vision") {
+                if (agent.id === AGENT_IDS.VISION) {
                     endpoint = "/image/analyze"
                 }
 
@@ -155,9 +156,9 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                         imageUrl,
                         userId,
                         sessionId: currentSessionId,
-                        agentType: agent.id === "odonto-vision" ? "odonto-vision" : "qa",
+                        agentType: agent.id === AGENT_IDS.VISION ? AGENT_IDS.VISION : AGENT_IDS.QA,
                         // Se não for odonto-flow, forçar o agente específico (bypass de roteamento)
-                        forceAgent: agent.id !== 'odonto-flow' ? agent.id : undefined,
+                        forceAgent: agent.id !== AGENT_IDS.FLOW ? agent.id : undefined,
                         // Context must be an object, not a string (backend expects Dict[str, Any])
                         context: {},
                     }),
@@ -201,17 +202,21 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                                     // Could handle run start
                                     break
 
-                                case "agent.switch":
-                                    if (event.agentId && event.agentId !== agent.id) {
+                                case "agent.switch": {
+                                    const rawAgentId = event.agentId || event.agent_id;
+                                    if (rawAgentId) {
+                                        // Usar o ID retornado pelo backend diretamente
+                                        // O backend já garante o formato correto (odonto-research, odonto-practice, etc)
                                         setMessages((prev) =>
                                             prev.map((msg) =>
                                                 msg.id === agentMessageId
-                                                    ? { ...msg, agent_id: event.agentId }
+                                                    ? { ...msg, agent_id: rawAgentId }
                                                     : msg
                                             )
                                         )
                                     }
-                                    break
+                                    break;
+                                }
 
                                 case "text.delta":
                                     setMessages((prev) =>
@@ -260,10 +265,14 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
 
                                 case "tool_call.result":
                                     // Handle artifact detection from tool result
-                                    if (event.result && typeof event.result === 'string' && event.result.includes('"success": true')) {
+                                    const toolName = event.toolCallName || "";
+                                    const result = event.result || "";
+
+                                    if (result && typeof result === 'string' && result.includes('"success": true')) {
                                         try {
-                                            const parsed = JSON.parse(event.result);
+                                            const parsed = JSON.parse(result);
                                             if (parsed.artifact && onArtifactCreated) {
+                                                console.log("[useAgnoChat] Artefato detectado via tool result:", parsed.artifact);
                                                 onArtifactCreated(parsed.artifact);
                                             }
                                         } catch (e) {
@@ -275,13 +284,15 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                                         prev.map((msg) => {
                                             if (msg.id === agentMessageId && msg.tool_calls && msg.tool_calls.length > 0) {
                                                 const newToolCalls = [...msg.tool_calls]
-                                                // If ID is 'unknown', check the last one without result
-                                                // Or just assume the last one is the one completing (simplification)
-                                                // Ideally use ID matching
-                                                const lastIndex = newToolCalls.length - 1
-                                                if (lastIndex >= 0) {
-                                                    const updatedToolCall = { ...newToolCalls[lastIndex], result: event.result }
-                                                    newToolCalls[lastIndex] = updatedToolCall
+                                                // Try to match by name or ID if available, otherwise use last one
+                                                const toolIndex = event.toolCallId !== "unknown"
+                                                    ? newToolCalls.findIndex(tc => tc.tool_call_id === event.toolCallId)
+                                                    : newToolCalls.findLastIndex(tc => tc.tool_name === toolName && tc.result === undefined);
+
+                                                const indexToUpdate = toolIndex !== -1 ? toolIndex : newToolCalls.findLastIndex(tc => tc.result === undefined);
+
+                                                if (indexToUpdate !== -1) {
+                                                    newToolCalls[indexToUpdate] = { ...newToolCalls[indexToUpdate], result: result };
                                                 }
                                                 return { ...msg, tool_calls: newToolCalls }
                                             }

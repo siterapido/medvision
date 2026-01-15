@@ -36,8 +36,6 @@ export const dashboardNavigation: NavItem[] = [
   { name: "Escritor", href: "/dashboard/escritor", icon: PenTool },
   { name: "Imagens", href: "/dashboard/imagens", icon: ImageIcon },
   { name: "Resumos", href: "/dashboard/resumos", icon: FileText },
-  { name: "Flashcards", href: "/dashboard/flashcards", icon: LayoutGrid },
-  { name: "Mapas Mentais", href: "/dashboard/mindmaps", icon: Network },
   { name: "Cursos", href: "/dashboard/cursos", icon: GraduationCap },
   { name: "Materiais", href: "/dashboard/materiais", icon: BookOpen },
   { name: "Perfil", href: "/dashboard/perfil", icon: UserRound },

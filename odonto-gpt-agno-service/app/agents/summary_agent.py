@@ -13,6 +13,8 @@ from app.tools.research import RESEARCH_TOOLS
 from app.tools.artifacts_db import save_summary, save_flashcards, save_mind_map
 # Import navigation tools
 from app.tools.navigation import NAVIGATION_TOOLS
+# Import database config
+from app.database.supabase import get_agent_config
 
 def create_summary_agent() -> Agent:
     """
@@ -36,12 +38,29 @@ def create_summary_agent() -> Agent:
         db_url=db_url
     )
 
+    # Fetch configuration from DB
+    config = get_agent_config("odonto-summary")
+    
+    model_id = os.getenv("OPENROUTER_MODEL_QA", "google/gemini-2.0-flash-exp:free")
+    api_key = os.getenv("OPENROUTER_API_KEY")
+    base_url = "https://openrouter.ai/api/v1"
+    
+    if config:
+        if config.get("model_id"):
+            model_id = config.get("model_id")
+        
+        metadata = config.get("metadata", {}) or {}
+        if metadata.get("api_key"):
+            api_key = metadata.get("api_key")
+        if metadata.get("base_url"):
+            base_url = metadata.get("base_url")
+
     summary_agent = Agent(
-        name="gerador_resumos_odontologicos",
+        name="odonto-summary",
         model=OpenAILike(
-            id=os.getenv("OPENROUTER_MODEL_QA", "google/gemini-2.0-flash-exp:free"), # Use free model for dev
-            api_key=os.getenv("OPENROUTER_API_KEY"),
-            base_url="https://openrouter.ai/api/v1"
+            id=model_id,
+            api_key=api_key,
+            base_url=base_url
         ),
         db=db,
         add_history_to_context=True,
@@ -57,6 +76,9 @@ def create_summary_agent() -> Agent:
         instructions=[
             "Você é especialista em sintetizar informações odontológicas em conteúdo educacional claro.",
             "Sua saída deve ser precisa, baseada em evidências e estruturada para o aprendizado.",
+            "CRITICAL: DO NOT WRITE THE CONTENT IN THE CHAT. YOU MUST CALL THE TOOL.",
+            "DO NOT START WITH 'Here is the summary'. JUST CALL THE TOOL.",
+            "If the user asks for a summary, IMMEDIATELY call `save_summary`.",
             "VOCÊ DEVE SEMPRE USAR AS FERRAMENTAS DE SALVAMENTO PARA PERSISTIR O CONTEÚDO GERADO.",
 
             # Tratamento de Modo
