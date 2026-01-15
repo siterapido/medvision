@@ -24,7 +24,8 @@ export function SiteFrame({ children }: SiteFrameProps) {
     pathname.includes("/dashboard/questionarios") ||
     pathname.includes("/dashboard/flashcards") ||
     pathname.includes("/dashboard/mindmaps") ||
-    pathname.includes("/dashboard/escritor")
+    pathname.includes("/dashboard/escritor") ||
+    pathname.startsWith("/admin")
 
   return (
     <div className="app-frame flex min-h-screen flex-col bg-session-landing text-white">
