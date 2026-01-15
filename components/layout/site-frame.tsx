@@ -7,6 +7,9 @@ import { AppScrollArea } from "./app-scroll-area"
 import { LandingFooter } from "./landing-footer"
 import { LandingHeader } from "./landing-header"
 
+import { CopilotChatSidebar } from "@/components/copilot-chat-sidebar"
+import { cn } from "@/lib/utils"
+
 interface SiteFrameProps {
   children: React.ReactNode
 }
@@ -18,10 +21,17 @@ export function SiteFrame({ children }: SiteFrameProps) {
   return (
     <div className="app-frame flex min-h-screen flex-col bg-session-landing text-white">
       {showLandingShell ? <LandingHeader /> : null}
-      <AppScrollArea className={showLandingShell ? "" : "flex-1"}>
-        {children}
-        {showLandingShell ? <LandingFooter /> : null}
-      </AppScrollArea>
+      <div className={cn("flex flex-1", showLandingShell ? "flex-col" : "flex-row overflow-hidden")}>
+        <AppScrollArea className="flex-1">
+          {children}
+          {showLandingShell ? <LandingFooter /> : null}
+        </AppScrollArea>
+        {!showLandingShell && (
+          <aside className="hidden lg:block w-[30%] min-w-[320px] max-w-[500px] border-l border-slate-800 bg-slate-950/50 backdrop-blur-xl">
+            <CopilotChatSidebar className="h-full bg-transparent border-none" />
+          </aside>
+        )}
+      </div>
     </div>
   )
 }

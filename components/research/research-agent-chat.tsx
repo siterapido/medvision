@@ -82,7 +82,7 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
             const baseUrl = agnoServiceUrl.replace(/\/$/, "")
 
             // Request to research agent
-            const response = await fetch(`${baseUrl}/api/v1/ciencia/chat`, {
+            const response = await fetch(`${baseUrl}/api/v1/agentes/dr-ciencia/chat`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

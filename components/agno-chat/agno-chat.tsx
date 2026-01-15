@@ -24,6 +24,7 @@ import {
 
 interface AgnoChatProps {
     userId: string
+    onArtifactCreated?: (artifact: any) => void
 }
 
 export function AgnoChat({ userId }: AgnoChatProps) {
@@ -40,17 +41,16 @@ export function AgnoChat({ userId }: AgnoChatProps) {
     } = useAgnoAgents()
 
     const {
-        messages,
-        isStreaming,
-        error: chatError,
-        sendMessage,
-        clearChat,
-        sessions,
-        loadSession,
         loadSessions,
         isLoadingSessions,
         sessionId
-    } = useAgnoChat({ userId })
+    } = useAgnoChat({
+        userId,
+        onArtifactCreated: (artifact) => {
+            console.log("SUCESSO: Artefato criado!", artifact)
+            if (onArtifactCreated) onArtifactCreated(artifact)
+        }
+    })
 
     const { uploadImage, isUploading } = useImageUpload()
 

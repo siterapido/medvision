@@ -88,3 +88,66 @@ export function getAgentInfo(agentId?: string): AgentInfo {
     return AGENT_CONFIGS[agentId] || AGENT_CONFIGS["odonto-flow"]
 }
 
+/**
+ * Mapeamento de rotas do dashboard para agentes padrão
+ */
+export const TAB_AGENT_MAP: Record<string, string> = {
+    "/dashboard/resumos": "odonto-summary",
+    "/dashboard/pesquisas": "odonto-research",
+    "/dashboard/flashcards": "odonto-practice",
+    "/dashboard/questionarios": "odonto-practice",
+    "/dashboard/mindmaps": "odonto-summary",
+    "/dashboard/chat": "odonto-flow",
+    "/dashboard/escritor": "odonto-write",
+    "/dashboard/imagens": "odonto-vision"
+}
+
+/**
+ * Sugestões de prompts por agente
+ */
+export const AGENT_SUGGESTIONS: Record<string, string[]> = {
+    "odonto-summary": [
+        "Crie um resumo sobre periodontite",
+        "Gere flashcards de endodontia",
+        "Mapa mental de anatomia dental"
+    ],
+    "odonto-research": [
+        "Evidências sobre clareamento dental",
+        "Revisão sistemática de implantes",
+        "Artigos recentes sobre periodontite"
+    ],
+    "odonto-practice": [
+        "Questões de prótese para residência",
+        "Simulado de periodontia ENADE",
+        "Quiz de farmacologia odontológica"
+    ],
+    "odonto-write": [
+        "Estrutura de TCC sobre implantes",
+        "Formatar referências em ABNT",
+        "Revisar artigo sobre endodontia"
+    ],
+    "odonto-vision": [
+        "Analisar radiografia periapical",
+        "Interpretar panorâmica",
+        "Laudo de tomografia"
+    ],
+    "odonto-flow": [
+        "Quero pesquisar e criar um resumo",
+        "Me ajude com meu TCC",
+        "Questões sobre periodontite"
+    ]
+}
+
+export function getAgentSuggestions(agentId: string): string[] {
+    return AGENT_SUGGESTIONS[agentId] || AGENT_SUGGESTIONS["odonto-flow"]
+}
+
+export function getAgentForTab(pathname: string): string {
+    // Find the matching tab
+    for (const [tab, agent] of Object.entries(TAB_AGENT_MAP)) {
+        if (pathname.startsWith(tab)) {
+            return agent
+        }
+    }
+    return "odonto-flow"
+}

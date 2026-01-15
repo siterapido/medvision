@@ -7,6 +7,7 @@ import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import EnvWarning from "@/components/env-warning"
 import { SiteFrame } from "@/components/layout/site-frame"
+import { CopilotProvider } from "@/components/copilot-provider"
 
 // Sentry must be imported in the root layout
 import * as Sentry from "@sentry/nextjs"
@@ -51,10 +52,12 @@ export default function RootLayout({
           forcedTheme="dark"
           disableTransitionOnChange
         >
-          <EnvWarning />
-          <SiteFrame>
-            {children}
-          </SiteFrame>
+          <CopilotProvider>
+            <EnvWarning />
+            <SiteFrame>
+              {children}
+            </SiteFrame>
+          </CopilotProvider>
         </ThemeProvider>
         <Analytics />
       </body>

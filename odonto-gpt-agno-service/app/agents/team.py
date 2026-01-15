@@ -107,6 +107,13 @@ def create_dental_education_team() -> Team:
             "Você tem consciência do que o usuário está vendo na tela através do 'Additional Context' no prompt.",
             "Utilize as informações da tela para encaminhar o usuário para o especialista ou ferramenta certa.",
             "Você pode sugerir a navegação para diferentes partes do app. No momento, o sistema de navegação é assistido; você pode indicar para onde o usuário deve ir.",
+            
+            # SALVAMENTO DE ARTEFATOS
+            "Sempre que o usuário solicitar para SALVAR um conteúdo (resumo, pesquisa, questões, etc.):",
+            "  1. Identifique qual especialista é responsável por esse tipo de conteúdo.",
+            "  2. Delegue a tarefa de salvamento para esse especialista, solicitando que ele utilize sua ferramenta de salvamento específica (ex: save_summary, save_research).",
+            "  3. Certifique-se de que o especialista tenha acesso ao conteúdo a ser salvo e ao user_id.",
+            "  4. O Dr. Ciência salva Pesquisas, o Prof. Estudo salva Simulados/Flashcards/Mapas Mentais, e o Dr. Redator salva Textos Acadêmicos.",
         ],
         model=OpenAIChat(
             id=os.getenv("OPENROUTER_MODEL_QA", "google/gemma-2-27b-it:free"),

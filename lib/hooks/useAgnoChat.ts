@@ -12,6 +12,7 @@ import {
 interface UseAgnoChatOptions {
     baseUrl?: string
     userId: string
+    onArtifactCreated?: (artifact: any) => void
     onError?: (error: string) => void
 }
 
@@ -36,6 +37,7 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
     const {
         baseUrl = process.env.NEXT_PUBLIC_AGNO_SERVICE_URL || "http://localhost:8000/api/v1",
         userId,
+        onArtifactCreated,
         onError
     } = options
 
@@ -223,6 +225,9 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
 
                                 case "artifact.created":
                                     console.log("Artifact created:", event.artifact)
+                                    if (onArtifactCreated) {
+                                        onArtifactCreated(event.artifact)
+                                    }
                                     break
 
                                 case "tool_call.start":
@@ -254,6 +259,18 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                                     break
 
                                 case "tool_call.result":
+                                    // Handle artifact detection from tool result
+                                    if (event.result && typeof event.result === 'string' && event.result.includes('"success": true')) {
+                                        try {
+                                            const parsed = JSON.parse(event.result);
+                                            if (parsed.artifact && onArtifactCreated) {
+                                                onArtifactCreated(parsed.artifact);
+                                            }
+                                        } catch (e) {
+                                            // Ignore parsing error
+                                        }
+                                    }
+
                                     setMessages((prev) =>
                                         prev.map((msg) => {
                                             if (msg.id === agentMessageId && msg.tool_calls && msg.tool_calls.length > 0) {
