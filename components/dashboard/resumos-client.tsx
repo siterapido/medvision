@@ -12,6 +12,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArtifactPageLayout } from "@/components/dashboard/artifact-page-layout"
 import type { ArtifactResult } from "@/components/chat/types"
+import { deleteArtifact } from "@/app/actions/artifacts"
+import { DeleteButton } from "@/components/ui/delete-button"
 
 interface Summary {
     id: string
@@ -115,10 +117,18 @@ export function ResumosClient({ userId, summaries, decks, maps }: ResumosClientP
                                                     {summary.content?.substring(0, 150)}...
                                                 </p>
                                             </CardContent>
-                                            <CardFooter className="pt-0 text-xs text-muted-foreground flex items-center gap-2">
+                                            <CardFooter className="pt-0 text-xs text-muted-foreground flex items-center gap-2 justify-between">
                                                 <div className="flex items-center gap-1">
                                                     <Tag className="w-3 h-3" />
                                                     <span>{summary.tags?.length || 0} tags</span>
+                                                </div>
+                                                <div className="flex z-20">
+                                                    <DeleteButton
+                                                        itemName="este resumo"
+                                                        onDelete={async () => {
+                                                            await deleteArtifact(summary.id, 'summaries')
+                                                        }}
+                                                    />
                                                 </div>
                                             </CardFooter>
                                         </Card>
@@ -175,6 +185,14 @@ export function ResumosClient({ userId, summaries, decks, maps }: ResumosClientP
                                                     <Play className="w-3 h-3" />
                                                     <span>Estudar agora</span>
                                                 </div>
+                                                <div className="flex z-20">
+                                                    <DeleteButton
+                                                        itemName="este baralho"
+                                                        onDelete={async () => {
+                                                            await deleteArtifact(deck.id, 'flashcard_decks')
+                                                        }}
+                                                    />
+                                                </div>
                                             </CardFooter>
                                         </Card>
                                     </Link>
@@ -229,6 +247,14 @@ export function ResumosClient({ userId, summaries, decks, maps }: ResumosClientP
                                                 <div className="flex items-center gap-1 text-xs text-pink-500 font-medium">
                                                     <span>Explorar mapa</span>
                                                     <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                                                </div>
+                                                <div className="flex z-20">
+                                                    <DeleteButton
+                                                        itemName="este mapa"
+                                                        onDelete={async () => {
+                                                            await deleteArtifact(map.id, 'mind_map_artifacts')
+                                                        }}
+                                                    />
                                                 </div>
                                             </CardFooter>
                                         </Card>

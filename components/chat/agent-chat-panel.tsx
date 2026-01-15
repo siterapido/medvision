@@ -1,14 +1,20 @@
 "use client"
 
-import { useRef, useEffect } from "react"
-import { Loader2, Send, Sparkles, RefreshCw, ExternalLink } from "lucide-react"
+import { useState, useRef, useEffect } from "react"
+import { Loader2, Send, Sparkles, RefreshCw, ExternalLink, Copy, CheckCheck, Save, Microscope } from "lucide-react"
 import { useAgentChat } from "@/lib/hooks/useAgentChat"
 import { getAgentInfo } from "@/lib/agent-config"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import type { AgentChatPanelProps } from "./types"
-import { useState } from "react"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import { MarkdownComponents } from "@/components/agno-chat/markdown-components"
+import { toast } from "sonner"
+import { useRouter } from "next/navigation"
 
 /**
  * Componente de chat reutilizável para agentes Agno
@@ -23,7 +29,8 @@ export function AgentChatPanel({
     suggestions = [],
     onArtifactCreated,
     className,
-    compact = false
+    compact = false,
+    context
 }: AgentChatPanelProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const [input, setInput] = useState("")
@@ -47,7 +54,7 @@ export function AgentChatPanel({
         if (!input.trim() || isStreaming) return
         const message = input.trim()
         setInput("")
-        await sendMessage(message)
+        await sendMessage(message, context)
     }
 
     const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -59,6 +66,84 @@ export function AgentChatPanel({
 
     const handleSuggestionClick = (suggestion: string) => {
         setInput(suggestion)
+    }
+
+    const router = useRouter()
+
+    const handleManualSave = async (content: string) => {
+        try {
+            toast.loading("Salvando pesquisa...")
+
+            // Extract sources from content (basic regex for full URLs or PMIDs)
+            const sources: Array<{ title: string; url: string }> = []
+
+            // Extract PMIDs
+            const pmidMatch = content.match(/PMID:\s*(\d+)/g)
+            if (pmidMatch) {
+                pmidMatch.forEach((match: string) => {
+                    const pmid = match.replace("PMID:", "").trim()
+                    if (!sources.find(s => s.url.includes(pmid))) {
+                        sources.push({
+                            title: `PubMed Article ${pmid}`,
+                            url: `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`
+                        })
+                    }
+                })
+            }
+
+            // Extract Markdown links
+            const linkMatch = content.match(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/g)
+            if (linkMatch) {
+                linkMatch.forEach((match) => {
+                    const parts = match.match(/\[([^\]]+)\]\((https?:\/\/[^\)]+)\)/);
+                    if (parts && parts[1] && parts[2]) {
+                        sources.push({
+                            title: parts[1],
+                            url: parts[2]
+                        })
+                    }
+                })
+            }
+
+            const response = await fetch("/api/research/save", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    userId,
+                    query: messages.find(m => m.role === "user")?.content || "Pesquisa Manual",
+                    content,
+                    sources,
+                    type: "research"
+                })
+            })
+
+            if (!response.ok) throw new Error("Falha ao salvar")
+
+            const data = await response.json()
+
+            toast.dismiss()
+            toast.success("Pesquisa salva com sucesso!")
+
+            if (onArtifactCreated && data.id) {
+                onArtifactCreated({
+                    success: true,
+                    artifact: {
+                        id: data.id,
+                        type: "research",
+                        title: data.title
+                    }
+                })
+            }
+
+            router.refresh()
+
+        } catch (error) {
+            console.error(error)
+            toast.dismiss()
+            toast.error("Erro ao salvar pesquisa")
+        }
     }
 
     return (
@@ -162,17 +247,67 @@ export function AgentChatPanel({
                             message.role === "user" ? "justify-end" : "justify-start"
                         )}
                     >
-                        <div
-                            className={cn(
-                                "max-w-[90%] rounded-xl px-3 py-2",
-                                message.role === "user"
-                                    ? `bg-gradient-to-r ${agentInfo.gradient} text-white`
-                                    : "bg-slate-800/80 text-slate-100 border border-slate-700/50"
+                        <div className={cn("max-w-[90%]", message.role === "user" ? "" : "w-full")}>
+                            {message.role === "user" ? (
+                                <div className={cn(
+                                    "rounded-xl px-4 py-3 text-white shadow-lg shadow-cyan-900/10",
+                                    `bg-gradient-to-r ${agentInfo.gradient}`
+                                )}>
+                                    <p className="text-sm whitespace-pre-wrap leading-relaxed font-medium">
+                                        {message.content}
+                                    </p>
+                                </div>
+                            ) : (
+                                <Card className="bg-slate-900/40 border-slate-700/50 backdrop-blur-sm overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                    <CardContent className="pt-4 text-slate-300 text-sm leading-relaxed space-y-4">
+                                        {message.content ? (
+                                            <ReactMarkdown
+                                                remarkPlugins={[remarkGfm]}
+                                                components={MarkdownComponents}
+                                            >
+                                                {message.content}
+                                            </ReactMarkdown>
+                                        ) : (
+                                            <div className="flex items-center gap-2 text-slate-400 italic">
+                                                <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
+                                                <span>Processando...</span>
+                                            </div>
+                                        )}
+                                    </CardContent>
+
+                                    {message.content && !isStreaming && (
+                                        <CardFooter className="bg-slate-900/30 border-t border-slate-700/50 py-2 px-4 flex justify-between items-center gap-2">
+                                            <div className="flex gap-2">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    className="h-7 text-xs text-slate-400 hover:text-white hover:bg-slate-800"
+                                                    onClick={() => {
+                                                        navigator.clipboard.writeText(message.content)
+                                                        toast.success("Conteúdo copiado!")
+                                                    }}
+                                                >
+                                                    <Copy className="w-3 h-3 mr-1.5" />
+                                                    Copiar
+                                                </Button>
+                                            </div>
+
+                                            {/* Botão de Salvar manual (apenas para odonto-research por enquanto) */}
+                                            {agentId === "odonto-research" && (
+                                                <Button
+                                                    size="sm"
+                                                    variant="outline"
+                                                    className="h-7 text-xs border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300"
+                                                    onClick={() => handleManualSave(message.content)}
+                                                >
+                                                    <Save className="w-3 h-3 mr-1.5" />
+                                                    Salvar Pesquisa
+                                                </Button>
+                                            )}
+                                        </CardFooter>
+                                    )}
+                                </Card>
                             )}
-                        >
-                            <p className="text-xs whitespace-pre-wrap leading-relaxed">
-                                {message.content}
-                            </p>
                         </div>
                     </div>
                 ))}

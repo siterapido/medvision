@@ -32,12 +32,12 @@ async function TrialPipelineContent() {
   const { data: leads, error } = await supabase
     .from("profiles")
     .select(
-      "id, name, email, whatsapp, profession, company, institution, plan_type, subscription_status, trial_started_at, trial_ends_at, trial_used, created_at, pipeline_stage"
+      "id, name, email, role, trial_started_at, trial_ends_at, trial_used, created_at, pipeline_stage"
     )
     .neq("role", "admin")
     .neq("role", "vendedor")
     .or(
-      "trial_started_at.not.is.null,trial_ends_at.not.is.null,trial_used.eq.true,plan_type.neq.free,pipeline_stage.not.is.null"
+      "trial_started_at.not.is.null,trial_ends_at.not.is.null,trial_used.eq.true,pipeline_stage.not.is.null"
     )
     .order("trial_started_at", { ascending: false, nullsLast: true })
     .limit(400)

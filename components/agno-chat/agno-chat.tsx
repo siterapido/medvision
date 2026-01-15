@@ -17,104 +17,35 @@ import { toast } from "sonner"
 import { AGENT_IDS } from "@/lib/constants"
 import {
     DropdownMenu,
-    // ...
-
-    // ...
-
-    // Error Toast
-    useEffect(() => {
-        if (agentsError) {
-            toast.error("Erro de conexão com agentes", {
-                description: agentsError
-            })
-        }
-    }, [agentsError])
-
-useEffect(() => {
-    if (chatError) {
-        toast.error("Erro no chat", {
-            description: chatError
-        })
-    }
-}, [chatError])
-
-// ...
-
-{/* Mode Indicator */ }
-{
-    selectedAgent && (
-        <div className={cn(
-            "hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all",
-            selectedAgent.id === AGENT_IDS.FLOW
-                ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-        )}>
-            {selectedAgent.id === AGENT_IDS.FLOW ? (
-                <>
-                    <Sparkles className="w-3 h-3" />
-                    <span>Auto</span>
-                </>
-            ) : (
-                <>
-                    <Bot className="w-3 h-3" />
-                    <span>Direto</span>
-                </>
-            )}
-        </div>
-    )
-}
-
-// ...
-
-{/* Flow Agent - Central Hero */ }
-                                <div className="relative mb-6">
-                                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-500/30 animate-pulse-glow glow-cyan">
-                                        <Bot className="w-10 h-10 text-white" />
-                                    </div>
-                                    {/* Orbital ring effect */}
-                                    <div className="absolute inset-0 -m-4 rounded-full border border-cyan-500/20 animate-spin-slow" />
-                                </div>
-
-                                <h1 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
-                                    Odonto Flow
-                                    <Sparkles className="w-5 h-5 text-cyan-400" />
-                                </h1>
-// ...
-
-{/* Specialized Agents Showcase */ }
-<div className="flex flex-wrap justify-center gap-3 mb-6 max-w-xl">
-    {agents.filter(a => a.id !== AGENT_IDS.FLOW).slice(0, 4).map((agent) => {
-        const config = getAgentInfo(agent.id)
-
-        DropdownMenuContent,
-            DropdownMenuItem,
-            DropdownMenuLabel,
-            DropdownMenuSeparator,
-            DropdownMenuTrigger,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
 interface AgnoChatProps {
-        userId: string
+    userId: string
     onArtifactCreated?: (artifact: any) => void
 }
 
-export function AgnoChat({userId}: AgnoChatProps) {
+export function AgnoChat({ userId, onArtifactCreated }: AgnoChatProps) {
     const messagesEndRef = useRef<HTMLDivElement>(null)
 
-        // Hooks
-        const {
-            agents,
-            selectedAgent,
-            selectAgent,
-            isLoading: agentsLoading,
+    // Hooks
+    const {
+        agents,
+        selectedAgent,
+        selectAgent,
+        isLoading: agentsLoading,
         isConnected,
         error: agentsError,
     } = useAgnoAgents()
 
-        const {
-            messages,
-            isStreaming,
-            error: chatError,
+    const {
+        messages,
+        isStreaming,
+        error: chatError,
         sendMessage,
         clearChat,
         sessions,
@@ -123,29 +54,29 @@ export function AgnoChat({userId}: AgnoChatProps) {
         isLoadingSessions,
         sessionId
     } = useAgnoChat({
-            userId,
-            onArtifactCreated: (artifact) => {
+        userId,
+        onArtifactCreated: (artifact) => {
             console.log("SUCESSO: Artefato criado!", artifact)
             if (onArtifactCreated) onArtifactCreated(artifact)
         }
     })
 
-        const {uploadImage, isUploading} = useImageUpload()
+    const { uploadImage, isUploading } = useImageUpload()
 
-        // Track active agent from messages and detect transitions
-        const [activeAgentId, setActiveAgentId] = useState<string | null>(null)
-        const [handoffInfo, setHandoffInfo] = useState<{ fromId: string, toId: string } | null>(null)
+    // Track active agent from messages and detect transitions
+    const [activeAgentId, setActiveAgentId] = useState<string | null>(null)
+    const [handoffInfo, setHandoffInfo] = useState<{ fromId: string, toId: string } | null>(null)
 
     // Detect agent changes and show inline handoff animation
     // IMPORTANTE: NÃO alterar o selectedAgent aqui - respeitar escolha do usuário
     useEffect(() => {
         if (messages.length > 0) {
             const lastAgentMessage = [...messages].reverse().find(m => m.role === 'agent' && m.agent_id)
-        if (lastAgentMessage?.agent_id && lastAgentMessage.agent_id !== activeAgentId) {
+            if (lastAgentMessage?.agent_id && lastAgentMessage.agent_id !== activeAgentId) {
                 // Agent changed in the response - show handoff animation
                 // Isso acontece quando o Flow roteia para outro agente internamente
                 if (activeAgentId && activeAgentId !== lastAgentMessage.agent_id) {
-            setHandoffInfo({ fromId: activeAgentId, toId: lastAgentMessage.agent_id })
+                    setHandoffInfo({ fromId: activeAgentId, toId: lastAgentMessage.agent_id })
 
                     // NÃO atualizar selectedAgent - deixar o usuário no controle
                     // O dropdown mostra a INTENÇÃO do usuário, não o agente que respondeu
@@ -154,28 +85,28 @@ export function AgnoChat({userId}: AgnoChatProps) {
                     // Clear handoff info after animation
                     setTimeout(() => setHandoffInfo(null), 3000)
                 }
-        setActiveAgentId(lastAgentMessage.agent_id)
+                setActiveAgentId(lastAgentMessage.agent_id)
             }
         }
     }, [messages, activeAgentId])
 
     // Load sessions on mount
     useEffect(() => {
-            loadSessions()
-        }, [loadSessions])
+        loadSessions()
+    }, [loadSessions])
 
     // Smart Auto-scroll
     useEffect(() => {
         if (messages.length > 0) {
             const container = messagesEndRef.current?.parentElement
-        if (container) {
+            if (container) {
                 // Se o usuário estiver próximo do fim (100px), scrolla automaticamente
                 // Se estiver lendo mensagens antigas, NÃO scrolla
                 const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100
 
-        if (isNearBottom) {
-            messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-        }
+                if (isNearBottom) {
+                    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+                }
             }
         }
     }, [messages])
@@ -204,11 +135,11 @@ export function AgnoChat({userId}: AgnoChatProps) {
 
         if (file) {
             const url = await uploadImage(file)
-        if (url) {
-            imageUrl = url
-        } else {
-            // Handle upload error if necessary, for now we fall back to text only or could block
-            console.error("Failed to upload image")
+            if (url) {
+                imageUrl = url
+            } else {
+                // Handle upload error if necessary, for now we fall back to text only or could block
+                console.error("Failed to upload image")
                 return
             }
         }
@@ -217,21 +148,21 @@ export function AgnoChat({userId}: AgnoChatProps) {
     }
 
     const handleNewChat = () => {
-            clearChat()
-        }
+        clearChat()
+    }
 
     const handleSelectSession = (id: string) => {
-            loadSession(id)
-        }
+        loadSession(id)
+    }
 
-        const suggestions = [
+    const suggestions = [
         "Quais são os principais sinais de periodontite?",
         "Como diagnosticar cárie profunda?",
         "Protocolo de tratamento endodôntico",
         "Orientações pós-operatórias para implante",
-        ]
+    ]
 
-        return (
+    return (
         <div className="flex h-[calc(100vh-64px)] overflow-hidden bg-slate-950 relative">
             {/* Main Chat Area */}
             <div className="flex-1 flex flex-col w-full min-w-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
@@ -372,7 +303,7 @@ export function AgnoChat({userId}: AgnoChatProps) {
 
                                 {/* Specialized Agents Showcase */}
                                 <div className="flex flex-wrap justify-center gap-3 mb-6 max-w-xl">
-                                    {agents.filter(a => a.id !== AGENT_IDS.FLOW).slice(0, 4).map((agent) => {
+                                    {agents.filter(a => a.id !== AGENT_IDS.FLOW).map((agent) => {
                                         const config = getAgentInfo(agent.id)
                                         const AgentIcon = config.icon
                                         return (
@@ -480,6 +411,6 @@ export function AgnoChat({userId}: AgnoChatProps) {
                     </div>
                 </div>
             </div>
-        </div >
-        )
+        </div>
+    )
 }

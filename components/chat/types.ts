@@ -44,6 +44,7 @@ export interface AgentChatPanelProps {
     onArtifactCreated?: (artifact: ArtifactResult) => void
     className?: string
     compact?: boolean
+    context?: Record<string, any>
 }
 
 export interface UseAgentChatOptions {
@@ -55,7 +56,7 @@ export interface UseAgentChatOptions {
 export interface UseAgentChatReturn {
     messages: ChatMessage[]
     state: AgentChatState
-    sendMessage: (content: string) => Promise<void>
+    sendMessage: (content: string, context?: Record<string, any>) => Promise<void>
     clearMessages: () => void
     isStreaming: boolean
 }

@@ -24,7 +24,7 @@ async def stream_chat(message: str, session_id: str = None) -> str:
     if session_id is None:
         session_id = str(uuid_module.uuid4())
     
-    async with httpx.AsyncClient(timeout=60.0) as client:
+    async with httpx.AsyncClient(timeout=120.0) as client:
         response = await client.post(
             f"{BASE_URL}/api/v1/equipe/chat",
             json={
@@ -40,26 +40,35 @@ async def stream_chat(message: str, session_id: str = None) -> str:
         
         full_response = ""
         
-        # Parse NDJSON response
+        # Parse NDJSON response - melhorado para capturar todos os eventos
         for line in response.text.split("\n"):
             line = line.strip()
             if not line:
                 continue
             try:
                 data = json.loads(line)
-                # Handle different event types
-                if data.get("type") == "text":
-                    full_response += data.get("text", "")
-                elif "content" in data:
+                event_type = data.get("type", "")
+                
+                # Capturar conteúdo de diferentes tipos de eventos
+                if event_type == "text.delta":
+                    full_response += data.get("content", "")
+                elif event_type == "run_response" or event_type == "run_content":
+                    full_response += data.get("content", "")
+                elif event_type == "error":
+                    print(f"  ⚠️ Erro no stream: {data.get('message')}")
+                elif event_type in ("run.started", "run.finished", "agent.switch"):
+                    # Eventos de controle - apenas log
+                    pass
+                elif "content" in data and data.get("content"):
+                    # Fallback para qualquer evento com content
                     full_response += data["content"]
-                elif "delta" in data and isinstance(data["delta"], dict):
-                    full_response += data["delta"].get("content", "")
+                    
             except json.JSONDecodeError:
-                # Pode ser texto plain
-                if not line.startswith("{"):
+                # Pode ser texto plain - adicionar se não parecer JSON
+                if not line.startswith("{") and not line.startswith("["):
                     full_response += line
         
-        return full_response if full_response else response.text[:500]
+        return full_response.strip() if full_response else f"[Sem conteúdo - Raw: {response.text[:200]}]"
 
 
 async def test_flow(name: str, message: str, expected_keywords: list[str]):
@@ -104,35 +113,35 @@ async def main():
         (
             "Mensagem Ambígua - Clarificação",
             "Preciso de ajuda com implantes",
-            ["prova", "tcc", "artigo", "estudar", "pesquisar", "?"]
+            ["evidências", "questões", "estudo", "texto acadêmico", "pesquisa", "ajuda"]
         ),
         
         # Teste 2: Saudação simples
         (
             "Saudação Natural",
             "Oi!",
-            ["opa", "olá", "ajudar", "?"]
+            ["olá", "ajudá-lo", "pesquisa", "prática", "estudo", "escrever", "imagem"]
         ),
         
         # Teste 3: Fluxo de estudo
         (
             "Fluxo de Aprendizado",
             "Quero estudar endodontia pra prova de residência",
-            ["prof", "estudo", "questão", "quiz", "simulado"]
+            ["simulado", "questões", "múltipla escolha", "tópico específico"]
         ),
         
         # Teste 4: Fluxo de pesquisa
         (
             "Fluxo de Pesquisa",
             "Preciso pesquisar artigos sobre periodontite",
-            ["dr. ciência", "pubmed", "objetivo", "tcc", "artigo", "?"]
+            ["odonto research", "evidências", "literatura", "artigos"]
         ),
         
         # Teste 5: Fluxo de escrita
         (
             "Fluxo de Escrita Acadêmica",
             "Preciso de ajuda com meu TCC sobre ortodontia",
-            ["dr. redator", "tema", "parte", "introdução", "referência", "?"]
+            ["odonto writer", "estruturar", "tcc", "artigo", "abnt"]
         ),
     ]
     

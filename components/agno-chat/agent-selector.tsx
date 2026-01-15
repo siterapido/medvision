@@ -1,6 +1,6 @@
 "use client"
 
-import { Bot, Loader2, WifiOff, Sparkles, FlaskConical, GraduationCap, FileText, ScanEye } from "lucide-react"
+import { Bot, Loader2, WifiOff, Sparkles, FlaskConical, GraduationCap, FileText, ScanEye, MessageCircle } from "lucide-react"
 import type { AgentDetails } from "@/lib/agno"
 import {
     Select,
@@ -29,6 +29,7 @@ const agentConfig: Record<string, { icon: React.ElementType, gradient: string, i
     'odonto-practice': { icon: GraduationCap, gradient: 'from-amber-500 to-orange-500' },
     'odonto-write': { icon: FileText, gradient: 'from-emerald-500 to-teal-500' },
     'odonto-vision': { icon: ScanEye, gradient: 'from-rose-500 to-pink-500' },
+    'odonto-gpt': { icon: MessageCircle, gradient: 'from-indigo-500 to-purple-500' },
 }
 
 export function AgentSelector({

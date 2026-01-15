@@ -131,6 +131,26 @@ export interface ChatMessage {
     isStreaming?: boolean
 }
 
+// ============================================================================
+// AG-UI Stream Event Types
+// ============================================================================
+
+export interface ArtifactData {
+    id: string
+    type: string
+    title: string
+}
+
+export type AgnoStreamEvent =
+    | { type: 'run.started'; agent_id: string }
+    | { type: 'text.delta'; content: string }
+    | { type: 'agent.switch'; agentId: string }
+    | { type: 'tool_call.start'; toolCallId: string; toolCallName: string; args?: string }
+    | { type: 'tool_call.result'; toolCallId: string; toolCallName: string; result: string }
+    | { type: 'artifact.created'; artifact: ArtifactData }
+    | { type: 'run.finished' }
+    | { type: 'error'; message: string }
+
 export interface SessionEntry {
     session_id: string
     session_name: string

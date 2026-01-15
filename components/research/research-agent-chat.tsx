@@ -3,6 +3,16 @@
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
+import { Button } from "@/components/ui/button"
+import { Textarea } from "@/components/ui/textarea"
+import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import { MarkdownComponents } from "@/components/agno-chat/markdown-components"
+import { toast } from "sonner"
+import {
     Search,
     Loader2,
     FileText,
@@ -10,12 +20,11 @@ import {
     Microscope,
     BookOpen,
     Send,
-    Sparkles
+    Sparkles,
+    Copy,
+    Save,
+    CheckCheck
 } from "lucide-react"
-import { useCopilotReadable } from "@copilotkit/react-core"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { cn } from "@/lib/utils"
 
 // Estado tipado do agente de pesquisa
 interface ResearchState {
@@ -216,6 +225,47 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
         }
     }
 
+    const handleManualSave = async (content: string) => {
+        if (researchState.status === "completed" || researchState.status === "saving") return
+
+        setResearchState(prev => ({ ...prev, status: "saving" }))
+
+        try {
+            const response = await fetch("/api/research/save", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    userId,
+                    query: researchState.query || messages[0]?.content || "Pesquisa sem título", // Fallback for query
+                    content,
+                    sources: researchState.sources,
+                    type: "research"
+                })
+            })
+
+            if (!response.ok) {
+                throw new Error("Falha ao salvar pesquisa")
+            }
+
+            const data = await response.json()
+
+            setResearchState(prev => ({ ...prev, status: "completed" }))
+            toast.success("Pesquisa salva com sucesso!")
+
+            if (data.id) {
+                onComplete?.(data.id)
+                router.refresh()
+            }
+
+        } catch (error) {
+            console.error("Erro ao salvar:", error)
+            toast.error("Erro ao salvar pesquisa")
+            setResearchState(prev => ({ ...prev, status: "synthesizing" }))
+        }
+    }
+
     return (
         <div className="flex flex-col h-full bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
             {/* Header */}
@@ -239,125 +289,154 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
                 <ResearchProgress state={researchState} />
             )}
 
-            {/* Messages Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {/* Welcome State */}
-                {messages.length === 0 && (
-                    <div className="flex flex-col items-center justify-center h-full text-center px-4">
-                        <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/30 flex items-center justify-center mb-4">
-                            <BookOpen className="w-8 h-8 text-cyan-400" />
-                        </div>
-                        <h3 className="text-xl font-semibold text-white mb-2">
-                            Nova Pesquisa Científica
-                        </h3>
-                        <p className="text-slate-400 mb-6 max-w-md">
-                            Digite um tópico ou pergunta e eu buscarei evidências científicas em bases como PubMed e arXiv.
-                        </p>
-
-                        {/* Quick suggestions */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 w-full max-w-lg">
-                            {[
-                                "Evidências sobre clareamento dental",
-                                "Tratamentos atuais para periodontite",
-                                "Implantes em pacientes diabéticos",
-                                "Protocolos de endodontia regenerativa"
-                            ].map((suggestion) => (
-                                <button
-                                    key={suggestion}
-                                    onClick={() => setInput(suggestion)}
-                                    className="p-3 rounded-xl bg-slate-800/50 border border-slate-700/50 hover:border-cyan-500/50 hover:bg-slate-800 transition-all text-left text-sm text-slate-300"
-                                >
-                                    {suggestion}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* Messages */}
-                {messages.map((message, index) => (
-                    <div
-                        key={index}
-                        className={cn(
-                            "flex",
-                            message.role === "user" ? "justify-end" : "justify-start"
-                        )}
-                    >
-                        <div
-                            className={cn(
-                                "max-w-[85%] rounded-2xl px-4 py-3",
-                                message.role === "user"
-                                    ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
-                                    : "bg-slate-800/80 text-slate-100 border border-slate-700/50"
-                            )}
-                        >
-                            <div className="whitespace-pre-wrap text-sm leading-relaxed">
-                                {message.content}
+            {/* Messages */}
+            {messages.map((message, index) => (
+                <div
+                    key={index}
+                    className={cn(
+                        "flex",
+                        message.role === "user" ? "justify-end" : "justify-start"
+                    )}
+                >
+                    <div className={cn("max-w-[85%]", message.role === "user" ? "" : "w-full")}>
+                        {message.role === "user" ? (
+                            <div className="rounded-2xl px-4 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-900/20">
+                                <div className="whitespace-pre-wrap text-sm leading-relaxed font-medium">
+                                    {message.content}
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                ))}
+                        ) : (
+                            <Card className="bg-slate-900/40 border-slate-700/50 backdrop-blur-sm overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500">
+                                <CardHeader className="pb-2 border-b border-slate-700/50 bg-slate-900/30">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-500/20 to-blue-500/20 flex items-center justify-center border border-cyan-500/20">
+                                            <Microscope className="w-4 h-4 text-cyan-400" />
+                                        </div>
+                                        <div>
+                                            <CardTitle className="text-base text-slate-100 flex items-center gap-2">
+                                                Dr. Ciência
+                                                <Badge variant="outline" className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 text-[10px] h-5">
+                                                    Pesquisador
+                                                </Badge>
+                                            </CardTitle>
+                                            <CardDescription className="text-slate-400 text-xs">
+                                                Referência Científica baseada em evidências
+                                            </CardDescription>
+                                        </div>
+                                    </div>
+                                </CardHeader>
+                                <CardContent className="pt-4 text-slate-300 text-sm leading-relaxed space-y-4">
+                                    {message.content ? (
+                                        <ReactMarkdown
+                                            remarkPlugins={[remarkGfm]}
+                                            components={MarkdownComponents}
+                                        >
+                                            {message.content}
+                                        </ReactMarkdown>
+                                    ) : (
+                                        <div className="flex items-center gap-2 text-slate-400 italic">
+                                            <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
+                                            Analisando bases de dados científicas...
+                                        </div>
+                                    )}
+                                </CardContent>
+                                {message.content && !isStreaming && (
+                                    <CardFooter className="bg-slate-900/30 border-t border-slate-700/50 py-3 flex justify-between items-center gap-3">
+                                        <div className="flex gap-2">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="h-8 text-xs border-slate-700 bg-slate-800/50 text-slate-300 hover:text-white hover:bg-slate-800"
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(message.content)
+                                                    toast.success("Conteúdo copiado!")
+                                                }}
+                                            >
+                                                <Copy className="w-3 h-3 mr-1.5" />
+                                                Copiar
+                                            </Button>
+                                        </div>
 
-                {/* Streaming indicator */}
-                {isStreaming && messages[messages.length - 1]?.role !== "assistant" && (
-                    <div className="flex justify-start">
-                        <div className="bg-slate-800/80 rounded-2xl px-4 py-3 border border-slate-700/50">
-                            <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
-                        </div>
-                    </div>
-                )}
-
-                <div ref={messagesEndRef} />
-            </div>
-
-            {/* Completed State */}
-            {researchState.status === "completed" && (
-                <div className="flex-shrink-0 p-4 border-t border-slate-800/50 bg-green-500/10">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                            <CheckCircle2 className="w-5 h-5 text-green-400" />
-                            <span className="text-sm text-green-400 font-medium">
-                                Pesquisa salva com sucesso!
-                            </span>
-                        </div>
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-green-500/30 text-green-400 hover:bg-green-500/10"
-                            onClick={() => router.refresh()}
-                        >
-                            Ver Pesquisas
-                        </Button>
+                                        {/* Botão de Salvar solicitado */}
+                                        <Button
+                                            size="sm"
+                                            className="h-8 text-xs bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/20 transition-all hover:-translate-y-0.5"
+                                            onClick={() => handleManualSave(message.content)}
+                                            disabled={researchState.status === "saving" || researchState.status === "completed"}
+                                        >
+                                            {researchState.status === "completed" ? (
+                                                <>
+                                                    <CheckCheck className="w-3 h-3 mr-1.5" />
+                                                    Salvo
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Save className="w-3 h-3 mr-1.5" />
+                                                    Salvar Pesquisa
+                                                </>
+                                            )}
+                                        </Button>
+                                    </CardFooter>
+                                )}
+                            </Card>
+                        )}
                     </div>
                 </div>
-            )}
+            ))}
 
-            {/* Input Area */}
-            <div className="flex-shrink-0 p-4 border-t border-slate-800/50 bg-slate-900/50">
-                <form onSubmit={handleSubmit} className="flex gap-2">
-                    <Textarea
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Digite sua pergunta de pesquisa..."
-                        className="flex-1 min-h-[44px] max-h-32 resize-none bg-slate-800/50 border-slate-700/50 focus:border-cyan-500/50 text-white placeholder-slate-500"
-                        disabled={isStreaming}
-                    />
-                    <Button
-                        type="submit"
-                        size="icon"
-                        disabled={!input.trim() || isStreaming}
-                        className="h-11 w-11 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 disabled:opacity-50"
-                    >
-                        {isStreaming ? (
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                        ) : (
-                            <Send className="w-5 h-5" />
-                        )}
-                    </Button>
-                </form>
-            </div>
+            <div ref={messagesEndRef} />
         </div>
+
+            {/* Completed State */ }
+    {
+        researchState.status === "completed" && (
+            <div className="flex-shrink-0 p-4 border-t border-slate-800/50 bg-green-500/10">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <CheckCircle2 className="w-5 h-5 text-green-400" />
+                        <span className="text-sm text-green-400 font-medium">
+                            Pesquisa salva com sucesso!
+                        </span>
+                    </div>
+                    <Button
+                        size="sm"
+                        variant="outline"
+                        className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+                        onClick={() => router.refresh()}
+                    >
+                        Ver Pesquisas
+                    </Button>
+                </div>
+            </div>
+        )
+    }
+
+    {/* Input Area */ }
+    <div className="flex-shrink-0 p-4 border-t border-slate-800/50 bg-slate-900/50">
+        <form onSubmit={handleSubmit} className="flex gap-2">
+            <Textarea
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Digite sua pergunta de pesquisa..."
+                className="flex-1 min-h-[44px] max-h-32 resize-none bg-slate-800/50 border-slate-700/50 focus:border-cyan-500/50 text-white placeholder-slate-500"
+                disabled={isStreaming}
+            />
+            <Button
+                type="submit"
+                size="icon"
+                disabled={!input.trim() || isStreaming}
+                className="h-11 w-11 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 disabled:opacity-50"
+            >
+                {isStreaming ? (
+                    <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                    <Send className="w-5 h-5" />
+                )}
+            </Button>
+        </form>
+    </div>
+        </div >
     )
 }
 

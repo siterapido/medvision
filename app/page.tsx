@@ -2,171 +2,136 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import Image from "next/image"
 import dynamic from "next/dynamic"
 import {
   Brain, MessageSquare, Clock, BookOpen, Shield, Zap,
   CheckCircle2, Star, ArrowRight, Award, TrendingUp,
-  XCircle, Video, HelpCircle
+  XCircle, Video, Sparkles
 } from "lucide-react"
 import Link from "next/link"
 import { Logo } from "@/components/logo"
-import { motion } from "motion/react"
+import { motion } from "framer-motion"
 import { FadeIn, StaggerContainer, StaggerItem, HoverCard, ScaleIn } from "@/components/ui/animations"
+import { AgentHeroVisual } from "@/components/landing/agent-hero-visual"
 
-// Lazy load componentes pesados
-const YouTubePlayer = dynamic(() => import("@/components/video/youtube-player").then(mod => ({ default: mod.YouTubePlayer })), {
-  loading: () => <div className="w-full aspect-video bg-gray-900 rounded-xl animate-pulse" />,
-  ssr: false
+const FAQSection = dynamic(() => import("@/components/landing/faq-section").then(mod => ({ default: mod.FAQSection })), {
+  ssr: false,
+  loading: () => <div className="w-full py-16 md:py-32 px-4 md:px-6 bg-faq-section"><div className="mx-auto max-w-3xl h-96 animate-pulse bg-slate-800/20 rounded-xl" /></div>
 })
 
 const SectionHeader = dynamic(() => import("@/components/ui/section-header").then(mod => ({ default: mod.SectionHeader })), {
   loading: () => <div className="h-20 bg-transparent animate-pulse" />
 })
 
-const LazyVideoWrapper = dynamic(() => import("@/components/video/lazy-video-wrapper").then(mod => ({ default: mod.LazyVideoWrapper })), {
-  ssr: false
-})
-
-const videoEmbedHtml = `<div style="position:relative;padding-top:56.25%;"><iframe src="https://player.mediadelivery.net/embed/553851/447c874d-b867-4c2f-85b1-15819f2b4789?autoplay=true&loop=false&muted=false&preload=true&responsive=true" loading="lazy" style="border:0;position:absolute;top:0;height:100%;width:100%;" allow="accelerometer;gyroscope;autoplay;encrypted-media;picture-in-picture;" allowfullscreen="true"></iframe></div>`
-
 export default function LandingPage() {
-  const showTestimonials = false // Temporariamente escondemos a seção até ser reativada
+  const showTestimonials = false
   return (
-    <main className="relative">
-      <div className="relative min-h-screen bg-gradient-to-b from-background via-cyan-50/30 to-background">
+    <main className="relative overflow-x-hidden">
+      <div className="relative min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
 
-
-        {/* Decorative animated background */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-          <div className="bg-animated-gradient opacity-[0.18] blur-[80px] w-[60vw] h-[60vh] max-w-[800px] rounded-full mx-auto mt-[-80px]" />
+        {/* Decorative background elements */}
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-cyan-500/10 to-transparent rounded-[100%] blur-[100px]" />
+          <div className="absolute top-[20%] right-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px]" />
+          <div className="absolute top-[40%] left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px]" />
         </div>
 
         {/* Hero Section */}
-        <section className="w-full min-h-screen bg-hero-section text-white flex items-center justify-center py-16 md:py-20 px-4 md:px-6">
-          {/* Fundo animado estilo shadcn que transmite ideia de IA */}
-          <div aria-hidden="true" className="hero-ai-bg">
-            {/* Grid técnico suave em ciano */}
-            <div className="hero-ai-grid" />
-            {/* Beams/auroras em camadas para dar sensação de tecnologia/IA */}
-            <motion.div
-              className="hero-ai-beam"
-              animate={{
-                rotate: [0, 10, 0],
-                scale: [1, 1.1, 1],
-                opacity: [0.3, 0.5, 0.3]
-              }}
-              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              style={{ top: "-10%", left: "-6%", ['--beam-color' as any]: "color-mix(in oklab, var(--accent) 45%, transparent)" }}
-            />
-            <motion.div
-              className="hero-ai-beam"
-              animate={{
-                rotate: [0, -15, 0],
-                translateY: [0, 50, 0]
-              }}
-              transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-              style={{ bottom: "-8%", right: "-4%", ['--beam-color' as any]: "color-mix(in oklab, var(--primary) 40%, transparent)" }}
-            />
-            <motion.div
-              className="hero-ai-beam"
-              animate={{
-                scale: [1, 1.2, 1],
-                translateX: [0, -30, 0]
-              }}
-              transition={{ duration: 22, repeat: Infinity, ease: "easeInOut" }}
-              style={{ top: "30%", right: "35%", ['--beam-color' as any]: "color-mix(in oklab, var(--secondary) 35%, transparent)" }}
-            />
-          </div>
+        <section className="w-full min-h-[90vh] flex items-center justify-center py-12 md:py-20 px-4 md:px-6 relative">
           <div className="container mx-auto">
-            {/* Logo - First on Mobile, moved to text section on Desktop */}
-            <div className="flex justify-start md:hidden mb-6">
-              <Logo variant="white" width={140} height={30} />
+            {/* Logo Mobile */}
+            <div className="flex justify-start md:hidden mb-8">
+              <Logo variant="blue" width={140} height={30} />
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center max-w-6xl mx-auto">
+            <div className="grid lg:grid-cols-2 gap-12 xl:gap-20 items-center max-w-7xl mx-auto">
 
-              {/* VSL - Second on Mobile, Right on Desktop */}
-              <div
-                className="relative order-2 md:order-2 hero-video-container rounded-2xl border-2 border-[#21839B]/30 shadow-lg"
-                dangerouslySetInnerHTML={{ __html: videoEmbedHtml }}
-              />
-
-              {/* Text Content - Third on Mobile, Left on Desktop */}
-              <div className="space-y-5 md:space-y-8 text-left order-3 md:order-1">
-                {/* Logo - Hidden on mobile, shown on desktop */}
-                <div className="hidden md:flex justify-start mb-4 md:mb-6">
-                  <Logo variant="white" width={140} height={30} />
+              {/* Text Content */}
+              <div className="space-y-6 md:space-y-8 text-left order-2 lg:order-1 relative z-10">
+                <div className="hidden lg:flex justify-start mb-6">
+                  <Logo variant="blue" width={160} height={35} />
                 </div>
 
                 <FadeIn delay={0.1} direction="up">
-                  <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-7xl font-bold tracking-tight text-balance">
-                    Odonto Suite -{" "}
-                    <span className="bg-gradient-to-r from-primary via-accent to-cyan-400 bg-clip-text text-transparent">
-                      AI Especializada em Odontologia
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-100/50 dark:bg-cyan-900/30 border border-cyan-200 dark:border-cyan-800 text-cyan-700 dark:text-cyan-300 text-sm font-semibold mb-4">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Inteligência Artificial Especializada</span>
+                  </div>
+                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 dark:text-white leading-[1.1]">
+                    Sua Equipe de <br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-400 dark:to-blue-500">
+                      Especialistas em Odontologia
                     </span>
                   </h1>
                 </FadeIn>
 
                 <FadeIn delay={0.2} direction="up">
-                  <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-slate-300 text-balance leading-relaxed">
-                    Diagnóstico, planejamento e evidências clínicas sem perder tempo em buscas ou grupos.
+                  <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl">
+                    Diagnóstico, planejamento, pesquisa e redação clínica. Tenha acesso imediato a uma equipe completa de agentes de IA treinados na melhor literatura odontológica.
+                    <span className="block mt-2 font-medium text-slate-800 dark:text-slate-200">Disponível 24/7 no seu WhatsApp e Web.</span>
                   </p>
                 </FadeIn>
 
                 <FadeIn delay={0.3} direction="up">
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 md:gap-4 pt-4 md:pt-6">
+                  <div className="flex flex-col sm:flex-row gap-4 pt-4">
                     <Button
                       size="xl"
-                      aria-label="Testar 7 dias grátis"
-                      variant="cta"
-                      className="group shadow-primary/25 w-full sm:w-auto"
+                      className="rounded-full px-8 text-lg font-semibold shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30 transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white border-0"
                       asChild
                     >
                       <Link href="/register">
-                        Testar 7 dias grátis
-                        <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
+                        Testar Grátis Agora
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Link>
+                    </Button>
+                    <Button
+                      size="xl"
+                      variant="outline"
+                      className="rounded-full px-8 text-lg font-medium border-2 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      asChild
+                    >
+                      <Link href="#como-funciona">
+                        Ver como funciona
                       </Link>
                     </Button>
                   </div>
+                  <div className="mt-6 flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                    <div className="flex -space-x-2">
+                      {[1, 2, 3, 4].map((i) => (
+                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 bg-cover bg-center" style={{ backgroundImage: `url(https://api.dicebear.com/9.x/avataaars/svg?seed=${i})` }} />
+                      ))}
+                      <div className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 flex items-center justify-center text-xs font-bold">+2k</div>
+                    </div>
+                    <span>Dentistas já usam o Odonto Suite</span>
+                  </div>
                 </FadeIn>
-
-                {/* Social Proof Metrics removidos conforme solicitado */}
               </div>
 
-              {/* Features - After buttons on Mobile (fourth), below video on Desktop */}
-              <div className="order-4 md:order-3 md:col-span-2">
-                <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 pt-4">
-                  <div className="flex items-center gap-2 text-sm">
-                    <BookOpen className="h-5 w-5 text-primary" />
-                    <span className="font-medium">Literatura científica comprovada</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <MessageSquare className="h-5 w-5 text-primary" />
-                    <span className="font-medium">WhatsApp e Web</span>
-                  </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Clock className="h-5 w-5 text-primary" />
-                    <span className="font-medium">Disponível 24/7</span>
-                  </div>
-                </div>
+              {/* Hero Visual */}
+              <div className="order-1 lg:order-2 relative z-0 flex justify-center lg:justify-end">
+                <FadeIn delay={0.2} className="w-full max-w-2xl">
+                  <AgentHeroVisual />
+                </FadeIn>
               </div>
 
             </div>
           </div>
         </section>
 
+        {/* Trusted By / Logos Section could go here */}
+
         {/* Comparison Section */}
-        <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-dentista-section">
-          <div className="container mx-auto max-w-6xl">
+        <section className="w-full py-20 px-4 md:px-6 bg-white dark:bg-slate-950 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-1/3 h-full bg-slate-50 dark:bg-slate-900/50 skew-x-12 translate-x-32 -z-0" />
+          <div className="container mx-auto max-w-6xl relative z-10">
             <SectionHeader
-              label="A Verdade que Ninguém Te Conta"
-              icon={CheckCircle2}
-              title="Enquanto Você Fica Parado nas Dúvidas, Seus Colegas Já Estão na Frente"
-              description="A diferença entre o estudante que se destaca e o que fica para trás não é inteligência - é ter as respostas certas na hora certa"
+              label="Realidade Acadêmica"
+              icon={Brain}
+              title="A Diferença Entre Estudar Muito e Estudar Bem"
+              description="A Odonto Suite não substitui seu estudo, ela o potencializa. Veja a diferença na prática."
               align="center"
-              className="mb-12"
+              className="mb-16"
             />
 
             <div className="grid md:grid-cols-2 gap-8 items-center">
@@ -383,53 +348,64 @@ export default function LandingPage() {
           </section>
         )}
 
-        {/* What is Odonto Suite */}
-        <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-how-it-works-section">
-          <div className="mx-auto max-w-5xl space-y-10 md:space-y-12">
+        {/* Agents Team Section */}
+        <section className="w-full py-20 px-4 md:px-6 bg-slate-50 dark:bg-slate-900/50">
+          <div className="mx-auto max-w-6xl space-y-12">
             <SectionHeader
-              label="Sua Vantagem Competitiva"
+              label="Sua Equipe Completa"
               icon={Brain}
-              title="O Segredo dos Estudantes que se Destacam na Odontologia"
-              description="Enquanto seus colegas ainda estão perdidos nos livros, você terá respostas científicas instantâneas que transformam dúvidas em oportunidades de aprendizado"
+              title="Especialistas Disponíveis 24/7"
+              description="Cada agente da Odonto Suite foi treinado para uma função específica, garantindo precisão e profundidade em cada resposta."
               align="center"
             />
 
-            <div className="grid md:grid-cols-3 gap-8">
-              <Card className="interactive-card border-2 hover:border-primary/50 transition-colors">
-                <CardContent className="pt-8 space-y-4">
-                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                    <BookOpen className="h-6 w-6 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold">Notas que Impressionam</h3>
-                  <p className="text-muted-foreground">
-                    Respostas de provas com citações de livros que seus professores adoram ver.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="interactive-card border-2 hover:border-primary/50 transition-colors">
-                <CardContent className="pt-8 space-y-4">
-                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                    <Clock className="h-6 w-6 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold">Plantão Sem Medo</h3>
-                  <p className="text-muted-foreground">
-                    Chegue no plantão com a segurança de ter um expert no bolso 24/7.
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card className="interactive-card border-2 hover:border-primary/50 transition-colors">
-                <CardContent className="pt-8 space-y-4">
-                  <div className="h-12 w-12 rounded-lg bg-gradient-to-br from-primary to-accent flex items-center justify-center">
-                    <Brain className="h-6 w-6 text-white" />
-                  </div>
-                  <h3 className="text-xl font-bold">Vantagem Competitiva</h3>
-                  <p className="text-muted-foreground">
-                    O diferencial que vai fazer você se destacar entre dezenas de colegas.
-                  </p>
-                </CardContent>
-              </Card>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {[
+                {
+                  icon: Brain,
+                  title: "Planejador Clínico",
+                  desc: "Estrutura planos de tratamento completos baseados nas melhores evidências.",
+                  color: "text-purple-500",
+                  bg: "bg-purple-500/10"
+                },
+                {
+                  icon: BookOpen,
+                  title: "Pesquisador",
+                  desc: "Busca na literatura científica as respostas mais atuais para suas dúvidas.",
+                  color: "text-blue-500",
+                  bg: "bg-blue-500/10"
+                },
+                {
+                  icon: Shield,
+                  title: "Diagnóstico",
+                  desc: "Ajuda a cruzar sinais e sintomas para hipóteses diagnósticas precisas.",
+                  color: "text-pink-500",
+                  bg: "bg-pink-500/10"
+                },
+                {
+                  icon: Zap,
+                  title: "Redator",
+                  desc: "Escreve textos para pacientes, laudos e documentos com linguagem assertiva.",
+                  color: "text-amber-500",
+                  bg: "bg-amber-500/10"
+                }
+              ].map((agent, i) => (
+                <HoverCard key={i} className="h-full">
+                  <Card className="border-0 shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50 h-full relative overflow-hidden group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 z-0" />
+                    <CardContent className="pt-8 space-y-4 relative z-10">
+                      <div className={`h-12 w-12 rounded-xl ${agent.bg} flex items-center justify-center transition-transform group-hover:scale-110 duration-300`}>
+                        <agent.icon className={`h-6 w-6 ${agent.color}`} />
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">{agent.title}</h3>
+                      <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+                        {agent.desc}
+                      </p>
+                    </CardContent>
+                    <div className={`absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-${agent.color.split('-')[1]}-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
+                  </Card>
+                </HoverCard>
+              ))}
             </div>
           </div>
         </section>
@@ -893,70 +869,7 @@ export default function LandingPage() {
         </section>
 
         {/* FAQ */}
-        <section id="faq" className="w-full py-16 md:py-32 px-4 md:px-6 bg-faq-section">
-          <div className="mx-auto max-w-3xl space-y-10 md:space-y-12">
-            <SectionHeader
-              label="FAQ"
-              icon={HelpCircle}
-              title="Perguntas Frequentes"
-              align="center"
-            />
-
-            <Accordion type="single" collapsible className="space-y-4">
-              <AccordionItem value="item-1" className="interactive-card border-2 rounded-xl">
-                <AccordionTrigger className="font-bold text-lg px-4 py-3">Qual a diferença para o ChatGPT comum?</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground px-4 pb-4">
-                  Odonto GPT é calibrado exclusivamente para odontologia com literatura e protocolos clínicos
-                  específicos da área.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-2" className="interactive-card border-2 rounded-xl">
-                <AccordionTrigger className="font-bold text-lg px-4 py-3">Como funciona o acesso via WhatsApp?</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground px-4 pb-4">
-                  Após pagar, você recebe o número da IA e fala normalmente pelo WhatsApp, como se fosse uma conversa
-                  comum.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-3" className="interactive-card border-2 rounded-xl">
-                <AccordionTrigger className="font-bold text-lg px-4 py-3">As respostas são confiáveis?</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground px-4 pb-4">
-                  Sim. Todas as respostas são baseadas em literatura odontológica reconhecida e evidências científicas
-                  atualizadas.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-4" className="interactive-card border-2 rounded-xl">
-                <AccordionTrigger className="font-bold text-lg px-4 py-3">É para estudantes também?</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground px-4 pb-4">
-                  Sim! Ajuda em provas, estágios, casos clínicos e todo o processo de aprendizado em odontologia.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-5" className="interactive-card border-2 rounded-xl">
-                <AccordionTrigger className="font-bold text-lg px-4 py-3">Tem limite de perguntas?</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground px-4 pb-4">
-                  Não. Você pode fazer quantas perguntas quiser, sem limites ou restrições.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-6" className="interactive-card border-2 rounded-xl">
-                <AccordionTrigger className="font-bold text-lg px-4 py-3">Posso cancelar quando quiser?</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground px-4 pb-4">
-                  Sim. Não há fidelidade. Você pode cancelar sua assinatura a qualquer momento.
-                </AccordionContent>
-              </AccordionItem>
-
-              <AccordionItem value="item-7" className="interactive-card border-2 rounded-xl">
-                <AccordionTrigger className="font-bold text-lg px-4 py-3">Meus dados ficam seguros?</AccordionTrigger>
-                <AccordionContent className="text-muted-foreground px-4 pb-4">
-                  Sim. Todas as conversas são criptografadas e seguimos rigorosamente a LGPD para proteção de dados.
-                </AccordionContent>
-              </AccordionItem>
-            </Accordion>
-          </div>
-        </section>
+        <FAQSection />
 
       </div>
     </main>

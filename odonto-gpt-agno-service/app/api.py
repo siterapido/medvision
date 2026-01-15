@@ -17,7 +17,8 @@ from app.agents.summary_agent import dental_summary_agent
 from app.agents.science_agent import odonto_research
 from app.agents.study_agent import odonto_practice
 from app.agents.writer_agent import odonto_write
-from app.agents.team import rotear_para_agente_apropriado, odonto_flow
+from app.agents.odonto_gpt_agent import odonto_gpt
+from app.agents.team import rotear_para_agente_apropriado, odonto_flow, odonto_coordinator
 from app.tools.database.supabase import get_supabase_client
 from app.database.supabase import save_agent_message
 from app.tools.whatsapp import send_whatsapp_message
@@ -80,7 +81,7 @@ async def stream_generator(agent, message: str, session_id: str = None, agent_id
                 save_agent_message(
                     session_id=session_id,
                     agent_id=agent_id, # Or processor.current_agent_id if we want to track switch? Usually we attribute to starting agent or current
-                    role="agent",
+                    role="assistant",
                     content=processor.full_response
                 )
             except Exception as e:
@@ -206,7 +207,7 @@ async def stream_generator_with_images(agent, message: str, images: list, sessio
                 save_agent_message(
                     session_id=session_id,
                     agent_id=agent_id,
-                    role="agent",
+                    role="assistant",
                     content=processor.full_response,
                     metadata={"images": images} if images else None
                 )
@@ -417,6 +418,24 @@ async def chat_dr_redator(request: ChatRequest):
         media_type="application/x-ndjson",
         headers={"Content-Type": "application/x-ndjson"}
     )
+@router.post("/agentes/odonto-gpt/chat")
+async def chat_odonto_gpt(request: ChatRequest):
+    """
+    Chat com Odonto GPT - Mentor Digital e Bate-papo.
+    
+    Capacidades:
+    - Explicações didáticas e simplificadas
+    - Bate-papo amigável sobre odontologia
+    - Tira-dúvidas gerais com suporte de pesquisa
+    """
+    ctx = f"Context: Current User ID is '{request.userId}'."
+    if request.context:
+        ctx += f"\nAdditional Context: {json.dumps(request.context, ensure_ascii=False)}"
+    return StreamingResponse(
+        stream_generator(odonto_gpt, request.message, session_id=request.sessionId, agent_id="odonto-gpt", context_str=ctx),
+        media_type="application/x-ndjson",
+        headers={"Content-Type": "application/x-ndjson"}
+    )
 
 
 @router.post("/equipe/chat")
@@ -440,12 +459,18 @@ async def chat_equipe(request: ChatRequest):
         'redator': (odonto_write, 'odonto-write'),
         'imagem': (odonto_vision, 'odonto-vision'),
         'resumo': (dental_summary_agent, 'odonto-summary'),
+        'equipe': (odonto_flow, 'odonto-flow'),
+        'coordenador': (odonto_coordinator, 'odonto-coordinator'),
+        'gpt': (odonto_gpt, 'odonto-gpt'),
         # Mapeamento por ID (para forceAgent)
         'odonto-research': (odonto_research, 'odonto-research'),
         'odonto-practice': (odonto_practice, 'odonto-practice'),
         'odonto-write': (odonto_write, 'odonto-write'),
         'odonto-vision': (odonto_vision, 'odonto-vision'),
         'odonto-summary': (dental_summary_agent, 'odonto-summary'),
+        'odonto-flow': (odonto_flow, 'odonto-flow'),
+        'odonto-coordinator': (odonto_coordinator, 'odonto-coordinator'),
+        'odonto-gpt': (odonto_gpt, 'odonto-gpt'),
     }
     
     # Verificar se foi solicitado bypass do roteamento
@@ -581,6 +606,18 @@ async def listar_agentes():
                     "Coordenação multi-agente quando necessário"
                 ],
                 "endpoint": "/equipe/chat"
+            },
+            {
+                "id": "odonto-gpt",
+                "nome": "Odonto GPT",
+                "descricao": "Seu mentor digital amigável. Tira dúvidas, explica conceitos complexos de forma simples e guia seu aprendizado com bom humor.",
+                "capacidades": [
+                    "Bate-papo educacional guiado",
+                    "Explicações didáticas simplificadas",
+                    "Respostas com bom humor e emojis",
+                    "Suporte a dúvidas gerais"
+                ],
+                "endpoint": "/agentes/odonto-gpt/chat"
             }
         ]
     }

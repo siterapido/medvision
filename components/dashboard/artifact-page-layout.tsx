@@ -13,6 +13,8 @@ interface ArtifactPageLayoutProps {
     agentId: string
     userId: string
     onArtifactCreated?: (artifact: ArtifactResult) => void
+    initialSuggestions?: string[]
+    context?: Record<string, any>
 }
 
 /**
@@ -23,17 +25,20 @@ export function ArtifactPageLayout({
     children,
     agentId,
     userId,
-    onArtifactCreated
+    onArtifactCreated,
+    initialSuggestions = [],
+    context
 }: ArtifactPageLayoutProps) {
     const [chatOpen, setChatOpen] = useState(true)
     const agentInfo = getAgentInfo(agentId)
-    const suggestions = getAgentSuggestions(agentId)
+    // Merge agent default suggestions with specific artifact suggestions
+    const suggestions = [...initialSuggestions, ...getAgentSuggestions(agentId)]
 
     return (
         <div className="flex h-[calc(100vh-64px)] overflow-hidden">
             {/* Main Content */}
             <div className={cn(
-                "flex-1 overflow-y-auto transition-all duration-300 custom-scrollbar",
+                "flex-1 overflow-y-auto transition-all duration-300 custom-scrollbar h-full",
                 chatOpen ? "md:w-[70%]" : "w-full"
             )}>
                 {children}
@@ -73,6 +78,7 @@ export function ArtifactPageLayout({
                         suggestions={suggestions}
                         onArtifactCreated={onArtifactCreated}
                         compact={false}
+                        context={context}
                     />
                 </div>
             )}

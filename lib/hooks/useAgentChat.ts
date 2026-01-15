@@ -19,7 +19,7 @@ export function useAgentChat({
     })
     const abortControllerRef = useRef<AbortController | null>(null)
 
-    const sendMessage = useCallback(async (content: string) => {
+    const sendMessage = useCallback(async (content: string, context?: Record<string, any>) => {
         if (!content.trim() || state.status === "streaming") return
 
         // Add user message
@@ -70,7 +70,7 @@ export function useAgentChat({
                 body: JSON.stringify({
                     message: content,
                     userId,
-                    context: { agentId }
+                    context: { agentId, ...(context || {}) }
                 }),
                 signal: abortControllerRef.current.signal
             })
@@ -87,21 +87,33 @@ export function useAgentChat({
             let assistantContent = ""
             let foundSources: AgentChatState["sources"] = []
             let createdArtifact: ArtifactResult | undefined
+            let buffer = ""
 
             while (reader) {
                 const { done, value } = await reader.read()
                 if (done) break
 
                 const chunk = decoder.decode(value, { stream: true })
-                const lines = chunk.split("\n").filter(Boolean)
+                buffer += chunk
+
+                const lines = buffer.split("\n")
+                // Keep the last partial line in the buffer
+                buffer = lines.pop() || ""
 
                 for (const line of lines) {
+                    if (!line.trim()) continue
+
                     try {
                         const data = JSON.parse(line)
 
+                        // Handle errors from backend
+                        if (data.type === "error") {
+                            throw new Error(data.message || "Erro no processamento do agente")
+                        }
+
                         // Handle text content
-                        if (data.type === "text" || data.content) {
-                            assistantContent += data.content || data.text || ""
+                        if (data.type === "text.delta" || data.content) {
+                            assistantContent += data.content || ""
                             setMessages(prev => {
                                 const newMessages = [...prev]
                                 const lastMsg = newMessages[newMessages.length - 1]
@@ -118,7 +130,25 @@ export function useAgentChat({
                                 }
                                 return newMessages
                             })
-                            setState(prev => ({ ...prev, progress: Math.min(prev.progress + 5, 80) }))
+                            setState(prev => ({ ...prev, status: "streaming", progress: Math.min(prev.progress + 5, 90) }))
+                        }
+
+                        // Handle agent switch
+                        if (data.type === "agent.switch") {
+                            setState(prev => ({
+                                ...prev,
+                                status: "thinking",
+                                currentAction: `Trocando para agente: ${data.agentId}`
+                            }))
+                        }
+
+                        // Handle tool call start
+                        if (data.type === "tool_call.start") {
+                            setState(prev => ({
+                                ...prev,
+                                status: "tool_calling",
+                                currentAction: `Pesquisando via ${data.toolCallName}...`
+                            }))
                         }
 
                         // Handle sources
@@ -127,17 +157,16 @@ export function useAgentChat({
                             setState(prev => ({ ...prev, sources: foundSources }))
                         }
 
-                        // Handle artifact creation (tool result)
-                        if (data.tool_name && data.result) {
-                            setState(prev => ({ ...prev, status: "tool_calling", currentAction: `Executando ${data.tool_name}...` }))
-
+                        // Handle artifact creation (tool result or dedicated event)
+                        if (data.type === "artifact.created" || (data.toolCallName && data.result)) {
                             try {
-                                const result = typeof data.result === "string" ? JSON.parse(data.result) : data.result
-                                if (result.success && result.artifact) {
+                                const artifactData = data.artifact || (typeof data.result === "string" ? JSON.parse(data.result).artifact : data.result.artifact)
+
+                                if (artifactData) {
                                     createdArtifact = {
-                                        id: result.artifact.id,
-                                        type: result.artifact.type || "summary",
-                                        title: result.artifact.title || "Artefato criado",
+                                        id: artifactData.id,
+                                        type: artifactData.type || "research",
+                                        title: artifactData.title || "Artefato criado",
                                         createdAt: new Date()
                                     }
                                     setState(prev => ({ ...prev, artifact: createdArtifact }))
@@ -147,8 +176,13 @@ export function useAgentChat({
                                 // Result parsing failed, continue
                             }
                         }
-                    } catch {
-                        // Line might not be JSON, continue
+                    } catch (e) {
+                        if ((e as Error).name === "SyntaxError") {
+                            // JSON parse error, likely partial line, but we handle it with the buffer.
+                            // If it still fails, it might be corrupt data.
+                            continue
+                        }
+                        throw e // Rethrow actual processing errors
                     }
                 }
             }

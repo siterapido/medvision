@@ -6,6 +6,9 @@ import Link from "next/link"
 import type { ChatMessage } from "@/lib/agno"
 import { getAgentInfo } from "@/lib/agent-config"
 import { cn } from "@/lib/utils"
+import ReactMarkdown from "react-markdown"
+import remarkGfm from "remark-gfm"
+import { MarkdownComponents } from "./markdown-components"
 
 interface AgnoMessageProps {
     message: ChatMessage
@@ -210,9 +213,22 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
                         </div>
                     )}
 
-                    <div className="text-sm leading-relaxed prose prose-invert prose-sm max-w-none">
-                        {renderContent(message.content)}
-                    </div>
+                    {/* Content Rendering */}
+                    {!message.content && message.isStreaming ? (
+                        <div className="flex items-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
+                            <span className="text-slate-400">Pensando...</span>
+                        </div>
+                    ) : (
+                        <div className="text-sm leading-relaxed text-slate-300">
+                            <ReactMarkdown
+                                remarkPlugins={[remarkGfm]}
+                                components={MarkdownComponents}
+                            >
+                                {message.content}
+                            </ReactMarkdown>
+                        </div>
+                    )}
 
                     {/* Tool calls indicator - Generative UI */}
                     {message.tool_calls && message.tool_calls.length > 0 && (
@@ -225,30 +241,50 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
                                 const isMindMap = tool.tool_name === "save_mind_map"
                                 const isLoading = tool.result === undefined
 
+                                let researchId = ""
+                                let researchTitle = "Pesquisa Científica"
+
+                                if (!isLoading && tool.result) {
+                                    try {
+                                        // Tenta fazer parse do JSON retornado pela ferramenta
+                                        const resultJson = JSON.parse(tool.result)
+                                        if (resultJson.artifact) {
+                                            researchId = resultJson.artifact.id
+                                            researchTitle = resultJson.artifact.title || researchTitle
+                                        }
+                                    } catch (e) {
+                                        // Fallback para Regex antigo se não for JSON válido
+                                        const match = tool.result.match(/ID:\s*([a-f0-9\-]+)/)
+                                        if (match) researchId = match[1]
+                                    }
+                                }
+
                                 if (isResearch) {
                                     return (
                                         <div key={idx} className="p-4 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 border border-emerald-500/20 rounded-xl flex items-center justify-between shadow-lg shadow-emerald-500/5 group/tool">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/20 transition-transform group-hover/tool:scale-110">
+                                            <div className="flex items-center gap-3 min-w-0">
+                                                <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center border border-emerald-500/20 transition-transform group-hover/tool:scale-110 shrink-0">
                                                     {isLoading ? (
                                                         <Loader2 className="w-5 h-5 text-emerald-400 animate-spin" />
                                                     ) : (
                                                         <Microscope className="w-5 h-5 text-emerald-400" />
                                                     )}
                                                 </div>
-                                                <div className="flex flex-col">
-                                                    <span className="text-xs font-bold text-emerald-100 uppercase tracking-widest">
-                                                        {isLoading ? "Processando Pesquisa..." : "Pesquisa Científica"}
+                                                <div className="flex flex-col min-w-0 mr-2">
+                                                    <span className="text-xs font-bold text-emerald-100 uppercase tracking-widest truncate">
+                                                        {isLoading ? "Processando Pesquisa..." : researchTitle}
                                                     </span>
                                                     {!isLoading && (
-                                                        <span className="text-[10px] text-emerald-400/70 font-medium">Salvo com evidências</span>
+                                                        <span className="text-[10px] text-emerald-400/70 font-medium truncate">
+                                                            Salvo com evidências
+                                                        </span>
                                                     )}
                                                 </div>
                                             </div>
-                                            {!isLoading && (
+                                            {!isLoading && researchId && (
                                                 <Link
-                                                    href={tool.result?.match(/ID:\s*([a-f0-9\-]+)/)?.[1] ? `/dashboard/pesquisas/${tool.result.match(/ID:\s*([a-f0-9\-]+)/)![1]}` : "/dashboard/pesquisas"}
-                                                    className="px-4 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-full font-bold shadow-lg shadow-emerald-600/20 transition-all hover:-translate-y-0.5"
+                                                    href={`/dashboard/pesquisas/${researchId}`}
+                                                    className="px-4 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white rounded-full font-bold shadow-lg shadow-emerald-600/20 transition-all hover:-translate-y-0.5 whitespace-nowrap"
                                                 >
                                                     Abrir
                                                 </Link>

@@ -1,4 +1,4 @@
-"""Agno agent for dental image analysis
+"""Agente Agno para análise de imagens odontológicas (Odonto Vision)
 
 Enhanced with research tools for evidence-based image interpretation
 and scientific literature support for radiographic findings.
@@ -16,11 +16,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from app.tools.research import RESEARCH_TOOLS
 # Import database config
 from app.database.supabase import get_agent_config
+# Import artifact tools
+from app.tools.artifacts_db import save_image_analysis
+# Import navigation tools
+from app.tools.navigation import NAVIGATION_TOOLS
 
 
 def create_image_analysis_agent() -> Agent:
     """
-    Create an enhanced Agno agent specialized in dental image analysis.
+    Create an enhanced Agno agent specialized in dental image analysis (Odonto Vision).
 
     Features:
     - Vision-based image analysis (radiographs, intraoral photos)
@@ -50,6 +54,9 @@ def create_image_analysis_agent() -> Agent:
     api_key = os.getenv("OPENROUTER_API_KEY")
     base_url = "https://openrouter.ai/api/v1"
     
+    temperature = 0.7
+    max_tokens = 4096
+    
     # Só usa config do DB se for OpenRouter (evita modelos inválidos de outros providers)
     if config:
         metadata = config.get("metadata", {}) or {}
@@ -66,12 +73,20 @@ def create_image_analysis_agent() -> Agent:
             if config_base_url:
                 base_url = config_base_url
 
+            # Aplica parâmetros de geração se existirem no DB
+            if config.get("temperature") is not None:
+                temperature = float(config.get("temperature"))
+            if config.get("max_tokens"):
+                max_tokens = int(config.get("max_tokens"))
+
     odonto_vision = Agent(
         name="odonto-vision",
         model=OpenAILike(
             id=model_id,
             api_key=api_key,
             base_url=base_url,
+            temperature=temperature,
+            max_tokens=max_tokens
         ), # GPT-4o tem capacidades nativas de visão
         db=db,
         add_history_to_context=True,
@@ -79,84 +94,35 @@ def create_image_analysis_agent() -> Agent:
         add_datetime_to_context=True,
         stream_events=True,
 
-        description="""Você é o Odonto Vision, a inteligência de análise de imagens e radiologia da Odonto Suite.
-        
-        Sua missão é interpretar radiografias e imagens odontológicas com precisão clínica, fornecendo interpretações baseadas em evidências apoiadas pela literatura científica quando relevante.""",
+        # Descrição especializada profissional
+        description="""Você é o Odonto Vision, especialista em radiologia odontológica e imaginologia diagnóstica.
+        Sua função é interpretar imagens com precisão técnica e fundamentação científica.""",
 
         instructions=[
-            # Identidade Principal
-            "Você é um radiologista odontológico experiente com mais de 20 anos de experiência clínica e acadêmica.",
-            "Você possui treinamento especializado em radiologia oral, imaginologia dentária e patologia diagnóstica.",
-
-            # Protocolo de Análise de Imagem
-            "Siga uma abordagem sistemática para a interpretação de imagens:",
-            "  1. Avalie a qualidade da imagem e adequação técnica",
-            "  2. Identifique estruturas anatômicas normais primeiro",
-            "  3. Identifique quaisquer anormalidades ou patologias",
-            "  4. Formule diagnósticos diferenciais baseados nos achados",
-            "  5. Forneça recomendações para avaliação adicional ou tratamento",
-
-            # Descrição dos Achados
-            "Descreva os achados de forma clara e precisa usando terminologia profissional.",
-            "Seja específico sobre localização, tamanho, forma, radiodensidade e outras características relevantes.",
-            "Use terminologia padrão de interpretação radiográfica odontológica.",
-            "Compare com estruturas contralaterais quando relevante.",
-
-            # Interpretação Baseada em Evidências
-            "Use as ferramentas de busca do PubMed para encontrar literatura recente que sustente suas interpretações.",
-            "Cite estudos relevantes, revisões sistemáticas ou diretrizes clínicas.",
-            "Forneça níveis de evidência ao fazer afirmações específicas sobre diagnósticos ou tratamentos.",
-            "Procure por avanços recentes ou pontos de vista alternativos quando apropriado.",
-
-            # Estrutura da Análise
-            "Estruture sua análise em seções claras:",
-            "  ## Avaliação da Qualidade da Imagem",
-            "  ## Achados Anatômicos Normais",
-            "  ## Achados Anormais (se houver)",
-            "  ## Diagnósticos Diferenciais (ordenados por probabilidade)",
-            "  ## Recomendações",
-            "  ## Suporte da Literatura (quando relevante)",
-
-            # Integridade Profissional e Segurança
-            "CRÍTICO: Sempre inclua avisos de que sua análise é para fins educacionais.",
-            "Sempre recomende exame clínico profissional para diagnóstico definitivo.",
-            "Nunca forneça um diagnóstico definitivo sem correlação clínica.",
-            "Foque nos achados reais na imagem, evite especulações além do que é visível.",
-            "Quando incerto, declare as limitações explicitamente em vez de adivinhar.",
-
-            # Estilo de Comunicação
-            "Use linguagem profissional e clinicamente apropriada.",
-            "Explique termos técnicos quando necessário para fins educacionais.",
-            "Seja minucioso, mas conciso em suas descrições.",
-            "Inclua analogias visuais quando as considerar úteis para a compreensão.",
-
-            # Considerações Especiais
-            "Destaque achados urgentes ou críticos que requerem atenção imediata.",
-            "Observe quaisquer achados iatrogênicos (ex: de trabalhos dentários anteriores).",
-            "Considere variantes normais apropriadas para a idade.",
-            "Mencione artefatos ou limitações técnicas que afetem a interpretação.",
-            "Para achados ambíguos, sugira exames de imagem ou testes adicionais quando apropriado.",
-
-            # Integração de Pesquisa
-            "Use a busca do arXiv para aplicações de IA/ML em imaginologia odontológica quando relevante.",
-            "Pesquise no PubMed por diretrizes clínicas recentes sobre condições detectadas.",
-            "Forneça referências para tópicos controversos ou em evolução.",
-            "Sugira artigos de revisão relevantes para leitura adicional.",
-
-            # Limitações e Recomendações
-            "Sempre reconheça as limitações da imagem 2D quando aplicável.",
-            "Sugira exames 3D (TCFC) quando os achados justificarem investigação adicional.",
-            "Recomende correlação clínica com os sintomas e exame físico.",
-            "Forneça próximos passos específicos e acionáveis para o clínico.",
+            # IDENTIDADE
+            "Você é o **Odonto Vision**. Aja como um Radiologista Odontológico Sênior.",
             
-            # Contexto e Navegação (CopilotKit)
-            "Você tem consciência do que o usuário está vendo na tela através do 'Additional Context' no prompt.",
-            "Utilize as informações da tela para entender se o usuário está visualizando outros exames ou pesquisas relacionadas à mesma região anatômica.",
-            "Você pode sugerir a navegação para diferentes partes do app. No momento, o sistema de navegação é assistido; você pode indicar para onde o usuário deve ir.",
+            # PROTOCOLO DE LAUDO
+            "Ao analisar uma imagem, siga o fluxo:",
+            "  1. **Técnica/Qualidade**: Identifique o tipo de exame (Panorâmica, Periapical, TC) e a qualidade.",
+            "  2. **Anatomia Normal**: Liste estruturas visíveis.",
+            "  3. **Alterações**: Descreva com terminologia radiográfica (radiopaco, radiolúcido, unilocular, limites definidos/indefinidos).",
+            "  4. **Hipóteses Diagnósticas**: Liste em ordem de probabilidade baseada na literatura e epidemiologia.",
+            
+            # SUPORTE CIENTÍFICO
+            "- Use `search_pubmed` se encontrar algo incomum ou para sugerir diagnósticos diferenciais raros.",
+            "- Cite diretrizes da AAOMR (American Academy of Oral and Maxillofacial Radiology) quando aplicável.",
+            
+            # SEGURANÇA E ÉTICA
+            "- **Disclaimer Obrigatório**: 'Esta análise é uma ferramenta de suporte educacional e não substitui o laudo oficial assinado por um radiologista.'",
+            "- Indique urgência se houver sinais de malignidade ou infecção aguda.",
+            
+            # CLAREZA
+            "Seja técnico mas claro. Se usar termos muito específicos, brevemente explique.",
         ],
 
-        # Add research tools for evidence-based practice
-        tools=RESEARCH_TOOLS + NAVIGATION_TOOLS,
+        # Add research tools and image artifact tools
+        tools=RESEARCH_TOOLS + NAVIGATION_TOOLS + [save_image_analysis],
     )
 
     return odonto_vision

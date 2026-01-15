@@ -1,12 +1,12 @@
 "use client"
 
 import { useState, useCallback, useRef } from "react"
-import { useCopilotContext } from "@copilotkit/react-core"
 import {
     generateMessageId,
     type ChatMessage,
     type AgentDetails,
     type SessionEntry,
+    type AgnoStreamEvent,
 } from "@/lib/agno"
 import { AGENT_IDS } from "@/lib/constants"
 
@@ -49,13 +49,8 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
     const [isLoadingSessions, setIsLoadingSessions] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const { actions } = useCopilotContext()
-
     const abortControllerRef = useRef<AbortController | null>(null)
 
-    /**
-     * Send a message to the agent and stream the response
-     */
     /**
      * Send a message to the agent and stream the response
      */
@@ -89,6 +84,7 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                 content: "",
                 created_at: Math.floor(Date.now() / 1000),
                 isStreaming: true,
+                agent_id: agent.id,
             }
             setMessages((prev) => [...prev, agentMessageStub])
 
@@ -107,7 +103,8 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                             headers: { "Content-Type": "application/json" },
                             body: JSON.stringify({
                                 userId,
-                                agentType: agent.id === AGENT_IDS.VISION ? AGENT_IDS.VISION : AGENT_IDS.QA,
+                                // Backend expects: 'image-analysis', 'qa', or 'auto'
+                                agentType: agent.id === AGENT_IDS.VISION ? "image-analysis" : "qa",
                                 metadata: {
                                     title: message.substring(0, 50) + (message.length > 50 ? "..." : "")
                                 }
@@ -156,7 +153,8 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                         imageUrl,
                         userId,
                         sessionId: currentSessionId,
-                        agentType: agent.id === AGENT_IDS.VISION ? AGENT_IDS.VISION : AGENT_IDS.QA,
+                        // Backend expects: 'image-analysis', 'qa', or 'auto'
+                        agentType: agent.id === AGENT_IDS.VISION ? "image-analysis" : "auto",
                         // Se não for odonto-flow, forçar o agente específico (bypass de roteamento)
                         forceAgent: agent.id !== AGENT_IDS.FLOW ? agent.id : undefined,
                         // Context must be an object, not a string (backend expects Dict[str, Any])
@@ -195,7 +193,7 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                         if (!line.trim()) continue
 
                         try {
-                            const event = JSON.parse(line)
+                            const event = JSON.parse(line) as AgnoStreamEvent
 
                             switch (event.type) {
                                 case "run.started":
@@ -236,16 +234,8 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                                     break
 
                                 case "tool_call.start":
-                                    // Intercept for CopilotKit Actions (Frontend Actions)
-                                    if (event.toolCallName && actions[event.toolCallName]) {
-                                        try {
-                                            const args = typeof event.args === 'string' ? JSON.parse(event.args) : (event.args || {});
-                                            console.log(`[CopilotAction] Triggering ${event.toolCallName}`, args);
-                                            actions[event.toolCallName].handler(args);
-                                        } catch (e) {
-                                            console.error(`Failed to trigger Copilot action ${event.toolCallName}:`, e);
-                                        }
-                                    }
+                                    // Log tool call start for debugging
+                                    console.log(`[ToolCall] Starting ${event.toolCallName}`);
 
                                     setMessages((prev) =>
                                         prev.map((msg) => {
@@ -305,16 +295,9 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
                                     throw new Error(event.message)
                             }
                         } catch (e) {
-                            // Fallback for non-JSON lines (legacy support or plain text)
-                            // Treat as raw text if parsing fails (useful during migration)
-                            console.warn("Failed to parse event:", line, e)
-                            setMessages((prev) =>
-                                prev.map((msg) =>
-                                    msg.id === agentMessageId
-                                        ? { ...msg, content: (msg.content || "") + line }
-                                        : msg
-                                )
-                            )
+                            // Log parse errors but don't append invalid JSON as content
+                            // This prevents malformed JSON from appearing in chat messages
+                            console.error("[useAgnoChat] Invalid NDJSON event:", line.substring(0, 100))
                         }
                     }
                 }

@@ -1,4 +1,4 @@
-import { Microscope, GraduationCap, PenTool, Bot, Eye, Workflow, FileText } from "lucide-react"
+import { Microscope, GraduationCap, PenTool, Bot, Eye, Workflow, FileText, MessageCircle } from "lucide-react"
 
 export interface AgentInfo {
     id: string
@@ -80,6 +80,17 @@ export const AGENT_CONFIGS: Record<string, AgentInfo> = {
         bgGlow: "shadow-pink-500/20",
         handoffMessage: "Criando materiais de estudo...",
         description: "Gera resumos inteligentes, flashcards e mapas mentais a partir de tópicos odontológicos."
+    },
+    "odonto-gpt": {
+        id: "odonto-gpt",
+        name: "Odonto GPT",
+        icon: MessageCircle,
+        color: "indigo",
+        gradient: "from-indigo-500 via-purple-500 to-pink-500",
+        ringColor: "ring-indigo-500/50",
+        bgGlow: "shadow-indigo-500/20",
+        handoffMessage: "Iniciando conversa...",
+        description: "Seu mentor digital amigável. Tira dúvidas, explica conceitos complexos de forma simples e guia seu aprendizado com bom humor."
     }
 }
 
@@ -135,6 +146,11 @@ export const AGENT_SUGGESTIONS: Record<string, string[]> = {
         "Quero pesquisar e criar um resumo",
         "Me ajude com meu TCC",
         "Questões sobre periodontite"
+    ],
+    "odonto-gpt": [
+        "Como funciona o tratamento de canal?",
+        "Me explica periodontite de forma simples",
+        "Vamos bater um papo sobre anatomia"
     ]
 }
 

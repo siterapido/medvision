@@ -1,4 +1,4 @@
-"""Agno agent for Q&A with dental professionals and students
+"""Agente Agno para Q&A com profissionais e estudantes (Odonto QA)
 
 Enhanced with:
 - Research tools (PubMed, arXiv)
@@ -10,9 +10,13 @@ Enhanced with:
 from agno.agent import Agent
 from agno.models.openai.like import OpenAILike
 from agno.models.message import Message
+from dotenv import load_dotenv
 from typing import Optional, Dict, Any, List
 import os
 import sys
+
+# Load environment variables
+load_dotenv()
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -28,7 +32,7 @@ from data.examples import DENTAL_QA_EXAMPLES
 
 def create_qa_agent() -> Agent:
     """
-    Create an enhanced Agno agent specialized in dental education and Q&A.
+    Create an enhanced Agno agent specialized in knownledge and Q&A (Odonto QA).
 
     Features:
     - Access to PubMed and arXiv for scientific research
@@ -53,13 +57,8 @@ def create_qa_agent() -> Agent:
     )
 
     # Fetch configuration from DB
-    config = get_agent_config("odonto-qa")  # Assuming id is 'odonto-qa' or 'qa'? let's check route.ts
-    # route.ts uses "qa" or "dental_qa_agent". In AGENT_CONFIGS lib/agent-config.ts it's "odonto-flow" usually orchestration but... 
-    # Wait, the QA agent usually is generic. In team.py: "model=OpenAIChat..."
-    # In `agents_config_manager.tsx`, configs come from `AGENT_CONFIGS`.
-    # `qa_agent.py` declares name="odonto-qa".
-    # I should use "odonto-qa" here.
-
+    config = get_agent_config("odonto-qa")
+    
     model_id = os.getenv("OPENROUTER_MODEL_QA", "openai/gpt-4o-mini")
     api_key = os.getenv("OPENROUTER_API_KEY")
     base_url = "https://openrouter.ai/api/v1"
@@ -80,8 +79,7 @@ def create_qa_agent() -> Agent:
             if config_base_url:
                 base_url = config_base_url
 
-    # Prepare few-shot examples (convert to format expected by Agno)
-    # Note: Agno may expect examples in different format, adjust as needed
+    # Prepare few-shot examples
     additional_context = "\n\n".join([
         f"User: {msg.content}\nAssistant: " if msg.role == "user" else msg.content
         for msg in DENTAL_QA_EXAMPLES
@@ -92,64 +90,32 @@ def create_qa_agent() -> Agent:
         model=OpenAILike(
             id=model_id,
             api_key=api_key,
-            base_url=base_url
+            base_url=base_url,
+            max_tokens=4000
         ),
         db=db,
         add_history_to_context=True,
         num_history_messages=5,
         add_datetime_to_context=True,
 
-        # Descrição aprimorada
-        description="""Você é um Especialista em Educação Odontológica e Conhecimento com acesso à literatura científica e materiais de curso.
-
-        Forneça respostas precisas e bem fundamentadas para questões odontológicas, tanto para estudantes quanto para profissionais.
-        Suas respostas são baseadas em evidências, devidamente citadas e educacionalmente sólidas.""",
+        # Descrição aprimorada profissional
+        description="""Você é o Odonto QA, uma base de conhecimento interativa.
+        Responda dúvidas pontuais de forma precisa, citando fontes e evitando suposições.""",
 
         # Instruções abrangentes
         instructions=[
-            # Identidade Principal
-            "Você é um ilustre professor de odontologia com vasta experiência de ensino em todas as especialidades odontológicas.",
-
-            # Estrutura de Resposta
-            "Estruture suas respostas claramente com títulos (##), listas e seções quando apropriado.",
-            "Comece com uma resposta direta, seguida por uma explicação detalhada.",
-            "Use formatação markdown para melhor legibilidade (##, **negrito**, - marcadores)",
-
-            # Prática Baseada em Evidências
-            "Use as ferramentas de busca do PubMed para encontrar estudos clínicos recentes e informações baseadas em evidências.",
-            "Use a busca do arXiv para odontologia computacional e aplicações de IA/ML na odontologia.",
-            "Sempre cite as fontes ao referenciar pesquisas científicas ou materiais de curso.",
-            "Forneça IDs do PubMed ou links DOI quando disponíveis.",
-            "Indique o nível de evidência (ex: 'revisão sistemática', 'ensaio clínico', 'série de casos').",
-
-            # Uso da Base de Conhecimento
-            "Pesquise na base de conhecimento do Odonto GPT por materiais de curso quando relevante.",
-            "Refere-se a cursos, módulos ou lições específicas quando apropriado.",
-            "Sugira materiais de curso relevantes para aprendizado adicional.",
-
-            # Estilo de Comunicação
-            "Mantenha o rigor acadêmico enquanto permanece acessível aos estudantes.",
-            "Adapte a complexidade da linguagem ao nível aparente de quem pergunta.",
-            "Use Português (Brasil) como idioma principal.",
-            "Inclua termos técnicos em inglês entre parênteses quando relevante.",
-
-            # Integridade Profissional
-            "Quando estiver incerto, reconheça as limitações em vez de adivinhar.",
-            "Esclareça quando os tópicos exigem julgamento clínico vs. conhecimento teórico.",
-            "Inclua avisos médicos apropriados para tópicos clínicos.",
-            "Nunca forneça diagnósticos definitivos sem exame clínico.",
-            "Sempre recomende consulta profissional para casos clínicos específicos.",
-
-            # Aplicação Prática
-            "Forneça exemplos práticos conectando a teoria à prática clínica.",
-            "Inclua dicas clínicas (clinical pearls) quando relevante.",
-            "Mencione armadilhas comuns e como evitá-las.",
-            "Sugira tópicos relacionados para estudo posterior.",
-
-            # Considerações Especiais
-            "Para situações urgentes/emrgência (trauma, dor severa), forneça orientações imediatas primeiro.",
-            "Para tópicos controversos, apresente múltiplas perspectivas com as devidas evidências.",
-            "Use terminologia e sistemas de classificação atuais.",
+            # IDENTIDADE
+            "Você é o **Odonto QA**.",
+            "Uma enciclopédia odontológica viva.",
+            
+            # ESTILO DE RESPOSTA
+            "1. **Direto ao Ponto**: Comece com a resposta resumida.",
+            "2. **Detalhamento**: Use listas (bullets) para expandir.",
+            "3. **Evidência**: Cite a fonte (artigo, diretriz, livro) de onde tirou a informação.",
+            
+            # ÉTICA
+            "Nunca invente informações. Se não souber, diga 'Não encontrei evidências suficientes sobre isso no momento'.",
+            "Mantenha distinção clara entre fatos estabelecidos e teorias.",
         ],
 
         # Add research tools for scientific literature

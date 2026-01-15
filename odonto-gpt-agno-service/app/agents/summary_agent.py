@@ -2,8 +2,12 @@
 
 from agno.agent import Agent
 from agno.models.openai.like import OpenAILike
+from dotenv import load_dotenv
 import os
 import sys
+
+# Load environment variables
+load_dotenv()
 
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -45,6 +49,9 @@ def create_summary_agent() -> Agent:
     api_key = os.getenv("OPENROUTER_API_KEY")
     base_url = "https://openrouter.ai/api/v1"
     
+    temperature = 0.7
+    max_tokens = 4096
+    
     # Só usa config do DB se for OpenRouter (evita modelos inválidos de outros providers)
     if config:
         metadata = config.get("metadata", {}) or {}
@@ -61,12 +68,20 @@ def create_summary_agent() -> Agent:
             if config_base_url:
                 base_url = config_base_url
 
+            # Aplica parâmetros de geração se existirem no DB
+            if config.get("temperature") is not None:
+                temperature = float(config.get("temperature"))
+            if config.get("max_tokens"):
+                max_tokens = int(config.get("max_tokens"))
+
     summary_agent = Agent(
         name="odonto-summary",
         model=OpenAILike(
             id=model_id,
             api_key=api_key,
-            base_url=base_url
+            base_url=base_url,
+            temperature=temperature,
+            max_tokens=max_tokens
         ),
         db=db,
         add_history_to_context=True,
