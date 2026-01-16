@@ -65,7 +65,8 @@ const WorkflowCard = ({ step, index, total }: { step: any, index: number, total:
         style={{
           scale: index === total - 1 ? 1 : scale, // O último não diminui
           opacity: index === total - 1 ? 1 : opacity, // O último não some
-          top: 0
+          top: 0,
+          willChange: "transform, opacity"
         }}
         className="relative w-full max-w-[800px]"
       >
@@ -131,6 +132,7 @@ export default function LandingPage() {
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
         className="fixed bottom-0 left-0 right-0 p-4 bg-[#0F192F]/95 backdrop-blur-xl border-t border-[#22d3ee]/20 z-50 md:hidden safe-area-inset-bottom"
+        style={{ willChange: "transform, opacity" }}
       >
         <Button
           size="lg"
@@ -168,6 +170,8 @@ export default function LandingPage() {
             style={{
               background: 'radial-gradient(circle, #06b6d4 0%, transparent 70%)',
               filter: 'blur(100px)',
+              willChange: 'transform',
+              backfaceVisibility: 'hidden'
             }}
           />
 
@@ -177,6 +181,8 @@ export default function LandingPage() {
             style={{
               background: 'radial-gradient(circle, #8b5cf6 0%, transparent 70%)',
               filter: 'blur(120px)',
+              willChange: 'transform',
+              backfaceVisibility: 'hidden'
             }}
           />
 
@@ -186,6 +192,8 @@ export default function LandingPage() {
             style={{
               background: 'radial-gradient(ellipse, #0891b2 0%, transparent 70%)',
               filter: 'blur(100px)',
+              willChange: 'transform',
+              backfaceVisibility: 'hidden'
             }}
           />
 

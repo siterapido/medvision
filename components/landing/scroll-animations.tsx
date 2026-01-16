@@ -145,7 +145,8 @@ export function FloatingIcon({ icon: Icon, color, size = 'md', delay = 0, classN
             animate={{
                 opacity: 1,
                 scale: 1,
-                y: [0, -10, 0]
+                // Otimização: Desativar oscilação em mobile para performance
+                y: typeof window !== 'undefined' && window.innerWidth < 768 ? 0 : [0, -10, 0]
             }}
             transition={{
                 opacity: { delay, duration: 0.5 },
@@ -153,6 +154,7 @@ export function FloatingIcon({ icon: Icon, color, size = 'md', delay = 0, classN
                 y: { delay: delay + 0.5, duration: 3, repeat: Infinity, ease: "easeInOut" }
             }}
             className={className}
+            style={{ willChange: "transform, opacity" }}
         >
             <div className={`${sizes[size]} p-2 rounded-xl bg-gradient-to-br ${color} shadow-lg`}>
                 <Icon className="w-full h-full text-white" />

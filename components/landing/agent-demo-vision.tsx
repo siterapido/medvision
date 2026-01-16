@@ -90,7 +90,7 @@ export function AgentDemoVision() {
                                         animate={{ top: "100%" }}
                                         transition={{ duration: 2, ease: "linear", repeat: Infinity }}
                                         className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent"
-                                        style={{ boxShadow: "0 0 20px rgba(0, 255, 255, 0.5)" }}
+                                        style={{ boxShadow: "0 0 20px rgba(0, 255, 255, 0.5)", willChange: "top" }}
                                     />
                                 )}
 
@@ -157,12 +157,15 @@ export function AgentDemoVision() {
                             )}
                         </Card>
 
-                        {/* Decorative elements */}
-                        <motion.div
-                            animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
-                            transition={{ duration: 5, repeat: Infinity }}
-                            className="absolute -top-8 -left-8 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl"
-                        />
+                        {/* Decorative elements - Otimizado para mobile */}
+                        {typeof window !== 'undefined' && window.innerWidth >= 768 && (
+                            <motion.div
+                                animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
+                                transition={{ duration: 5, repeat: Infinity }}
+                                className="absolute -top-8 -left-8 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl"
+                                style={{ willChange: "transform" }}
+                            />
+                        )}
                     </div>
 
                     {/* Texto */}

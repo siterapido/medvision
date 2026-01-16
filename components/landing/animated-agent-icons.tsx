@@ -33,7 +33,8 @@ const AgentIcon = ({ icon: Icon, color, gradient, delay, position, mobilePositio
             animate={{
                 opacity: 1,
                 scale: 1,
-                y: [0, -10, 0],
+                // Otimização: Oscilação reduzida/desativada em mobile
+                y: isMobile ? 0 : [0, -10, 0],
             }}
             transition={{
                 opacity: { delay, duration: 0.5 },
@@ -179,7 +180,7 @@ export const AnimatedAgentIcons = () => {
                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 md:w-32 md:h-32"
             >
                 <motion.div
-                    animate={{
+                    animate={typeof window !== 'undefined' && window.innerWidth < 768 ? {} : {
                         rotate: 360,
                     }}
                     transition={{
@@ -188,6 +189,7 @@ export const AnimatedAgentIcons = () => {
                         ease: "linear"
                     }}
                     className="w-full h-full rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-primary/30 flex items-center justify-center backdrop-blur-sm"
+                    style={{ willChange: "transform" }}
                 >
                     <div className="text-center">
                         <div className="text-xl md:text-3xl font-bold text-primary">AI</div>
@@ -263,8 +265,8 @@ export const AnimatedAgentIcons = () => {
                 ))}
             </svg>
 
-            {/* Floating particles - usando valores determinísticos para evitar hydration mismatch */}
-            {[
+            {/* Floating particles - Ocultos em mobile para performance */}
+            {typeof window !== 'undefined' && window.innerWidth >= 768 && [
                 { left: 12, top: 8, xOffset: 5, duration: 3.5, delay: 0.2 },
                 { left: 28, top: 15, xOffset: -8, duration: 4.2, delay: 1.1 },
                 { left: 45, top: 5, xOffset: 3, duration: 3.8, delay: 0.7 },
@@ -287,6 +289,7 @@ export const AnimatedAgentIcons = () => {
                     style={{
                         left: `${particle.left}%`,
                         top: `${particle.top}%`,
+                        willChange: "transform, opacity"
                     }}
                     animate={{
                         y: [0, -30, 0],
