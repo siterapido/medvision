@@ -10,14 +10,13 @@ import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { MarkdownComponents } from "./markdown-components"
 import { saveNote } from "@/app/actions/artifacts"
-import { useToast } from "@/components/ui/use-toast"
+import { toast } from "sonner"
 
 interface AgnoMessageProps {
     message: ChatMessage
 }
 
 export function AgnoMessage({ message }: AgnoMessageProps) {
-    const { toast } = useToast()
     const [copied, setCopied] = useState(false)
     const [saving, setSaving] = useState(false)
     const isUser = message.role === "user"
@@ -41,15 +40,12 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
         setSaving(false)
 
         if (result.success) {
-            toast({
-                title: "Nota salva!",
+            toast.success("Nota salva!", {
                 description: "O conteúdo foi salvo em suas notas.",
             })
         } else {
-            toast({
-                title: "Erro ao salvar",
+            toast.error("Erro ao salvar", {
                 description: "Não foi possível salvar a nota. Tente novamente.",
-                variant: "destructive"
             })
         }
     }
@@ -505,7 +501,10 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
                 {/* Actions for agent messages */}
                 {!isUser && !message.isStreaming && message.content && (
                     <div className="flex gap-2 mt-2">
+                        <button
+                            onClick={copyContent}
                             title="Copiar"
+                            className="p-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all"
                         >
                             {copied ? (
                                 <CheckCheck className="w-4 h-4 text-green-400" />
@@ -513,12 +512,12 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
                                 <Copy className="w-4 h-4" />
                             )}
                         </button>
-                        
+
                         <button
                             onClick={handleSaveNote}
                             disabled={saving}
-                            className="p-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all disabled:opacity-50"
                             title="Salvar como Nota"
+                            className="p-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all disabled:opacity-50"
                         >
                             {saving ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -528,15 +527,15 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
                         </button>
                     </div>
                 )}
-        </div>
+            </div>
 
             {
-        isUser && (
-            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
-                <User className="w-5 h-5 text-slate-300" />
-            </div>
-        )
-    }
+                isUser && (
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
+                        <User className="w-5 h-5 text-slate-300" />
+                    </div>
+                )
+            }
         </div >
     )
 }
