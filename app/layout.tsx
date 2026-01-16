@@ -12,10 +12,9 @@ import { CopilotProvider } from "@/components/copilot-provider"
 // Sentry must be imported in the root layout
 import * as Sentry from "@sentry/nextjs"
 
-// Otimizando carregamento de fontes - apenas pesos realmente usados
+// Otimizando carregamento de fontes - usando Variable Font (sem definir pesos) para melhor performance
 const inter = Inter({
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
   display: 'swap',
   preload: true,
   fallback: ['system-ui', 'arial']

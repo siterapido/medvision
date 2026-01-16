@@ -3,7 +3,7 @@
 import { useCopilotReadable } from "@copilotkit/react-core"
 import { cn } from "@/lib/utils"
 import { Image as ImageIcon, FileText, CheckCircle2, AlertCircle, Sparkles, Quote, Info } from "lucide-react"
-import ReactMarkdown from "react-markdown"
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer"
 import remarkGfm from "remark-gfm"
 import { MarkdownComponents } from "@/components/agno-chat/markdown-components"
 
@@ -87,12 +87,12 @@ export function ImageContent({ artifact }: ImageContentProps) {
                             prose-code:text-orange-600 dark:prose-code:text-orange-400 prose-code:bg-slate-100 dark:prose-code:bg-slate-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:before:content-[''] prose-code:after:content-['']
                             prose-blockquote:border-l-4 prose-blockquote:border-orange-500 prose-blockquote:bg-slate-50 dark:prose-blockquote:bg-slate-800/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg
                         ">
-                            <ReactMarkdown
+                            <MarkdownRenderer
                                 remarkPlugins={[remarkGfm]}
                                 components={MarkdownComponents}
                             >
                                 {artifact.analysis}
-                            </ReactMarkdown>
+                            </MarkdownRenderer>
                         </div>
 
                         <div className="mt-12 p-6 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900/30 flex gap-4">

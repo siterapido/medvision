@@ -2,6 +2,9 @@ import { withSentryConfig } from '@sentry/nextjs';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Otimização para reduzir consumo de memória e tamanho do container
+  output: 'standalone',
+  productionBrowserSourceMaps: false,
   typescript: {
     ignoreBuildErrors: true,
   },
@@ -14,10 +17,12 @@ const nextConfig = {
   // Aumentar limite de tamanho de corpo para uploads (padrão: 1MB)
   experimental: {
     serverActions: {
-      bodySizeLimit: '2gb',
+      // Otimização: Reduzido de 2gb para 100mb para evitar picos de memória. 
+      // Para arquivos maiores, prefira Uploads Assinados direto no Supabase/S3.
+      bodySizeLimit: '100mb',
     },
-    // Aumentar limite para rotas API e middleware (vídeos podem ser grandes)
-    proxyClientMaxBodySize: '2gb',
+    // Aumentar limite para rotas API e middleware
+    proxyClientMaxBodySize: '100mb',
   },
   // Otimizações adicionais
   compress: true,
@@ -46,7 +51,7 @@ export default withSentryConfig(nextConfig, {
   // This can increase your server load as well as your hosting bill.
   // Note: Check that the configured route will not match with your Next.js middleware, otherwise reporting of client-
   // side errors will fail.
-  tunnelRoute: "/monitoring",
+  // tunnelRoute: "/monitoring", // Desativado para otimizar CPU e RAM do servidor
 
   // Automatically tree-shake Sentry logger statements to reduce bundle size
   disableLogger: true,

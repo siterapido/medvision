@@ -10,7 +10,7 @@ import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription }
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 import type { AgentChatPanelProps } from "./types"
-import ReactMarkdown from "react-markdown"
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer"
 import remarkGfm from "remark-gfm"
 import { MarkdownComponents } from "@/components/agno-chat/markdown-components"
 import { toast } from "sonner"
@@ -261,12 +261,12 @@ export function AgentChatPanel({
                                 <Card className="bg-slate-900/40 border-slate-700/50 backdrop-blur-sm overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-500">
                                     <CardContent className="pt-4 text-slate-300 text-sm leading-relaxed space-y-4">
                                         {message.content ? (
-                                            <ReactMarkdown
+                                            <MarkdownRenderer
                                                 remarkPlugins={[remarkGfm]}
                                                 components={MarkdownComponents}
                                             >
                                                 {message.content}
-                                            </ReactMarkdown>
+                                            </MarkdownRenderer>
                                         ) : (
                                             <div className="flex items-center gap-2 text-slate-400 italic">
                                                 <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />

@@ -6,7 +6,7 @@ import Link from "next/link"
 import type { ChatMessage } from "@/lib/agno"
 import { getAgentInfo } from "@/lib/agent-config"
 import { cn } from "@/lib/utils"
-import ReactMarkdown from "react-markdown"
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer"
 import remarkGfm from "remark-gfm"
 import { MarkdownComponents } from "./markdown-components"
 import { saveNote } from "@/app/actions/artifacts"
@@ -242,12 +242,12 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
                         </div>
                     ) : (
                         <div className="text-sm leading-relaxed text-slate-300">
-                            <ReactMarkdown
+                            <MarkdownRenderer
                                 remarkPlugins={[remarkGfm]}
                                 components={MarkdownComponents}
                             >
                                 {message.content}
-                            </ReactMarkdown>
+                            </MarkdownRenderer>
                         </div>
                     )}
 

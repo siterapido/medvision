@@ -3,7 +3,7 @@
 import { useCopilotReadable } from "@copilotkit/react-core"
 import { cn } from "@/lib/utils"
 import { Scan, FileText, CheckCircle2, AlertTriangle, AlertOctagon, Quote, Sparkles, ZoomIn } from "lucide-react"
-import ReactMarkdown from "react-markdown"
+import { MarkdownRenderer } from "@/components/ui/markdown-renderer"
 import remarkGfm from "remark-gfm"
 import { MarkdownComponents } from "@/components/agno-chat/markdown-components"
 import { Badge } from "@/components/ui/badge"
@@ -84,12 +84,12 @@ export function ImageAnalysisContent({ analysis }: ImageAnalysisContentProps) {
                     prose-code:text-cyan-600 dark:prose-code:text-cyan-400 prose-code:bg-slate-100 dark:prose-code:bg-slate-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded
                     prose-blockquote:border-l-4 prose-blockquote:border-cyan-500 prose-blockquote:bg-slate-50 dark:prose-blockquote:bg-slate-800/50 prose-blockquote:py-2 prose-blockquote:px-4 prose-blockquote:rounded-r-lg
                 ">
-                    <ReactMarkdown
+                    <MarkdownRenderer
                         remarkPlugins={[remarkGfm]}
                         components={MarkdownComponents}
                     >
                         {analysis.analysis}
-                    </ReactMarkdown>
+                    </MarkdownRenderer>
                 </div>
             </div>
 

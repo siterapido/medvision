@@ -1,4 +1,3 @@
-import * as XLSX from "xlsx"
 import { ColumnMapping, ImportLeadRow } from "@/app/actions/leads"
 
 export interface ParsedSheet {
@@ -19,6 +18,9 @@ export function normalizePhone(phone: string): string {
  * Lê um arquivo (CSV ou Excel) e retorna headers e linhas
  */
 export async function parseFile(file: File): Promise<ParsedSheet> {
+  // Otimização: Import dinâmico para economizar memória quando não estiver em uso
+  const XLSX = await import("xlsx")
+  
   const arrayBuffer = await file.arrayBuffer()
   const workbook = XLSX.read(arrayBuffer, { type: "array" })
   

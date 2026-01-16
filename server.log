@@ -1,0 +1,1172 @@
+▲ Next.js 16.1.1
+- Local:         http://localhost:3000
+- Network:       http://0.0.0.0:3000
+
+✓ Starting...
+✓ Ready in 1745ms
+(node:72197) [DEP0169] DeprecationWarning: `url.parse()` behavior is not standardized and prone to errors that have security implications. Use the WHATWG URL API instead. CVEs are not issued for `url.parse()` vulnerabilities.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}
+AuthApiError: Request rate limit reached
+    at ignore-listed frames {
+  __isAuthError: true,
+  status: 429,
+  code: 'over_request_rate_limit'
+}

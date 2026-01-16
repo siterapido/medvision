@@ -32,6 +32,8 @@ import { AgentDemoPractice } from "@/components/landing/agent-demo-practice"
 import { AgentDemoWrite } from "@/components/landing/agent-demo-write"
 import { AgentDemoFlow } from "@/components/landing/agent-demo-flow"
 import { AgentDemoGPT } from "@/components/landing/agent-demo-gpt"
+import { LazyVideoWrapper } from "@/components/video/lazy-video-wrapper"
+import { YouTubePlayer } from "@/components/video/youtube-player"
 
 const FAQSection = dynamic(() => import("@/components/landing/faq-section").then(mod => ({ default: mod.FAQSection })), {
   ssr: false,
