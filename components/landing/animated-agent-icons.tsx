@@ -33,15 +33,15 @@ const AgentIcon = ({ icon: Icon, color, gradient, delay, position, mobilePositio
             animate={{
                 opacity: 1,
                 scale: 1,
-                // Otimização: Oscilação reduzida/desativada em mobile
-                y: isMobile ? 0 : [0, -10, 0],
+                // Animação otimizada: amplitude menor em mobile para performance
+                y: isMobile ? [0, -5, 0] : [0, -10, 0],
             }}
             transition={{
                 opacity: { delay, duration: 0.5 },
                 scale: { delay, duration: 0.5 },
                 y: {
                     delay: delay + 0.5,
-                    duration: 3,
+                    duration: isMobile ? 4 : 3, // Mais lento em mobile para ser mais suave
                     repeat: Infinity,
                     ease: "easeInOut"
                 }
@@ -180,16 +180,16 @@ export const AnimatedAgentIcons = () => {
                 className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 md:w-32 md:h-32"
             >
                 <motion.div
-                    animate={typeof window !== 'undefined' && window.innerWidth < 768 ? {} : {
+                    animate={{
                         rotate: 360,
                     }}
                     transition={{
-                        duration: 20,
+                        duration: typeof window !== 'undefined' && window.innerWidth < 768 ? 30 : 20, // Mais lento em mobile
                         repeat: Infinity,
                         ease: "linear"
                     }}
                     className="w-full h-full rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-primary/30 flex items-center justify-center backdrop-blur-sm"
-                    style={{ willChange: "transform" }}
+                    style={{ willChange: "transform", transform: "translateZ(0)" }}
                 >
                     <div className="text-center">
                         <div className="text-xl md:text-3xl font-bold text-primary">AI</div>
@@ -265,23 +265,16 @@ export const AnimatedAgentIcons = () => {
                 ))}
             </svg>
 
-            {/* Floating particles - Ocultos em mobile para performance */}
-            {typeof window !== 'undefined' && window.innerWidth >= 768 && [
+            {/* Floating particles - Quantidade reduzida em mobile para performance */}
+            {[
                 { left: 12, top: 8, xOffset: 5, duration: 3.5, delay: 0.2 },
                 { left: 28, top: 15, xOffset: -8, duration: 4.2, delay: 1.1 },
-                { left: 45, top: 5, xOffset: 3, duration: 3.8, delay: 0.7 },
                 { left: 62, top: 12, xOffset: -5, duration: 4.5, delay: 1.4 },
                 { left: 78, top: 8, xOffset: 7, duration: 3.2, delay: 0.4 },
-                { left: 88, top: 18, xOffset: -3, duration: 4.8, delay: 1.8 },
                 { left: 8, top: 45, xOffset: 6, duration: 3.6, delay: 0.9 },
-                { left: 22, top: 52, xOffset: -7, duration: 4.1, delay: 1.3 },
                 { left: 92, top: 48, xOffset: 4, duration: 3.4, delay: 0.5 },
-                { left: 15, top: 78, xOffset: -6, duration: 4.3, delay: 1.6 },
                 { left: 35, top: 85, xOffset: 8, duration: 3.7, delay: 0.3 },
-                { left: 55, top: 82, xOffset: -4, duration: 4.6, delay: 1.2 },
                 { left: 72, top: 88, xOffset: 5, duration: 3.3, delay: 0.8 },
-                { left: 85, top: 75, xOffset: -8, duration: 4.4, delay: 1.5 },
-                { left: 95, top: 62, xOffset: 3, duration: 3.9, delay: 0.6 },
             ].map((particle, i) => (
                 <motion.div
                     key={`particle-${i}`}
@@ -289,15 +282,16 @@ export const AnimatedAgentIcons = () => {
                     style={{
                         left: `${particle.left}%`,
                         top: `${particle.top}%`,
-                        willChange: "transform, opacity"
+                        willChange: "transform, opacity",
+                        transform: "translateZ(0)"
                     }}
                     animate={{
-                        y: [0, -30, 0],
-                        x: [0, particle.xOffset, 0],
-                        opacity: [0, 1, 0],
+                        y: [0, -20, 0],
+                        x: [0, particle.xOffset * 0.5, 0],
+                        opacity: [0, 0.8, 0],
                     }}
                     transition={{
-                        duration: particle.duration,
+                        duration: particle.duration + 1, // Mais lento para suavidade
                         repeat: Infinity,
                         delay: particle.delay,
                     }}

@@ -204,23 +204,19 @@ export function AgentDemoFlow() {
                             </div>
                         </Card>
 
-                        {/* Decorative elements - Otimizado para mobile */}
-                        {typeof window !== 'undefined' && window.innerWidth >= 768 && (
-                            <>
-                                <motion.div
-                                    animate={{ y: [0, -10, 0] }}
-                                    transition={{ duration: 4, repeat: Infinity }}
-                                    className="absolute -top-6 -right-6 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl"
-                                    style={{ willChange: "transform" }}
-                                />
-                                <motion.div
-                                    animate={{ y: [0, 10, 0] }}
-                                    transition={{ duration: 5, repeat: Infinity }}
-                                    className="absolute -bottom-6 -left-6 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"
-                                    style={{ willChange: "transform" }}
-                                />
-                            </>
-                        )}
+                        {/* Decorative elements - Otimizado com GPU acceleration */}
+                        <motion.div
+                            animate={{ y: [0, -10, 0] }}
+                            transition={{ duration: 5, repeat: Infinity }}
+                            className="absolute -top-6 -right-6 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl"
+                            style={{ willChange: "transform", transform: "translateZ(0)" }}
+                        />
+                        <motion.div
+                            animate={{ y: [0, 10, 0] }}
+                            transition={{ duration: 6, repeat: Infinity }}
+                            className="absolute -bottom-6 -left-6 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"
+                            style={{ willChange: "transform", transform: "translateZ(0)" }}
+                        />
                     </div>
                 </div>
             </div>

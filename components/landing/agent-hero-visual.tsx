@@ -32,13 +32,13 @@ const AgentNode = ({ icon: Icon, label, color, delay, position }: AgentNodeProps
                 className={`relative p-2.5 md:p-4 rounded-xl md:rounded-2xl backdrop-blur-md border border-white/20 shadow-xl ${color}`}
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 animate={{
-                    // Desativar flutuação contínua em mobile para economizar bateria/CPU
-                    y: typeof window !== 'undefined' && window.innerWidth < 768 ? 0 : [0, -5, 0],
+                    // Animação otimizada: amplitude menor em mobile
+                    y: typeof window !== 'undefined' && window.innerWidth < 768 ? [0, -3, 0] : [0, -5, 0],
                 }}
                 transition={{
-                    y: { duration: 3 + Math.random(), repeat: Infinity, ease: "easeInOut" },
+                    y: { duration: 4, repeat: Infinity, ease: "easeInOut" },
                 }}
-                style={{ willChange: "transform" }}
+                style={{ willChange: "transform", transform: "translateZ(0)" }}
             >
                 <Icon className="w-5 h-5 md:w-7 md:h-7 text-white" />
             </motion.div>
@@ -112,15 +112,15 @@ export function AgentHeroVisual() {
                     <div className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-200 animate-spin-slow" />
                     <motion.div
                         className="w-16 h-16 md:w-28 md:h-28 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-full flex items-center justify-center p-4 md:p-6 shadow-inner"
-                        animate={typeof window !== 'undefined' && window.innerWidth < 768 ? {} : {
+                        animate={{
                             background: [
                                 "linear-gradient(to top right, #06b6d4, #2563eb)",
                                 "linear-gradient(to top right, #0891b2, #3b82f6)",
                                 "linear-gradient(to top right, #06b6d4, #2563eb)"
                             ]
                         }}
-                        transition={{ duration: 3, repeat: Infinity }}
-                        style={{ willChange: "background" }}
+                        transition={{ duration: typeof window !== 'undefined' && window.innerWidth < 768 ? 5 : 3, repeat: Infinity }}
+                        style={{ willChange: "background", transform: "translateZ(0)" }}
                     >
                         <Sparkles className="w-full h-full text-white" />
                     </motion.div>

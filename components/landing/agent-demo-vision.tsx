@@ -157,15 +157,13 @@ export function AgentDemoVision() {
                             )}
                         </Card>
 
-                        {/* Decorative elements - Otimizado para mobile */}
-                        {typeof window !== 'undefined' && window.innerWidth >= 768 && (
-                            <motion.div
-                                animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
-                                transition={{ duration: 5, repeat: Infinity }}
-                                className="absolute -top-8 -left-8 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl"
-                                style={{ willChange: "transform" }}
-                            />
-                        )}
+                        {/* Decorative elements - Otimizado com GPU acceleration */}
+                        <motion.div
+                            animate={{ y: [0, -15, 0], rotate: [0, 5, 0] }}
+                            transition={{ duration: 6, repeat: Infinity }}
+                            className="absolute -top-8 -left-8 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl"
+                            style={{ willChange: "transform", transform: "translateZ(0)" }}
+                        />
                     </div>
 
                     {/* Texto */}
