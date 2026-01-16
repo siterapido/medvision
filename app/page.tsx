@@ -370,9 +370,109 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Trusted By / Logos Section could go here */}
+        {/* Agents Team Section */}
+        <section className="w-full py-12 md:py-20 px-4 md:px-6 relative z-20">
+          <div className="mx-auto max-w-6xl space-y-12">
+            <SectionHeader
+              label="Sua Equipe Completa"
+              icon={Brain}
+              title="Especialistas Disponíveis 24/7"
+              description="Cada agente da Odonto GPT foi treinado para uma função específica, garantindo precisão e profundidade em cada resposta."
+              align="center"
+            />
 
-        {/* Comparison Section */}
+            {/* Animated Agent Icons */}
+            <div className="mb-16">
+              <AnimatedAgentIcons />
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+              {[
+                {
+                  icon: Brain,
+                  title: "Planejador Clínico",
+                  desc: "Estrutura planos de tratamento completos baseados nas melhores evidências.",
+                  color: "text-purple-400",
+                  bg: "bg-purple-500/10"
+                },
+                {
+                  icon: BookOpen,
+                  title: "Pesquisador",
+                  desc: "Busca na literatura científica as respostas mais atuais para suas dúvidas.",
+                  color: "text-blue-400",
+                  bg: "bg-blue-500/10"
+                },
+                {
+                  icon: Shield,
+                  title: "Diagnóstico",
+                  desc: "Ajuda a cruzar sinais e sintomas para hipóteses diagnósticas precisas.",
+                  color: "text-pink-400",
+                  bg: "bg-pink-500/10"
+                },
+                {
+                  icon: Zap,
+                  title: "Redator",
+                  desc: "Escreve textos para pacientes, laudos e documentos com linguagem assertiva.",
+                  color: "text-amber-400",
+                  bg: "bg-amber-500/10"
+                }
+              ].map((agent, i) => (
+                <HoverCard key={i} className="h-full">
+                  <Card className="border-0 shadow-lg shadow-slate-900/50 h-full relative overflow-hidden group bg-[#16243F] border-[rgba(8,145,178,0.2)]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#16243F] to-[#0F192F] z-0" />
+                    <CardContent className="pt-8 space-y-4 relative z-10">
+                      <div className={`h-12 w-12 rounded-xl ${agent.bg} flex items-center justify-center transition-transform group-hover:scale-110 duration-300`}>
+                        <agent.icon className={`h-6 w-6 ${agent.color}`} />
+                      </div>
+                      <h3 className="text-xl font-bold text-white">{agent.title}</h3>
+                      <p className="text-slate-400 text-sm leading-relaxed">
+                        {agent.desc}
+                      </p>
+                    </CardContent>
+                    <div className={`absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-${agent.color.split('-')[1]}-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
+                  </Card>
+                </HoverCard>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Agent Demos Section - Interactive Animated Demonstrations */}
+        <section className="w-full relative z-10">
+          <div className="py-16 text-center px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false }}
+              className="mx-auto max-w-3xl"
+            >
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(6,182,212,0.1)] border border-[rgba(6,182,212,0.3)] mb-6">
+                <Sparkles className="w-4 h-4 text-[#22d3ee]" />
+                <span className="text-[#22d3ee] font-semibold text-sm">Veja em Ação</span>
+              </span>
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                Seus Especialistas<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22d3ee] via-[#3b82f6] to-[#a855f7]">
+                  Trabalhando por Você
+                </span>
+              </h2>
+              <p className="text-lg text-slate-400 mb-8">
+                Role para baixo e veja cada agente demonstrando suas habilidades em tempo real
+              </p>
+            </motion.div>
+          </div>
+
+          {/* Demo sections */}
+          <AgentDemoFlow />
+          <AgentDemoGPT />
+          <AgentDemoResearch />
+          <AgentDemoVision />
+          <AgentDemoSummary />
+          <AgentDemoPractice />
+          <AgentDemoWrite />
+        </section>
+
+        {/* Comparison Section - Realidade Acadêmica */}
         <section className="w-full py-12 md:py-20 px-4 md:px-6 relative z-10">
 
           <div className="container mx-auto max-w-6xl relative z-10">
@@ -478,229 +578,6 @@ export default function LandingPage() {
               </Link>
             </div>
           </div>
-        </section>
-
-        {/* Video Testimonials Section (desativada temporariamente) */}
-        {showTestimonials && (
-          <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-testimonials-section">
-            <div className="container mx-auto max-w-6xl space-y-12 md:space-y-16">
-              <SectionHeader
-                label="Histórias Reais de Sucesso"
-                icon={Video}
-                title="Resultados Reais: Segurança, Velocidade e Acertos"
-                description="Veja como a Odonto GPT está transformando a jornada acadêmica de estudantes que já estão colhendo os frutos"
-                align="center"
-              />
-
-              <div className="grid md:grid-cols-3 gap-8 items-start">
-                {/* Video 1 */}
-                <Card className="h-full text-center bg-transparent border-0 shadow-none">
-                  <CardContent className="p-0 space-y-3">
-                    <div className="relative mx-auto w-full max-w-[300px]">
-                      <LazyVideoWrapper
-                        threshold={0.2}
-                        rootMargin="100px"
-                        placeholder={
-                          <div className="aspect-[9/16] bg-gray-900 rounded-3xl flex items-center justify-center border-2 border-[#2399B4]">
-                            <div className="text-white/40 text-sm">Carregando...</div>
-                          </div>
-                        }
-                      >
-                        <YouTubePlayer
-                          videoId="loPD53clzR4"
-                          title="Depoimento Dr. Carlos Silva - Odonto GPT"
-                          aspect="portrait"
-                          className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
-                          controls={0}
-                        />
-                      </LazyVideoWrapper>
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="font-semibold text-lg">Dr. Carlos Silva</h3>
-                      <p className="text-sm text-muted-foreground">Cirurgião-Dentista</p>
-                      <div className="flex justify-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Video 2 */}
-                <Card className="h-full text-center bg-transparent border-0 shadow-none">
-                  <CardContent className="p-0 space-y-3">
-                    <div className="relative mx-auto w-full max-w-[300px]">
-                      <LazyVideoWrapper
-                        threshold={0.2}
-                        rootMargin="100px"
-                        placeholder={
-                          <div className="aspect-[9/16] bg-gray-900 rounded-3xl flex items-center justify-center border-2 border-[#2399B4]">
-                            <div className="text-white/40 text-sm">Carregando...</div>
-                          </div>
-                        }
-                      >
-                        <YouTubePlayer
-                          videoId="loPD53clzR4"
-                          title="Depoimento Dra. Ana Oliveira - Odonto GPT"
-                          aspect="portrait"
-                          className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
-                          controls={0}
-                        />
-                      </LazyVideoWrapper>
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="font-semibold text-lg">Dra. Ana Oliveira</h3>
-                      <p className="text-sm text-muted-foreground">8º Período</p>
-                      <div className="flex justify-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Video 3 */}
-                <Card className="h-full text-center bg-transparent border-0 shadow-none">
-                  <CardContent className="p-0 space-y-3">
-                    <div className="relative mx-auto w-full max-w-[300px]">
-                      <LazyVideoWrapper
-                        threshold={0.2}
-                        rootMargin="100px"
-                        placeholder={
-                          <div className="aspect-[9/16] bg-gray-900 rounded-3xl flex items-center justify-center border-2 border-[#2399B4]">
-                            <div className="text-white/40 text-sm">Carregando...</div>
-                          </div>
-                        }
-                      >
-                        <YouTubePlayer
-                          videoId="loPD53clzR4"
-                          title="Depoimento Dr. Rodrigo Santos - Odonto GPT"
-                          aspect="portrait"
-                          className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
-                          controls={0}
-                        />
-                      </LazyVideoWrapper>
-                    </div>
-                    <div className="space-y-2">
-                      <h3 className="font-semibold text-lg">Dr. Rodrigo Santos</h3>
-                      <p className="text-sm text-muted-foreground">Residente</p>
-                      <div className="flex justify-center gap-1">
-                        {[...Array(5)].map((_, i) => (
-                          <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Removed 'Ver mais depoimentos' button per request */}
-            </div>
-          </section>
-        )}
-
-        {/* Agents Team Section */}
-        <section className="w-full py-12 md:py-20 px-4 md:px-6 relative z-20">
-          <div className="mx-auto max-w-6xl space-y-12">
-            <SectionHeader
-              label="Sua Equipe Completa"
-              icon={Brain}
-              title="Especialistas Disponíveis 24/7"
-              description="Cada agente da Odonto GPT foi treinado para uma função específica, garantindo precisão e profundidade em cada resposta."
-              align="center"
-            />
-
-            {/* Animated Agent Icons */}
-            <div className="mb-16">
-              <AnimatedAgentIcons />
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {[
-                {
-                  icon: Brain,
-                  title: "Planejador Clínico",
-                  desc: "Estrutura planos de tratamento completos baseados nas melhores evidências.",
-                  color: "text-purple-400",
-                  bg: "bg-purple-500/10"
-                },
-                {
-                  icon: BookOpen,
-                  title: "Pesquisador",
-                  desc: "Busca na literatura científica as respostas mais atuais para suas dúvidas.",
-                  color: "text-blue-400",
-                  bg: "bg-blue-500/10"
-                },
-                {
-                  icon: Shield,
-                  title: "Diagnóstico",
-                  desc: "Ajuda a cruzar sinais e sintomas para hipóteses diagnósticas precisas.",
-                  color: "text-pink-400",
-                  bg: "bg-pink-500/10"
-                },
-                {
-                  icon: Zap,
-                  title: "Redator",
-                  desc: "Escreve textos para pacientes, laudos e documentos com linguagem assertiva.",
-                  color: "text-amber-400",
-                  bg: "bg-amber-500/10"
-                }
-              ].map((agent, i) => (
-                <HoverCard key={i} className="h-full">
-                  <Card className="border-0 shadow-lg shadow-slate-900/50 h-full relative overflow-hidden group bg-[#16243F] border-[rgba(8,145,178,0.2)]">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#16243F] to-[#0F192F] z-0" />
-                    <CardContent className="pt-8 space-y-4 relative z-10">
-                      <div className={`h-12 w-12 rounded-xl ${agent.bg} flex items-center justify-center transition-transform group-hover:scale-110 duration-300`}>
-                        <agent.icon className={`h-6 w-6 ${agent.color}`} />
-                      </div>
-                      <h3 className="text-xl font-bold text-white">{agent.title}</h3>
-                      <p className="text-slate-400 text-sm leading-relaxed">
-                        {agent.desc}
-                      </p>
-                    </CardContent>
-                    <div className={`absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-${agent.color.split('-')[1]}-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
-                  </Card>
-                </HoverCard>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* Agent Demos Section - Interactive Animated Demonstrations */}
-        <section className="w-full relative z-10">
-          <div className="py-16 text-center px-4">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false }}
-              className="mx-auto max-w-3xl"
-            >
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(6,182,212,0.1)] border border-[rgba(6,182,212,0.3)] mb-6">
-                <Sparkles className="w-4 h-4 text-[#22d3ee]" />
-                <span className="text-[#22d3ee] font-semibold text-sm">Veja em Ação</span>
-              </span>
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                Seus Especialistas<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22d3ee] via-[#3b82f6] to-[#a855f7]">
-                  Trabalhando por Você
-                </span>
-              </h2>
-              <p className="text-lg text-slate-400 mb-8">
-                Role para baixo e veja cada agente demonstrando suas habilidades em tempo real
-              </p>
-            </motion.div>
-          </div>
-
-          {/* Demo sections */}
-          <AgentDemoFlow />
-          <AgentDemoGPT />
-          <AgentDemoResearch />
-          <AgentDemoVision />
-          <AgentDemoSummary />
-          <AgentDemoPractice />
-          <AgentDemoWrite />
         </section>
 
         {/* How it Works Section */}
