@@ -2,106 +2,92 @@
 
 import { motion } from "framer-motion"
 import {
-    Brain,
-    Search,
+    FlaskConical,
+    GraduationCap,
     FileText,
-    MessageSquare,
-    UserCheck,
-    Stethoscope,
+    ScanEye,
+    MessageCircle,
     Sparkles,
     Database
 } from "lucide-react"
 
-const AgentNode = ({ icon: Icon, label, color, delay, x, y }: any) => {
+interface AgentNodeProps {
+    icon: any
+    label: string
+    color: string
+    delay: number
+    position: string // Tailwind classes for positioning
+}
+
+const AgentNode = ({ icon: Icon, label, color, delay, position }: AgentNodeProps) => {
     return (
         <motion.div
-            className="absolute flex flex-col items-center gap-2"
+            className={`absolute flex flex-col items-center gap-1 md:gap-2 ${position}`}
             initial={{ opacity: 0, scale: 0 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay, duration: 0.5, type: "spring" }}
-            style={{ left: x, top: y }}
         >
             <motion.div
-                className={`relative p-4 rounded-2xl backdrop-blur-md border border-white/20 shadow-xl ${color}`}
+                className={`relative p-2.5 md:p-4 rounded-xl md:rounded-2xl backdrop-blur-md border border-white/20 shadow-xl ${color}`}
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 animate={{
-                    y: [0, -10, 0],
-                    boxShadow: [
-                        "0 10px 30px -10px rgba(0,0,0,0.1)",
-                        "0 20px 40px -10px rgba(0,0,0,0.2)",
-                        "0 10px 30px -10px rgba(0,0,0,0.1)"
-                    ]
+                    y: [0, -5, 0],
                 }}
                 transition={{
                     y: { duration: 3 + Math.random(), repeat: Infinity, ease: "easeInOut" },
-                    boxShadow: { duration: 3 + Math.random(), repeat: Infinity, ease: "easeInOut" }
                 }}
             >
-                <Icon className="w-8 h-8 text-white" />
-                {/* Orbiting particle */}
-                <motion.div
-                    className="absolute -inset-1 rounded-full border border-white/30"
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                >
-                    <div className="w-2 h-2 bg-white rounded-full absolute -top-1 left-1/2 -translate-x-1/2 shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
-                </motion.div>
+                <Icon className="w-5 h-5 md:w-7 md:h-7 text-white" />
             </motion.div>
-            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300 bg-white/80 dark:bg-black/50 px-3 py-1 rounded-full backdrop-blur-sm shadow-sm">
+            <span className="text-[9px] md:text-xs font-semibold text-slate-200 bg-slate-900/80 px-2 py-0.5 md:px-2.5 md:py-1 rounded-full backdrop-blur-sm shadow-sm whitespace-nowrap">
                 {label}
             </span>
         </motion.div>
     )
 }
 
-const ConnectionLine = ({ start, end, delay }: any) => {
-    return (
-        <svg className="absolute inset-0 w-full h-full pointer-events-none overflow-visible">
-            <motion.path
-                d={`M${start.x} ${start.y} L${end.x} ${end.y}`}
-                fill="none"
-                stroke="url(#gradient-line)"
-                strokeWidth="2"
-                strokeDasharray="10 10"
-                initial={{ pathLength: 0, opacity: 0 }}
-                animate={{ pathLength: 1, opacity: 0.4 }}
-                transition={{ delay, duration: 1.5, ease: "easeInOut" }}
-            />
-            <motion.circle
-                r="4"
-                fill="#0891b2"
-                initial={{ offsetDistance: "0%" }}
-                animate={{ offsetDistance: "100%" }}
-                style={{ offsetPath: `path("M${start.x} ${start.y} L${end.x} ${end.y}")` }}
-                transition={{ duration: 3, repeat: Infinity, ease: "linear", delay: delay + 1 }}
-            />
-            <defs>
-                <linearGradient id="gradient-line" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#0891b2" stopOpacity="0" />
-                    <stop offset="50%" stopColor="#06b6d4" stopOpacity="0.5" />
-                    <stop offset="100%" stopColor="#0891b2" stopOpacity="0" />
-                </linearGradient>
-            </defs>
-        </svg>
-    )
-}
-
 export function AgentHeroVisual() {
+    // Agentes com ícones e cores padronizados - Gradientes estilo Apple
     const agents = [
-        { id: 1, icon: Brain, label: "Planejador Clínico", color: "bg-gradient-to-br from-violet-500 to-purple-600", x: "20%", y: "20%" },
-        { id: 2, icon: Search, label: "Pesquisador", color: "bg-gradient-to-br from-blue-500 to-cyan-600", x: "80%", y: "30%" },
-        { id: 3, icon: FileText, label: "Redator", color: "bg-gradient-to-br from-emerald-400 to-green-600", x: "15%", y: "70%" },
-        { id: 4, icon: MessageSquare, label: "Consultor", color: "bg-gradient-to-br from-orange-400 to-red-500", x: "85%", y: "75%" },
-        { id: 5, icon: Stethoscope, label: "Diagnóstico", color: "bg-gradient-to-br from-pink-500 to-rose-600", x: "50%", y: "15%" },
+        {
+            id: 1,
+            icon: FlaskConical,
+            label: "Pesquisador",
+            color: "bg-gradient-to-br from-[#BF5AF2] via-[#9D4EDD] to-[#7B2CBF]",
+            position: "left-[2%] top-[28%] md:left-[10%] md:top-[20%]"
+        },
+        {
+            id: 2,
+            icon: GraduationCap,
+            label: "Estudos",
+            color: "bg-gradient-to-br from-[#FF9F0A] via-[#FF6B35] to-[#FF453A]",
+            position: "right-[2%] top-[22%] md:right-[8%] md:top-[25%]"
+        },
+        {
+            id: 3,
+            icon: FileText,
+            label: "Redator",
+            color: "bg-gradient-to-br from-[#30D158] via-[#00C7BE] to-[#00B4D8]",
+            position: "left-[2%] bottom-[18%] md:left-[12%] md:bottom-[15%]"
+        },
+        {
+            id: 4,
+            icon: MessageCircle,
+            label: "Consultor",
+            color: "bg-gradient-to-br from-[#5E5CE6] via-[#7C3AED] to-[#A855F7]",
+            position: "right-[2%] bottom-[15%] md:right-[5%] md:bottom-[10%]"
+        },
+        {
+            id: 5,
+            icon: ScanEye,
+            label: "Diagnóstico",
+            color: "bg-gradient-to-br from-[#FF6B6B] via-[#EE5A70] to-[#DA4167]",
+            position: "left-1/2 -translate-x-1/2 top-[2%] md:top-[3%]"
+        },
     ]
 
-    // Approximate center percentage coordinates for lines
-    // These need to match visually with the 'top/left' styles above
-    // This is a simplification; in a real scenario we might use absolute pixels or a different layout method
-    // But for a hero section this 'visual' approximation works well enough for responsiveness if container is relative
-
     return (
-        <div className="relative w-full aspect-square md:aspect-[4/3] max-w-2xl mx-auto perspective-1000">
+        <div className="relative w-full aspect-square max-w-[320px] md:max-w-2xl mx-auto perspective-1000">
             <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-transparent rounded-full blur-3xl transform -translate-y-10" />
 
             {/* Central Core */}
@@ -111,10 +97,10 @@ export function AgentHeroVisual() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8, type: "spring" }}
             >
-                <div className="relative w-32 h-32 md:w-40 md:h-40 bg-white rounded-full shadow-[0_0_60px_-15px_rgba(8,145,178,0.3)] flex items-center justify-center z-20">
+                <div className="relative w-24 h-24 md:w-40 md:h-40 bg-white rounded-full shadow-[0_0_60px_-15px_rgba(8,145,178,0.3)] flex items-center justify-center z-20">
                     <div className="absolute inset-0 rounded-full border-2 border-dashed border-cyan-200 animate-spin-slow" />
                     <motion.div
-                        className="w-24 h-24 md:w-28 md:h-28 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-full flex items-center justify-center p-6 shadow-inner"
+                        className="w-16 h-16 md:w-28 md:h-28 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-full flex items-center justify-center p-4 md:p-6 shadow-inner"
                         animate={{
                             background: [
                                 "linear-gradient(to top right, #06b6d4, #2563eb)",
@@ -127,16 +113,16 @@ export function AgentHeroVisual() {
                         <Sparkles className="w-full h-full text-white" />
                     </motion.div>
 
-                    {/* Floating 'Odonto Suite' label */}
+                    {/* Floating 'Central de Inteligência' label */}
                     <motion.div
-                        className="absolute -bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap"
+                        className="absolute -bottom-8 md:-bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 }}
                     >
-                        <div className="px-4 py-1.5 bg-white/90 backdrop-blur-md rounded-full border border-cyan-100 shadow-lg flex items-center gap-2">
-                            <Database className="w-4 h-4 text-cyan-600" />
-                            <span className="font-bold text-slate-800 text-sm">Central de Inteligência</span>
+                        <div className="px-3 py-1 md:px-4 md:py-1.5 bg-white/90 backdrop-blur-md rounded-full border border-cyan-100 shadow-lg flex items-center gap-1.5 md:gap-2">
+                            <Database className="w-3 h-3 md:w-4 md:h-4 text-cyan-600" />
+                            <span className="font-bold text-slate-800 text-[10px] md:text-sm">Central de Inteligência</span>
                         </div>
                     </motion.div>
                 </div>
@@ -151,19 +137,18 @@ export function AgentHeroVisual() {
                 />
             ))}
 
-            {/* Connecting Lines (Simulated visually) */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-30">
+            {/* Connecting Lines (desktop only) */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none z-0 opacity-30 hidden md:block">
                 <motion.g
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1, duration: 1 }}
                 >
-                    {/* Connecting center (50% 50%) to nodes */}
-                    <line x1="50%" y1="50%" x2="20%" y2="30%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
-                    <line x1="50%" y1="50%" x2="80%" y2="38%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
+                    <line x1="50%" y1="50%" x2="15%" y2="30%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
+                    <line x1="50%" y1="50%" x2="85%" y2="38%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
                     <line x1="50%" y1="50%" x2="20%" y2="75%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
-                    <line x1="50%" y1="50%" x2="85%" y2="80%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
-                    <line x1="50%" y1="50%" x2="50%" y2="22%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
+                    <line x1="50%" y1="50%" x2="90%" y2="80%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
+                    <line x1="50%" y1="50%" x2="50%" y2="15%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
                 </motion.g>
                 <defs>
                     <linearGradient id="line-grad" x1="0" y1="0" x2="1" y2="1">
@@ -175,3 +160,4 @@ export function AgentHeroVisual() {
         </div>
     )
 }
+

@@ -45,3 +45,7 @@ tmp/
 # python
 __pycache__/
 *.pyc
+
+# development logs
+frontend.log
+backend.log

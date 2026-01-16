@@ -7,13 +7,20 @@ import dynamic from "next/dynamic"
 import {
   Brain, MessageSquare, Clock, BookOpen, Shield, Zap,
   CheckCircle2, Star, ArrowRight, Award, TrendingUp,
-  XCircle, Video, Sparkles
+  XCircle, Video, Sparkles, Microscope, Eye, GraduationCap, PenTool
 } from "lucide-react"
 import Link from "next/link"
 import { Logo } from "@/components/logo"
 import { motion } from "framer-motion"
 import { FadeIn, StaggerContainer, StaggerItem, HoverCard, ScaleIn } from "@/components/ui/animations"
 import { AgentHeroVisual } from "@/components/landing/agent-hero-visual"
+import { AnimatedAgentIcons } from "@/components/landing/animated-agent-icons"
+import { ScrollProgress } from "@/components/landing/scroll-animations"
+import { AgentDemoResearch } from "@/components/landing/agent-demo-research"
+import { AgentDemoVision } from "@/components/landing/agent-demo-vision"
+import { AgentDemoSummary } from "@/components/landing/agent-demo-summary"
+import { AgentDemoPractice } from "@/components/landing/agent-demo-practice"
+import { AgentDemoWrite } from "@/components/landing/agent-demo-write"
 
 const FAQSection = dynamic(() => import("@/components/landing/faq-section").then(mod => ({ default: mod.FAQSection })), {
   ssr: false,
@@ -28,6 +35,9 @@ export default function LandingPage() {
   const showTestimonials = false
   return (
     <main className="relative overflow-x-hidden">
+      {/* Scroll Progress Indicator */}
+      <ScrollProgress />
+
       <div className="relative min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
 
         {/* Decorative background elements */}
@@ -359,6 +369,11 @@ export default function LandingPage() {
               align="center"
             />
 
+            {/* Animated Agent Icons */}
+            <div className="mb-16">
+              <AnimatedAgentIcons />
+            </div>
+
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
               {[
                 {
@@ -408,6 +423,39 @@ export default function LandingPage() {
               ))}
             </div>
           </div>
+        </section>
+
+        {/* Agent Demos Section - Interactive Animated Demonstrations */}
+        <section className="w-full bg-slate-950">
+          <div className="py-16 text-center px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: false }}
+              className="mx-auto max-w-3xl"
+            >
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/40 mb-6">
+                <Sparkles className="w-4 h-4 text-cyan-400" />
+                <span className="text-cyan-400 font-semibold text-sm">Veja em Ação</span>
+              </span>
+              <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
+                Seus Especialistas<br />
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">
+                  Trabalhando por Você
+                </span>
+              </h2>
+              <p className="text-lg text-slate-400">
+                Role para baixo e veja cada agente demonstrando suas habilidades em tempo real
+              </p>
+            </motion.div>
+          </div>
+
+          {/* Demo sections */}
+          <AgentDemoResearch />
+          <AgentDemoVision />
+          <AgentDemoSummary />
+          <AgentDemoPractice />
+          <AgentDemoWrite />
         </section>
 
         {/* How it Works */}
@@ -651,15 +699,19 @@ export default function LandingPage() {
               align="center"
             />
 
-            {/* Planos Mensal e Anual */}
-            <div className="grid md:grid-cols-2 gap-6 md:gap-8 max-w-5xl mx-auto">
+            {/* Planos Mensal, Anual Básico e Anual Pro */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto">
               {/* Plano Mensal */}
               <HoverCard>
                 <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-border hover:border-primary/50 w-full min-h-[480px] flex flex-col h-full">
                   <div className="text-center mb-5">
-                    <h3 className="text-xl font-bold mb-1">Plano Mensal</h3>
+                    <h3 className="text-xl font-bold mb-1">Plano Mensal Básico</h3>
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-xs md:text-sm text-muted-foreground line-through">Valor original: R$ 59,90/mês</span>
+                      <span className="text-xs md:text-sm font-semibold tracking-wide text-accent">33% OFF - Preço de Lançamento</span>
+                    </div>
                     <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-3xl md:text-4xl font-extrabold text-primary">R$ 30</span>
+                      <span className="text-3xl md:text-4xl font-extrabold text-primary">R$ 39,80</span>
                       <span className="text-muted-foreground">/mês</span>
                     </div>
                   </div>
@@ -722,16 +774,16 @@ export default function LandingPage() {
                     <div className="flex justify-center mb-2">
                       <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">ESCOLHA INTELIGENTE</span>
                     </div>
-                    <h3 className="text-xl font-bold mb-1">Plano Anual</h3>
+                    <h3 className="text-xl font-bold mb-1">Plano Anual Básico</h3>
                     <div className="flex flex-col items-center gap-1">
-                      <span className="text-xs md:text-sm text-muted-foreground line-through">Valor original: R$ 480/ano</span>
-                      <span className="text-xs md:text-sm font-semibold tracking-wide text-accent">50% OFF</span>
+                      <span className="text-xs md:text-sm text-muted-foreground line-through">Valor original: R$ 597/ano</span>
+                      <span className="text-xs md:text-sm font-semibold tracking-wide text-accent">35% OFF - Preço de Lançamento</span>
                     </div>
                     <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-3xl md:text-4xl font-extrabold text-primary">R$ 240</span>
+                      <span className="text-3xl md:text-4xl font-extrabold text-primary">R$ 387</span>
                       <span className="text-muted-foreground">/ano</span>
                     </div>
-                    <div className="mt-2 text-xs md:text-sm font-medium text-primary">Preço de lançamento • Economize R$ 240 (equivalente a R$ 20/mês)</div>
+                    <div className="mt-2 text-xs md:text-sm font-medium text-primary">Preço de lançamento • Economize R$ 210 (equivalente a R$ 32,25/mês)</div>
                   </div>
 
                   <ul className="space-y-3 mb-6 flex-grow">
@@ -793,6 +845,117 @@ export default function LandingPage() {
                     </p>
                     <Link href="/register" className="block">
                       <Button className="w-full shadow-lg" size="lg" variant="cta">
+                        Começar Teste Grátis
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                    </Link>
+                  </div>
+                </Card>
+              </ScaleIn>
+
+              {/* Plano Anual Pro - Odonto Vision */}
+              <ScaleIn delay={0.3} className="h-full">
+                <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-purple-500 shadow-2xl md:scale-[1.04] bg-gradient-to-b from-purple-500/10 to-transparent w-full min-h-[480px] flex flex-col h-full">
+                  {/* Fita de oferta especial */}
+                  <div className="pointer-events-none absolute -right-14 top-6 rotate-45 z-10">
+                    <span className="bg-purple-600 text-white px-16 py-1 text-xs font-semibold shadow-md">PLANO PRO</span>
+                  </div>
+                  <div className="text-center mb-5">
+                    <div className="flex justify-center mb-2">
+                      <span className="bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold">MELHOR CUSTO-BENEFÍCIO</span>
+                    </div>
+                    <h3 className="text-xl font-bold mb-1">Plano Anual Pro - Odonto Vision</h3>
+                    <div className="flex flex-col items-center gap-1">
+                      <span className="text-xs md:text-sm text-muted-foreground line-through">Valor original: R$ 797/ano</span>
+                      <span className="text-xs md:text-sm font-semibold tracking-wide text-purple-600">25% OFF - Preço de Lançamento</span>
+                    </div>
+                    <div className="flex items-baseline justify-center gap-1">
+                      <span className="text-3xl md:text-4xl font-extrabold text-purple-600">R$ 597</span>
+                      <span className="text-muted-foreground">/ano</span>
+                    </div>
+                    <div className="mt-2 text-xs md:text-sm font-medium text-purple-600">Preço de lançamento • Economize R$ 200 (equivalente a R$ 49,75/mês)</div>
+                    <div className="mt-3 p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
+                      <p className="text-xs font-semibold text-purple-700 dark:text-purple-400">+ Curso de Farmacologia: R$ 367</p>
+                      <p className="text-xs text-purple-600 dark:text-purple-500 mt-1">Valor total: R$ 964 (economize R$ 567)</p>
+                    </div>
+                  </div>
+
+                  <ul className="space-y-3 mb-6 flex-grow">
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm"><strong>Tudo do Plano Básico</strong> (consultor 24/7, respostas científicas, prescrições, lives)</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">🎓 <strong>Curso Completo de Farmacologia</strong> (valor R$ 367)</span>
+                    </li>
+                    {/* Destaque Especial Odonto Vision */}
+                    <li className="col-span-full">
+                      <div className="p-4 bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30 rounded-xl border-2 border-cyan-300 dark:border-cyan-700 shadow-lg">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="p-2 bg-cyan-500 rounded-lg">
+                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </div>
+                          <div>
+                            <h4 className="text-base font-bold text-cyan-900 dark:text-cyan-100">👁️ Odonto Vision</h4>
+                            <p className="text-xs text-cyan-700 dark:text-cyan-300">Exclusivo do Plano PRO</p>
+                          </div>
+                        </div>
+                        <p className="text-sm text-cyan-800 dark:text-cyan-200 leading-relaxed mb-3">
+                          <strong>Análise inteligente de imagens radiográficas com IA.</strong> Envie radiografias panorâmicas, periapicais e tomografias para receber análises detalhadas, identificação de achados clínicos e sugestões de diagnóstico diferencial.
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-200 dark:bg-cyan-800 text-cyan-900 dark:text-cyan-100">
+                            ✓ Radiografias Panorâmicas
+                          </span>
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-200 dark:bg-cyan-800 text-cyan-900 dark:text-cyan-100">
+                            ✓ Periapicais
+                          </span>
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-200 dark:bg-cyan-800 text-cyan-900 dark:text-cyan-100">
+                            ✓ Tomografias
+                          </span>
+                        </div>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">🎁 <strong>Ebook exclusivo:</strong> Como Validar Seu Diploma nos EUA</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">🎁 <strong>Certificado mensal</strong> de participação nas lives</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">🎁 <strong>Acesso prioritário</strong> a novas funcionalidades</span>
+                    </li>
+                    <li className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-sm">🎁 <strong>Suporte prioritário</strong> via WhatsApp</span>
+                    </li>
+                  </ul>
+
+                  <div className="mt-auto space-y-4">
+                    <p className="text-center text-sm font-medium text-purple-600">
+                      Inclui teste grátis de 7 dias
+                    </p>
+                    <Link href="/register" className="block">
+                      <Button className="w-full shadow-lg bg-purple-600 hover:bg-purple-700 text-white" size="lg">
                         Começar Teste Grátis
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>

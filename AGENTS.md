@@ -23,3 +23,7 @@ Store `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.lo
 
 ## Orientação de Idioma
 Todas as respostas automatizadas e comunicações nos PRs devem ser redigidas em português brasileiro, mantendo tom profissional e direto.
+## AI Context References
+- Documentation index: `.context/docs/README.md`
+- Agent playbooks: `.context/agents/README.md`
+

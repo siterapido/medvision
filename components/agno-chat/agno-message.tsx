@@ -1,6 +1,6 @@
 "use client"
 
-import { Bot, User, Copy, CheckCheck, AlertCircle, Loader2, FileText, BrainCircuit, Microscope, LayoutGrid, Network } from "lucide-react"
+import { Bot, User, Copy, CheckCheck, AlertCircle, Loader2, FileText, BrainCircuit, Microscope, LayoutGrid, Network, Scan, Bookmark } from "lucide-react"
 import { useState } from "react"
 import Link from "next/link"
 import type { ChatMessage } from "@/lib/agno"
@@ -9,13 +9,17 @@ import { cn } from "@/lib/utils"
 import ReactMarkdown from "react-markdown"
 import remarkGfm from "remark-gfm"
 import { MarkdownComponents } from "./markdown-components"
+import { saveNote } from "@/app/actions/artifacts"
+import { useToast } from "@/components/ui/use-toast"
 
 interface AgnoMessageProps {
     message: ChatMessage
 }
 
 export function AgnoMessage({ message }: AgnoMessageProps) {
+    const { toast } = useToast()
     const [copied, setCopied] = useState(false)
+    const [saving, setSaving] = useState(false)
     const isUser = message.role === "user"
     const hasError = message.streamingError
 
@@ -27,6 +31,27 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
         await navigator.clipboard.writeText(message.content)
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
+    }
+
+    const handleSaveNote = async () => {
+        if (!message.content) return
+
+        setSaving(true)
+        const result = await saveNote(message.content, message.id)
+        setSaving(false)
+
+        if (result.success) {
+            toast({
+                title: "Nota salva!",
+                description: "O conteúdo foi salvo em suas notas.",
+            })
+        } else {
+            toast({
+                title: "Erro ao salvar",
+                description: "Não foi possível salvar a nota. Tente novamente.",
+                variant: "destructive"
+            })
+        }
     }
 
     // Simple markdown-like rendering
@@ -421,6 +446,39 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
                                     )
                                 }
 
+                                if (tool.tool_name === "save_image_analysis") {
+                                    const isLoading = tool.result === undefined
+                                    return (
+                                        <div key={idx} className="p-4 bg-gradient-to-br from-cyan-500/10 to-teal-600/5 border border-cyan-500/20 rounded-xl flex items-center justify-between shadow-lg shadow-cyan-500/5 group/tool">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-xl bg-cyan-500/20 flex items-center justify-center border border-cyan-500/20 transition-transform group-hover/tool:scale-110">
+                                                    {isLoading ? (
+                                                        <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
+                                                    ) : (
+                                                        <Scan className="w-5 h-5 text-cyan-400" />
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-bold text-cyan-100 uppercase tracking-widest">
+                                                        {isLoading ? "Analisando Imagem..." : "Laudo de Imagem"}
+                                                    </span>
+                                                    {!isLoading && (
+                                                        <span className="text-[10px] text-cyan-400/70 font-medium">Análise radiográfica pronta</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            {!isLoading && (
+                                                <Link
+                                                    href={tool.result?.match(/ID:\s*([a-f0-9\-]+)/)?.[1] ? `/dashboard/imagens/${tool.result.match(/ID:\s*([a-f0-9\-]+)/)![1]}` : "/dashboard/imagens"}
+                                                    className="px-4 py-1.5 text-xs bg-cyan-600 hover:bg-cyan-500 text-white rounded-full font-bold shadow-lg shadow-cyan-600/20 transition-all hover:-translate-y-0.5"
+                                                >
+                                                    Ver Laudo
+                                                </Link>
+                                            )}
+                                        </div>
+                                    )
+                                }
+
                                 // Generic Tool
                                 return (
                                     <div key={idx} className="p-2 bg-slate-800/30 rounded border border-slate-700/30 text-xs">
@@ -447,9 +505,6 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
                 {/* Actions for agent messages */}
                 {!isUser && !message.isStreaming && message.content && (
                     <div className="flex gap-2 mt-2">
-                        <button
-                            onClick={copyContent}
-                            className="p-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:text-white hover:border-slate-600 transition-all"
                             title="Copiar"
                         >
                             {copied ? (
@@ -458,15 +513,30 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
                                 <Copy className="w-4 h-4" />
                             )}
                         </button>
+                        
+                        <button
+                            onClick={handleSaveNote}
+                            disabled={saving}
+                            className="p-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all disabled:opacity-50"
+                            title="Salvar como Nota"
+                        >
+                            {saving ? (
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : (
+                                <Bookmark className="w-4 h-4" />
+                            )}
+                        </button>
                     </div>
                 )}
-            </div>
-
-            {isUser && (
-                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
-                    <User className="w-5 h-5 text-slate-300" />
-                </div>
-            )}
         </div>
+
+            {
+        isUser && (
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
+                <User className="w-5 h-5 text-slate-300" />
+            </div>
+        )
+    }
+        </div >
     )
 }

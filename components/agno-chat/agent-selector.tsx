@@ -22,14 +22,14 @@ interface AgentSelectorProps {
     error?: string | null
 }
 
-// Configuração visual dos agentes
+// Configuração visual dos agentes - Gradientes estilo Apple (cores vibrantes, transições suaves)
 const agentConfig: Record<string, { icon: React.ElementType, gradient: string, isAuto?: boolean }> = {
-    'odonto-flow': { icon: Sparkles, gradient: 'from-cyan-500 to-blue-500', isAuto: true },
-    'odonto-research': { icon: FlaskConical, gradient: 'from-purple-500 to-indigo-500' },
-    'odonto-practice': { icon: GraduationCap, gradient: 'from-amber-500 to-orange-500' },
-    'odonto-write': { icon: FileText, gradient: 'from-emerald-500 to-teal-500' },
-    'odonto-vision': { icon: ScanEye, gradient: 'from-rose-500 to-pink-500' },
-    'odonto-gpt': { icon: MessageCircle, gradient: 'from-indigo-500 to-purple-500' },
+    'odonto-flow': { icon: Sparkles, gradient: 'from-[#00D4FF] via-[#00A3FF] to-[#0066FF]', isAuto: true },
+    'odonto-research': { icon: FlaskConical, gradient: 'from-[#BF5AF2] via-[#9D4EDD] to-[#7B2CBF]' },
+    'odonto-practice': { icon: GraduationCap, gradient: 'from-[#FF9F0A] via-[#FF6B35] to-[#FF453A]' },
+    'odonto-write': { icon: FileText, gradient: 'from-[#30D158] via-[#00C7BE] to-[#00B4D8]' },
+    'odonto-vision': { icon: ScanEye, gradient: 'from-[#FF6B6B] via-[#EE5A70] to-[#DA4167]' },
+    'odonto-gpt': { icon: MessageCircle, gradient: 'from-[#5E5CE6] via-[#7C3AED] to-[#A855F7]' },
 }
 
 export function AgentSelector({

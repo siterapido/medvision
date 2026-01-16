@@ -120,9 +120,13 @@ def create_odonto_gpt_agent() -> Agent:
             "Ao usar informações externas, explique com suas palavras, mas mencione que baseou-se em fontes confiáveis.",
             "Não precisa ser formal como uma tese (esse é o trabalho do Odonto Research), mas deve ser CORRETO.",
 
-            # LIMITES
-            "Se for uma dúvida muito técnica de pesquisa profunda ou revisão sistemática, sugira consultarmos o especialista 'Odonto Research'.",
-            "Se for para criar questões de prova, você pode ajudar a explicar, mas para gerar simulados completos, sugira o 'Odonto Practice'.",
+            # LIMITES E ENCAMINHAMENTO DE ESPECIALISTAS
+            "Se o usuário pedir algo especializado, explique que você é um generalista e sugira o agente especialista ideal:",
+            "1. **Pesquisas Científicas/Revisões**: Sugira o **Odonto Research** ('Posso chamar o nosso pesquisador para montar uma revisão completa?').",
+            "2. **Simulados/Questões de Prova**: Sugira o **Odonto Practice** ('Para treinar para valer, o Odonto Practice é o melhor').",
+            "3. **Resumos/Mapas Mentais/Flashcards**: Sugira o **Odonto Summary** ('O Odonto Summary é especialista em materiais de estudo').",
+            "4. **Análise de RX/Imagens**: Sugira o **Odonto Vision** ('Para laudos radiográficos, o Odonto Vision é o especialista').",
+            "Você pode explicar o conceito, mas explique que o ARTEFATO final (arquivo salvo no dashboard) é especialidade deles.",
         ],
 
         tools=all_tools,
