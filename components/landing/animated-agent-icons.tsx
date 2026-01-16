@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion"
 import { Microscope, Eye, GraduationCap, PenTool, BookOpen, MessageCircle } from "lucide-react"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface AgentIconProps {
     icon: typeof Microscope
@@ -10,11 +10,22 @@ interface AgentIconProps {
     gradient: string
     delay: number
     position: { x: number; y: number }
+    mobilePosition: { x: number; y: number }
     name: string
 }
 
-const AgentIcon = ({ icon: Icon, color, gradient, delay, position, name }: AgentIconProps) => {
+const AgentIcon = ({ icon: Icon, color, gradient, delay, position, mobilePosition, name }: AgentIconProps) => {
     const [isHovered, setIsHovered] = useState(false)
+    const [isMobile, setIsMobile] = useState(false)
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768)
+        checkMobile()
+        window.addEventListener('resize', checkMobile)
+        return () => window.removeEventListener('resize', checkMobile)
+    }, [])
+
+    const currentPosition = isMobile ? mobilePosition : position
 
     return (
         <motion.div
@@ -43,11 +54,11 @@ const AgentIcon = ({ icon: Icon, color, gradient, delay, position, name }: Agent
             onHoverEnd={() => setIsHovered(false)}
             className="absolute cursor-pointer"
             style={{
-                left: `${position.x}%`,
-                top: `${position.y}%`,
+                left: `${currentPosition.x}%`,
+                top: `${currentPosition.y}%`,
             }}
         >
-            <div className={`relative w-16 h-16 md:w-20 md:h-20 rounded-2xl bg-gradient-to-br ${gradient} p-4 shadow-lg hover:shadow-2xl transition-shadow`}>
+            <div className={`relative w-12 h-12 md:w-20 md:h-20 rounded-xl md:rounded-2xl bg-gradient-to-br ${gradient} p-3 md:p-4 shadow-lg hover:shadow-2xl transition-shadow`}>
                 <Icon className="w-full h-full text-white" />
 
                 {/* Glow effect */}
@@ -106,59 +117,66 @@ const AgentIcon = ({ icon: Icon, color, gradient, delay, position, name }: Agent
 }
 
 export const AnimatedAgentIcons = () => {
+    // Posições otimizadas: mobile em círculo mais centralizado, desktop mantém layout original
     const agents = [
         {
             icon: Microscope,
             color: "#3B82F6",
             gradient: "from-blue-500 via-cyan-500 to-teal-500",
             name: "Odonto Research",
-            position: { x: 15, y: 20 }
+            position: { x: 15, y: 20 },
+            mobilePosition: { x: 18, y: 8 }
         },
         {
             icon: Eye,
             color: "#06B6D4",
             gradient: "from-cyan-500 via-blue-500 to-indigo-500",
             name: "Odonto Vision",
-            position: { x: 75, y: 15 }
+            position: { x: 75, y: 15 },
+            mobilePosition: { x: 62, y: 8 }
         },
         {
             icon: BookOpen,
             color: "#EC4899",
             gradient: "from-pink-500 via-rose-500 to-red-500",
             name: "Odonto Summary",
-            position: { x: 25, y: 65 }
+            position: { x: 25, y: 65 },
+            mobilePosition: { x: 8, y: 42 }
         },
         {
             icon: GraduationCap,
             color: "#A855F7",
             gradient: "from-purple-500 via-violet-500 to-fuchsia-500",
             name: "Odonto Practice",
-            position: { x: 70, y: 70 }
+            position: { x: 70, y: 70 },
+            mobilePosition: { x: 72, y: 42 }
         },
         {
             icon: PenTool,
             color: "#10B981",
             gradient: "from-emerald-500 via-green-500 to-teal-500",
             name: "Odonto Write",
-            position: { x: 50, y: 45 }
+            position: { x: 50, y: 45 },
+            mobilePosition: { x: 18, y: 75 }
         },
         {
             icon: MessageCircle,
             color: "#6366F1",
             gradient: "from-indigo-500 via-purple-500 to-pink-500",
             name: "Odonto GPT",
-            position: { x: 85, y: 45 }
+            position: { x: 85, y: 45 },
+            mobilePosition: { x: 62, y: 75 }
         }
     ]
 
     return (
-        <div className="relative w-full h-[400px] md:h-[500px]">
+        <div className="relative w-full h-[350px] md:h-[500px] overflow-visible">
             {/* Central hub */}
             <motion.div
                 initial={{ scale: 0, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ delay: 0.3, duration: 0.8 }}
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 md:w-32 md:h-32"
+                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 md:w-32 md:h-32"
             >
                 <motion.div
                     animate={{
@@ -172,8 +190,8 @@ export const AnimatedAgentIcons = () => {
                     className="w-full h-full rounded-full bg-gradient-to-br from-primary/20 to-accent/20 border-2 border-primary/30 flex items-center justify-center backdrop-blur-sm"
                 >
                     <div className="text-center">
-                        <div className="text-2xl md:text-3xl font-bold text-primary">AI</div>
-                        <div className="text-xs text-muted-foreground">Hub</div>
+                        <div className="text-xl md:text-3xl font-bold text-primary">AI</div>
+                        <div className="text-[10px] md:text-xs text-muted-foreground">Hub</div>
                     </div>
                 </motion.div>
 
@@ -214,6 +232,7 @@ export const AnimatedAgentIcons = () => {
                     gradient={agent.gradient}
                     name={agent.name}
                     position={agent.position}
+                    mobilePosition={agent.mobilePosition}
                     delay={index * 0.15}
                 />
             ))}

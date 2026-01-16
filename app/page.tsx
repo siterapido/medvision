@@ -119,8 +119,8 @@ export default function LandingPage() {
               </div>
 
               {/* Hero Visual */}
-              <div className="order-1 lg:order-2 relative z-0 flex justify-center lg:justify-end">
-                <FadeIn delay={0.2} className="w-full max-w-2xl">
+              <div className="order-1 lg:order-2 relative z-0 flex justify-center lg:justify-end overflow-visible px-8 md:px-0">
+                <FadeIn delay={0.2} className="w-full max-w-2xl overflow-visible">
                   <AgentHeroVisual />
                 </FadeIn>
               </div>

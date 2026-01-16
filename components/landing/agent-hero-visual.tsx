@@ -2,13 +2,13 @@
 
 import { motion } from "framer-motion"
 import {
-    FlaskConical,
+    Microscope,
+    Eye,
+    BookOpen,
     GraduationCap,
-    FileText,
-    ScanEye,
+    PenTool,
     MessageCircle,
-    Sparkles,
-    Database
+    Sparkles
 } from "lucide-react"
 
 interface AgentNodeProps {
@@ -47,47 +47,55 @@ const AgentNode = ({ icon: Icon, label, color, delay, position }: AgentNodeProps
 }
 
 export function AgentHeroVisual() {
-    // Agentes com ícones e cores padronizados - Gradientes estilo Apple
+    // Agentes com ícones e cores consistentes com AnimatedAgentIcons
+    // Mobile: distribuídos em círculo ao redor do centro com mais espaçamento
     const agents = [
         {
             id: 1,
-            icon: FlaskConical,
-            label: "Pesquisador",
-            color: "bg-gradient-to-br from-[#BF5AF2] via-[#9D4EDD] to-[#7B2CBF]",
-            position: "left-[2%] top-[28%] md:left-[10%] md:top-[20%]"
+            icon: Microscope,
+            label: "Odonto Research",
+            color: "bg-gradient-to-br from-blue-500 via-cyan-500 to-teal-500",
+            position: "left-[-8%] top-[5%] md:left-[5%] md:top-[15%]"
         },
         {
             id: 2,
-            icon: GraduationCap,
-            label: "Estudos",
-            color: "bg-gradient-to-br from-[#FF9F0A] via-[#FF6B35] to-[#FF453A]",
-            position: "right-[2%] top-[22%] md:right-[8%] md:top-[25%]"
+            icon: Eye,
+            label: "Odonto Vision",
+            color: "bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-500",
+            position: "right-[-8%] top-[5%] md:right-[5%] md:top-[15%]"
         },
         {
             id: 3,
-            icon: FileText,
-            label: "Redator",
-            color: "bg-gradient-to-br from-[#30D158] via-[#00C7BE] to-[#00B4D8]",
-            position: "left-[2%] bottom-[18%] md:left-[12%] md:bottom-[15%]"
+            icon: BookOpen,
+            label: "Odonto Summary",
+            color: "bg-gradient-to-br from-pink-500 via-rose-500 to-red-500",
+            position: "left-[-12%] top-[50%] -translate-y-1/2 md:left-[0%]"
         },
         {
             id: 4,
-            icon: MessageCircle,
-            label: "Consultor",
-            color: "bg-gradient-to-br from-[#5E5CE6] via-[#7C3AED] to-[#A855F7]",
-            position: "right-[2%] bottom-[15%] md:right-[5%] md:bottom-[10%]"
+            icon: GraduationCap,
+            label: "Odonto Practice",
+            color: "bg-gradient-to-br from-purple-500 via-violet-500 to-fuchsia-500",
+            position: "right-[-12%] top-[50%] -translate-y-1/2 md:right-[0%]"
         },
         {
             id: 5,
-            icon: ScanEye,
-            label: "Diagnóstico",
-            color: "bg-gradient-to-br from-[#FF6B6B] via-[#EE5A70] to-[#DA4167]",
-            position: "left-1/2 -translate-x-1/2 top-[2%] md:top-[3%]"
+            icon: PenTool,
+            label: "Odonto Write",
+            color: "bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500",
+            position: "left-[-8%] bottom-[5%] md:left-[5%] md:bottom-[15%]"
+        },
+        {
+            id: 6,
+            icon: MessageCircle,
+            label: "Odonto GPT",
+            color: "bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500",
+            position: "right-[-8%] bottom-[5%] md:right-[5%] md:bottom-[15%]"
         },
     ]
 
     return (
-        <div className="relative w-full aspect-square max-w-[320px] md:max-w-2xl mx-auto perspective-1000">
+        <div className="relative w-full aspect-square max-w-[280px] md:max-w-2xl mx-auto perspective-1000 overflow-visible">
             <div className="absolute inset-0 bg-gradient-to-b from-cyan-500/5 to-transparent rounded-full blur-3xl transform -translate-y-10" />
 
             {/* Central Core */}
@@ -113,16 +121,16 @@ export function AgentHeroVisual() {
                         <Sparkles className="w-full h-full text-white" />
                     </motion.div>
 
-                    {/* Floating 'Central de Inteligência' label */}
+                    {/* Floating 'Odonto Flow' label */}
                     <motion.div
                         className="absolute -bottom-8 md:-bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 }}
                     >
-                        <div className="px-3 py-1 md:px-4 md:py-1.5 bg-white/90 backdrop-blur-md rounded-full border border-cyan-100 shadow-lg flex items-center gap-1.5 md:gap-2">
-                            <Database className="w-3 h-3 md:w-4 md:h-4 text-cyan-600" />
-                            <span className="font-bold text-slate-800 text-[10px] md:text-sm">Central de Inteligência</span>
+                        <div className="px-3 py-1 md:px-4 md:py-1.5 bg-gradient-to-r from-[#00D4FF] to-[#0066FF] backdrop-blur-md rounded-full border border-cyan-400/30 shadow-lg shadow-cyan-500/20 flex items-center gap-1.5 md:gap-2">
+                            <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-white" />
+                            <span className="font-bold text-white text-[10px] md:text-sm">Odonto Flow</span>
                         </div>
                     </motion.div>
                 </div>
@@ -144,11 +152,18 @@ export function AgentHeroVisual() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1, duration: 1 }}
                 >
-                    <line x1="50%" y1="50%" x2="15%" y2="30%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
-                    <line x1="50%" y1="50%" x2="85%" y2="38%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
-                    <line x1="50%" y1="50%" x2="20%" y2="75%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
-                    <line x1="50%" y1="50%" x2="90%" y2="80%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
-                    <line x1="50%" y1="50%" x2="50%" y2="15%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
+                    {/* Linha para Odonto Research (topo esquerda) */}
+                    <line x1="50%" y1="50%" x2="12%" y2="25%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
+                    {/* Linha para Odonto Vision (topo direita) */}
+                    <line x1="50%" y1="50%" x2="88%" y2="25%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
+                    {/* Linha para Odonto Summary (meio esquerda) */}
+                    <line x1="50%" y1="50%" x2="8%" y2="50%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
+                    {/* Linha para Odonto Practice (meio direita) */}
+                    <line x1="50%" y1="50%" x2="92%" y2="50%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
+                    {/* Linha para Odonto Write (baixo esquerda) */}
+                    <line x1="50%" y1="50%" x2="12%" y2="75%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
+                    {/* Linha para Odonto GPT (baixo direita) */}
+                    <line x1="50%" y1="50%" x2="88%" y2="75%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
                 </motion.g>
                 <defs>
                     <linearGradient id="line-grad" x1="0" y1="0" x2="1" y2="1">
@@ -160,4 +175,3 @@ export function AgentHeroVisual() {
         </div>
     )
 }
-
