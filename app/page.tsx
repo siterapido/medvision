@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/accordion"
 import Link from "next/link"
 import { Logo } from "@/components/logo"
-import { motion, useScroll, useTransform } from "framer-motion"
+import { motion } from "framer-motion"
 import { FadeIn, StaggerContainer, StaggerItem, HoverCard, ScaleIn } from "@/components/ui/animations"
 import { AgentHeroVisual } from "@/components/landing/agent-hero-visual"
 import { AnimatedAgentIcons } from "@/components/landing/animated-agent-icons"
