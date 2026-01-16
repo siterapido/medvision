@@ -45,94 +45,13 @@ const SectionHeader = dynamic(() => import("@/components/ui/section-header").the
   loading: () => <div className="h-20 bg-transparent animate-pulse" />
 })
 
-const WorkflowCard = ({ step, index, total }: { step: any, index: number, total: number }) => {
-  const cardRef = useRef<HTMLDivElement>(null);
-  const isMobile = useIsMobile();
 
-  // Para mobile: animação simples de entrada
-  if (isMobile) {
-    return (
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: false, amount: 0.3 }}
-        transition={{ duration: 0.6, delay: index * 0.1 }}
-        className="w-full mb-8"
-      >
-        <Card className="relative bg-[#0F172A] border-[#22d3ee]/20 backdrop-blur-xl overflow-hidden shadow-2xl">
-          <div
-            className="absolute -right-10 -top-10 w-32 h-32 rounded-full blur-[60px] opacity-30"
-            style={{ backgroundColor: step.color }}
-          />
-          <CardContent className="p-6 relative z-10 flex flex-col gap-4 items-center text-center">
-            <div
-              className="text-6xl font-bold text-transparent bg-clip-text opacity-30 select-none leading-none"
-              style={{ backgroundImage: `linear-gradient(to bottom, ${step.color}, transparent)` }}
-            >
-              {step.number}
-            </div>
-            <div className="space-y-3">
-              <h3 className="text-2xl font-bold text-white leading-tight">{step.title}</h3>
-              <p className="text-slate-300 text-base leading-relaxed">{step.desc}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    );
-  }
-
-  // Para desktop: sticky positioning com scale progressivo
-  const targetScale = 1 - (total - index - 1) * 0.05; // Cada card anterior fica 5% menor
-  const stickyTop = 100 + index * 20; // Cada card fica 20px mais abaixo
-
-  return (
-    <div
-      ref={cardRef}
-      className="sticky w-full"
-      style={{
-        top: `${stickyTop}px`,
-        height: `calc(100vh - ${stickyTop}px)`,
-        paddingTop: '2rem',
-        paddingBottom: '2rem',
-      }}
-    >
-      <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
-        whileInView={{ scale: targetScale, opacity: 1 }}
-        viewport={{ once: false, amount: 0.3, margin: "0px 0px -200px 0px" }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
-        className="w-full max-w-4xl mx-auto h-full flex items-center justify-center"
-        style={{
-          transformOrigin: 'top center',
-        }}
-      >
-        <Card className="relative bg-[#0F172A] border-[#22d3ee]/20 backdrop-blur-xl overflow-hidden shadow-2xl w-full">
-          <div
-            className="absolute -right-20 -top-20 w-64 h-64 rounded-full blur-[100px] opacity-20"
-            style={{ backgroundColor: step.color }}
-          />
-          <CardContent className="p-12 relative z-10 flex flex-row gap-8 items-center">
-            <div
-              className="text-9xl font-bold text-transparent bg-clip-text opacity-20 select-none leading-none shrink-0"
-              style={{ backgroundImage: `linear-gradient(to bottom, ${step.color}, transparent)` }}
-            >
-              {step.number}
-            </div>
-            <div className="space-y-4">
-              <h3 className="text-4xl font-bold text-white leading-tight">{step.title}</h3>
-              <p className="text-slate-300 text-lg leading-relaxed max-w-xl">{step.desc}</p>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
-    </div>
-  );
-};
 
 export default function LandingPage() {
   const showTestimonials = false
   const [showStickyCTA, setShowStickyCTA] = useState(false)
   const heroRef = useRef<HTMLElement>(null)
+
 
   useEffect(() => {
     const heroSection = document.getElementById('hero-section')
@@ -285,7 +204,7 @@ export default function LandingPage() {
         </div>
 
         {/* Hero Section */}
-        <section id="hero-section" className="relative w-full min-h-[85vh] md:min-h-[90vh] flex items-center justify-center py-10 md:py-32 px-4 md:px-6 overflow-hidden z-10">
+        <section id="hero-section" className="relative w-full min-h-[85vh] md:min-h-[90vh] flex items-center justify-center py-20 md:py-32 px-4 md:px-6 overflow-hidden z-10">
           <div className="container mx-auto">
             {/* Logo Mobile */}
             <div className="flex justify-start md:hidden mb-8">
@@ -371,7 +290,7 @@ export default function LandingPage() {
         </section>
 
         {/* Agents Team Section */}
-        <section className="w-full py-12 md:py-20 px-4 md:px-6 relative z-20">
+        <section className="w-full py-20 md:py-32 px-4 md:px-6 relative z-20">
           <div className="mx-auto max-w-6xl space-y-12">
             <SectionHeader
               label="Sua Equipe Completa"
@@ -473,185 +392,370 @@ export default function LandingPage() {
         </section>
 
         {/* Comparison Section - Realidade Acadêmica */}
-        <section className="w-full py-12 md:py-20 px-4 md:px-6 relative z-10">
+        <section className="w-full py-20 md:py-32 px-4 md:px-6 relative z-10 overflow-hidden">
+          {/* Background effects */}
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-red-500 rounded-full blur-[250px] opacity-[0.03] pointer-events-none" />
+          <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-[#22d3ee] rounded-full blur-[250px] opacity-[0.04] pointer-events-none" />
 
-          <div className="container mx-auto max-w-6xl relative z-10">
-            <SectionHeader
-              label="Realidade Acadêmica"
-              icon={Brain}
-              title="A Diferença Entre Estudar Muito e Estudar Bem"
-              description="A Odonto GPT não substitui seu estudo, ela o potencializa. Veja a diferença na prática."
-              align="center"
-              className="mb-8 md:mb-16"
-            />
+          <div className="container mx-auto max-w-7xl relative z-10">
+            {/* Header */}
+            <FadeIn direction="up" delay={0.1}>
+              <div className="text-center max-w-3xl mx-auto mb-16">
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(6,182,212,0.1)] border border-[rgba(6,182,212,0.3)] mb-6">
+                  <Brain className="w-4 h-4 text-[#22d3ee]" />
+                  <span className="text-[#22d3ee] font-semibold text-sm">Realidade Acadêmica</span>
+                </span>
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-[1.1]">
+                  A Diferença Entre Estudar<br />
+                  <span className="text-slate-400">Muito</span> e Estudar{" "}
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22d3ee] to-[#67e8f9]">Bem</span>
+                </h2>
+                <p className="text-lg text-slate-400 leading-relaxed">
+                  A Odonto GPT não substitui seu estudo, ela o potencializa. Veja a diferença na prática.
+                </p>
+              </div>
+            </FadeIn>
 
-            <div className="grid md:grid-cols-2 gap-6 md:gap-8 items-stretch">
+            <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
               {/* Sem Odonto GPT */}
-              <FadeIn direction="right" delay={0.1} className="relative group">
-                <Card className="transition-all duration-300 border-2 bg-transparent hover:scale-95 group-hover:shadow-lg group-hover:shadow-destructive/20 group-hover:animate-wobble border-[rgba(239,68,68,0.2)] hover:border-destructive/50 overflow-hidden">
-                  {/* Glow vermelho (hover) */}
-                  <div className="absolute inset-0 -z-10 opacity-0 group-hover:opacity-85 transition-opacity duration-300 bg-[radial-gradient(ellipse,_rgba(239,68,68,0.35)_0%,_transparent_90%)] blur-[140px]" />
-
-                  <CardContent className="p-8 md:p-10 pt-10 md:pt-12 space-y-6 text-base relative z-10">
-                    <div className="flex items-center gap-3 mb-8">
-                      <span className="inline-flex items-center justify-center rounded-md p-1.5 bg-destructive/10 ring-1 ring-destructive/40">
-                        <XCircle className="h-8 w-8 text-destructive" />
-                      </span>
-                      <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-destructive">Estudante Sem Odonto GPT</h3>
-                    </div>
-
-                    <div className="space-y-4 text-sm md:text-base text-slate-300">
-                      <div className="flex items-start gap-2">
-                        <XCircle className="h-6 w-6 text-destructive shrink-0 mt-0.5" />
-                        <span>Perde oportunidades de estágio por insegurança nas respostas</span>
+              <FadeIn direction="right" delay={0.2}>
+                <div className="group relative h-full">
+                  <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                  <div className="relative h-full bg-[#0F172A]/80 border border-slate-800 rounded-2xl p-8 lg:p-10 backdrop-blur-sm hover:border-red-500/30 transition-all duration-300">
+                    {/* Header do Card */}
+                    <div className="flex items-center gap-4 mb-8 pb-6 border-b border-slate-800/50">
+                      <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/20">
+                        <XCircle className="w-7 h-7 text-red-400" />
                       </div>
-                      <div className="flex items-start gap-2">
-                        <XCircle className="h-6 w-6 text-destructive shrink-0 mt-0.5" />
-                        <span>Gasta 3h pesquisando o que poderia resolver em 30 segundos</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <XCircle className="h-6 w-6 text-destructive shrink-0 mt-0.5" />
-                        <span>Fica com medo de errar prescrições e passar vergonha no plantão</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <XCircle className="h-6 w-6 text-destructive shrink-0 mt-0.5" />
-                        <span>Assiste colegas com &quot;contatos&quot; ganharem as melhores vagas</span>
+                      <div>
+                        <h3 className="text-2xl font-bold text-white">Sem Odonto GPT</h3>
+                        <p className="text-sm text-red-400/80">O caminho mais difícil</p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+
+                    {/* Lista de problemas */}
+                    <div className="space-y-5">
+                      {[
+                        { text: "Perde oportunidades de estágio por insegurança nas respostas", emphasis: "insegurança" },
+                        { text: "Gasta 3h pesquisando o que poderia resolver em 30 segundos", emphasis: "3h pesquisando" },
+                        { text: "Fica com medo de errar prescrições e passar vergonha no plantão", emphasis: "medo de errar" },
+                        { text: "Assiste colegas com \"contatos\" ganharem as melhores vagas", emphasis: "melhores vagas" }
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-start gap-4 group/item">
+                          <div className="mt-1 p-1 rounded-full bg-red-500/10 shrink-0">
+                            <XCircle className="w-4 h-4 text-red-400" />
+                          </div>
+                          <p className="text-slate-300 text-sm lg:text-base leading-relaxed">
+                            {item.text.split(item.emphasis).map((part, idx, arr) => (
+                              <span key={idx}>
+                                {part}
+                                {idx < arr.length - 1 && (
+                                  <span className="text-red-400 font-medium">{item.emphasis}</span>
+                                )}
+                              </span>
+                            ))}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Visual indicator */}
+                    <div className="mt-8 pt-6 border-t border-slate-800/50">
+                      <div className="flex items-center gap-3 text-sm text-slate-500">
+                        <div className="flex -space-x-1">
+                          {[1, 2, 3].map((i) => (
+                            <div key={i} className="w-6 h-6 rounded-full bg-slate-700 border-2 border-[#0F172A] flex items-center justify-center text-[10px] text-slate-400">
+                              😔
+                            </div>
+                          ))}
+                        </div>
+                        <span>Milhares ainda estudam assim...</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </FadeIn>
 
               {/* Com Odonto GPT */}
-              <FadeIn direction="left" delay={0.2} className="relative group">
-                {/* Intense edge glow */}
-                <div aria-hidden className="absolute -inset-6 -z-10 rounded-2xl bg-gradient-to-br from-[#2399B4]/40 via-[#2399B4]/20 to-transparent blur-2xl opacity-50 group-hover:opacity-100 transition-opacity" />
+              <FadeIn direction="left" delay={0.3}>
+                <div className="group relative h-full">
+                  {/* Glow effect */}
+                  <div className="absolute -inset-[1px] bg-gradient-to-r from-[#22d3ee] to-[#0891b2] rounded-2xl opacity-100" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#22d3ee]/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500" />
 
-                <Card className="transition-all duration-300 border-[3px] border-[#2399B4] hover:scale-105 hover:shadow-[0_10px_40px_rgba(35,153,180,0.2)] bg-[#16243F] overflow-hidden relative">
-                  {/* Glow intenso #2399B4 */}
-                  <div className="absolute inset-0 -z-10 opacity-90 group-hover:opacity-100 transition-all duration-300 bg-[radial-gradient(ellipse,_rgba(35,153,180,0.6)_0%,_rgba(35,153,180,0.2)_60%,_transparent_100%)] blur-[140px]" />
-
-                  <CardContent className="p-8 md:p-10 pt-10 md:pt-12 space-y-6 text-base relative z-10">
-                    <div className="flex items-center gap-3 mb-8">
-                      <span className="inline-flex items-center justify-center rounded-md p-1.5 bg-[#2399B4]/10 ring-1 ring-[#2399B4]/40">
-                        <CheckCircle2 className="h-8 w-8 text-[#22d3ee]" />
+                  <div className="relative h-full bg-[#0F172A] border-0 rounded-2xl p-8 lg:p-10">
+                    {/* Header do Card */}
+                    <div className="flex items-center justify-between gap-4 mb-8 pb-6 border-b border-[#22d3ee]/20">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 rounded-xl bg-[#22d3ee]/10 border border-[#22d3ee]/30">
+                          <CheckCircle2 className="w-7 h-7 text-[#22d3ee]" />
+                        </div>
+                        <div>
+                          <h3 className="text-2xl font-bold text-white">Com Odonto GPT</h3>
+                          <p className="text-sm text-[#22d3ee]/80">A vantagem competitiva</p>
+                        </div>
+                      </div>
+                      <span className="px-3 py-1.5 rounded-full bg-[#22d3ee]/10 border border-[#22d3ee]/30 text-[#22d3ee] text-xs font-bold uppercase tracking-wider">
+                        Recomendado
                       </span>
-                      <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-[#22d3ee]">Estudante Com Odonto GPT</h3>
                     </div>
 
-                    <div className="space-y-4 text-sm md:text-base text-white">
-                      <div className="flex items-start gap-2">
-                        <CheckCircle2 className="h-6 w-6 text-[#22d3ee] shrink-0 mt-0.5" />
-                        <span>Tira dúvidas de provas em 30s com citações que impressionam professores</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <CheckCircle2 className="h-6 w-6 text-[#22d3ee] shrink-0 mt-0.5" />
-                        <span>Chega no plantão com a confiança de quem tem um especialista no bolso</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <CheckCircle2 className="h-6 w-6 text-[#22d3ee] shrink-0 mt-0.5" />
-                        <span>Acessa conhecimento equivalente a 5 anos de experiência clínica</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <CheckCircle2 className="h-6 w-6 text-[#22d3ee] shrink-0 mt-0.5" />
-                        <span>Conquista os melhores estágios enquanto outros ainda estão estudando</span>
+                    {/* Lista de benefícios */}
+                    <div className="space-y-5">
+                      {[
+                        { text: "Tira dúvidas de provas em 30s com citações que impressionam professores", emphasis: "30s" },
+                        { text: "Chega no plantão com a confiança de quem tem um especialista no bolso", emphasis: "confiança" },
+                        { text: "Acessa conhecimento equivalente a 5 anos de experiência clínica", emphasis: "5 anos" },
+                        { text: "Conquista os melhores estágios enquanto outros ainda estão estudando", emphasis: "melhores estágios" }
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-start gap-4 group/item">
+                          <div className="mt-1 p-1 rounded-full bg-[#22d3ee]/10 shrink-0">
+                            <CheckCircle2 className="w-4 h-4 text-[#22d3ee]" />
+                          </div>
+                          <p className="text-white text-sm lg:text-base leading-relaxed">
+                            {item.text.split(item.emphasis).map((part, idx, arr) => (
+                              <span key={idx}>
+                                {part}
+                                {idx < arr.length - 1 && (
+                                  <span className="text-[#22d3ee] font-semibold">{item.emphasis}</span>
+                                )}
+                              </span>
+                            ))}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Visual indicator */}
+                    <div className="mt-8 pt-6 border-t border-[#22d3ee]/20">
+                      <div className="flex items-center gap-3 text-sm text-[#22d3ee]/80">
+                        <div className="flex -space-x-1">
+                          {[1, 2, 3, 4].map((i) => (
+                            <div key={i} className="w-6 h-6 rounded-full bg-[#22d3ee]/20 border-2 border-[#0F172A] flex items-center justify-center text-[10px]">
+                              🚀
+                            </div>
+                          ))}
+                        </div>
+                        <span>+2.000 estudantes já transformaram seus estudos</span>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               </FadeIn>
             </div>
 
-            <div className="flex justify-center mt-10">
-              <Link href="/register">
-                <Button
-                  size="lg"
-                  variant="cta"
-                  className="shadow-[0_10px_40px_rgba(8,145,178,0.25)] hover:scale-105 active:scale-95 transition-all"
-                  style={{
-                    background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
-                  }}
-                >
-                  Começar Teste Grátis
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
-            </div>
+            {/* CTA */}
+            <FadeIn direction="up" delay={0.4}>
+              <div className="flex justify-center mt-12">
+                <Link href="/register">
+                  <Button
+                    size="lg"
+                    className="rounded-full px-10 py-6 text-lg font-semibold shadow-[0_10px_40px_rgba(8,145,178,0.25)] hover:shadow-[0_20px_60px_rgba(8,145,178,0.35)] hover:scale-105 active:scale-95 transition-all border-0 text-white"
+                    style={{
+                      background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
+                    }}
+                  >
+                    Fazer Parte do Grupo Que Estuda Melhor
+                    <ArrowRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+              </div>
+            </FadeIn>
           </div>
         </section>
 
-        {/* How it Works Section */}
-        <section id="como-funciona" className="w-full py-12 md:py-20 px-4 md:px-6 relative z-10">
-          {/* Subtle decorative glow */}
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#2399B4] rounded-full blur-[180px] opacity-[0.06] pointer-events-none" />
+        {/* How it Works Section - Novo Design */}
+        <section id="como-funciona" className="w-full py-20 md:py-32 px-4 md:px-6 relative z-10 overflow-hidden">
+          {/* Background effects */}
+          <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] bg-[#2399B4] rounded-full blur-[200px] opacity-[0.04] pointer-events-none" />
+          <div className="absolute bottom-0 right-0 w-[400px] h-[400px] bg-purple-500 rounded-full blur-[180px] opacity-[0.03] pointer-events-none" />
 
-          <div className="container mx-auto max-w-6xl relative z-10">
-            <SectionHeader
-              label="Simples e Poderoso"
-              icon={Zap}
-              title="Fluxo de Trabalho Otimizado"
-              description="Do planejamento à execução, a Odonto GPT se integra perfeitamente à sua rotina clínica."
-              align="center"
-              className="mb-16"
-            />
+          <div className="container mx-auto max-w-7xl relative z-10">
+            <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-start">
 
-            <div className="flex flex-col items-stretch relative w-full max-w-4xl mx-auto gap-0" style={{ minHeight: 'calc(100vh * 3)' }}>
-              {[
-                { number: "01", title: "Dúvida na Clínica ou nos Estudos?", desc: "Seja um paciente complexo na clínica da faculdade ou uma questão difícil de prova. Digite ou mande áudio.", color: "#0891b2" },
-                { number: "02", title: "Sua 'Cola' Oficial", desc: "Nossos agentes buscam na literatura validada e te entregam a resposta pronta, com referências para você citar.", color: "#06b6d4" },
-                { number: "03", title: "Nota 10 e Elogio do Professor", desc: "Tenha diagnósticos precisos e trabalhos acadêmicos escritos com linguagem técnica impecável.", color: "#22d3ee" }
-              ].map((step, i) => (
-                <WorkflowCard key={i} step={step} index={i} total={3} />
-              ))}
-            </div>
-          </div>
-        </section>
+              {/* Left Column - Title and Stack */}
+              <FadeIn direction="right" delay={0.1}>
+                <div className="space-y-8 lg:sticky lg:top-32">
+                  <div className="space-y-6">
+                    <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.1]">
+                      A Era do Estudo<br />
+                      <span className="text-slate-400">Solitário</span>{" "}
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22d3ee] to-[#a855f7]">Acabou.</span>
+                    </h2>
+                    <p className="text-lg text-slate-400 leading-relaxed max-w-xl">
+                      Quem estuda sozinho é substituído pela próxima turma. Quem domina <span className="text-white font-semibold">IA aplicada à Odontologia</span> constrói carreiras que evoluem junto com a tecnologia.
+                    </p>
+                    <p className="text-base text-slate-300">
+                      Criamos o <span className="font-bold text-[#22d3ee]">ESTUDANTE INTELIGENTE</span>: o profissional que usa IA como aliada, responde com confiança e entrega resultados em minutos.
+                    </p>
+                  </div>
 
-        {/* Benefits Section */}
-        <section className="w-full py-12 md:py-20 px-4 md:px-6 relative z-10">
-
-          <div className="container mx-auto max-w-6xl relative z-10">
-            <SectionHeader
-              label="Por que Odonto GPT?"
-              icon={Target}
-              title="Vantagens Competitivas"
-              description="Uma ferramenta completa para elevar o nível do seu atendimento."
-              align="center"
-              className="mb-16"
-            />
-
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[
-                { icon: Clock, title: "Adeus Noites em Claro", desc: "Escreva seus trabalhos e TCC 10x mais rápido com ajuda dos agentes." },
-                { icon: Shield, title: "Segurança no Plantão", desc: "Nunca mais trave na frente do paciente ou do professor supervisor." },
-                { icon: Award, title: "Destaque da Turma", desc: "Suas respostas em sala e discussões de caso em outro nível." },
-                { icon: BookOpen, title: "Biblioteca Infinita", desc: "Não gaste com livros caros. Toda a literatura que você precisa está aqui." },
-                { icon: Zap, title: "Estudos para Provas", desc: "Crie resumos e questionários de estudo automaticamente." },
-                { icon: Users, title: "Networking", desc: "Conquiste os melhores estágios demonstrando conhecimento avançado." },
-              ].map((benefit, i) => (
-                <FadeIn key={i} delay={i * 0.1}>
-                  <Card className="bg-[#16243F] border-[rgba(8,145,178,0.2)] hover:border-[#0891b2] transition-colors relative overflow-hidden group hover:shadow-lg hover:shadow-[#0891b2]/10 h-full">
-                    {/* Hover Glow */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-[#0891b2]/0 via-[#0891b2]/5 to-[#0891b2]/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-
-                    <CardContent className="p-6 flex flex-col items-start gap-4 relative z-10">
-                      <div className="p-3 rounded-lg bg-[#0891b2]/10">
-                        <benefit.icon className="w-6 h-6 text-[#22d3ee]" />
+                  {/* O Novo Stack */}
+                  <div className="bg-[#0F172A]/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-[#0891b2]/20 to-[#22d3ee]/20 border border-[#22d3ee]/30">
+                        <Zap className="w-5 h-5 text-[#22d3ee]" />
                       </div>
-                      <div>
-                        <h3 className="text-lg font-bold text-white mb-2">{benefit.title}</h3>
-                        <p className="text-slate-400 text-sm">{benefit.desc}</p>
+                      <span className="text-white font-bold text-lg">O Novo Método</span>
+                    </div>
+
+                    <div className="space-y-4">
+                      {[
+                        { from: "Horas no Google", to: "Respostas em Segundos" },
+                        { from: "Decorar fórmulas", to: "Dominar Contexto Clínico" },
+                        { from: "Medo de errar", to: "Confiança com Respaldo" },
+                        { from: "Resumos manuais", to: "Material de Estudo Instantâneo" }
+                      ].map((item, i) => (
+                        <div key={i} className="flex items-center gap-3 text-sm">
+                          <span className="text-slate-500 line-through min-w-[140px]">De: {item.from}</span>
+                          <ArrowRight className="w-4 h-4 text-[#22d3ee] shrink-0" />
+                          <span className="text-[#22d3ee] font-medium">Para: {item.to}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </FadeIn>
+
+              {/* Right Column - Feature Cards */}
+              <div className="space-y-5">
+                {/* Card 1 - Agentes IA */}
+                <FadeIn direction="left" delay={0.2}>
+                  <div className="group relative bg-[#0F172A] border border-slate-800 rounded-2xl p-6 hover:border-[#22d3ee]/50 transition-all duration-300 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#22d3ee]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#0891b2]/20 to-[#22d3ee]/10 border border-[#22d3ee]/30">
+                            <Brain className="w-6 h-6 text-[#22d3ee]" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold text-white">Agentes Especializados</h3>
+                            <p className="text-xs text-slate-500 uppercase tracking-wider">Autonomia e Especialização</p>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs font-medium">
+                          ATIVO 24/7
+                        </span>
                       </div>
-                    </CardContent>
-                  </Card>
+                      <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                        7 agentes treinados especificamente para odontologia. Cada um domina uma área: pesquisa científica, diagnóstico, prescrição, redação acadêmica e mais.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {["Pesquisador", "Diagnóstico", "Prescrição", "Resumos", "+3"].map((tag, i) => (
+                          <span key={i} className="px-3 py-1.5 rounded-lg bg-slate-800/80 text-slate-300 text-xs font-medium border border-slate-700">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
                 </FadeIn>
-              ))}
+
+                {/* Card 2 - Análise Visual */}
+                <FadeIn direction="left" delay={0.3}>
+                  <div className="group relative bg-[#0F172A] border border-slate-800 rounded-2xl p-6 hover:border-purple-500/50 transition-all duration-300 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-purple-500/20 to-indigo-500/10 border border-purple-500/30">
+                            <Eye className="w-6 h-6 text-purple-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold text-white">Odonto Vision</h3>
+                            <p className="text-xs text-slate-500 uppercase tracking-wider">Análise por Imagem</p>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-xs font-medium">
+                          BETA
+                        </span>
+                      </div>
+                      <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                        Envie fotos de casos clínicos e radiografias. Nossa IA analisa e sugere hipóteses diagnósticas com base em padrões visuais.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {["Raio-X", "Fotos Intraorais", "Tomografias", "Modelos"].map((tag, i) => (
+                          <span key={i} className="px-3 py-1.5 rounded-lg bg-slate-800/80 text-slate-300 text-xs font-medium border border-slate-700">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </FadeIn>
+
+                {/* Card 3 - Assistência Acadêmica */}
+                <FadeIn direction="left" delay={0.4}>
+                  <div className="group relative bg-[#0F172A] border border-slate-800 rounded-2xl p-6 hover:border-amber-500/50 transition-all duration-300 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-amber-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-amber-500/20 to-orange-500/10 border border-amber-500/30">
+                            <GraduationCap className="w-6 h-6 text-amber-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold text-white">Acelerador Acadêmico</h3>
+                            <p className="text-xs text-slate-500 uppercase tracking-wider">Provas e TCC</p>
+                          </div>
+                        </div>
+                        <span className="px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-medium">
+                          POPULAR
+                        </span>
+                      </div>
+                      <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                        Resumos automáticos, questões de prova explicadas, redação de TCC e artigos. Linguagem técnica que impressiona bancas e professores.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {["Resumos", "Questões", "TCC", "Artigos", "Seminários"].map((tag, i) => (
+                          <span key={i} className="px-3 py-1.5 rounded-lg bg-slate-800/80 text-slate-300 text-xs font-medium border border-slate-700">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </FadeIn>
+
+                {/* Card 4 - Suporte Clínico */}
+                <FadeIn direction="left" delay={0.5}>
+                  <div className="group relative bg-[#0F172A] border border-slate-800 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-300 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    <div className="relative z-10">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center gap-3">
+                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/30">
+                            <Shield className="w-6 h-6 text-emerald-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold text-white">Suporte na Clínica</h3>
+                            <p className="text-xs text-slate-500 uppercase tracking-wider">Decisões Seguras</p>
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                        Prescrições com dosagens corretas, planos de tratamento baseados em evidências e respostas rápidas para emergências.
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {["Prescrições", "Emergências", "Protocolos", "Evidências"].map((tag, i) => (
+                          <span key={i} className="px-3 py-1.5 rounded-lg bg-slate-800/80 text-slate-300 text-xs font-medium border border-slate-700">
+                            {tag}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </FadeIn>
+              </div>
             </div>
           </div>
         </section>
+
+
 
         {/* Expert Section - Roniery Costa */}
-        <section id="especialista" className="w-full py-12 md:py-20 px-4 md:px-6 relative z-10">
+        <section id="especialista" className="w-full py-20 md:py-32 px-4 md:px-6 relative z-10">
 
           <div className="container mx-auto max-w-6xl relative z-10">
             <SectionHeader
@@ -734,7 +838,7 @@ export default function LandingPage() {
         </section>
 
         {/* Pricing */}
-        <section id="planos" className="w-full py-12 md:py-20 px-4 md:px-6 relative z-10">
+        <section id="planos" className="w-full py-20 md:py-32 px-4 md:px-6 relative z-10">
 
           <div className="mx-auto max-w-6xl space-y-10 md:space-y-12">
             <SectionHeader
@@ -946,8 +1050,8 @@ export default function LandingPage() {
             </div>
           </div>
         </footer>
-      </div>
-    </main>
+      </div >
+    </main >
   )
 }
 
