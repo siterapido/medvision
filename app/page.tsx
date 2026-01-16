@@ -1,5 +1,7 @@
 'use client'
 
+import { useState, useEffect, useRef } from 'react'
+
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
@@ -7,11 +9,18 @@ import dynamic from "next/dynamic"
 import {
   Brain, MessageSquare, Clock, BookOpen, Shield, Zap,
   CheckCircle2, Star, ArrowRight, Award, TrendingUp,
-  XCircle, Video, Sparkles, Microscope, Eye, GraduationCap, PenTool
+  XCircle, Video, Sparkles, Microscope, Eye, GraduationCap, PenTool,
+  Target, Users, HelpCircle, Check, MessageCircle
 } from "lucide-react"
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion"
 import Link from "next/link"
 import { Logo } from "@/components/logo"
-import { motion } from "framer-motion"
+import { motion, useScroll, useTransform } from "framer-motion"
 import { FadeIn, StaggerContainer, StaggerItem, HoverCard, ScaleIn } from "@/components/ui/animations"
 import { AgentHeroVisual } from "@/components/landing/agent-hero-visual"
 import { AnimatedAgentIcons } from "@/components/landing/animated-agent-icons"
@@ -21,6 +30,8 @@ import { AgentDemoVision } from "@/components/landing/agent-demo-vision"
 import { AgentDemoSummary } from "@/components/landing/agent-demo-summary"
 import { AgentDemoPractice } from "@/components/landing/agent-demo-practice"
 import { AgentDemoWrite } from "@/components/landing/agent-demo-write"
+import { AgentDemoFlow } from "@/components/landing/agent-demo-flow"
+import { AgentDemoGPT } from "@/components/landing/agent-demo-gpt"
 
 const FAQSection = dynamic(() => import("@/components/landing/faq-section").then(mod => ({ default: mod.FAQSection })), {
   ssr: false,
@@ -31,63 +42,250 @@ const SectionHeader = dynamic(() => import("@/components/ui/section-header").the
   loading: () => <div className="h-20 bg-transparent animate-pulse" />
 })
 
+const WorkflowCard = ({ step, index, total }: { step: any, index: number, total: number }) => {
+  const container = useRef(null);
+
+  const { scrollYProgress } = useScroll({
+    target: container,
+    offset: ['start end', 'start start']
+  });
+
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.85]);
+  const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
+
+  return (
+    <div
+      ref={container}
+      className="h-[80vh] w-full flex items-start justify-center sticky top-[15vh]" // top ajustado para centralizar melhor
+      style={{ zIndex: index + 1 }}
+    >
+      <motion.div
+        style={{
+          scale: index === total - 1 ? 1 : scale, // O último não diminui
+          opacity: index === total - 1 ? 1 : opacity, // O último não some
+          top: 0
+        }}
+        className="relative w-full max-w-[800px]"
+      >
+        <Card className="relative bg-[#0F172A] border-[#22d3ee]/20 backdrop-blur-xl transition-colors overflow-hidden shadow-2xl h-[50vh] flex flex-col justify-center">
+          {/* Glow elements */}
+          <div
+            className="absolute -right-20 -top-20 w-64 h-64 rounded-full blur-[100px] opacity-20 transition-opacity"
+            style={{ backgroundColor: step.color }}
+          />
+
+          <CardContent className="p-8 md:p-12 relative z-10 flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left h-full justify-center">
+            <div
+              className="text-8xl md:text-9xl font-bold text-transparent bg-clip-text opacity-20 select-none leading-none shrink-0"
+              style={{ backgroundImage: `linear-gradient(to bottom, ${step.color}, transparent)` }}
+            >
+              {step.number}
+            </div>
+            <div className="space-y-4 pt-2 flex flex-col h-full justify-center">
+              <h3 className="text-3xl md:text-4xl font-bold text-white leading-tight">{step.title}</h3>
+              <p className="text-slate-300 text-lg leading-relaxed max-w-xl">
+                {step.desc}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    </div>
+  );
+};
+
 export default function LandingPage() {
   const showTestimonials = false
+  const [showStickyCTA, setShowStickyCTA] = useState(false)
+  const heroRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const heroSection = document.getElementById('hero-section')
+    if (!heroSection) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        // Show sticky CTA when hero is less than 20% visible
+        setShowStickyCTA(!entry.isIntersecting || entry.intersectionRatio < 0.2)
+      },
+      { threshold: [0, 0.2, 0.5, 1] }
+    )
+
+    observer.observe(heroSection)
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <main className="relative overflow-x-hidden">
+    <main className="relative">
       {/* Scroll Progress Indicator */}
       <ScrollProgress />
 
-      <div className="relative min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
+      {/* Sticky CTA Mobile */}
+      <motion.div
+        initial={{ y: 100, opacity: 0 }}
+        animate={{
+          y: showStickyCTA ? 0 : 100,
+          opacity: showStickyCTA ? 1 : 0
+        }}
+        transition={{ type: "spring", stiffness: 300, damping: 30 }}
+        className="fixed bottom-0 left-0 right-0 p-4 bg-[#0F192F]/95 backdrop-blur-xl border-t border-[#22d3ee]/20 z-50 md:hidden safe-area-inset-bottom"
+      >
+        <Button
+          size="lg"
+          className="w-full rounded-full py-4 text-base font-semibold shadow-[0_-5px_30px_rgba(34,211,238,0.3)] border-0 text-white"
+          style={{
+            background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
+          }}
+          asChild
+        >
+          <Link href="/register">
+            Testar Grátis Agora
+            <ArrowRight className="ml-2 h-5 w-5" />
+          </Link>
+        </Button>
+      </motion.div>
 
-        {/* Decorative background elements */}
-        <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[600px] bg-gradient-to-b from-cyan-500/10 to-transparent rounded-[100%] blur-[100px]" />
-          <div className="absolute top-[20%] right-0 w-[500px] h-[500px] bg-blue-500/5 rounded-full blur-[120px]" />
-          <div className="absolute top-[40%] left-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px]" />
+      <div className="relative min-h-screen bg-[#080D19] text-white">
+
+        {/* ATMOSPHERIC BACKGROUND SYSTEM - Deep Space Aesthetic */}
+        <div className="fixed inset-0 z-0 pointer-events-none">
+
+          {/* Base: Pure deep dark with subtle warm undertone */}
+          <div
+            className="absolute inset-0"
+            style={{
+              background: `
+                radial-gradient(ellipse 150% 100% at 50% 0%, #0D1628 0%, #080D19 50%, #060A14 100%)
+              `
+            }}
+          />
+
+          {/* Nebula Layer 1: Large diffuse cyan glow - top left */}
+          <div
+            className="absolute w-[800px] h-[800px] -top-[200px] -left-[200px] opacity-[0.04]"
+            style={{
+              background: 'radial-gradient(circle, #06b6d4 0%, transparent 70%)',
+              filter: 'blur(100px)',
+            }}
+          />
+
+          {/* Nebula Layer 2: Subtle purple accent - center right */}
+          <div
+            className="absolute w-[600px] h-[600px] top-[30%] -right-[150px] opacity-[0.03]"
+            style={{
+              background: 'radial-gradient(circle, #8b5cf6 0%, transparent 70%)',
+              filter: 'blur(120px)',
+            }}
+          />
+
+          {/* Nebula Layer 3: Deep cyan - bottom */}
+          <div
+            className="absolute w-[1000px] h-[500px] -bottom-[100px] left-[20%] opacity-[0.035]"
+            style={{
+              background: 'radial-gradient(ellipse, #0891b2 0%, transparent 70%)',
+              filter: 'blur(100px)',
+            }}
+          />
+
+          {/* Subtle noise texture for depth */}
+          <div
+            className="absolute inset-0 opacity-[0.015]"
+            style={{
+              backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+              backgroundRepeat: 'repeat',
+            }}
+          />
+
+          {/* Minimal star field - tiny dots */}
+          <div
+            className="absolute inset-0 opacity-30"
+            style={{
+              backgroundImage: `
+                radial-gradient(1px 1px at 20% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
+                radial-gradient(1px 1px at 40% 35%, rgba(255,255,255,0.3) 0%, transparent 100%),
+                radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,0.35) 0%, transparent 100%),
+                radial-gradient(1px 1px at 80% 40%, rgba(255,255,255,0.25) 0%, transparent 100%),
+                radial-gradient(1px 1px at 10% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+                radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,0.35) 0%, transparent 100%),
+                radial-gradient(1px 1px at 50% 70%, rgba(255,255,255,0.2) 0%, transparent 100%),
+                radial-gradient(1px 1px at 70% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
+                radial-gradient(1px 1px at 90% 55%, rgba(255,255,255,0.25) 0%, transparent 100%),
+                radial-gradient(1.5px 1.5px at 25% 45%, rgba(6,182,212,0.6) 0%, transparent 100%),
+                radial-gradient(1.5px 1.5px at 75% 65%, rgba(139,92,246,0.5) 0%, transparent 100%)
+              `,
+              backgroundSize: '100% 100%',
+            }}
+          />
+
+          {/* Tech Grid Pattern */}
+          <div
+            className="absolute inset-0 opacity-[0.12]"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(6, 182, 212, 0.4) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(6, 182, 212, 0.4) 1px, transparent 1px)
+              `,
+              backgroundSize: '80px 80px',
+              maskImage: 'radial-gradient(ellipse 80% 50% at 50% 50%, black 0%, transparent 85%)'
+            }}
+          />
+          <div
+            className="absolute inset-0 opacity-[0.04]"
+            style={{
+              backgroundImage: `
+                linear-gradient(rgba(6, 182, 212, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(6, 182, 212, 0.2) 1px, transparent 1px)
+              `,
+              backgroundSize: '20px 20px',
+              maskImage: 'radial-gradient(ellipse 80% 50% at 50% 50%, black 0%, transparent 90%)'
+            }}
+          />
         </div>
 
         {/* Hero Section */}
-        <section className="w-full min-h-[90vh] flex items-center justify-center py-12 md:py-20 px-4 md:px-6 relative">
+        <section id="hero-section" className="relative w-full min-h-[85vh] md:min-h-[90vh] flex items-center justify-center py-10 md:py-32 px-4 md:px-6 overflow-hidden z-10">
           <div className="container mx-auto">
             {/* Logo Mobile */}
             <div className="flex justify-start md:hidden mb-8">
-              <Logo variant="blue" width={140} height={30} />
+              <Logo variant="white" width={140} height={30} />
             </div>
 
             <div className="grid lg:grid-cols-2 gap-12 xl:gap-20 items-center max-w-7xl mx-auto">
 
               {/* Text Content */}
-              <div className="space-y-6 md:space-y-8 text-left order-2 lg:order-1 relative z-10">
-                <div className="hidden lg:flex justify-start mb-6">
-                  <Logo variant="blue" width={160} height={35} />
+              <div className="space-y-4 md:space-y-8 text-center lg:text-left order-1 relative z-10">
+                <div className="flex justify-center lg:justify-start mb-6 hidden md:flex">
+                  <Logo variant="white" width={160} height={35} />
                 </div>
 
                 <FadeIn delay={0.1} direction="up">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-100/50 dark:bg-cyan-900/30 border border-cyan-200 dark:border-cyan-800 text-cyan-700 dark:text-cyan-300 text-sm font-semibold mb-4">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-[#22d3ee] text-sm font-semibold mb-2 md:mb-4 backdrop-blur-sm">
                     <Sparkles className="w-4 h-4" />
                     <span>Inteligência Artificial Especializada</span>
                   </div>
-                  <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 dark:text-white leading-[1.1]">
-                    Sua Equipe de <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600 dark:from-cyan-400 dark:to-blue-500">
-                      Especialistas em Odontologia
+                  <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-white leading-[1.05]">
+                    Domine a Odontologia <br />
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22d3ee] to-[#67e8f9]">
+                      Sem o Medo de Errar
                     </span>
                   </h1>
                 </FadeIn>
 
                 <FadeIn delay={0.2} direction="up">
-                  <p className="text-lg sm:text-xl text-slate-600 dark:text-slate-300 leading-relaxed max-w-xl">
-                    Diagnóstico, planejamento, pesquisa e redação clínica. Tenha acesso imediato a uma equipe completa de agentes de IA treinados na melhor literatura odontológica.
-                    <span className="block mt-2 font-medium text-slate-800 dark:text-slate-200">Disponível 24/7 no seu WhatsApp e Web.</span>
+                  <p className="text-base sm:text-xl text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0">
+                    <span className="hidden sm:inline">O parceiro de estudos que todo estudante sonha. </span>Tire dúvidas de provas, ganhe segurança na clínica e escreva trabalhos acadêmicos em segundos.
+                    <span className="block mt-2 font-medium text-slate-100">Seu professor particular disponível 24/7.</span>
                   </p>
                 </FadeIn>
 
                 <FadeIn delay={0.3} direction="up">
-                  <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                  <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start">
                     <Button
                       size="xl"
-                      className="rounded-full px-8 text-lg font-semibold shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/30 transition-all hover:scale-105 active:scale-95 bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white border-0"
+                      className="rounded-full px-10 py-4 text-lg font-semibold shadow-[0_10px_40px_rgba(8,145,178,0.25)] hover:scale-105 active:scale-95 transition-all border-0 text-white w-full sm:w-auto"
+                      style={{
+                        background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
+                      }}
                       asChild
                     >
                       <Link href="/register">
@@ -98,7 +296,7 @@ export default function LandingPage() {
                     <Button
                       size="xl"
                       variant="outline"
-                      className="rounded-full px-8 text-lg font-medium border-2 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      className="rounded-full px-10 py-4 text-lg font-medium border-2 border-[rgba(8,145,178,0.5)] text-white hover:bg-[rgba(8,145,178,0.1)] hover:border-[#0891b2] transition-colors w-full sm:w-auto"
                       asChild
                     >
                       <Link href="#como-funciona">
@@ -106,21 +304,22 @@ export default function LandingPage() {
                       </Link>
                     </Button>
                   </div>
-                  <div className="mt-6 flex items-center gap-4 text-sm text-slate-500 dark:text-slate-400">
+                  <div className="mt-8 flex items-center justify-center lg:justify-start gap-4 text-sm text-slate-400">
                     <div className="flex -space-x-2">
                       {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 bg-slate-200 bg-cover bg-center" style={{ backgroundImage: `url(https://api.dicebear.com/9.x/avataaars/svg?seed=${i})` }} />
+                        <div key={i} className="w-8 h-8 rounded-full border-2 border-[#0F192F] bg-slate-200 bg-cover bg-center" style={{ backgroundImage: `url(https://api.dicebear.com/9.x/avataaars/svg?seed=${i})` }} />
                       ))}
-                      <div className="w-8 h-8 rounded-full border-2 border-white dark:border-slate-900 bg-slate-100 flex items-center justify-center text-xs font-bold">+2k</div>
+                      <div className="w-8 h-8 rounded-full border-2 border-[#0F192F] bg-slate-800 flex items-center justify-center text-xs font-bold text-white">+2k</div>
                     </div>
-                    <span>Dentistas já usam o Odonto Suite</span>
+                    <span>Dentistas já usam o Odonto GPT</span>
                   </div>
                 </FadeIn>
               </div>
 
               {/* Hero Visual */}
-              <div className="order-1 lg:order-2 relative z-0 flex justify-center lg:justify-end overflow-visible px-8 md:px-0">
-                <FadeIn delay={0.2} className="w-full max-w-2xl overflow-visible">
+              <div className="order-2 lg:order-2 relative z-0 flex justify-center lg:justify-end mt-12 lg:mt-0">
+                <FadeIn delay={0.2} className="w-full max-w-[280px] sm:max-w-md lg:max-w-2xl">
+                  {/* Providing a dark mode glow context for the visual if needed, though the component might handle it */}
                   <AgentHeroVisual />
                 </FadeIn>
               </div>
@@ -132,38 +331,34 @@ export default function LandingPage() {
         {/* Trusted By / Logos Section could go here */}
 
         {/* Comparison Section */}
-        <section className="w-full py-20 px-4 md:px-6 bg-white dark:bg-slate-950 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-1/3 h-full bg-slate-50 dark:bg-slate-900/50 skew-x-12 translate-x-32 -z-0" />
+        <section className="w-full py-12 md:py-20 px-4 md:px-6 relative z-10">
+
           <div className="container mx-auto max-w-6xl relative z-10">
             <SectionHeader
               label="Realidade Acadêmica"
               icon={Brain}
               title="A Diferença Entre Estudar Muito e Estudar Bem"
-              description="A Odonto Suite não substitui seu estudo, ela o potencializa. Veja a diferença na prática."
+              description="A Odonto GPT não substitui seu estudo, ela o potencializa. Veja a diferença na prática."
               align="center"
-              className="mb-16"
+              className="mb-8 md:mb-16"
             />
 
-            <div className="grid md:grid-cols-2 gap-8 items-center">
+            <div className="grid md:grid-cols-2 gap-6 md:gap-8 items-stretch">
               {/* Sem Odonto GPT */}
               <FadeIn direction="right" delay={0.1} className="relative group">
-                {/* Alert red cloud gradient on hover (radial) - blur reduzido para melhor performance */}
-                <div
-                  aria-hidden
-                  className="absolute -z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[180%] h-[240%] rounded-[50%] opacity-0 group-hover:opacity-70 blur-[80px] transition-all duration-300 group-hover:scale-105 bg-[radial-gradient(ellipse_at_center,_rgba(239,68,68,0.35)_0%,_rgba(239,68,68,0.22)_50%,_transparent_90%)]"
-                />
-                {/* Subtle edge glow that intensifies on hover - blur reduzido */}
-                <div aria-hidden className="absolute -inset-4 -z-10 rounded-2xl bg-gradient-to-br from-destructive/10 to-transparent blur-xl transition-all duration-300 group-hover:from-destructive/25" />
-                <Card className="transition-all duration-300 border-2 hover:scale-95 hover:shadow-md hover:border-destructive/50 group-hover:shadow-lg group-hover:shadow-destructive/20 group-hover:animate-wobble">
-                  <CardContent className="p-8 md:p-10 pt-10 md:pt-12 space-y-6 text-base">
+                <Card className="transition-all duration-300 border-2 bg-transparent hover:scale-95 group-hover:shadow-lg group-hover:shadow-destructive/20 group-hover:animate-wobble border-[rgba(239,68,68,0.2)] hover:border-destructive/50 overflow-hidden">
+                  {/* Glow vermelho (hover) */}
+                  <div className="absolute inset-0 -z-10 opacity-0 group-hover:opacity-85 transition-opacity duration-300 bg-[radial-gradient(ellipse,_rgba(239,68,68,0.35)_0%,_transparent_90%)] blur-[140px]" />
+
+                  <CardContent className="p-8 md:p-10 pt-10 md:pt-12 space-y-6 text-base relative z-10">
                     <div className="flex items-center gap-3 mb-8">
                       <span className="inline-flex items-center justify-center rounded-md p-1.5 bg-destructive/10 ring-1 ring-destructive/40">
                         <XCircle className="h-8 w-8 text-destructive" />
                       </span>
-                      <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-destructive">Estudante Sem Odonto Suite</h3>
+                      <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-destructive">Estudante Sem Odonto GPT</h3>
                     </div>
 
-                    <div className="space-y-4 text-sm md:text-base">
+                    <div className="space-y-4 text-sm md:text-base text-slate-300">
                       <div className="flex items-start gap-2">
                         <XCircle className="h-6 w-6 text-destructive shrink-0 mt-0.5" />
                         <span>Perde oportunidades de estágio por insegurança nas respostas</span>
@@ -187,37 +382,36 @@ export default function LandingPage() {
 
               {/* Com Odonto GPT */}
               <FadeIn direction="left" delay={0.2} className="relative group">
-                {/* Cloud gradient behind card (highlight) in #2399B4 - blur reduzido para melhor performance */}
-                <div
-                  aria-hidden
-                  className="absolute -z-20 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[220%] h-[300%] rounded-[50%] opacity-75 group-hover:opacity-90 blur-[80px] transition-all duration-300 group-hover:scale-110 bg-[radial-gradient(ellipse_at_center,_rgba(35,153,180,0.6)_0%,_rgba(35,153,180,0.4)_30%,_rgba(35,153,180,0.2)_60%,_transparent_100%)]"
-                />
-                {/* Intense edge glow matching #2399B4 - blur reduzido */}
-                <div aria-hidden className="absolute -inset-6 -z-10 rounded-2xl bg-gradient-to-br from-[#2399B4]/40 via-[#2399B4]/20 to-transparent blur-2xl" />
-                <Card className="transition-all duration-300 border-2 border-[#2399B4] border-[3px] hover:scale-105 hover:shadow-md hover:shadow-[#2399B4]/20 bg-[radial-gradient(ellipse_at_center,_rgba(35,153,180,0.1)_0%,_rgba(35,153,180,0.05)_50%,_transparent_70%)]">
-                  <CardContent className="p-8 md:p-10 pt-10 md:pt-12 space-y-6 text-base">
+                {/* Intense edge glow */}
+                <div aria-hidden className="absolute -inset-6 -z-10 rounded-2xl bg-gradient-to-br from-[#2399B4]/40 via-[#2399B4]/20 to-transparent blur-2xl opacity-50 group-hover:opacity-100 transition-opacity" />
+
+                <Card className="transition-all duration-300 border-[3px] border-[#2399B4] hover:scale-105 hover:shadow-[0_10px_40px_rgba(35,153,180,0.2)] bg-[#16243F] overflow-hidden relative">
+                  {/* Glow intenso #2399B4 */}
+                  <div className="absolute inset-0 -z-10 opacity-90 group-hover:opacity-100 transition-all duration-300 bg-[radial-gradient(ellipse,_rgba(35,153,180,0.6)_0%,_rgba(35,153,180,0.2)_60%,_transparent_100%)] blur-[140px]" />
+
+                  <CardContent className="p-8 md:p-10 pt-10 md:pt-12 space-y-6 text-base relative z-10">
                     <div className="flex items-center gap-3 mb-8">
                       <span className="inline-flex items-center justify-center rounded-md p-1.5 bg-[#2399B4]/10 ring-1 ring-[#2399B4]/40">
-                        <CheckCircle2 className="h-8 w-8 text-primary" />
+                        <CheckCircle2 className="h-8 w-8 text-[#22d3ee]" />
                       </span>
-                      <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-primary">Estudante Com Odonto Suite</h3>
+                      <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-[#22d3ee]">Estudante Com Odonto GPT</h3>
                     </div>
 
-                    <div className="space-y-4 text-sm md:text-base">
+                    <div className="space-y-4 text-sm md:text-base text-white">
                       <div className="flex items-start gap-2">
-                        <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+                        <CheckCircle2 className="h-6 w-6 text-[#22d3ee] shrink-0 mt-0.5" />
                         <span>Tira dúvidas de provas em 30s com citações que impressionam professores</span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+                        <CheckCircle2 className="h-6 w-6 text-[#22d3ee] shrink-0 mt-0.5" />
                         <span>Chega no plantão com a confiança de quem tem um especialista no bolso</span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+                        <CheckCircle2 className="h-6 w-6 text-[#22d3ee] shrink-0 mt-0.5" />
                         <span>Acessa conhecimento equivalente a 5 anos de experiência clínica</span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <CheckCircle2 className="h-6 w-6 text-primary shrink-0 mt-0.5" />
+                        <CheckCircle2 className="h-6 w-6 text-[#22d3ee] shrink-0 mt-0.5" />
                         <span>Conquista os melhores estágios enquanto outros ainda estão estudando</span>
                       </div>
                     </div>
@@ -228,7 +422,14 @@ export default function LandingPage() {
 
             <div className="flex justify-center mt-10">
               <Link href="/register">
-                <Button size="lg" variant="cta">
+                <Button
+                  size="lg"
+                  variant="cta"
+                  className="shadow-[0_10px_40px_rgba(8,145,178,0.25)] hover:scale-105 active:scale-95 transition-all"
+                  style={{
+                    background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
+                  }}
+                >
                   Começar Teste Grátis
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -245,7 +446,7 @@ export default function LandingPage() {
                 label="Histórias Reais de Sucesso"
                 icon={Video}
                 title="Resultados Reais: Segurança, Velocidade e Acertos"
-                description="Veja como a Odonto Suite está transformando a jornada acadêmica de estudantes que já estão colhendo os frutos"
+                description="Veja como a Odonto GPT está transformando a jornada acadêmica de estudantes que já estão colhendo os frutos"
                 align="center"
               />
 
@@ -265,7 +466,7 @@ export default function LandingPage() {
                       >
                         <YouTubePlayer
                           videoId="loPD53clzR4"
-                          title="Depoimento Dr. Carlos Silva - Odonto Suite"
+                          title="Depoimento Dr. Carlos Silva - Odonto GPT"
                           aspect="portrait"
                           className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
                           controls={0}
@@ -299,7 +500,7 @@ export default function LandingPage() {
                       >
                         <YouTubePlayer
                           videoId="loPD53clzR4"
-                          title="Depoimento Dra. Ana Oliveira - Odonto Suite"
+                          title="Depoimento Dra. Ana Oliveira - Odonto GPT"
                           aspect="portrait"
                           className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
                           controls={0}
@@ -333,7 +534,7 @@ export default function LandingPage() {
                       >
                         <YouTubePlayer
                           videoId="loPD53clzR4"
-                          title="Depoimento Dr. Rodrigo Santos - Odonto Suite"
+                          title="Depoimento Dr. Rodrigo Santos - Odonto GPT"
                           aspect="portrait"
                           className="rounded-3xl border-2 border-[#2399B4] hover:border-[#2399B4] shadow-none"
                           controls={0}
@@ -359,13 +560,13 @@ export default function LandingPage() {
         )}
 
         {/* Agents Team Section */}
-        <section className="w-full py-20 px-4 md:px-6 bg-slate-50 dark:bg-slate-900/50">
+        <section className="w-full py-12 md:py-20 px-4 md:px-6 relative z-20">
           <div className="mx-auto max-w-6xl space-y-12">
             <SectionHeader
               label="Sua Equipe Completa"
               icon={Brain}
               title="Especialistas Disponíveis 24/7"
-              description="Cada agente da Odonto Suite foi treinado para uma função específica, garantindo precisão e profundidade em cada resposta."
+              description="Cada agente da Odonto GPT foi treinado para uma função específica, garantindo precisão e profundidade em cada resposta."
               align="center"
             />
 
@@ -374,46 +575,46 @@ export default function LandingPage() {
               <AnimatedAgentIcons />
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
               {[
                 {
                   icon: Brain,
                   title: "Planejador Clínico",
                   desc: "Estrutura planos de tratamento completos baseados nas melhores evidências.",
-                  color: "text-purple-500",
+                  color: "text-purple-400",
                   bg: "bg-purple-500/10"
                 },
                 {
                   icon: BookOpen,
                   title: "Pesquisador",
                   desc: "Busca na literatura científica as respostas mais atuais para suas dúvidas.",
-                  color: "text-blue-500",
+                  color: "text-blue-400",
                   bg: "bg-blue-500/10"
                 },
                 {
                   icon: Shield,
                   title: "Diagnóstico",
                   desc: "Ajuda a cruzar sinais e sintomas para hipóteses diagnósticas precisas.",
-                  color: "text-pink-500",
+                  color: "text-pink-400",
                   bg: "bg-pink-500/10"
                 },
                 {
                   icon: Zap,
                   title: "Redator",
                   desc: "Escreve textos para pacientes, laudos e documentos com linguagem assertiva.",
-                  color: "text-amber-500",
+                  color: "text-amber-400",
                   bg: "bg-amber-500/10"
                 }
               ].map((agent, i) => (
                 <HoverCard key={i} className="h-full">
-                  <Card className="border-0 shadow-lg shadow-slate-200/50 dark:shadow-slate-900/50 h-full relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 z-0" />
+                  <Card className="border-0 shadow-lg shadow-slate-900/50 h-full relative overflow-hidden group bg-[#16243F] border-[rgba(8,145,178,0.2)]">
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#16243F] to-[#0F192F] z-0" />
                     <CardContent className="pt-8 space-y-4 relative z-10">
                       <div className={`h-12 w-12 rounded-xl ${agent.bg} flex items-center justify-center transition-transform group-hover:scale-110 duration-300`}>
                         <agent.icon className={`h-6 w-6 ${agent.color}`} />
                       </div>
-                      <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">{agent.title}</h3>
-                      <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">
+                      <h3 className="text-xl font-bold text-white">{agent.title}</h3>
+                      <p className="text-slate-400 text-sm leading-relaxed">
                         {agent.desc}
                       </p>
                     </CardContent>
@@ -426,7 +627,7 @@ export default function LandingPage() {
         </section>
 
         {/* Agent Demos Section - Interactive Animated Demonstrations */}
-        <section className="w-full bg-slate-950">
+        <section className="w-full relative z-10">
           <div className="py-16 text-center px-4">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -434,23 +635,25 @@ export default function LandingPage() {
               viewport={{ once: false }}
               className="mx-auto max-w-3xl"
             >
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-cyan-500/20 to-purple-500/20 border border-cyan-500/40 mb-6">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
-                <span className="text-cyan-400 font-semibold text-sm">Veja em Ação</span>
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(6,182,212,0.1)] border border-[rgba(6,182,212,0.3)] mb-6">
+                <Sparkles className="w-4 h-4 text-[#22d3ee]" />
+                <span className="text-[#22d3ee] font-semibold text-sm">Veja em Ação</span>
               </span>
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
                 Seus Especialistas<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-500">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22d3ee] via-[#3b82f6] to-[#a855f7]">
                   Trabalhando por Você
                 </span>
               </h2>
-              <p className="text-lg text-slate-400">
+              <p className="text-lg text-slate-400 mb-8">
                 Role para baixo e veja cada agente demonstrando suas habilidades em tempo real
               </p>
             </motion.div>
           </div>
 
           {/* Demo sections */}
+          <AgentDemoFlow />
+          <AgentDemoGPT />
           <AgentDemoResearch />
           <AgentDemoVision />
           <AgentDemoSummary />
@@ -458,229 +661,152 @@ export default function LandingPage() {
           <AgentDemoWrite />
         </section>
 
-        {/* How it Works */}
-        <section id="como-funciona" className="w-full py-16 md:py-32 px-4 md:px-6 bg-how-it-works-section">
-          <div className="container mx-auto max-w-5xl space-y-10 md:space-y-12">
+        {/* How it Works Section */}
+        <section id="como-funciona" className="w-full py-12 md:py-20 px-4 md:px-6 relative z-10">
+          {/* Subtle decorative glow */}
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#2399B4] rounded-full blur-[180px] opacity-[0.06] pointer-events-none" />
+
+          <div className="container mx-auto max-w-6xl relative z-10">
             <SectionHeader
-              label="Transformação em 3 Passos"
+              label="Simples e Poderoso"
               icon={Zap}
-              title="Clareza clínica em menos de 1 minuto"
-              description="Enquanto seus colegas ainda estão na página 50 do livro, você já tem a resposta com respaldo científico"
+              title="Fluxo de Trabalho Otimizado"
+              description="Do planejamento à execução, a Odonto GPT se integra perfeitamente à sua rotina clínica."
               align="center"
+              className="mb-16"
             />
 
-            <StaggerContainer className="grid md:grid-cols-3 gap-8 relative">
-              {/* Step 1 */}
-              <StaggerItem className="relative">
-                <div className="absolute -top-4 -left-4 h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg z-10 scale-in-center">
-                  1
-                </div>
-                <HoverCard>
-                  <Card className="pt-12 border-2 hover:shadow-lg transition-shadow h-full">
-                    <CardContent className="space-y-4">
-                      <MessageSquare className="h-10 w-10 text-primary" />
-                      <h3 className="text-xl font-bold">Tire a Dúvida que Te Travava</h3>
-                      <p className="text-muted-foreground">Aquela questão de prova ou caso clínico que tira seu sono - mande pelo WhatsApp</p>
-                    </CardContent>
-                  </Card>
-                </HoverCard>
-              </StaggerItem>
-
-              {/* Step 2 */}
-              <StaggerItem className="relative">
-                <div className="absolute -top-4 -left-4 h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg z-10">
-                  2
-                </div>
-                <HoverCard>
-                  <Card className="pt-12 border-2 hover:shadow-lg transition-shadow h-full">
-                    <CardContent className="space-y-4">
-                      <Brain className="h-10 w-10 text-primary" />
-                      <h3 className="text-xl font-bold">Resposta com Respaldo Científico</h3>
-                      <p className="text-muted-foreground">Em segundos, receba a resposta fundamentada na literatura que seus professores exigem</p>
-                    </CardContent>
-                  </Card>
-                </HoverCard>
-              </StaggerItem>
-
-              {/* Step 3 */}
-              <StaggerItem className="relative">
-                <div className="absolute -top-4 -left-4 h-12 w-12 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center text-white font-bold text-xl shadow-lg z-10">
-                  3
-                </div>
-                <HoverCard>
-                  <Card className="pt-12 border-2 hover:shadow-lg transition-shadow h-full">
-                    <CardContent className="space-y-4">
-                      <CheckCircle2 className="h-10 w-10 text-primary" />
-                      <h3 className="text-xl font-bold">Destaque-se na Multidão</h3>
-                      <p className="text-muted-foreground">
-                        Chegue na frente com conhecimento que impressiona professores e conquista os melhores estágios
-                      </p>
-                    </CardContent>
-                  </Card>
-                </HoverCard>
-              </StaggerItem>
-            </StaggerContainer>
-
-            <div className="text-center pt-8">
-              <Link href="/register">
-                <Button size="lg" aria-label="Começar teste grátis" variant="cta">
-                  Começar Teste Grátis
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+            <div className="flex flex-col items-center relative max-w-4xl mx-auto min-h-[300vh]">
+              {[
+                { number: "01", title: "Dúvida na Clínica ou nos Estudos?", desc: "Seja um paciente complexo na clínica da faculdade ou uma questão difícil de prova. Digite ou mande áudio.", color: "#0891b2" },
+                { number: "02", title: "Sua 'Cola' Oficial", desc: "Nossos agentes buscam na literatura validada e te entregam a resposta pronta, com referências para você citar.", color: "#06b6d4" },
+                { number: "03", title: "Nota 10 e Elogio do Professor", desc: "Tenha diagnósticos precisos e trabalhos acadêmicos escritos com linguagem técnica impecável.", color: "#22d3ee" }
+              ].map((step, i) => (
+                <WorkflowCard key={i} step={step} index={i} total={3} />
+              ))}
             </div>
           </div>
         </section>
 
-        {/* Benefits */}
-        <section id="beneficios" className="w-full py-16 md:py-32 px-4 md:px-6 bg-benefits-section">
-          <div className="mx-auto max-w-6xl space-y-10 md:space-y-12">
+        {/* Benefits Section */}
+        <section className="w-full py-12 md:py-20 px-4 md:px-6 relative z-10">
+
+          <div className="container mx-auto max-w-6xl relative z-10">
             <SectionHeader
-              label="Sua Jornada de Sucesso"
-              icon={Star}
-              title="O investimento que acelera sua jornada na Odontologia"
-              description="Enquanto seus colegas ainda estão tentando decifrar livros sozinhos, você já está aplicando o conhecimento na prática"
+              label="Por que Odonto GPT?"
+              icon={Target}
+              title="Vantagens Competitivas"
+              description="Uma ferramenta completa para elevar o nível do seu atendimento."
               align="center"
+              className="mb-16"
             />
 
-            <StaggerContainer className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <StaggerItem>
-                <HoverCard className="h-full">
-                  <Card className="border-2 hover:shadow-lg transition-shadow h-full">
-                    <CardContent className="pt-6 space-y-3">
-                      <Zap className="h-8 w-8 text-primary" />
-                      <h3 className="text-lg font-bold">Agilidade Clínica</h3>
-                      <p className="text-sm text-muted-foreground">Respostas em segundos durante atendimentos.</p>
-                    </CardContent>
-                  </Card>
-                </HoverCard>
-              </StaggerItem>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[
+                { icon: Clock, title: "Adeus Noites em Claro", desc: "Escreva seus trabalhos e TCC 10x mais rápido com ajuda dos agentes." },
+                { icon: Shield, title: "Segurança no Plantão", desc: "Nunca mais trave na frente do paciente ou do professor supervisor." },
+                { icon: Award, title: "Destaque da Turma", desc: "Suas respostas em sala e discussões de caso em outro nível." },
+                { icon: BookOpen, title: "Biblioteca Infinita", desc: "Não gaste com livros caros. Toda a literatura que você precisa está aqui." },
+                { icon: Zap, title: "Estudos para Provas", desc: "Crie resumos e questionários de estudo automaticamente." },
+                { icon: Users, title: "Networking", desc: "Conquiste os melhores estágios demonstrando conhecimento avançado." },
+              ].map((benefit, i) => (
+                <FadeIn key={i} delay={i * 0.1}>
+                  <Card className="bg-[#16243F] border-[rgba(8,145,178,0.2)] hover:border-[#0891b2] transition-colors relative overflow-hidden group hover:shadow-lg hover:shadow-[#0891b2]/10 h-full">
+                    {/* Hover Glow */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#0891b2]/0 via-[#0891b2]/5 to-[#0891b2]/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
 
-              <StaggerItem>
-                <HoverCard className="h-full">
-                  <Card className="border-2 hover:shadow-lg transition-shadow h-full">
-                    <CardContent className="pt-6 space-y-3">
-                      <BookOpen className="h-8 w-8 text-primary" />
-                      <h3 className="text-lg font-bold">Apoio Educacional</h3>
-                      <p className="text-sm text-muted-foreground">Ajuda em estudos, residência e provas.</p>
+                    <CardContent className="p-6 flex flex-col items-start gap-4 relative z-10">
+                      <div className="p-3 rounded-lg bg-[#0891b2]/10">
+                        <benefit.icon className="w-6 h-6 text-[#22d3ee]" />
+                      </div>
+                      <div>
+                        <h3 className="text-lg font-bold text-white mb-2">{benefit.title}</h3>
+                        <p className="text-slate-400 text-sm">{benefit.desc}</p>
+                      </div>
                     </CardContent>
                   </Card>
-                </HoverCard>
-              </StaggerItem>
-
-              <StaggerItem>
-                <HoverCard className="h-full">
-                  <Card className="border-2 hover:shadow-lg transition-shadow h-full">
-                    <CardContent className="pt-6 space-y-3">
-                      <Shield className="h-8 w-8 text-primary" />
-                      <h3 className="text-lg font-bold">Respostas Seguras</h3>
-                      <p className="text-sm text-muted-foreground">Baseadas em literatura e evidências científicas.</p>
-                    </CardContent>
-                  </Card>
-                </HoverCard>
-              </StaggerItem>
-
-              <StaggerItem>
-                <HoverCard className="h-full">
-                  <Card className="border-2 hover:shadow-lg transition-shadow h-full">
-                    <CardContent className="pt-6 space-y-3">
-                      <Clock className="h-8 w-8 text-primary" />
-                      <h3 className="text-lg font-bold">Disponibilidade 24/7</h3>
-                      <p className="text-sm text-muted-foreground">Ilimitado via WhatsApp, sempre que precisar.</p>
-                    </CardContent>
-                  </Card>
-                </HoverCard>
-              </StaggerItem>
-
-              <StaggerItem>
-                <HoverCard className="h-full">
-                  <Card className="border-2 hover:shadow-lg transition-shadow h-full">
-                    <CardContent className="pt-6 space-y-3">
-                      <Award className="h-8 w-8 text-primary" />
-                      <h3 className="text-lg font-bold">Prescrições Personalizadas</h3>
-                      <p className="text-sm text-muted-foreground">Sugestões com dosagens adequadas.</p>
-                    </CardContent>
-                  </Card>
-                </HoverCard>
-              </StaggerItem>
-
-              <StaggerItem>
-                <HoverCard className="h-full">
-                  <Card className="border-2 hover:shadow-lg transition-shadow h-full">
-                    <CardContent className="pt-6 space-y-3">
-                      <MessageSquare className="h-8 w-8 text-primary" />
-                      <h3 className="text-lg font-bold">Interface Familiar</h3>
-                      <p className="text-sm text-muted-foreground">Funciona no WhatsApp, sem aprender nada novo.</p>
-                    </CardContent>
-                  </Card>
-                </HoverCard>
-              </StaggerItem>
-            </StaggerContainer>
+                </FadeIn>
+              ))}
+            </div>
           </div>
         </section>
 
         {/* Expert Section - Roniery Costa */}
-        <section id="especialista" className="w-full py-16 md:py-32 px-4 md:px-6 bg-expert-section">
-          <div className="mx-auto max-w-6xl">
+        <section id="especialista" className="w-full py-12 md:py-20 px-4 md:px-6 relative z-10">
+
+          <div className="container mx-auto max-w-6xl relative z-10">
             <SectionHeader
               label="Responsabilidade Técnica"
               icon={Award}
               title="Conhecimento com Respaldo de Quem Entende da Área"
-              description="Por trás de cada resposta da Odonto Suite, está a experiência de um profissional que já viveu suas dúvidas e desafios"
+              description="Por trás de cada resposta da Odonto GPT, está a experiência de um profissional que já viveu suas dúvidas e desafios"
               align="center"
             />
 
-            <div className="grid md:grid-cols-2 gap-12 items-center mt-12">
+            <div className="grid md:grid-cols-2 gap-12 items-center mt-12 bg-[#16243F]/50 p-8 rounded-3xl border border-[#2399B4]/20 backdrop-blur-sm">
               <FadeIn direction="right" delay={0.1} className="space-y-6">
                 <div className="relative flex justify-center">
-                  <div className="relative w-72 h-72 bg-gradient-to-br from-primary/30 to-accent/30 rounded-full overflow-hidden shadow-2xl border-2 border-white/20 flex items-center justify-center">
-                    <Image
-                      src="/Imagens /roniery.jpg"
-                      alt="Roniery Costa - Responsável Técnico da Odonto Suite"
-                      width={288}
-                      height={288}
-                      className="w-72 h-72 object-contain object-center"
-                    />
+                  <div className="relative w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-[#0891b2]/30 to-[#06b6d4]/30 rounded-full overflow-hidden shadow-[0_20px_60px_rgba(35,153,180,0.3)] border-4 border-[#1A2847]/50 flex items-center justify-center p-1">
+                    <div className="w-full h-full rounded-full overflow-hidden relative">
+                      <Image
+                        src="/Imagens /roniery.jpg"
+                        alt="Roniery Costa - Responsável Técnico da Odonto GPT"
+                        width={320}
+                        height={320}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  </div>
+                  {/* Decorative element */}
+                  <div className="absolute -bottom-4 -right-4 bg-[#16243F] border border-[#2399B4]/30 p-3 rounded-2xl shadow-xl flex items-center gap-3">
+                    <div className="bg-[#2399B4]/20 p-2 rounded-lg">
+                      <CheckCircle2 className="w-5 h-5 text-[#22d3ee]" />
+                    </div>
+                    <div>
+                      <div className="text-xs text-slate-400">CRO</div>
+                      <div className="font-bold text-white">4616/PB</div>
+                    </div>
                   </div>
                 </div>
               </FadeIn>
 
               <FadeIn direction="left" delay={0.2} className="space-y-6">
                 <div>
-                  <h3 className="text-2xl font-bold text-primary">Roniery Costa</h3>
-                  <p className="text-muted-foreground">Responsável Técnico - CRO 4616/PB</p>
+                  <h3 className="text-3xl font-bold text-white mb-2">Roniery Costa</h3>
+                  <p className="text-[#22d3ee] font-medium text-lg">Responsável Técnico</p>
                 </div>
 
                 <div className="space-y-4">
-                  <p className="text-lg font-semibold text-white leading-relaxed border-l-4 border-primary pl-4 py-2 bg-primary/5">
-                    &quot;Criei a Odonto Suite para ser o consultor que eu gostaria de ter tido durante minha formação -
-                    acessível 24/7, sem julgamentos, e com respostas fundamentadas na literatura que realmente importa.&quot;
+                  <p className="text-lg font-medium text-slate-200 leading-relaxed relative">
+                    <span className="text-6xl absolute -top-6 -left-4 text-[#2399B4]/20 font-serif">"</span>
+                    Criei a Odonto GPT para ser o consultor que eu gostaria de ter tido durante minha formação -
+                    acessível 24/7, sem julgamentos, e com respostas fundamentadas na literatura que realmente importa.
                   </p>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary" />
-                    <span>🧑🏻‍⚕️ Cirurgião dentista</span>
+                <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-sm">
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <CheckCircle2 className="h-4 w-4 text-[#22d3ee]" />
+                    <span>Cirurgião dentista</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary" />
-                    <span>🎓 Me. e Dr. em Odontologia</span>
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <CheckCircle2 className="h-4 w-4 text-[#22d3ee]" />
+                    <span>Me. e Dr. em Odontologia</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary" />
-                    <span>📚 + 3.5k alunos online</span>
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <CheckCircle2 className="h-4 w-4 text-[#22d3ee]" />
+                    <span>+ 3.5k alunos online</span>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="h-4 w-4 text-primary" />
-                    <span>🏆 Professor universitário</span>
+                  <div className="flex items-center gap-2 text-slate-300">
+                    <CheckCircle2 className="h-4 w-4 text-[#22d3ee]" />
+                    <span>Professor universitário</span>
                   </div>
                 </div>
 
-                <div className="pt-4">
-                  <p className="text-sm text-muted-foreground italic">
-                    &quot;Cada resposta que você recebe passa pela minha curadoria técnica, garantindo que
-                    esteja sempre alinhada com as melhores práticas da odontologia moderna.&quot;
+                <div className="pt-6 border-t border-[#1A2847]">
+                  <p className="text-sm text-slate-400 italic">
+                    "Cada resposta que você recebe passa pela minha curadoria técnica, garantindo que
+                    esteja sempre alinhada com as melhores práticas da odontologia moderna."
                   </p>
                 </div>
               </FadeIn>
@@ -689,7 +815,8 @@ export default function LandingPage() {
         </section>
 
         {/* Pricing */}
-        <section id="planos" className="w-full py-16 md:py-32 px-4 md:px-6 bg-pricing-section">
+        <section id="planos" className="w-full py-12 md:py-20 px-4 md:px-6 relative z-10">
+
           <div className="mx-auto max-w-6xl space-y-10 md:space-y-12">
             <SectionHeader
               label="Sua Vantagem Competitiva"
@@ -699,152 +826,59 @@ export default function LandingPage() {
               align="center"
             />
 
-            {/* Planos Mensal, Anual Básico e Anual Pro */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 max-w-7xl mx-auto">
-              {/* Plano Mensal */}
-              <HoverCard>
-                <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-border hover:border-primary/50 w-full min-h-[480px] flex flex-col h-full">
-                  <div className="text-center mb-5">
-                    <h3 className="text-xl font-bold mb-1">Plano Mensal Básico</h3>
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="text-xs md:text-sm text-muted-foreground line-through">Valor original: R$ 59,90/mês</span>
-                      <span className="text-xs md:text-sm font-semibold tracking-wide text-accent">33% OFF - Preço de Lançamento</span>
-                    </div>
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-3xl md:text-4xl font-extrabold text-primary">R$ 39,80</span>
-                      <span className="text-muted-foreground">/mês</span>
-                    </div>
-                  </div>
-
-                  <ul className="space-y-3 mb-6 flex-grow">
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">Consultor 24/7 no WhatsApp - sem limite de perguntas</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">Respostas fundamentadas em literatura científica</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">Prescrições com dosagens corretas e protocolos atualizados</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">Ajuda em provas, estágios e casos clínicos complexos</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">Live exclusiva toda quarta-feira com Q&A</span>
-                    </li>
-                  </ul>
-
-                  <div className="mt-auto space-y-4">
-                    <p className="text-center text-sm font-medium text-primary">
-                      Inclui teste grátis de 7 dias
-                    </p>
-                    <Link href="/register" className="block">
-                      <Button className="w-full shadow-lg" size="lg" variant="cta">
-                        Começar Teste Grátis
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Button>
-                    </Link>
-                  </div>
-                </Card>
-              </HoverCard>
+            {/* Planos Anuais - Centralized */}
+            <div className="flex flex-col lg:flex-row justify-center gap-6 md:gap-8 max-w-5xl mx-auto">
 
               {/* Plano Anual - Mais Econômico */}
               <ScaleIn delay={0.2} className="h-full">
-                <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-primary shadow-2xl md:scale-[1.04] bg-gradient-to-b from-primary/10 to-transparent w-full min-h-[480px] flex flex-col h-full">
-                  {/* Fita de oferta especial apenas no plano anual */}
+                <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-[3px] shadow-2xl md:scale-[1.04] w-full min-h-[480px] flex flex-col h-full bg-[#16243F] border-[#2399B4] hover:shadow-[0_20px_60px_rgba(35,153,180,0.3)]">
+                  {/* Spotlight Bg */}
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(8,145,178,0.15)_0%,_transparent_70%)]" />
+
+                  {/* Fita de oferta especial */}
                   <div className="pointer-events-none absolute -right-14 top-6 rotate-45 z-10">
-                    <span className="bg-accent text-accent-foreground px-16 py-1 text-xs font-semibold shadow-md">Oferta Especial</span>
+                    <span className="bg-[#06b6d4] text-white px-16 py-1 text-xs font-semibold shadow-md">Oferta Especial</span>
                   </div>
-                  <div className="text-center mb-5">
+                  <div className="text-center mb-5 relative z-10">
                     <div className="flex justify-center mb-2">
-                      <span className="bg-primary text-primary-foreground px-3 py-1 rounded-full text-xs font-semibold">ESCOLHA INTELIGENTE</span>
+                      <span className="bg-[#0891b2] text-white px-3 py-1 rounded-full text-xs font-semibold">ESCOLHA INTELIGENTE</span>
                     </div>
-                    <h3 className="text-xl font-bold mb-1">Plano Anual Básico</h3>
+                    <h3 className="text-xl font-bold mb-1 text-white">Plano Anual Básico</h3>
                     <div className="flex flex-col items-center gap-1">
-                      <span className="text-xs md:text-sm text-muted-foreground line-through">Valor original: R$ 597/ano</span>
-                      <span className="text-xs md:text-sm font-semibold tracking-wide text-accent">35% OFF - Preço de Lançamento</span>
+                      <span className="text-xs md:text-sm text-slate-400 line-through">Valor original: R$ 597/ano</span>
+                      <span className="text-xs md:text-sm font-semibold tracking-wide text-[#22d3ee]">35% OFF - Preço de Lançamento</span>
                     </div>
                     <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-3xl md:text-4xl font-extrabold text-primary">R$ 387</span>
-                      <span className="text-muted-foreground">/ano</span>
+                      <span className="text-3xl md:text-4xl font-extrabold text-[#22d3ee]">R$ 387</span>
+                      <span className="text-slate-400">/ano</span>
                     </div>
-                    <div className="mt-2 text-xs md:text-sm font-medium text-primary">Preço de lançamento • Economize R$ 210 (equivalente a R$ 32,25/mês)</div>
+                    <div className="mt-2 text-xs md:text-sm font-medium text-[#22d3ee]">Economize R$ 210 (R$ 32,25/mês)</div>
                   </div>
 
-                  <ul className="space-y-3 mb-6 flex-grow">
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">Consultor 24/7 no WhatsApp - sem limite de perguntas</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">Respostas fundamentadas em literatura científica</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">Prescrições com dosagens corretas e protocolos atualizados</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">Ajuda em provas, estágios e casos clínicos complexos</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">Live exclusiva toda quarta-feira com Q&A</span>
-                    </li>
-
-                    {/* Bônus exclusivos do anual */}
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">🎁 <strong>Ebook exclusivo:</strong> Como Validar Seu Diploma nos EUA</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">🎁 <strong>Certificado mensal</strong> de participação nas lives</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">🎁 <strong>Acesso prioritário</strong> a novas funcionalidades</span>
-                    </li>
+                  <ul className="space-y-3 mb-6 flex-grow relative z-10">
+                    {[
+                      "Consultor 24/7 no WhatsApp",
+                      "Respostas fundamentadas em literatura",
+                      "Prescrições com dosagens corretas",
+                      "Ajuda em provas e estágios",
+                      "Live exclusiva toda quarta-feira",
+                      <>🎁 <strong>Ebook exclusivo:</strong> Validação nos EUA</>,
+                      <>🎁 <strong>Certificado mensal</strong> de participação</>,
+                      <>🎁 <strong>Acesso prioritário</strong> a novidades</>
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-start gap-3 text-white">
+                        <Check className="w-5 h-5 text-[#22d3ee] flex-shrink-0 mt-0.5" />
+                        <span className="text-sm">{item}</span>
+                      </li>
+                    ))}
                   </ul>
 
-                  <div className="mt-auto space-y-4">
-                    <p className="text-center text-sm font-medium text-primary">
+                  <div className="mt-auto space-y-4 relative z-10">
+                    <p className="text-center text-sm font-medium text-[#22d3ee]">
                       Inclui teste grátis de 7 dias
                     </p>
                     <Link href="/register" className="block">
-                      <Button className="w-full shadow-lg" size="lg" variant="cta">
+                      <Button className="w-full shadow-lg border-0" size="lg" style={{ background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)' }}>
                         Começar Teste Grátis
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
@@ -855,107 +889,68 @@ export default function LandingPage() {
 
               {/* Plano Anual Pro - Odonto Vision */}
               <ScaleIn delay={0.3} className="h-full">
-                <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-purple-500 shadow-2xl md:scale-[1.04] bg-gradient-to-b from-purple-500/10 to-transparent w-full min-h-[480px] flex flex-col h-full">
+                <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-indigo-500 shadow-[0_0_40px_rgba(99,102,241,0.15)] md:scale-[1.04] w-full min-h-[480px] flex flex-col h-full bg-[#16243F] hover:shadow-[0_20px_60px_rgba(99,102,241,0.25)] group">
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(99,102,241,0.15)_0%,_transparent_70%)]" />
+
                   {/* Fita de oferta especial */}
                   <div className="pointer-events-none absolute -right-14 top-6 rotate-45 z-10">
-                    <span className="bg-purple-600 text-white px-16 py-1 text-xs font-semibold shadow-md">PLANO PRO</span>
+                    <span className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-16 py-1 text-xs font-semibold shadow-lg shadow-indigo-500/20">PLANO PRO</span>
                   </div>
-                  <div className="text-center mb-5">
+                  <div className="text-center mb-5 relative z-10">
                     <div className="flex justify-center mb-2">
-                      <span className="bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold">MELHOR CUSTO-BENEFÍCIO</span>
+                      <span className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg shadow-indigo-500/20">MELHOR CUSTO-BENEFÍCIO</span>
                     </div>
-                    <h3 className="text-xl font-bold mb-1">Plano Anual Pro - Odonto Vision</h3>
+                    <h3 className="text-xl font-bold mb-1 text-white">Plano Anual Pro</h3>
                     <div className="flex flex-col items-center gap-1">
-                      <span className="text-xs md:text-sm text-muted-foreground line-through">Valor original: R$ 797/ano</span>
-                      <span className="text-xs md:text-sm font-semibold tracking-wide text-purple-600">25% OFF - Preço de Lançamento</span>
+                      <span className="text-xs md:text-sm text-slate-400 line-through">Valor original: R$ 797/ano</span>
+                      <span className="text-xs md:text-sm font-semibold tracking-wide text-indigo-400">25% OFF - Preço de Lançamento</span>
                     </div>
                     <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-3xl md:text-4xl font-extrabold text-purple-600">R$ 597</span>
-                      <span className="text-muted-foreground">/ano</span>
+                      <span className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">R$ 597</span>
+                      <span className="text-slate-400">/ano</span>
                     </div>
-                    <div className="mt-2 text-xs md:text-sm font-medium text-purple-600">Preço de lançamento • Economize R$ 200 (equivalente a R$ 49,75/mês)</div>
-                    <div className="mt-3 p-2 bg-purple-100 dark:bg-purple-900/20 rounded-lg border border-purple-200 dark:border-purple-800">
-                      <p className="text-xs font-semibold text-purple-700 dark:text-purple-400">+ Curso de Farmacologia: R$ 367</p>
-                      <p className="text-xs text-purple-600 dark:text-purple-500 mt-1">Valor total: R$ 964 (economize R$ 567)</p>
+                    <div className="mt-2 text-xs md:text-sm font-medium text-indigo-400">Economize R$ 200 (R$ 49,75/mês)</div>
+                    <div className="mt-3 p-2 bg-indigo-950/30 rounded-lg border border-indigo-500/30">
+                      <p className="text-xs font-semibold text-indigo-300">+ Curso de Farmacologia: R$ 367</p>
+                      <p className="text-xs text-indigo-400 mt-1">Valor total: R$ 964 (economize R$ 567)</p>
                     </div>
                   </div>
 
-                  <ul className="space-y-3 mb-6 flex-grow">
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm"><strong>Tudo do Plano Básico</strong> (consultor 24/7, respostas científicas, prescrições, lives)</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">🎓 <strong>Curso Completo de Farmacologia</strong> (valor R$ 367)</span>
-                    </li>
-                    {/* Destaque Especial Odonto Vision */}
-                    <li className="col-span-full">
-                      <div className="p-4 bg-gradient-to-br from-cyan-50 to-blue-50 dark:from-cyan-950/30 dark:to-blue-950/30 rounded-xl border-2 border-cyan-300 dark:border-cyan-700 shadow-lg">
-                        <div className="flex items-center gap-3 mb-3">
-                          <div className="p-2 bg-cyan-500 rounded-lg">
-                            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                            </svg>
+                  <ul className="space-y-3 mb-6 flex-grow relative z-10">
+                    {[
+                      "Tudo do Plano Básico",
+                      <>🎓 <strong>Curso Completo de Farmacologia</strong></>
+                    ].map((item, i) => (
+                      <li key={i} className="flex items-start gap-3 text-white">
+                        <Check className="w-5 h-5 text-indigo-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm">{item}</span>
+                      </li>
+                    ))}
+                    <li className="col-span-full mt-4">
+                      <div className="p-4 bg-[#0F192F] rounded-xl border border-cyan-500/30 shadow-lg relative overflow-hidden group-hover:border-cyan-500/50 transition-colors">
+                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-indigo-500/10 opacity-50" />
+                        <div className="flex items-center gap-3 mb-3 relative z-10">
+                          <div className="p-2 rounded-lg bg-gradient-to-br from-cyan-900/50 to-indigo-900/50 border border-cyan-500/30">
+                            <Eye className="w-5 h-5 text-cyan-400" />
                           </div>
                           <div>
-                            <h4 className="text-base font-bold text-cyan-900 dark:text-cyan-100">👁️ Odonto Vision</h4>
-                            <p className="text-xs text-cyan-700 dark:text-cyan-300">Exclusivo do Plano PRO</p>
+                            <div className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Novo</div>
+                            <div className="font-bold text-sm text-white">Odonto Vision (Beta)</div>
                           </div>
                         </div>
-                        <p className="text-sm text-cyan-800 dark:text-cyan-200 leading-relaxed mb-3">
-                          <strong>Análise inteligente de imagens radiográficas com IA.</strong> Envie radiografias panorâmicas, periapicais e tomografias para receber análises detalhadas, identificação de achados clínicos e sugestões de diagnóstico diferencial.
+                        <p className="text-xs text-slate-300 leading-relaxed relative z-10">
+                          Envie fotos de casos clínicos e raio-x para análise instantânea de nossa IA.
                         </p>
-                        <div className="flex flex-wrap gap-2">
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-200 dark:bg-cyan-800 text-cyan-900 dark:text-cyan-100">
-                            ✓ Radiografias Panorâmicas
-                          </span>
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-200 dark:bg-cyan-800 text-cyan-900 dark:text-cyan-100">
-                            ✓ Periapicais
-                          </span>
-                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-200 dark:bg-cyan-800 text-cyan-900 dark:text-cyan-100">
-                            ✓ Tomografias
-                          </span>
-                        </div>
                       </div>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">🎁 <strong>Ebook exclusivo:</strong> Como Validar Seu Diploma nos EUA</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">🎁 <strong>Certificado mensal</strong> de participação nas lives</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">🎁 <strong>Acesso prioritário</strong> a novas funcionalidades</span>
-                    </li>
-                    <li className="flex items-start gap-3">
-                      <svg className="w-5 h-5 text-purple-600 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="text-sm">🎁 <strong>Suporte prioritário</strong> via WhatsApp</span>
                     </li>
                   </ul>
 
                   <div className="mt-auto space-y-4">
-                    <p className="text-center text-sm font-medium text-purple-600">
+                    <p className="text-center text-sm font-medium text-indigo-400">
                       Inclui teste grátis de 7 dias
                     </p>
                     <Link href="/register" className="block">
-                      <Button className="w-full shadow-lg bg-purple-600 hover:bg-purple-700 text-white" size="lg">
+                      <Button className="w-full shadow-lg border-0 text-white hover:scale-[1.02] transition-transform" size="lg" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' }}>
                         Começar Teste Grátis
                         <ArrowRight className="ml-2 h-5 w-5" />
                       </Button>
@@ -970,71 +965,89 @@ export default function LandingPage() {
               <p className="text-sm text-muted-foreground mb-4">Pagamento seguro via kiwify</p>
               <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
                 <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                    />
-                  </svg>
-                  Pagamento Seguro
+                  <Shield className="w-4 h-4" />
+                  Garantia de 7 dias
                 </span>
                 <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                  7 dias grátis
-                </span>
-                <span className="flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"
-                    />
-                  </svg>
-                  Cancele quando quiser
+                  <Lock className="w-4 h-4" />
+                  Dados Criptografados
                 </span>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Final CTA */}
-        <section className="w-full py-16 md:py-32 px-4 md:px-6 bg-final-cta-section">
-          <div className="container mx-auto max-w-4xl text-center space-y-6 md:space-y-8">
-            <SectionHeader
-              label="Comece agora"
-              icon={ArrowRight}
-              title="Transforme sua prática hoje mesmo"
-              description="Junte-se aos profissionais que já estão usando IA especializada na rotina clínica e acadêmica."
-              align="center"
-            />
-            <Link href="/register">
-              <Button
-                size="xl"
-                aria-label="Começar Agora"
-                variant="cta"
-                className="group shadow-primary/25"
-              >
-                Começar Teste Grátis
-                <ArrowRight aria-hidden="true" className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-0.5" />
-              </Button>
-            </Link>
+        {/* FAQ Section */}
+        <FAQSection />
+
+        {/* CTA Footer */}
+        <section className="w-full py-20 px-4 md:px-6 relative overflow-hidden z-10">
+          <div className="absolute inset-0 bg-gradient-to-t from-[#0891b2]/10 to-transparent" />
+
+          <div className="container mx-auto max-w-4xl relative z-10 text-center space-y-8">
+            <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
+              Pronto para Transformar sua <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22d3ee] to-[#67e8f9]">
+                Jornada na Odontologia?
+              </span>
+            </h2>
+            <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto">
+              Junte-se a milhares de estudantes e profissionais que já estão usando a IA para estudar melhor e atender com mais segurança.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
+              <Link href="/register">
+                <Button
+                  size="xl"
+                  className="rounded-full px-12 py-6 text-xl font-bold shadow-[0_10px_40px_rgba(8,145,178,0.25)] hover:scale-105 transition-all border-0 text-white w-full sm:w-auto"
+                  style={{
+                    background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
+                  }}
+                >
+                  Começar Agora
+                  <ArrowRight className="ml-2 h-6 w-6" />
+                </Button>
+              </Link>
+            </div>
+            <p className="text-sm text-slate-500">
+              Teste grátis por 7 dias. Cancele quando quiser.
+            </p>
           </div>
         </section>
 
-        {/* FAQ */}
-        <FAQSection />
-
+        <footer className="w-full py-8 px-4 md:px-6 border-t border-[#1A2847] bg-[#080D19] relative z-10">
+          <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="text-sm text-slate-500">
+              © 2024 Odonto GPT. Todos os direitos reservados.
+            </div>
+            <div className="flex gap-6 text-sm text-slate-500">
+              <Link href="#" className="hover:text-[#22d3ee] transition-colors">Termos de Uso</Link>
+              <Link href="#" className="hover:text-[#22d3ee] transition-colors">Privacidade</Link>
+              <Link href="#" className="hover:text-[#22d3ee] transition-colors">Contato</Link>
+            </div>
+          </div>
+        </footer>
       </div>
     </main>
+  )
+}
+
+function Lock(props: any) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
   )
 }
