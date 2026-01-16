@@ -46,18 +46,10 @@ const SectionHeader = dynamic(() => import("@/components/ui/section-header").the
 })
 
 const WorkflowCard = ({ step, index, total }: { step: any, index: number, total: number }) => {
-  const container = useRef(null);
+  const cardRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
-  const { scrollYProgress } = useScroll({
-    target: container,
-    offset: ['start end', 'start start']
-  });
-
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 0.85]);
-  const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
-
-  // Versão mobile: animação simples de entrada
+  // Para mobile: animação simples de entrada
   if (isMobile) {
     return (
       <motion.div
@@ -67,13 +59,11 @@ const WorkflowCard = ({ step, index, total }: { step: any, index: number, total:
         transition={{ duration: 0.6, delay: index * 0.1 }}
         className="w-full mb-8"
       >
-        <Card className="relative bg-[#0F172A] border-[#22d3ee]/20 backdrop-blur-xl transition-colors overflow-hidden shadow-2xl">
-          {/* Glow elements */}
+        <Card className="relative bg-[#0F172A] border-[#22d3ee]/20 backdrop-blur-xl overflow-hidden shadow-2xl">
           <div
             className="absolute -right-10 -top-10 w-32 h-32 rounded-full blur-[60px] opacity-30"
             style={{ backgroundColor: step.color }}
           />
-
           <CardContent className="p-6 relative z-10 flex flex-col gap-4 items-center text-center">
             <div
               className="text-6xl font-bold text-transparent bg-clip-text opacity-30 select-none leading-none"
@@ -83,9 +73,7 @@ const WorkflowCard = ({ step, index, total }: { step: any, index: number, total:
             </div>
             <div className="space-y-3">
               <h3 className="text-2xl font-bold text-white leading-tight">{step.title}</h3>
-              <p className="text-slate-300 text-base leading-relaxed">
-                {step.desc}
-              </p>
+              <p className="text-slate-300 text-base leading-relaxed">{step.desc}</p>
             </div>
           </CardContent>
         </Card>
@@ -93,41 +81,46 @@ const WorkflowCard = ({ step, index, total }: { step: any, index: number, total:
     );
   }
 
-  // Versão desktop: efeito de empilhamento com sticky
+  // Para desktop: sticky positioning com scale progressivo
+  const targetScale = 1 - (total - index - 1) * 0.05; // Cada card anterior fica 5% menor
+  const stickyTop = 100 + index * 20; // Cada card fica 20px mais abaixo
+
   return (
     <div
-      ref={container}
-      className="h-[80vh] w-full flex items-start justify-center sticky top-[15vh]"
-      style={{ zIndex: index + 1 }}
+      ref={cardRef}
+      className="sticky w-full"
+      style={{
+        top: `${stickyTop}px`,
+        height: `calc(100vh - ${stickyTop}px)`,
+        paddingTop: '2rem',
+        paddingBottom: '2rem',
+      }}
     >
       <motion.div
+        initial={{ scale: 0.8, opacity: 0 }}
+        whileInView={{ scale: targetScale, opacity: 1 }}
+        viewport={{ once: false, amount: 0.3, margin: "0px 0px -200px 0px" }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-4xl mx-auto h-full flex items-center justify-center"
         style={{
-          scale: index === total - 1 ? 1 : scale,
-          opacity: index === total - 1 ? 1 : opacity,
-          top: 0,
-          willChange: "transform, opacity"
+          transformOrigin: 'top center',
         }}
-        className="relative w-full max-w-[800px]"
       >
-        <Card className="relative bg-[#0F172A] border-[#22d3ee]/20 backdrop-blur-xl transition-colors overflow-hidden shadow-2xl h-[50vh] flex flex-col justify-center">
-          {/* Glow elements */}
+        <Card className="relative bg-[#0F172A] border-[#22d3ee]/20 backdrop-blur-xl overflow-hidden shadow-2xl w-full">
           <div
-            className="absolute -right-20 -top-20 w-64 h-64 rounded-full blur-[100px] opacity-20 transition-opacity"
+            className="absolute -right-20 -top-20 w-64 h-64 rounded-full blur-[100px] opacity-20"
             style={{ backgroundColor: step.color }}
           />
-
-          <CardContent className="p-8 md:p-12 relative z-10 flex flex-col md:flex-row gap-8 items-center md:items-start text-center md:text-left h-full justify-center">
+          <CardContent className="p-12 relative z-10 flex flex-row gap-8 items-center">
             <div
-              className="text-8xl md:text-9xl font-bold text-transparent bg-clip-text opacity-20 select-none leading-none shrink-0"
+              className="text-9xl font-bold text-transparent bg-clip-text opacity-20 select-none leading-none shrink-0"
               style={{ backgroundImage: `linear-gradient(to bottom, ${step.color}, transparent)` }}
             >
               {step.number}
             </div>
-            <div className="space-y-4 pt-2 flex flex-col h-full justify-center">
-              <h3 className="text-3xl md:text-4xl font-bold text-white leading-tight">{step.title}</h3>
-              <p className="text-slate-300 text-lg leading-relaxed max-w-xl">
-                {step.desc}
-              </p>
+            <div className="space-y-4">
+              <h3 className="text-4xl font-bold text-white leading-tight">{step.title}</h3>
+              <p className="text-slate-300 text-lg leading-relaxed max-w-xl">{step.desc}</p>
             </div>
           </CardContent>
         </Card>
@@ -725,7 +718,7 @@ export default function LandingPage() {
               className="mb-16"
             />
 
-            <div className="flex flex-col items-center relative max-w-4xl mx-auto md:min-h-[300vh]">
+            <div className="flex flex-col items-stretch relative w-full max-w-4xl mx-auto gap-0" style={{ minHeight: 'calc(100vh * 3)' }}>
               {[
                 { number: "01", title: "Dúvida na Clínica ou nos Estudos?", desc: "Seja um paciente complexo na clínica da faculdade ou uma questão difícil de prova. Digite ou mande áudio.", color: "#0891b2" },
                 { number: "02", title: "Sua 'Cola' Oficial", desc: "Nossos agentes buscam na literatura validada e te entregam a resposta pronta, com referências para você citar.", color: "#06b6d4" },
