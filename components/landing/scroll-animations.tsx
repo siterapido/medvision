@@ -145,8 +145,8 @@ export function FloatingIcon({ icon: Icon, color, size = 'md', delay = 0, classN
             animate={{
                 opacity: 1,
                 scale: 1,
-                // Animação otimizada: amplitude reduzida em mobile
-                y: typeof window !== 'undefined' && window.innerWidth < 768 ? [0, -5, 0] : [0, -10, 0]
+                // Animação com amplitude fixa para evitar hydration mismatch
+                y: [0, -8, 0]
             }}
             transition={{
                 opacity: { delay, duration: 0.5 },

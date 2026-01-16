@@ -34,6 +34,7 @@ import { AgentDemoFlow } from "@/components/landing/agent-demo-flow"
 import { AgentDemoGPT } from "@/components/landing/agent-demo-gpt"
 import { LazyVideoWrapper } from "@/components/video/lazy-video-wrapper"
 import { YouTubePlayer } from "@/components/video/youtube-player"
+import { useIsMobile } from "@/lib/hooks/use-mobile"
 
 const FAQSection = dynamic(() => import("@/components/landing/faq-section").then(mod => ({ default: mod.FAQSection })), {
   ssr: false,
@@ -46,6 +47,7 @@ const SectionHeader = dynamic(() => import("@/components/ui/section-header").the
 
 const WorkflowCard = ({ step, index, total }: { step: any, index: number, total: number }) => {
   const container = useRef(null);
+  const isMobile = useIsMobile();
 
   const { scrollYProgress } = useScroll({
     target: container,
@@ -55,16 +57,53 @@ const WorkflowCard = ({ step, index, total }: { step: any, index: number, total:
   const scale = useTransform(scrollYProgress, [0, 1], [1, 0.85]);
   const opacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
 
+  // Versão mobile: animação simples de entrada
+  if (isMobile) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 50 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: false, amount: 0.3 }}
+        transition={{ duration: 0.6, delay: index * 0.1 }}
+        className="w-full mb-8"
+      >
+        <Card className="relative bg-[#0F172A] border-[#22d3ee]/20 backdrop-blur-xl transition-colors overflow-hidden shadow-2xl">
+          {/* Glow elements */}
+          <div
+            className="absolute -right-10 -top-10 w-32 h-32 rounded-full blur-[60px] opacity-30"
+            style={{ backgroundColor: step.color }}
+          />
+
+          <CardContent className="p-6 relative z-10 flex flex-col gap-4 items-center text-center">
+            <div
+              className="text-6xl font-bold text-transparent bg-clip-text opacity-30 select-none leading-none"
+              style={{ backgroundImage: `linear-gradient(to bottom, ${step.color}, transparent)` }}
+            >
+              {step.number}
+            </div>
+            <div className="space-y-3">
+              <h3 className="text-2xl font-bold text-white leading-tight">{step.title}</h3>
+              <p className="text-slate-300 text-base leading-relaxed">
+                {step.desc}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    );
+  }
+
+  // Versão desktop: efeito de empilhamento com sticky
   return (
     <div
       ref={container}
-      className="h-[80vh] w-full flex items-start justify-center sticky top-[15vh]" // top ajustado para centralizar melhor
+      className="h-[80vh] w-full flex items-start justify-center sticky top-[15vh]"
       style={{ zIndex: index + 1 }}
     >
       <motion.div
         style={{
-          scale: index === total - 1 ? 1 : scale, // O último não diminui
-          opacity: index === total - 1 ? 1 : opacity, // O último não some
+          scale: index === total - 1 ? 1 : scale,
+          opacity: index === total - 1 ? 1 : opacity,
           top: 0,
           willChange: "transform, opacity"
         }}
@@ -686,7 +725,7 @@ export default function LandingPage() {
               className="mb-16"
             />
 
-            <div className="flex flex-col items-center relative max-w-4xl mx-auto min-h-[300vh]">
+            <div className="flex flex-col items-center relative max-w-4xl mx-auto md:min-h-[300vh]">
               {[
                 { number: "01", title: "Dúvida na Clínica ou nos Estudos?", desc: "Seja um paciente complexo na clínica da faculdade ou uma questão difícil de prova. Digite ou mande áudio.", color: "#0891b2" },
                 { number: "02", title: "Sua 'Cola' Oficial", desc: "Nossos agentes buscam na literatura validada e te entregam a resposta pronta, com referências para você citar.", color: "#06b6d4" },

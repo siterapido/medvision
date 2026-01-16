@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { Microscope, Eye, GraduationCap, PenTool, BookOpen, MessageCircle } from "lucide-react"
 import { useState, useEffect } from "react"
+import { useIsMobile } from "@/lib/hooks/use-mobile"
 
 interface AgentIconProps {
     icon: typeof Microscope
@@ -16,15 +17,7 @@ interface AgentIconProps {
 
 const AgentIcon = ({ icon: Icon, color, gradient, delay, position, mobilePosition, name }: AgentIconProps) => {
     const [isHovered, setIsHovered] = useState(false)
-    const [isMobile, setIsMobile] = useState(false)
-
-    useEffect(() => {
-        const checkMobile = () => setIsMobile(window.innerWidth < 768)
-        checkMobile()
-        window.addEventListener('resize', checkMobile)
-        return () => window.removeEventListener('resize', checkMobile)
-    }, [])
-
+    const isMobile = useIsMobile()
     const currentPosition = isMobile ? mobilePosition : position
 
     return (
@@ -118,6 +111,8 @@ const AgentIcon = ({ icon: Icon, color, gradient, delay, position, mobilePositio
 }
 
 export const AnimatedAgentIcons = () => {
+    const isMobile = useIsMobile()
+
     // Posições otimizadas: mobile em círculo mais centralizado, desktop mantém layout original
     const agents = [
         {
@@ -184,7 +179,7 @@ export const AnimatedAgentIcons = () => {
                         rotate: 360,
                     }}
                     transition={{
-                        duration: typeof window !== 'undefined' && window.innerWidth < 768 ? 30 : 20, // Mais lento em mobile
+                        duration: isMobile ? 30 : 20,
                         repeat: Infinity,
                         ease: "linear"
                     }}

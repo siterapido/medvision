@@ -10,6 +10,7 @@ import {
     MessageCircle,
     Sparkles
 } from "lucide-react"
+import { useIsMobile } from "@/lib/hooks/use-mobile"
 
 interface AgentNodeProps {
     icon: any
@@ -32,8 +33,8 @@ const AgentNode = ({ icon: Icon, label, color, delay, position }: AgentNodeProps
                 className={`relative p-2.5 md:p-4 rounded-xl md:rounded-2xl backdrop-blur-md border border-white/20 shadow-xl ${color}`}
                 whileHover={{ scale: 1.1, rotate: 5 }}
                 animate={{
-                    // Animação otimizada: amplitude menor em mobile
-                    y: typeof window !== 'undefined' && window.innerWidth < 768 ? [0, -3, 0] : [0, -5, 0],
+                    // Animação com amplitude fixa - responsividade via duração
+                    y: [0, -4, 0],
                 }}
                 transition={{
                     y: { duration: 4, repeat: Infinity, ease: "easeInOut" },
@@ -50,6 +51,8 @@ const AgentNode = ({ icon: Icon, label, color, delay, position }: AgentNodeProps
 }
 
 export function AgentHeroVisual() {
+    const isMobile = useIsMobile()
+
     // Agentes com ícones e cores consistentes com AnimatedAgentIcons
     // Mobile: distribuídos em círculo ao redor do centro com mais espaçamento
     const agents = [
@@ -119,7 +122,7 @@ export function AgentHeroVisual() {
                                 "linear-gradient(to top right, #06b6d4, #2563eb)"
                             ]
                         }}
-                        transition={{ duration: typeof window !== 'undefined' && window.innerWidth < 768 ? 5 : 3, repeat: Infinity }}
+                        transition={{ duration: isMobile ? 5 : 3, repeat: Infinity }}
                         style={{ willChange: "background", transform: "translateZ(0)" }}
                     >
                         <Sparkles className="w-full h-full text-white" />

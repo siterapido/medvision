@@ -20,7 +20,7 @@ export function WhatsAppModal({
 
   return (
     <Dialog>
-      <DialogTrigger asChild>
+      <DialogTrigger asChild suppressHydrationWarning>
         {children}
       </DialogTrigger>
       <DialogContent
