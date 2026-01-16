@@ -1004,7 +1004,7 @@ export default function LandingPage() {
         <FAQSection />
 
         {/* CTA Footer */}
-        <section className="w-full py-20 px-4 md:px-6 relative overflow-hidden z-10">
+        <section className="w-full py-12 px-4 md:px-6 relative overflow-hidden z-10">
           <div className="absolute inset-0 bg-gradient-to-t from-[#0891b2]/10 to-transparent" />
 
           <div className="container mx-auto max-w-4xl relative z-10 text-center space-y-8">
@@ -1037,19 +1037,6 @@ export default function LandingPage() {
             </p>
           </div>
         </section>
-
-        <footer className="w-full py-8 px-4 md:px-6 border-t border-[#1A2847] bg-[#080D19] relative z-10">
-          <div className="container mx-auto max-w-6xl flex flex-col md:flex-row items-center justify-between gap-4">
-            <div className="text-sm text-slate-500">
-              © 2024 Odonto GPT. Todos os direitos reservados.
-            </div>
-            <div className="flex gap-6 text-sm text-slate-500">
-              <Link href="#" className="hover:text-[#22d3ee] transition-colors">Termos de Uso</Link>
-              <Link href="#" className="hover:text-[#22d3ee] transition-colors">Privacidade</Link>
-              <Link href="#" className="hover:text-[#22d3ee] transition-colors">Contato</Link>
-            </div>
-          </div>
-        </footer>
       </div >
     </main >
   )
