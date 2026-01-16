@@ -607,6 +607,13 @@ body:has(.landing-scroll) {
   position: relative;
 }
 
+/* Landing page: permitir que o frame cresça com o conteúdo */
+.app-frame.landing-scroll {
+  min-height: auto;
+  height: auto;
+  overflow: visible;
+}
+
 .app-scroll-region {
   width: 100%;
   flex: 1;
@@ -621,9 +628,18 @@ body:has(.landing-scroll) {
 
 /* Landing page específica - scroll nativo sem limitações */
 .landing-scroll {
-  overflow-y: auto !important;
+  overflow: visible !important;
+  overflow-y: visible !important;
   overflow-x: hidden !important;
   height: auto !important;
+  min-height: auto !important;
+  max-height: none !important;
+}
+
+/* Garantir que o app-scroll-region dentro da landing permita scroll */
+.landing-scroll.app-scroll-region {
+  overflow: visible !important;
+  overflow-y: visible !important;
   max-height: none !important;
 }
 
