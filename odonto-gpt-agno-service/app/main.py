@@ -5,6 +5,7 @@ import os
 load_dotenv()
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import router as api_router
+from app.routes.artifacts import router as artifacts_router
 from app.models.schemas import HealthResponse
 import uvicorn
 import os
@@ -28,8 +29,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include API Router
+# Include API Routers
 app.include_router(api_router, prefix="/api/v1")
+app.include_router(artifacts_router)  # Rotas de artefatos em /api/artifacts
+
 
 @app.get("/", tags=["Health"])
 async def root():
