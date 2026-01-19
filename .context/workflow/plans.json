@@ -1,0 +1,14 @@
+{
+  "active": [
+    {
+      "slug": "corrigir-erro-cors-backend",
+      "path": "plans/corrigir-erro-cors-backend.md",
+      "title": "Correção de Erro CORS em Produção",
+      "summary": "Adicionar o domínio de produção www.odontogpt.com à lista de origens permitidas (CORS) no serviço backend FastAPI.",
+      "linkedAt": "2026-01-19T21:26:24.492Z",
+      "status": "active"
+    }
+  ],
+  "completed": [],
+  "primary": "corrigir-erro-cors-backend"
+}

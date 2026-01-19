@@ -1,0 +1,24 @@
+# Status do Workflow PREVC
+project: Atualização Agente Pesquisa Perplexity (OpenRouter)
+scale: QUICK
+status: C
+phases:
+  P:
+    status: completed
+  R:
+    status: skipped
+  E:
+    status: completed
+  V:
+    status: completed
+    outputs:
+      - odonto-gpt-agno-service/app/agents/science_agent.py
+      - odonto-gpt-agno-service/app/tools/research.py
+      - .env.local (updated with OpenRouter Key)
+      - scripts/test_perplexity_research.py
+  C:
+    status: completed
+roles:
+  odonto-research:
+    status: completed
+    task: "Integration confirmed. Agent uses Gemini to orchestrate Perplexity Sonar search."

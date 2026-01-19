@@ -24,12 +24,16 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Import question generation tools
 from app.tools.question_generator import QUESTION_TOOLS
+
 # Import knowledge search
 from app.tools.knowledge import search_knowledge_base
+
 # Import persistence tools
 from app.tools.artifacts_db import save_practice_exam
+
 # Import database config
 from app.database.supabase import get_agent_config
+
 # Import navigation tools
 from app.tools.navigation import NAVIGATION_TOOLS
 
@@ -37,7 +41,7 @@ from app.tools.navigation import NAVIGATION_TOOLS
 def create_study_agent() -> Agent:
     """
     Cria agente AGNO especializado em educação e avaliação (Odonto Practice).
-    
+
     Características:
     - Geração de questões de múltipla escolha e dissertativas
     - Criação de simulados personalizados (ENADE, residência)
@@ -45,7 +49,7 @@ def create_study_agent() -> Agent:
     - Feedback construtivo e motivacional
     - Adaptação de dificuldade ao nível do aluno
     - Salvar simulados para prática posterior
-    
+
     Returns:
         Configured Agno Agent instance
     """
@@ -56,18 +60,15 @@ def create_study_agent() -> Agent:
     if db_url and db_url.startswith("postgres://"):
         db_url = db_url.replace("postgres://", "postgresql://", 1)
 
-    db = PostgresDb(
-        session_table="agent_sessions",
-        db_url=db_url
-    )
+    db = PostgresDb(session_table="agent_sessions", db_url=db_url)
 
     # Fetch configuration from DB
     config = get_agent_config("odonto-practice")
-    
+
     model_id = os.getenv("OPENROUTER_MODEL_QA", "google/gemma-2-27b-it:free")
     api_key = os.getenv("OPENROUTER_API_KEY")
     base_url = "https://openrouter.ai/api/v1"
-    
+
     temperature = 0.7
     max_tokens = 4096
 
@@ -75,10 +76,12 @@ def create_study_agent() -> Agent:
     if config:
         metadata = config.get("metadata", {}) or {}
         config_base_url = metadata.get("base_url", "")
-        
+
         # Validar se é OpenRouter antes de usar config do DB
-        is_openrouter = "openrouter" in config_base_url.lower() if config_base_url else True
-        
+        is_openrouter = (
+            "openrouter" in config_base_url.lower() if config_base_url else True
+        )
+
         if is_openrouter:
             if config.get("model_id"):
                 model_id = config.get("model_id")
@@ -89,60 +92,59 @@ def create_study_agent() -> Agent:
 
             # Aplica parâmetros de geração se existirem no DB
             if config.get("temperature") is not None:
-                temperature = float(config.get("temperature"))
+                temp_val = config.get("temperature")
+                if temp_val is not None:
+                    temperature = float(temp_val)
             if config.get("max_tokens"):
-                max_tokens = int(config.get("max_tokens"))
+                max_tok_val = config.get("max_tokens")
+                if max_tok_val is not None:
+                    max_tokens = int(max_tok_val)
 
     # Combine tools
-    all_tools = QUESTION_TOOLS + [search_knowledge_base, save_practice_exam] + NAVIGATION_TOOLS
+    all_tools = (
+        QUESTION_TOOLS + [search_knowledge_base, save_practice_exam] + NAVIGATION_TOOLS
+    )
 
     odonto_practice = Agent(
         name="odonto-practice",
         model=OpenAILike(
-            id=model_id,
-            api_key=api_key,
+            id=str(model_id) if model_id else "google/gemma-2-27b-it:free",
+            api_key=str(api_key) if api_key else None,
             base_url=base_url,
             temperature=temperature,
-            max_tokens=max_tokens
+            max_tokens=max_tokens,
         ),
         db=db,
         add_history_to_context=True,
         num_history_messages=8,  # Mais histórico para acompanhar progresso do aluno
         add_datetime_to_context=True,
         stream_events=True,
-
         # Descrição especializada profissional
         description="""Você é o Odonto Practice, um mentor educacional focado em avaliação e consolidação de conhecimento.
         Você cria questões desafiadoras, simulados alinhados com bancas (ENADE/Residências) e fornece explicações detalhadas.""",
-
         # Instruções especializadas para educação
         instructions=[
             # IDENTIDADE
             "Você é o **Odonto Practice**, focado em educação e avaliação.",
             "Utilize a Metodologia Socrática: estimule o pensamento crítico com perguntas guiadas.",
             "Seja motivador mas EXIGENTE. O foco é a aprovação e a excelência clínica.",
-            
-            # GERAÇÃO DE QUESTÕES
+            # GERAÇÃO DE QUESTÕES E SIMULADOS
             "1. **Contexto Clínico**: Questões sempre devem ter um cenário prático (paciente x anos, queixa tal).",
             "2. **Plausibilidade**: As alternativas erradas (distratores) devem ser erros comuns, não absurdos óbvios.",
             "3. **Feedback Rico**: Ao explicar a resposta, detalhe POR QUE a certa é certa e POR QUE as outras estão erradas.",
-            
+            "4. **ESTRUTURA OBRIGATÓRIA**: Sempre inclua o bloco de código `json-quiz` (para questões únicas) ou `json-exam` (para simulados) no final da sua resposta. Isso permite que a interface mostre a interatividade.",
             # USO DE ARTEFATOS
             "Sempre que o usuário pedir um simulado ou lista de exercícios:",
-            "  1. PRIMEIRO gere o conteúdo visível para o usuário.",
-            "  2. EM SEGUIDA, use `save_practice_exam` para salvar a lista estruturada.",
-            "  3. Defina a dificuldade (fácil/médio/difícil) e o tópico principal com precisão.",
-            "  4. Obtenha o `user_id` do contexto.",
-            
+            "  1. Gere o conteúdo completo (texto + JSON).",
+            "  2. NÃO remova o bloco JSON da resposta final.",
+            "  3. EM SEGUIDA, use `save_practice_exam` para persistir o artefato.",
             # ADAPTABILIDADE
             "- Se o usuário errar, explique o conceito fundamental e ofereça uma questão mais simples de reforço.",
             "- Se acertar tudo, proponha um 'Desafio Clínico' mais complexo.",
             "Não apenas dê o gabarito. Ensine o raciocínio diagnóstico.",
-            
             # INTEGRIDADE
             "Nunca forneça questões reais copiadas de provas recentes (proteção de direitos autorais). Crie questões originais similares (isomórficas).",
         ],
-
         # Add question generation and knowledge tools
         tools=all_tools,
     )

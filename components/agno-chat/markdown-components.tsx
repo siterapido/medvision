@@ -4,6 +4,7 @@ import React, { memo } from "react"
 import Link from "next/link"
 import { ExternalLink, Check, Copy } from "lucide-react"
 import { CodeBlock } from "@/components/ai-elements/code-block"
+import { QuizBlock } from "@/components/agno-chat/quiz-block"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 
@@ -44,10 +45,16 @@ export const MarkdownLink = ({ href, children }: any) => {
 export const MarkdownCode = ({ inline, className, children, ...props }: any) => {
     const match = /language-(\w+)/.exec(className || "");
     const language = (match && match[1]) || "";
+    const isQuiz = language === "json-quiz" || language === "json-exam";
 
     if (!inline && language) {
         // Remove trailing newline if present
         const code = String(children).replace(/\n$/, "");
+        
+        if (isQuiz) {
+            return <QuizBlock data={code} />;
+        }
+
         return (
             <div className="my-4 rounded-lg overflow-hidden border border-slate-700/50 shadow-lg relative group">
                 {/* 

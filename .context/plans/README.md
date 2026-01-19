@@ -4,8 +4,10 @@ This directory contains plans for coordinating work across documentation and pla
 
 ## Plan Queue
 1. [Artifacts Implementation](./artifacts-implementation.md)
-2. [Rebrand Gradients To Premium Tech](./rebrand-gradients-to-premium-tech.md)
-3. [Whatsapp Integration](./whatsapp-integration.md)
+2. [Corrigir Erro Cors Backend](./corrigir-erro-cors-backend.md)
+3. [Fix Chat Backend Connectivity](./fix-chat-backend-connectivity.md)
+4. [Rebrand Gradients To Premium Tech](./rebrand-gradients-to-premium-tech.md)
+5. [Whatsapp Integration](./whatsapp-integration.md)
 
 ## How To Create Or Update Plans
 - Run "ai-context plan <name>" to scaffold a new plan template.
