@@ -84,8 +84,8 @@ def create_dental_education_team() -> Team:
             if config.get("max_tokens"):
                 max_tokens = int(config.get("max_tokens"))
 
-    odonto_flow = Team(
-        name="odonto_flow",
+    odonto_gpt_team = Team(
+        name="odonto-gpt-team",
         members=[
             odonto_research,
             odonto_practice,
@@ -102,27 +102,27 @@ def create_dental_education_team() -> Team:
             # =================================================================
             # IDENTIDADE E OBJETIVO
             # =================================================================
-            "Você é o Odonto Flow, o sistema central de orquestração da Odonto Suite.",
-            "Seu objetivo é coordenar uma equipe de agentes especializados para atender às necessidades do usuário com precisão e eficiência.",
+            "Você é o Odonto GPT, o assistente central inteligente da Odonto Suite.",
+            "Seu objetivo é conversar em linguagem natural, ser extremamente conciso e coordenar agentes especializados.",
             # =================================================================
-            # PROTOCOLO DE INTERAÇÃO
+            # REGRAS DE COMUNICAÇÃO (PRIORIDADE MÁXIMA)
             # =================================================================
-            "**PRIORIDADE 1: AÇÃO DIRETA**",
-            "- Evite perguntas de clarificação se houver QUALQUER indício da intenção do usuário.",
-            "- Se o usuário pedir 'pesquisa', 'artigos', 'saber sobre' -> Chame Odonto Research IMEDIATAMENTE.",
-            "- Se o usuário pedir 'questões', 'estudar', 'aprender' -> Chame Odonto Practice IMEDIATAMENTE.",
-            "- Se o usuário pedir 'resumo', 'flashcards', 'mapa mental' -> Chame Odonto Summary IMEDIATAMENTE.",
-            "**PRIORIDADE 2: CONTEXTO**",
-            "- Use o histórico da conversa para manter o fluxo. Se o usuário falar 'e sobre o tratamento?', mantenha o agente anterior.",
+            "- **CONCISÃO EXTREMA**: Suas respostas devem ter NO MÁXIMO 3 LINHAS. Seja direto.",
+            "- **PERGUNTE**: Sempre termine sua resposta com uma pergunta para guiar o usuário ou clarificar a necessidade.",
+            "- **LINGUAGEM NATURAL**: Converse de forma fluida e amigável.",
             # =================================================================
-            # ESPECIALISTAS DISPONÍVEIS
+            # ORQUESTRAÇÃO COM IA-CONTEXT
             # =================================================================
-            "- **Odonto Research**: Para busca de artigos científicos, evidências (PubMed/arXiv) e perguntas de conhecimento geral ('O que é', 'Quais sintomas').",
-            "- **Odonto Practice**: Para criar questões, simulados, explicar conceitos e mentorar estudos.",
-            "- **Odonto Writer**: Para estruturar TCCs, revisar textos acadêmicos e formatar referências (ABNT/ISO).",
-            "- **Odonto Vision**: Para analisar radiografias, tomografias e imagens clínicas.",
-            "- **Odonto Summary**: Para criar resumos, flashcards e mapas mentais.",
-            "- **Odonto GPT**: Para tirar dúvidas gerais, explicações didáticas e bate-papo de aprendizado.",
+            "- Use o contexto da conversa (ia-context) para identificar quando chamar um especialista.",
+            "- Se o usuário pedir 'pesquisa', 'artigos' -> Chame Odonto Research.",
+            "- Se o usuário pedir 'questões', 'estudar' -> Chame Odonto Practice.",
+            "- Se o usuário pedir 'resumo', 'flashcards' -> Chame Odonto Summary.",
+            "- Se o usuário pedir 'imagem', 'raio-x' -> Chame Odonto Vision.",
+            "- Se o usuário pedir 'tcc', 'artigo' -> Chame Odonto Writer.",
+            # =================================================================
+            # CONTEXTO
+            # =================================================================
+            "- Mantenha o contexto da conversa. Se o usuário der continuidade, use o histórico.",
         ],
         model=OpenAIChat(
             id=model_id,
@@ -132,14 +132,14 @@ def create_dental_education_team() -> Team:
             max_tokens=max_tokens,
         ),
         tools=NAVIGATION_TOOLS,
-        description="Odonto Flow: Orquestrador inteligente de educação odontológica.",
+        description="Odonto GPT: Assistente central com orquestração inteligente.",
     )
 
-    return odonto_flow
+    return odonto_gpt_team
 
 
 # Create singleton instance
-odonto_flow = create_dental_education_team()
+odonto_gpt_team = create_dental_education_team()
 
 
 def create_coordinator_agent() -> Agent:
@@ -190,6 +190,29 @@ def rotear_para_agente_apropriado(
         Tipo de agente: 'ciencia', 'estudo', 'redator', 'imagem', 'resumo' ou 'equipe'
     """
     mensagem_lower = mensagem_usuario.lower()
+
+    # =========================================================================
+    # OPTIMIZATION: IA-CONTEXT ROUTING
+    # =========================================================================
+    # Se o contexto trouxer um agente específico ou instrução de roteamento, usa-o.
+    if contexto:
+        # Se houver um campo 'target_agent' ou 'agentType' no contexto que não seja 'auto'
+        target = contexto.get("target_agent") or contexto.get("agentType")
+        if target and target != "auto":
+            # Mapeia para as chaves internas
+            mapping = {
+                "odonto-research": "ciencia",
+                "odonto-practice": "estudo",
+                "odonto-write": "redator",
+                "odonto-vision": "imagem",
+                "odonto-summary": "resumo",
+                "odonto-gpt": "gpt",
+                "odonto-coordinator": "coordenador",
+                "odonto-gpt-team": "equipe",
+                "odonto-flow": "equipe",
+            }
+            if target in mapping:
+                return mapping[target]
 
     # =========================================================================
     # KEYWORDS ATUALIZADAS (Agressivas)
@@ -353,7 +376,7 @@ def rotear_para_agente_apropriado(
             "odonto-vision": "imagem",
             "odonto-summary": "resumo",
             "odonto-gpt": "gpt",
-            "odonto-flow": "equipe",
+            "odonto-gpt-team": "equipe",
         }
 
         current_key = id_to_key.get(agente_atual)
@@ -453,10 +476,10 @@ async def executar_agente(
 
         elif tipo_agente == "equipe":
             # Multi-agent team
-            response = await odonto_flow.run(mensagem, context=contexto or {})
+            response = await odonto_gpt_team.run(mensagem, context=contexto or {})
             return {
                 "response": response.response,
-                "agent": "odonto-flow",
+                "agent": "odonto-gpt",
                 "participants": response.participants
                 if hasattr(response, "participants")
                 else [],

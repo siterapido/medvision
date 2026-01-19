@@ -1,26 +1,31 @@
-# Status do Workflow PREVC
-project: Atualização Agente Pesquisa Perplexity (OpenRouter)
-scale: QUICK
-status: C
+project:
+  name: "update-summary-agent"
+  scale: QUICK
+  started: "2026-01-19T23:04:11.605Z"
+  current_phase: V
+
 phases:
   P:
-    status: completed
+    status: skipped
+    reason: "Not required for scale QUICK"
   R:
     status: skipped
+    reason: "Not required for scale QUICK"
   E:
-    status: completed
+    status: filled
+    started_at: "2026-01-19T23:04:11.587Z"
+    completed_at: "2026-01-19T23:06:19.360Z"
   V:
     status: completed
+    started_at: "2026-01-19T23:06:19.361Z"
+    completed_at: "2026-01-19T23:14:56.487Z"
     outputs:
-      - odonto-gpt-agno-service/app/agents/science_agent.py
-      - odonto-gpt-agno-service/app/tools/research.py
-      - odonto-gpt-agno-service/app/tools/artifacts_db.py
-      - .env.local (updated with OpenRouter Key)
-      - scripts/test_perplexity_research.py
-      - scripts/test_artifact_generation.py
+      - path: "odonto-gpt-agno-service/tests/test_summary_agent_mock.py"
+        status: filled
   C:
-    status: completed
+    status: skipped
+    reason: "Not required for scale QUICK"
+
 roles:
-  odonto-research:
-    status: completed
-    task: "Integration confirmed. Agent uses Gemini to orchestrate Perplexity Sonar search. Artifact generation validated."
+  solo-dev:
+    status: pending

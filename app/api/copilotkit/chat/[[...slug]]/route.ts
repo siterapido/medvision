@@ -7,7 +7,7 @@ const runtimeInfoResponse = () => NextResponse.json({
   agents: [
     {
       id: "default",
-      name: "Odonto Flow Agent",
+      name: "Odonto GPT",
       description: "O assistente principal da Odonto Suite",
     },
   ],

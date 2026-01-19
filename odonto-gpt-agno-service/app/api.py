@@ -20,7 +20,7 @@ from app.agents.writer_agent import odonto_write
 from app.agents.odonto_gpt_agent import odonto_gpt
 from app.agents.team import (
     rotear_para_agente_apropriado,
-    odonto_flow,
+    odonto_gpt_team,
     odonto_coordinator,
 )
 from app.tools.database.supabase import get_supabase_client
@@ -553,7 +553,7 @@ async def chat_equipe(request: ChatRequest):
         "redator": (odonto_write, "odonto-write"),
         "imagem": (odonto_vision, "odonto-vision"),
         "resumo": (dental_summary_agent, "odonto-summary"),
-        "equipe": (odonto_flow, "odonto-flow"),
+        "equipe": (odonto_gpt_team, "odonto-gpt"),
         "coordenador": (odonto_coordinator, "odonto-coordinator"),
         "gpt": (odonto_gpt, "odonto-gpt"),
         # Mapeamento por ID (para forceAgent)
@@ -562,7 +562,8 @@ async def chat_equipe(request: ChatRequest):
         "odonto-write": (odonto_write, "odonto-write"),
         "odonto-vision": (odonto_vision, "odonto-vision"),
         "odonto-summary": (dental_summary_agent, "odonto-summary"),
-        "odonto-flow": (odonto_flow, "odonto-flow"),
+        "odonto-flow": (odonto_gpt_team, "odonto-gpt"),  # Legacy support mapping
+        "odonto-gpt-team": (odonto_gpt_team, "odonto-gpt"),
         "odonto-coordinator": (odonto_coordinator, "odonto-coordinator"),
         "odonto-gpt": (odonto_gpt, "odonto-gpt"),
     }
@@ -644,6 +645,7 @@ async def chat_equipe(request: ChatRequest):
         mensagem_usuario=request.message,
         tem_imagem=bool(request.imageUrl) if hasattr(request, "imageUrl") else False,
         agente_atual=agente_atual,
+        contexto=request.context,
     )
 
     agent, agent_id = agent_map.get(tipo_agente, (odonto_research, "odonto-research"))
@@ -748,12 +750,13 @@ async def listar_agentes():
                 "endpoint": "/image/analyze",
             },
             {
-                "id": "odonto-flow",
-                "nome": "Odonto Flow",
+                "id": "odonto-gpt-team",
+                "nome": "Odonto GPT",
                 "descricao": "Central inteligente que entende a necessidade do usuário e ativa o módulo certo automaticamente.",
                 "capacidades": [
                     "Roteamento automático para agente apropriado",
                     "Coordenação multi-agente quando necessário",
+                    "Conversa em linguagem natural",
                 ],
                 "endpoint": "/equipe/chat",
             },
