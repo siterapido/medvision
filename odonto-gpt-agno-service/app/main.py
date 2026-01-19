@@ -13,12 +13,15 @@ import os
 app = FastAPI(
     title="Odonto GPT Agent Service",
     description="AGNO-powered AI agents for dental education and image analysis",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # CORS Configuration
 # Read allowed origins from environment variable for production
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "https://odontogpt.vercel.app,http://localhost:3000")
+allowed_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "https://www.odontogpt.com,https://odontogpt.com,https://odontogpt.vercel.app,http://localhost:3000",
+)
 origins = allowed_origins.split(",") if allowed_origins != "*" else ["*"]
 
 app.add_middleware(
@@ -38,9 +41,11 @@ app.include_router(artifacts_router)  # Rotas de artefatos em /api/artifacts
 async def root():
     return {"message": "Odonto GPT AGNO Service is running"}
 
+
 @app.get("/health", response_model=HealthResponse, tags=["Health"])
 async def health_check():
     return HealthResponse()
+
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
