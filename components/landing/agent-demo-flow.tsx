@@ -47,7 +47,7 @@ export function AgentDemoFlow() {
                     >
                         <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-[#00D4FF]/10 border border-[#00D4FF]/20">
                             <Sparkles className="w-5 h-5 text-[#00D4FF]" />
-                            <span className="text-[#00D4FF] font-semibold">Odonto Flow</span>
+                            <span className="text-[#00D4FF] font-semibold">Odonto GPT</span>
                         </div>
 
                         <h2 className="text-4xl md:text-5xl font-bold text-white leading-tight">
@@ -58,7 +58,7 @@ export function AgentDemoFlow() {
                         </h2>
 
                         <p className="text-lg text-slate-300 leading-relaxed">
-                            Você não precisa saber qual especialista usar. O Odonto Flow analisa sua pergunta e automaticamente direciona para o agente mais adequado.
+                            Você não precisa saber qual especialista usar. O Odonto GPT analisa sua pergunta e automaticamente direciona para o agente mais adequado.
                         </p>
 
                         <div className="space-y-3">
@@ -97,7 +97,7 @@ export function AgentDemoFlow() {
                                     <Sparkles className="w-6 h-6 text-white" />
                                 </motion.div>
                                 <div>
-                                    <div className="font-semibold text-white">Odonto Flow</div>
+                                    <div className="font-semibold text-white">Odonto GPT</div>
                                     <div className="text-xs text-slate-400">
                                         {stage < 2 ? "Pronto" : stage === 2 ? "Analisando contexto..." : stage === 3 ? "Roteando..." : "Conectado ao Pesquisador"}
                                     </div>

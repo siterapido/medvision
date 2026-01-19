@@ -128,7 +128,7 @@ export function AgentHeroVisual() {
                         <Sparkles className="w-full h-full text-white" />
                     </motion.div>
 
-                    {/* Floating 'Odonto Flow' label */}
+                    {/* Floating 'Odonto GPT' label */}
                     <motion.div
                         className="absolute -bottom-8 md:-bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap"
                         initial={{ opacity: 0, y: 10 }}
@@ -137,7 +137,7 @@ export function AgentHeroVisual() {
                     >
                         <div className="px-3 py-1 md:px-4 md:py-1.5 bg-gradient-to-r from-[#00D4FF] to-[#0066FF] backdrop-blur-md rounded-full border border-cyan-400/30 shadow-lg shadow-cyan-500/20 flex items-center gap-1.5 md:gap-2">
                             <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-white" />
-                            <span className="font-bold text-white text-[10px] md:text-sm">Odonto Flow</span>
+                            <span className="font-bold text-white text-[10px] md:text-sm">Odonto GPT</span>
                         </div>
                     </motion.div>
                 </div>
