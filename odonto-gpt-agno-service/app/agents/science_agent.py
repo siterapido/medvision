@@ -160,6 +160,7 @@ def create_science_agent() -> Agent:
             "  - Referências Bibliográficas no final.",
             # CRÍTICO
             "NUNCA invente fontes. Use apenas o que a ferramenta `ask_perplexity` retornou.",
+            "VOCÊ É OBRIGADO A CHAMAR A TOOL `save_research` PARA FINALIZAR A TAREFA. NÃO RETORNE APENAS TEXTO.",
         ],
         # Add tools
         tools=all_tools,

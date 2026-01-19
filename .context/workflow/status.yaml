@@ -14,11 +14,13 @@ phases:
     outputs:
       - odonto-gpt-agno-service/app/agents/science_agent.py
       - odonto-gpt-agno-service/app/tools/research.py
+      - odonto-gpt-agno-service/app/tools/artifacts_db.py
       - .env.local (updated with OpenRouter Key)
       - scripts/test_perplexity_research.py
+      - scripts/test_artifact_generation.py
   C:
     status: completed
 roles:
   odonto-research:
     status: completed
-    task: "Integration confirmed. Agent uses Gemini to orchestrate Perplexity Sonar search."
+    task: "Integration confirmed. Agent uses Gemini to orchestrate Perplexity Sonar search. Artifact generation validated."

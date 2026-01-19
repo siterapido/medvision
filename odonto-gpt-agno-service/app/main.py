@@ -17,12 +17,27 @@ app = FastAPI(
 )
 
 # CORS Configuration
-# Read allowed origins from environment variable for production
-allowed_origins = os.getenv(
-    "ALLOWED_ORIGINS",
-    "https://www.odontogpt.com,https://odontogpt.com,https://odontogpt.vercel.app,http://localhost:3000",
-)
-origins = allowed_origins.split(",") if allowed_origins != "*" else ["*"]
+# Define default allowed origins
+default_origins = [
+    "https://www.odontogpt.com",
+    "https://odontogpt.com",
+    "https://odontogpt.vercel.app",
+    "http://localhost:3000",
+    "https://v0-odonto-gpt-ui-production.up.railway.app",
+]
+
+# Read allowed origins from environment variable
+env_allowed_origins = os.getenv("ALLOWED_ORIGINS", "")
+
+if env_allowed_origins == "*":
+    origins = ["*"]
+else:
+    # Split by comma and strip whitespace
+    env_origins_list = [
+        origin.strip() for origin in env_allowed_origins.split(",") if origin.strip()
+    ]
+    # Combine defaults with env origins, removing duplicates
+    origins = list(set(default_origins + env_origins_list))
 
 app.add_middleware(
     CORSMiddleware,

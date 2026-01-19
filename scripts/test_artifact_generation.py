@@ -55,6 +55,7 @@ from app.tools.research import ask_perplexity, search_pubmed
 
 # Precisamos da assinatura correta para o Agno aceitar como tool
 from agno.tools import tool
+from typing import List, Dict, Any, Optional
 
 captured_artifact = None
 
@@ -63,12 +64,15 @@ captured_artifact = None
 def save_research_mock(
     title: str,
     content: str,
-    sources: list = [],
-    suggestions: list = [],
+    sources: List[Dict[str, Any]] = None,
+    suggestions: List[str] = None,
     research_type: str = "literature_review",
 ) -> str:
     """Mock da ferramenta de salvar pesquisa para validação."""
     global captured_artifact
+    sources = sources or []
+    suggestions = suggestions or []
+
     print("\n💾 save_research chamado!")
     captured_artifact = {
         "title": title,
