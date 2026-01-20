@@ -3,14 +3,14 @@
 This directory contains plans for coordinating work across documentation and playbooks.
 
 ## Plan Queue
-1. [Advanced Optimization Plan](./advanced-optimization-plan.md)
-2. [Artifacts Implementation](./artifacts-implementation.md)
-3. [Code Simplification Plan](./code-simplification-plan.md)
-4. [Corrigir Erro Cors Backend](./corrigir-erro-cors-backend.md)
-5. [Fix Chat Backend Connectivity](./fix-chat-backend-connectivity.md)
-6. [Optimize Routing Perf](./optimize-routing-perf.md)
-7. [Rebrand Gradients To Premium Tech](./rebrand-gradients-to-premium-tech.md)
-8. [Test Chat Flow](./test-chat-flow.md)
+1. [Artifacts Implementation](./artifacts-implementation.md)
+2. [Code Simplification Plan](./code-simplification-plan.md)
+3. [Corrigir Erro Cors Backend](./corrigir-erro-cors-backend.md)
+4. [Fix Chat Backend Connectivity](./fix-chat-backend-connectivity.md)
+5. [Landing Page Refresh](./landing-page-refresh.md)
+6. [Odonto Gpt Tutor Evolution](./odonto-gpt-tutor-evolution.md)
+7. [Odonto Gpt Unification](./odonto-gpt-unification.md)
+8. [Rebrand Gradients To Premium Tech](./rebrand-gradients-to-premium-tech.md)
 9. [Update Odonto Vision](./update-odonto-vision.md)
 10. [Update Research Agent Perplexity](./update-research-agent-perplexity.md)
 11. [Update Summary Agent](./update-summary-agent.md)

@@ -67,7 +67,7 @@ export function SpecialistsGrid() {
             {specialists.map((agent, i) => (
                 <FadeIn key={i} delay={i * 0.1}>
                     <HoverCard className="h-full">
-                        <Card className="border-0 shadow-lg shadow-slate-900/20 h-full relative overflow-hidden group bg-[#16243F] border-[rgba(8,145,178,0.15)] hover:border-[rgba(8,145,178,0.3)] transition-colors">
+                        <Card className="shadow-lg shadow-slate-900/20 h-full relative overflow-hidden group bg-[#16243F] border border-[rgba(8,145,178,0.15)] hover:border-[rgba(8,145,178,0.3)] transition-colors">
                             <div className={`absolute inset-0 bg-gradient-to-br ${agent.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
                             <CardContent className="p-6 relative z-10 flex flex-col h-full">
                                 <div className="flex items-center justify-between mb-4">

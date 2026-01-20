@@ -7,10 +7,10 @@ import { Card, CardContent } from "@/components/ui/card"
 import Image from "next/image"
 import dynamic from "next/dynamic"
 import {
-  Brain, MessageSquare, Clock, BookOpen, Shield, Zap,
-  CheckCircle2, Star, ArrowRight, Award, TrendingUp,
-  XCircle, Video, Sparkles, Microscope, Eye, GraduationCap, PenTool,
-  Target, Users, HelpCircle, Check, MessageCircle
+  Brain, Shield, Zap,
+  CheckCircle2, ArrowRight, Award, TrendingUp,
+  XCircle, Sparkles, Eye, GraduationCap,
+  Check, Lock
 } from "lucide-react"
 import {
   Accordion,
@@ -23,10 +23,9 @@ import { Logo } from "@/components/logo"
 import { motion } from "framer-motion"
 import { FadeIn, StaggerContainer, StaggerItem, HoverCard, ScaleIn } from "@/components/ui/animations"
 import { AgentHeroVisual } from "@/components/landing/agent-hero-visual"
-import { AnimatedAgentIcons } from "@/components/landing/animated-agent-icons"
 import { ScrollProgress } from "@/components/landing/scroll-animations"
 import { AgentDemoResearch } from "@/components/landing/agent-demo-research"
-import { AgentDemoVision } from "@/components/landing/agent-demo-vision"
+// AgentDemoVision moved to specific section
 import { AgentDemoSummary } from "@/components/landing/agent-demo-summary"
 import { AgentDemoPractice } from "@/components/landing/agent-demo-practice"
 import { AgentDemoWrite } from "@/components/landing/agent-demo-write"
@@ -35,6 +34,9 @@ import { AgentDemoGPT } from "@/components/landing/agent-demo-gpt"
 import { LazyVideoWrapper } from "@/components/video/lazy-video-wrapper"
 import { YouTubePlayer } from "@/components/video/youtube-player"
 import { useIsMobile } from "@/lib/hooks/use-mobile"
+import { LogoScroll } from "@/components/landing/logo-scroll"
+import { SpecialistsGrid } from "@/components/landing/specialists-grid"
+import { AiVisionSection } from "@/components/landing/ai-vision-section"
 
 const FAQSection = dynamic(() => import("@/components/landing/faq-section").then(mod => ({ default: mod.FAQSection })), {
   ssr: false,
@@ -48,7 +50,6 @@ const SectionHeader = dynamic(() => import("@/components/ui/section-header").the
 
 
 export default function LandingPage() {
-  const showTestimonials = false
   const [showStickyCTA, setShowStickyCTA] = useState(false)
   const heroRef = useRef<HTMLElement>(null)
 
@@ -225,18 +226,25 @@ export default function LandingPage() {
                     <span>Inteligência Artificial Especializada</span>
                   </div>
                   <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-white leading-[1.05]">
-                    Domine a Odontologia <br />
+                    Odonto GPT é a sua<br />
                     <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22d3ee] to-[#67e8f9]">
-                      Sem o Medo de Errar
+                      Inteligência na Odontologia
                     </span>
                   </h1>
                 </FadeIn>
 
                 <FadeIn delay={0.2} direction="up">
-                  <p className="text-base sm:text-xl text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                    <span className="hidden sm:inline">O parceiro de estudos que todo estudante sonha. </span>Tire dúvidas de provas, ganhe segurança na clínica e escreva trabalhos acadêmicos em segundos.
-                    <span className="block mt-2 font-medium text-slate-100">Seu professor particular disponível 24/7.</span>
-                  </p>
+                  <div className="space-y-4">
+                     <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0 font-medium">
+                      Inteligência artificial específica para odontologia com base em livros e artigos científicos.
+                    </p>
+                    <p className="text-base sm:text-xl text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
+                      <span className="text-white font-semibold">O parceiro de estudos que todo estudante sonha.</span> Tire dúvidas de provas, ganhe segurança na clínica e escreva trabalhos acadêmicos em segundos.
+                    </p>
+                    <p className="text-lg font-semibold text-[#22d3ee]">
+                      Seu professor particular disponível 24/7.
+                    </p>
+                  </div>
                 </FadeIn>
 
                 <FadeIn delay={0.3} direction="up">
@@ -289,8 +297,11 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* Agents Team Section */}
-        <section className="w-full py-20 md:py-32 px-4 md:px-6 relative z-20">
+        {/* Logo Scroll Section */}
+        <LogoScroll />
+
+        {/* Specialists Section - Refactored */}
+        <section className="w-full py-20 md:py-32 px-4 md:px-6 relative z-20 bg-[#080D19]">
           <div className="mx-auto max-w-6xl space-y-12">
             <SectionHeader
               label="Sua Equipe Completa"
@@ -300,61 +311,12 @@ export default function LandingPage() {
               align="center"
             />
 
-            {/* Animated Agent Icons */}
-            <div className="mb-16">
-              <AnimatedAgentIcons />
-            </div>
-
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-              {[
-                {
-                  icon: Brain,
-                  title: "Planejador Clínico",
-                  desc: "Estrutura planos de tratamento completos baseados nas melhores evidências.",
-                  color: "text-purple-400",
-                  bg: "bg-purple-500/10"
-                },
-                {
-                  icon: BookOpen,
-                  title: "Pesquisador",
-                  desc: "Busca na literatura científica as respostas mais atuais para suas dúvidas.",
-                  color: "text-blue-400",
-                  bg: "bg-blue-500/10"
-                },
-                {
-                  icon: Shield,
-                  title: "Diagnóstico",
-                  desc: "Ajuda a cruzar sinais e sintomas para hipóteses diagnósticas precisas.",
-                  color: "text-pink-400",
-                  bg: "bg-pink-500/10"
-                },
-                {
-                  icon: Zap,
-                  title: "Redator",
-                  desc: "Escreve textos para pacientes, laudos e documentos com linguagem assertiva.",
-                  color: "text-amber-400",
-                  bg: "bg-amber-500/10"
-                }
-              ].map((agent, i) => (
-                <HoverCard key={i} className="h-full">
-                  <Card className="border-0 shadow-lg shadow-slate-900/50 h-full relative overflow-hidden group bg-[#16243F] border-[rgba(8,145,178,0.2)]">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#16243F] to-[#0F192F] z-0" />
-                    <CardContent className="pt-8 space-y-4 relative z-10">
-                      <div className={`h-12 w-12 rounded-xl ${agent.bg} flex items-center justify-center transition-transform group-hover:scale-110 duration-300`}>
-                        <agent.icon className={`h-6 w-6 ${agent.color}`} />
-                      </div>
-                      <h3 className="text-xl font-bold text-white">{agent.title}</h3>
-                      <p className="text-slate-400 text-sm leading-relaxed">
-                        {agent.desc}
-                      </p>
-                    </CardContent>
-                    <div className={`absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-${agent.color.split('-')[1]}-500 to-transparent opacity-0 group-hover:opacity-100 transition-opacity`} />
-                  </Card>
-                </HoverCard>
-              ))}
-            </div>
+            <SpecialistsGrid />
           </div>
         </section>
+
+        {/* AI Vision Section - New */}
+        <AiVisionSection />
 
         {/* Agent Demos Section - Interactive Animated Demonstrations */}
         <section className="w-full relative z-10">
@@ -385,7 +347,7 @@ export default function LandingPage() {
           <AgentDemoFlow />
           <AgentDemoGPT />
           <AgentDemoResearch />
-          <AgentDemoVision />
+          {/* AgentDemoVision removed as it is now highlighted in AiVisionSection */}
           <AgentDemoSummary />
           <AgentDemoPractice />
           <AgentDemoWrite />
@@ -801,7 +763,7 @@ export default function LandingPage() {
 
                 <div className="space-y-4">
                   <p className="text-lg font-medium text-slate-200 leading-relaxed relative">
-                    <span className="text-6xl absolute -top-6 -left-4 text-[#2399B4]/20 font-serif">"</span>
+                    <span className="text-6xl absolute -top-6 -left-4 text-[#2399B4]/20 font-serif">&quot;</span>
                     Criei a Odonto GPT para ser o consultor que eu gostaria de ter tido durante minha formação -
                     acessível 24/7, sem julgamentos, e com respostas fundamentadas na literatura que realmente importa.
                   </p>
@@ -828,8 +790,8 @@ export default function LandingPage() {
 
                 <div className="pt-6 border-t border-[#1A2847]">
                   <p className="text-sm text-slate-400 italic">
-                    "Cada resposta que você recebe passa pela minha curadoria técnica, garantindo que
-                    esteja sempre alinhada com as melhores práticas da odontologia moderna."
+                    &quot;Cada resposta que você recebe passa pela minha curadoria técnica, garantindo que
+                    esteja sempre alinhada com as melhores práticas da odontologia moderna.&quot;
                   </p>
                 </div>
               </FadeIn>
@@ -1037,27 +999,7 @@ export default function LandingPage() {
             </p>
           </div>
         </section>
-      </div >
-    </main >
-  )
-}
-
-function Lock(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
-      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-    </svg>
+      </div>
+    </main>
   )
 }
