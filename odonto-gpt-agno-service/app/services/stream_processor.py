@@ -1,7 +1,7 @@
 import json
 import uuid
 import logging
-from typing import AsyncGenerator, Any, Optional
+from typing import AsyncGenerator, Any, Optional, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +26,9 @@ class StreamEventProcessor:
             "save_academic_text",
         ]
 
-    def _format_event(self, event_type: str, data: dict = None) -> str:
+    def _format_event(
+        self, event_type: str, data: Optional[Dict[str, Any]] = None
+    ) -> str:
         """Helper to format event as NDJSON line"""
         payload = {"type": event_type}
         if data:
@@ -112,6 +114,22 @@ class StreamEventProcessor:
                             chunk.tool_call, "function"
                         ):
                             tool_args = chunk.tool_call.function.arguments
+
+                        # Emit thought for speculative streaming (UX optimization)
+                        thought_map = {
+                            "ask_perplexity": "Iniciando pesquisa acadêmica profunda...",
+                            "search_pubmed": "Consultando base de dados do PubMed...",
+                            "search_arxiv": "Buscando artigos no arXiv...",
+                            "verify_sources": "Verificando integridade dos links encontrados...",
+                            "save_research": "Consolidando dossiê de evidências...",
+                            "save_practice_exam": "Gerando questões do simulado...",
+                            "save_summary": "Sintetizando resumo clínico...",
+                        }
+
+                        if tool_name in thought_map:
+                            yield self._format_event(
+                                "thought", {"content": thought_map[tool_name]}
+                            )
 
                         yield self._format_event(
                             "tool_call.start",
