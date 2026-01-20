@@ -2,7 +2,6 @@ import os
 import logging
 import json
 from typing import Optional, Dict, Any, List
-import numpy as np
 from app.database.supabase import get_supabase_connection
 
 # Configure logger
@@ -46,6 +45,7 @@ class SemanticCache:
             try:
                 # Use centralized get_supabase_client
                 from app.tools.database.supabase import get_supabase_client
+
                 client = get_supabase_client()
                 if client is not None:
                     self.supabase = client
