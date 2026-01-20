@@ -22,6 +22,64 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
+@router.get("/agentes")
+async def list_agents():
+    """List available agents for the frontend."""
+    return {
+        "agentes": [
+            {
+                "id": "odonto-flow",
+                "nome": "Odonto Flow (Equipe)",
+                "descricao": "Orquestrador inteligente que coordena toda a equipe de especialistas.",
+            },
+            {
+                "id": "odonto-research",
+                "nome": "Dr. Ciência",
+                "descricao": "Especialista em pesquisas científicas baseadas em evidências e papers.",
+            },
+            {
+                "id": "odonto-practice",
+                "nome": "Prof. Estudo",
+                "descricao": "Criador de planos de estudo, flashcards e questões para prática.",
+            },
+            {
+                "id": "odonto-vision",
+                "nome": "Odonto Vision",
+                "descricao": "Especialista em análise de radiografias e imagens clínicas.",
+            },
+            {
+                "id": "odonto-write",
+                "nome": "Dr. Redator",
+                "descricao": "Especialista em redação de laudos, e-mails e documentos clínicos.",
+            },
+            {
+                "id": "odonto-summary",
+                "nome": "Gerador de Resumos",
+                "descricao": "Especialista em sintetizar informações complexas em resumos claros.",
+            },
+        ]
+    }
+
+
+@router.post("/agentes/{agent_id}/chat")
+async def agent_chat_proxy(agent_id: str, request: ChatRequest):
+    """Proxy specific agent chat requests to the general chat handler."""
+    # Map frontend friendly IDs back to internal keys
+    reverse_map = {
+        "flow": "equipe",
+        "dr-ciencia": "odonto-research",
+        "prof-estudo": "odonto-practice",
+        "dr-redator": "odonto-write",
+        "gerador-resumos": "odonto-summary",
+        "odonto-vision": "odonto-vision",
+    }
+
+    internal_key = reverse_map.get(agent_id, agent_id)
+    request.agentType = internal_key
+
+    return await general_chat(request)
+
+
 @router.get("/health")
 async def health_check():
     """Health check endpoint to verify backend availability"""
