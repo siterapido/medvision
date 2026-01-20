@@ -374,3 +374,55 @@ def get_agent_config(agent_id: str) -> Optional[Dict[str, Any]]:
     finally:
         cur.close()
         conn.close()
+
+
+# ============================================================================
+# User Context & Memory (Omniscient Tutor)
+# ============================================================================
+
+
+def get_user_profile(user_id: str) -> Optional[Dict[str, Any]]:
+    """
+    Retrieve user profile to adapt tutoring level.
+    """
+    conn = get_supabase_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        cur.execute("SELECT * FROM profiles WHERE id = %s", (user_id,))
+        return dict(cur.fetchone()) if cur.fetchone() else None
+    except Exception as e:
+        logger.warning(f"Failed to fetch profile for {user_id}: {e}")
+        return None
+    finally:
+        cur.close()
+        conn.close()
+
+
+def get_user_recent_artifacts(user_id: str, limit: int = 5) -> List[Dict[str, Any]]:
+    """
+    Retrieve recent artifacts created by the user (summaries, research, etc.)
+    to provide context-aware tutoring.
+    """
+    conn = get_supabase_connection()
+    cur = conn.cursor(cursor_factory=RealDictCursor)
+    try:
+        # Assuming table name 'artifacts' or 'generated_content' - adjusting to likely schema
+        # If schema is unknown, we might need to check. Using 'artifacts' as per plan.
+        cur.execute(
+            """
+            SELECT id, title, type, created_at, metadata 
+            FROM artifacts 
+            WHERE user_id = %s 
+            ORDER BY created_at DESC 
+            LIMIT %s
+            """,
+            (user_id, limit),
+        )
+        return [dict(row) for row in cur.fetchall()]
+    except Exception as e:
+        # Fallback if table doesn't exist or error
+        logger.warning(f"Failed to fetch artifacts for {user_id}: {e}")
+        return []
+    finally:
+        cur.close()
+        conn.close()

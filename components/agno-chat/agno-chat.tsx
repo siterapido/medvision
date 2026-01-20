@@ -1,15 +1,14 @@
 "use client"
 
 import { useEffect, useRef, useState } from "react"
-import { MessageSquarePlus, Bot, Sparkles, X, History, MessageSquare, Trash2 } from "lucide-react"
+import { MessageSquarePlus, Bot, Sparkles, X, History, MessageSquare, Trash2, BrainCircuit } from "lucide-react"
 import { useAgnoAgents } from "@/lib/hooks/useAgnoAgents"
 import { useAgnoChat } from "@/lib/hooks/useAgnoChat"
 import { useImageUpload } from "@/lib/hooks/useImageUpload"
 import { getAgentInfo } from "@/lib/agent-config"
-import { AgentSelector } from "./agent-selector"
+// AgentSelector removed - Odonto GPT is the only chat agent
 import { AgnoMessage } from "./agno-message"
 import { AgnoInput } from "./agno-input"
-import { InlineHandoff } from "./agent-transition"
 import { format } from "date-fns"
 import { ptBR } from "date-fns/locale"
 import { cn } from "@/lib/utils"
@@ -36,7 +35,7 @@ export function AgnoChat({ userId, onArtifactCreated }: AgnoChatProps) {
     const {
         agents,
         selectedAgent,
-        selectAgent,
+        // Select logic is automatic now
         isLoading: agentsLoading,
         isConnected,
         error: agentsError,
@@ -63,33 +62,6 @@ export function AgnoChat({ userId, onArtifactCreated }: AgnoChatProps) {
 
     const { uploadImage, isUploading } = useImageUpload()
 
-    // Track active agent from messages and detect transitions
-    const [activeAgentId, setActiveAgentId] = useState<string | null>(null)
-    const [handoffInfo, setHandoffInfo] = useState<{ fromId: string, toId: string } | null>(null)
-
-    // Detect agent changes and show inline handoff animation
-    // IMPORTANTE: NÃO alterar o selectedAgent aqui - respeitar escolha do usuário
-    useEffect(() => {
-        if (messages.length > 0) {
-            const lastAgentMessage = [...messages].reverse().find(m => m.role === 'agent' && m.agent_id)
-            if (lastAgentMessage?.agent_id && lastAgentMessage.agent_id !== activeAgentId) {
-                // Agent changed in the response - show handoff animation
-                // Isso acontece quando o Flow roteia para outro agente internamente
-                if (activeAgentId && activeAgentId !== lastAgentMessage.agent_id) {
-                    setHandoffInfo({ fromId: activeAgentId, toId: lastAgentMessage.agent_id })
-
-                    // NÃO atualizar selectedAgent - deixar o usuário no controle
-                    // O dropdown mostra a INTENÇÃO do usuário, não o agente que respondeu
-                    // As mensagens já mostram qual agente respondeu através do agent_id
-
-                    // Clear handoff info after animation
-                    setTimeout(() => setHandoffInfo(null), 3000)
-                }
-                setActiveAgentId(lastAgentMessage.agent_id)
-            }
-        }
-    }, [messages, activeAgentId])
-
     // Load sessions on mount
     useEffect(() => {
         loadSessions()
@@ -100,10 +72,7 @@ export function AgnoChat({ userId, onArtifactCreated }: AgnoChatProps) {
         if (messages.length > 0) {
             const container = messagesEndRef.current?.parentElement
             if (container) {
-                // Se o usuário estiver próximo do fim (100px), scrolla automaticamente
-                // Se estiver lendo mensagens antigas, NÃO scrolla
                 const isNearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100
-
                 if (isNearBottom) {
                     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
                 }
@@ -138,7 +107,6 @@ export function AgnoChat({ userId, onArtifactCreated }: AgnoChatProps) {
             if (url) {
                 imageUrl = url
             } else {
-                // Handle upload error if necessary, for now we fall back to text only or could block
                 console.error("Failed to upload image")
                 return
             }
@@ -156,10 +124,10 @@ export function AgnoChat({ userId, onArtifactCreated }: AgnoChatProps) {
     }
 
     const suggestions = [
-        "Quais são os principais sinais de periodontite?",
-        "Como diagnosticar cárie profunda?",
-        "Protocolo de tratamento endodôntico",
-        "Orientações pós-operatórias para implante",
+        "Tenho dúvida na técnica de Clark",
+        "Me explique o tratamento de canal passo a passo",
+        "Como funciona a adesão dentinária?",
+        "Estou com dificuldade em Anatomia",
     ]
 
     return (
@@ -232,36 +200,12 @@ export function AgnoChat({ userId, onArtifactCreated }: AgnoChatProps) {
 
                             <div className="w-px h-6 bg-slate-800 mx-1 hidden sm:block" />
 
-                            <AgentSelector
-                                agents={agents}
-                                selectedAgent={selectedAgent}
-                                onSelect={selectAgent}
-                                isLoading={agentsLoading}
-                                isConnected={isConnected}
-                                error={agentsError}
-                            />
-
-                            {/* Mode Indicator */}
-                            {selectedAgent && (
-                                <div className={cn(
-                                    "hidden md:flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all",
-                                    selectedAgent.id === AGENT_IDS.FLOW
-                                        ? "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20"
-                                        : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
-                                )}>
-                                    {selectedAgent.id === AGENT_IDS.FLOW ? (
-                                        <>
-                                            <Sparkles className="w-3 h-3" />
-                                            <span>Auto</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Bot className="w-3 h-3" />
-                                            <span>Direto</span>
-                                        </>
-                                    )}
-                                </div>
-                            )}
+                            {/* Static Title instead of Selector */}
+                            <div className="flex items-center gap-2 text-slate-200 px-2">
+                                <Sparkles className="w-4 h-4 text-cyan-400" />
+                                <span className="font-semibold text-sm">Odonto GPT</span>
+                                <span className="text-[10px] bg-cyan-500/10 text-cyan-400 px-1.5 py-0.5 rounded border border-cyan-500/20">TUTOR</span>
+                            </div>
                         </div>
 
                         <div className="flex items-center gap-3">
@@ -280,82 +224,46 @@ export function AgnoChat({ userId, onArtifactCreated }: AgnoChatProps) {
                 {/* Messages Area */}
                 <div className="flex-1 overflow-y-auto px-4 py-6 custom-scrollbar">
                     <div className="max-w-3xl mx-auto space-y-6">
-                        {/* Welcome State - Multi-Agent Focused */}
+                        {/* Welcome State - Tutor Focused */}
                         {messages.length === 0 && (
                             <div className="flex flex-col items-center justify-center min-h-[50vh] text-center px-4 animate-fade-in">
-                                {/* Flow Agent - Central Hero */}
+                                {/* Tutor Hero */}
                                 <div className="relative mb-6">
                                     <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-500/30 animate-pulse-glow glow-cyan">
-                                        <Bot className="w-10 h-10 text-white" />
+                                        <BrainCircuit className="w-10 h-10 text-white" />
                                     </div>
                                     {/* Orbital ring effect */}
                                     <div className="absolute inset-0 -m-4 rounded-full border border-cyan-500/20 animate-spin-slow" />
                                 </div>
 
                                 <h1 className="text-2xl font-bold text-white mb-2 flex items-center gap-2">
-                                    Odonto Flow
+                                    Olá, sou o Odonto GPT!
                                     <Sparkles className="w-5 h-5 text-cyan-400" />
                                 </h1>
 
-                                <p className="text-sm text-slate-400 mb-2 max-w-md">
-                                    Orquestrador inteligente que delega automaticamente para especialistas
+                                <p className="text-sm text-slate-400 mb-6 max-w-md">
+                                    Seu Tutor Inteligente. Estou aqui para guiar seu aprendizado, tirar dúvidas e conectar seus estudos usando todo o potencial da IA.
                                 </p>
 
-                                {/* Specialized Agents Showcase */}
-                                <div className="flex flex-wrap justify-center gap-3 mb-6 max-w-xl">
-                                    {agents.filter(a => a.id !== AGENT_IDS.FLOW).map((agent) => {
-                                        const config = getAgentInfo(agent.id)
-                                        const AgentIcon = config.icon
-                                        return (
-                                            <div
-                                                key={agent.id}
-                                                className={cn(
-                                                    "group relative flex items-center gap-2 px-3 py-2 rounded-xl",
-                                                    "bg-slate-800/50 border border-slate-700/50",
-                                                    "hover:border-slate-600 hover:bg-slate-800 transition-all cursor-default"
-                                                )}
-                                                title={config.description}
-                                            >
-                                                <div className={cn(
-                                                    "w-7 h-7 rounded-lg flex items-center justify-center",
-                                                    `bg-gradient-to-br ${config.gradient}`
-                                                )}>
-                                                    <AgentIcon className="w-4 h-4 text-white" />
-                                                </div>
-                                                <span className="text-xs text-slate-300 font-medium">{agent.name.replace('Odonto ', '')}</span>
-
-                                                {/* Tooltip */}
-                                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 rounded-lg bg-slate-900 border border-slate-700 text-[10px] text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                                    {config.description}
-                                                </div>
-                                            </div>
-                                        )
-                                    })}
-                                </div>
-
                                 <p className="text-base text-slate-400 mb-8 max-w-md">
-                                    {selectedAgent
-                                        ? `Faça sua pergunta e ${selectedAgent.name} vai encaminhar para o especialista certo.`
-                                        : "Carregando agentes..."}
+                                    O que vamos aprender hoje?
                                 </p>
 
                                 {/* Suggestion Cards */}
-                                {selectedAgent && (
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
-                                        {suggestions.map((suggestion) => (
-                                            <button
-                                                key={suggestion}
-                                                onClick={() => handleSend(suggestion)}
-                                                disabled={isStreaming || isUploading}
-                                                className="p-3 rounded-xl bg-slate-900/40 border border-slate-700/50 hover:border-cyan-500/50 hover:bg-slate-800/50 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                <p className="text-sm text-slate-300 group-hover:text-white font-medium">
-                                                    {suggestion}
-                                                </p>
-                                            </button>
-                                        ))}
-                                    </div>
-                                )}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 w-full max-w-2xl">
+                                    {suggestions.map((suggestion) => (
+                                        <button
+                                            key={suggestion}
+                                            onClick={() => handleSend(suggestion)}
+                                            disabled={isStreaming || isUploading}
+                                            className="p-3 rounded-xl bg-slate-900/40 border border-slate-700/50 hover:border-cyan-500/50 hover:bg-slate-800/50 transition-all text-left group disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                            <p className="text-sm text-slate-300 group-hover:text-white font-medium">
+                                                {suggestion}
+                                            </p>
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         )}
 
@@ -369,18 +277,10 @@ export function AgnoChat({ userId, onArtifactCreated }: AgnoChatProps) {
                             </div>
                         )}
 
-                        {/* Messages List with Handoff Indicator */}
+                        {/* Messages List */}
                         {messages.map((message, index) => (
                             <div key={message.id}>
                                 <AgnoMessage message={message} />
-
-                                {/* Show inline handoff after last message if agent just changed */}
-                                {handoffInfo && index === messages.length - 1 && message.role === 'agent' && (
-                                    <InlineHandoff
-                                        fromAgentId={handoffInfo.fromId}
-                                        toAgentId={handoffInfo.toId}
-                                    />
-                                )}
                             </div>
                         ))}
 
@@ -398,15 +298,13 @@ export function AgnoChat({ userId, onArtifactCreated }: AgnoChatProps) {
                             placeholder={
                                 !isConnected
                                     ? "AgentOS desconectado..."
-                                    : !selectedAgent
-                                        ? "Selecione um agente primeiro..."
-                                        : isUploading
-                                            ? "Enviando imagem..."
-                                            : "Digite sua pergunta..."
+                                    : isUploading
+                                        ? "Enviando imagem..."
+                                        : "Pergunte ao seu Tutor..."
                             }
                         />
                         <p className="text-center text-[10px] text-slate-600 mt-2">
-                            Odonto Suite pode cometer erros. Verifique informações importantes.
+                            Odonto GPT utiliza IA para suporte educacional. Verifique informações clínicas críticas.
                         </p>
                     </div>
                 </div>
