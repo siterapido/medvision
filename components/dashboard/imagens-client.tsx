@@ -1,14 +1,17 @@
 "use client"
 
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
-import { Image as ImageIcon, Calendar, Microscope, FileText } from "lucide-react"
+import { Image as ImageIcon, Calendar, FileText, Plus } from "lucide-react"
 import { formatDistanceToNow } from "date-fns"
 import { ptBR } from "date-fns/locale"
 
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { ArtifactPageLayout } from "@/components/dashboard/artifact-page-layout"
+import { VisionWorkspace } from "@/components/dashboard/vision-workspace"
 import type { ArtifactResult } from "@/components/chat/types"
 
 interface ImageArtifact {
@@ -28,9 +31,23 @@ interface ImagensClientProps {
 
 export function ImagensClient({ userId, artifacts }: ImagensClientProps) {
     const router = useRouter()
+    const [showWorkspace, setShowWorkspace] = useState(false)
 
     const handleArtifactCreated = (artifact: ArtifactResult) => {
         router.refresh()
+    }
+
+    if (showWorkspace) {
+        return (
+            <VisionWorkspace 
+                userId={userId} 
+                onClose={() => setShowWorkspace(false)}
+                onArtifactCreated={() => {
+                    router.refresh()
+                    // Optional: maybe show toast "Saved"
+                }}
+            />
+        )
     }
 
     return (
@@ -49,10 +66,32 @@ export function ImagensClient({ userId, artifacts }: ImagensClientProps) {
                             Laudos e análises radiográficas gerados pelo Odonto Vision.
                         </p>
                     </div>
+                    
+                    <Button 
+                        onClick={() => setShowWorkspace(true)}
+                        className="bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-lg shadow-orange-500/20"
+                    >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Nova Análise
+                    </Button>
                 </div>
 
                 {artifacts && artifacts.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {/* New Analysis Card (First item) */}
+                         <div 
+                            onClick={() => setShowWorkspace(true)}
+                            className="group relative flex flex-col items-center justify-center h-full min-h-[300px] rounded-xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-orange-500/50 bg-slate-50/50 dark:bg-slate-900/20 hover:bg-slate-100 dark:hover:bg-slate-900/40 transition-all cursor-pointer"
+                        >
+                            <div className="p-4 rounded-full bg-orange-100 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400 mb-4 group-hover:scale-110 transition-transform">
+                                <Plus className="w-8 h-8" />
+                            </div>
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Nova Análise</h3>
+                            <p className="text-sm text-slate-500 text-center max-w-[200px] mt-2">
+                                Inicie uma nova análise radiográfica com IA
+                            </p>
+                        </div>
+
                         {artifacts.map((artifact) => (
                             <Link key={artifact.id} href={`/dashboard/imagens/${artifact.id}`} className="block group">
                                 <Card className="h-full border-slate-200/60 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/10 transition-all duration-500 group-hover:-translate-y-1 overflow-hidden">
@@ -107,19 +146,26 @@ export function ImagensClient({ userId, artifacts }: ImagensClientProps) {
                         ))}
                     </div>
                 ) : (
-                    <div className="relative flex flex-col items-center justify-center min-h-[350px] rounded-3xl overflow-hidden group border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/20">
-                        <div className="relative z-10 flex flex-col items-center max-w-lg px-6 text-center">
-                            <div className="relative mb-6">
-                                <div className="w-16 h-16 rounded-2xl bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center animate-pulse">
-                                    <ImageIcon className="h-8 w-8 text-orange-600 dark:text-orange-400" />
-                                </div>
+                    <div className="relative flex flex-col items-center justify-center min-h-[400px]">
+                        {/* Empty state content */}
+                        <div className="text-center space-y-4 max-w-lg mx-auto">
+                            <div className="mx-auto w-24 h-24 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center mb-6 animate-pulse">
+                                <ImageIcon className="h-12 w-12 text-orange-600 dark:text-orange-400" />
                             </div>
-                            <h3 className="text-xl font-bold mb-2 text-slate-900 dark:text-slate-100">
-                                Nenhuma análise encontrada
+                            <h3 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                                Comece sua primeira análise
                             </h3>
-                            <p className="text-muted-foreground mb-4">
-                                Use o chat ao lado para enviar uma imagem e iniciar uma análise detalhada.
+                            <p className="text-slate-500 dark:text-slate-400">
+                                O Odonto Vision utiliza IA avançada para analisar radiografias, identificar patologias e sugerir diagnósticos em segundos.
                             </p>
+                            <Button 
+                                onClick={() => setShowWorkspace(true)}
+                                size="lg"
+                                className="mt-4 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white shadow-xl shadow-orange-500/20 rounded-full px-8 h-12"
+                            >
+                                <Plus className="w-5 h-5 mr-2" />
+                                Iniciar Análise Agora
+                            </Button>
                         </div>
                     </div>
                 )}
