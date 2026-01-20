@@ -1,41 +1,32 @@
 project:
-  name: "Otimização Avançada: Cache e UX"
-  scale: MEDIUM
-  started: "2026-01-20T01:53:42.227Z"
+  name: "Simplificação e Refatoração Core"
+  scale: SMALL
+  started: "2026-01-20T16:28:43.604Z"
   current_phase: V
 
 phases:
   P:
     status: filled
-    started_at: "2026-01-20T01:53:42.224Z"
-    completed_at: "2026-01-20T02:33:01.565Z"
+    started_at: "2026-01-20T16:28:43.603Z"
+    completed_at: "2026-01-20T16:40:02.105Z"
   R:
-    status: filled
-    started_at: "2026-01-20T02:33:01.568Z"
-    completed_at: "2026-01-20T02:33:11.089Z"
+    status: skipped
+    reason: "Not required for scale SMALL"
   E:
     status: filled
-    started_at: "2026-01-20T02:33:11.090Z"
-    completed_at: "2026-01-20T10:26:58.836Z"
+    started_at: "2026-01-20T16:40:02.107Z"
+    completed_at: "2026-01-20T16:40:43.580Z"
   V:
-    status: completed
-    started_at: "2026-01-20T10:26:59.133Z"
-    completed_at: "2026-01-20T10:27:12.352Z"
-    outputs:
-      - path: "Cache logic validated"
-        status: filled
+    status: in_progress
+    started_at: "2026-01-20T16:40:43.582Z"
   C:
     status: skipped
-    reason: "Not required for scale MEDIUM"
+    reason: "Not required for scale SMALL"
 
 roles:
   planner:
     status: pending
-  architect:
-    status: pending
   developer:
     status: pending
   qa:
-    status: pending
-  reviewer:
     status: pending
