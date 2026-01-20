@@ -1,0 +1,14 @@
+venv
+.venv
+__pycache__
+*.pyc
+*.log
+.git
+.github
+tests/
+scripts/poc*
+scripts/test*
+odonto-gpt-agno-service/venv
+odonto-gpt-agno-service/.venv
+node_modules
+.next

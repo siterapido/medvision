@@ -1,33 +1,34 @@
-# Official Python image
+# ==========================================
+# OPTIMIZED DOCKERFILE FOR AI SERVICES
+# Targets < 4GB for Railway deployment
+# ==========================================
 FROM python:3.11-slim
 
-# Set working directory
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (Keep it minimal)
 RUN apt-get update && apt-get install -y \
     gcc \
-    postgresql-client \
+    libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for caching
+# Copy requirements
 COPY requirements.txt .
 
-# Install Python dependencies
+# CRITICAL OTIMIZATION: Install PyTorch CPU version FIRST
+# This prevents downloading the massive 2GB+ CUDA/GPU version
+RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
+
+# Install remaining dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
+# Copy application code (excluding large dirs via .dockerignore)
 COPY . .
 
-# Create necessary directories
-RUN mkdir -p /app/logs
+# Delete local environments or caches if they were copied by mistake
+RUN rm -rf venv .venv tests scripts/poc*
 
-# Expose port
 EXPOSE 8000
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD python -c "import requests; requests.get('http://localhost:8000/health')"
-
-# Run the application
-CMD sh -c "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000}"
+# Run with single worker to save RAM on smaller plans
+CMD sh -c "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"
