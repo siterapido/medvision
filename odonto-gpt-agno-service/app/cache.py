@@ -23,7 +23,7 @@ try:
 except ImportError:
     MODEL_AVAILABLE = False
     SentenceTransformer = None
-    logger.warning("sentence-transformers not found. SemanticCache disabled.")
+    logger.info("SemanticCache disabled (sentence-transformers not installed).")
 
 
 class SemanticCache:

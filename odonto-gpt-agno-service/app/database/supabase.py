@@ -14,6 +14,12 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 
+_CACHED_DB_URL = os.getenv("SUPABASE_DB_URL")
+if _CACHED_DB_URL and "?" in _CACHED_DB_URL:
+    if "supa" in _CACHED_DB_URL.split("?")[-1]:
+        logger.info("Cleaning potential invalid query parameter 'supa' from DB URL.")
+        _CACHED_DB_URL = _CACHED_DB_URL.split("?")[0]
+
 
 def get_supabase_connection():
     """
@@ -25,26 +31,15 @@ def get_supabase_connection():
     Raises:
         Exception: If connection fails
     """
-    db_url = os.getenv("SUPABASE_DB_URL")
-
-    if not db_url:
+    if not _CACHED_DB_URL:
         raise Exception("SUPABASE_DB_URL environment variable not set")
 
     try:
-        # Sanitize URL: psycopg2 doesn't like certain query parameters often added by mistake
-        if "?" in db_url:
-            # Check if there are known invalid parameters like 'supa'
-            if "supa" in db_url.split("?")[-1]:
-                logger.warning(
-                    "Found potential invalid query parameter 'supa' in DB URL. Cleaning it."
-                )
-                db_url = db_url.split("?")[0]
-
-        conn = psycopg2.connect(db_url)
+        conn = psycopg2.connect(_CACHED_DB_URL)
         return conn
     except Exception as e:
         # Mask password in error message for safety
-        safe_url = db_url.split("@")[-1] if "@" in db_url else "hidden"
+        safe_url = _CACHED_DB_URL.split("@")[-1] if "@" in _CACHED_DB_URL else "hidden"
         logger.error(f"Failed to connect to DB at {safe_url}")
         raise Exception(f"Failed to connect to Supabase: {str(e)}")
 
