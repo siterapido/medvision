@@ -15,18 +15,14 @@ RUN apt-get update && apt-get install -y \
 # Copy requirements
 COPY requirements.txt .
 
-# CRITICAL OTIMIZATION: Install PyTorch CPU version FIRST
-# This prevents downloading the massive 2GB+ CUDA/GPU version
-RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu
-
-# Install remaining dependencies
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code (excluding large dirs via .dockerignore)
+# Copy application code
 COPY . .
 
 # Delete local environments or caches if they were copied by mistake
-RUN rm -rf venv .venv tests scripts/poc*
+RUN rm -rf venv .venv tests scripts/poc* scripts/test*
 
 EXPOSE 8000
 
