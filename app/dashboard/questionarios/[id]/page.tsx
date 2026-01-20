@@ -96,7 +96,7 @@ export default async function ExamDetailPage({ params }: PageProps) {
                         <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-8 border-t border-slate-200 dark:border-slate-800 mt-12">
                             <div className="text-center sm:text-left">
                                 <h4 className="text-sm font-bold mb-1">Preparação para Concursos?</h4>
-                                <p className="text-xs text-slate-500">Peça ao Prof. Estudo para gerar mais questões de {exam.topic}.</p>
+                                <p className="text-xs text-slate-500">Peça ao Odonto Practice para gerar mais questões de {exam.topic}.</p>
                             </div>
                             <div className="flex gap-3">
                                 <Link href={`/dashboard/chat?agent=odonto-practice&topic=${exam.topic}`}>

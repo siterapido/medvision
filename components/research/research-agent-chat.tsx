@@ -276,7 +276,7 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
                     </div>
                     <div>
                         <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                            Dr. Ciência
+                            Odonto Research
                             <Sparkles className="w-4 h-4 text-cyan-400" />
                         </h2>
                         <p className="text-xs text-slate-400">Pesquisador científico especializado</p>
@@ -314,7 +314,7 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
                                         </div>
                                         <div>
                                             <CardTitle className="text-base text-slate-100 flex items-center gap-2">
-                                                Dr. Ciência
+                                                Odonto Research
                                                 <Badge variant="outline" className="bg-cyan-500/10 text-cyan-400 border-cyan-500/20 text-[10px] h-5">
                                                     Pesquisador
                                                 </Badge>

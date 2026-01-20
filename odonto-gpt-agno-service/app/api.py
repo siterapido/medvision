@@ -29,17 +29,17 @@ async def list_agents():
         "agentes": [
             {
                 "id": "odonto-flow",
-                "nome": "Odonto Flow (Equipe)",
+                "nome": "Odonto Flow",
                 "descricao": "Orquestrador inteligente que coordena toda a equipe de especialistas.",
             },
             {
                 "id": "odonto-research",
-                "nome": "Dr. Ciência",
+                "nome": "Odonto Research",
                 "descricao": "Especialista em pesquisas científicas baseadas em evidências e papers.",
             },
             {
                 "id": "odonto-practice",
-                "nome": "Prof. Estudo",
+                "nome": "Odonto Practice",
                 "descricao": "Criador de planos de estudo, flashcards e questões para prática.",
             },
             {
@@ -49,12 +49,12 @@ async def list_agents():
             },
             {
                 "id": "odonto-write",
-                "nome": "Dr. Redator",
+                "nome": "Odonto Write",
                 "descricao": "Especialista em redação de laudos, e-mails e documentos clínicos.",
             },
             {
                 "id": "odonto-summary",
-                "nome": "Gerador de Resumos",
+                "nome": "Odonto Summary",
                 "descricao": "Especialista em sintetizar informações complexas em resumos claros.",
             },
         ]

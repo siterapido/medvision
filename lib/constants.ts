@@ -29,10 +29,10 @@ export const ARTIFACT_TYPES = {
  * Agent Display Names
  */
 export const AGENT_NAMES = {
-    [AGENT_IDS.RESEARCH]: 'Dr. Ciência',
-    [AGENT_IDS.PRACTICE]: 'Prof. Estudo',
-    [AGENT_IDS.WRITE]: 'Dr. Redator',
-    [AGENT_IDS.VISION]: 'Dr. Vision',
+    [AGENT_IDS.RESEARCH]: 'Odonto Research',
+    [AGENT_IDS.PRACTICE]: 'Odonto Practice',
+    [AGENT_IDS.WRITE]: 'Odonto Write',
+    [AGENT_IDS.VISION]: 'Odonto Vision',
     [AGENT_IDS.SUMMARY]: 'Odonto Summary',
     [AGENT_IDS.FLOW]: 'Odonto Flow',
     [AGENT_IDS.QA]: 'Odonto GPT',

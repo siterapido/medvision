@@ -105,7 +105,7 @@ export default async function SummaryDetailPage({ params }: PageProps) {
                             <div className="flex flex-col sm:flex-row items-center justify-between gap-6 py-8 border-t border-slate-200 dark:border-slate-800 mt-8">
                                 <div className="text-center sm:text-left">
                                     <h4 className="text-sm font-bold mb-1">Deseja aprofundar este tema?</h4>
-                                    <p className="text-xs text-slate-500">Peça ao Prof. Estudo para criar questões baseadas neste resumo.</p>
+                                    <p className="text-xs text-slate-500">Peça ao Odonto Practice para criar questões baseadas neste resumo.</p>
                                 </div>
                                 <div className="flex gap-3">
                                     <Link href="/dashboard/chat?agent=odonto-practice">

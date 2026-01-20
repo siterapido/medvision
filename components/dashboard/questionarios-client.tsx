@@ -46,7 +46,7 @@ export function QuestionariosClient({ userId, exams }: QuestionariosClientProps)
                             Meus Questionários
                         </h1>
                         <p className="text-muted-foreground mt-2 max-w-lg">
-                            Simulados e questões de prática gerados pelo Prof. Estudo.
+                            Simulados e questões de prática gerados pelo Odonto Practice.
                         </p>
                     </div>
                 </div>

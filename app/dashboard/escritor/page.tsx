@@ -25,7 +25,7 @@ export default async function EscritorPage() {
                         Escritor Acadêmico
                     </h1>
                     <p className="text-muted-foreground mt-2 max-w-lg">
-                        Seus artigos, TCCs e documentos gerenciados pelo Dr. Redator.
+                        Seus artigos, TCCs e documentos gerenciados pelo Odonto Write.
                     </p>
                 </div>
             </div>
@@ -49,7 +49,7 @@ export default async function EscritorPage() {
                     <Link href="/dashboard/chat?agent=odonto-write">
                         <Button className="bg-purple-600 hover:bg-purple-700">
                             <Plus className="mr-2 h-4 w-4" />
-                            Falar com Dr. Redator
+                            Falar com Odonto Write
                         </Button>
                     </Link>
                 </div>

@@ -47,7 +47,7 @@ export function PesquisasClient({ userId, researches }: PesquisasClientProps) {
                             Minhas Pesquisas
                         </h1>
                         <p className="text-muted-foreground mt-2 max-w-lg">
-                            Evidências científicas e revisões de literatura geradas pelo Dr. Ciência.
+                            Evidências científicas e revisões de literatura geradas pelo Odonto Research.
                         </p>
                     </div>
                 </div>
