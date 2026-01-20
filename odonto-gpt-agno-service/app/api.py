@@ -27,7 +27,9 @@ from app.tools.database.supabase import get_supabase_client
 from app.database.supabase import save_agent_message
 from app.tools.whatsapp import send_whatsapp_message
 from app.services.stream_processor import StreamEventProcessor
-from typing import AsyncGenerator, Optional
+from app.cache import SemanticCache
+from typing import AsyncGenerator, Optional, Sequence, List, Dict, Any
+from agno.media import Image
 from datetime import datetime
 import json
 import uuid
@@ -36,6 +38,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# Initialize Semantic Cache
+semantic_cache = SemanticCache()
 
 
 @router.get("/health")
@@ -57,24 +62,66 @@ def get_agent_response(agent, message: str, stream: bool = True):
 async def stream_generator(
     agent,
     message: str,
-    session_id: str = None,
+    session_id: Optional[str] = None,
     agent_id: str = "qa",
-    context_str: str = None,
+    context_str: Optional[str] = None,
 ) -> AsyncGenerator[str, None]:
     """Generate streaming response from AGNO agent and save to database"""
+
+    # 1. Save user message first (if session_id provided)
+    if session_id:
+        try:
+            save_agent_message(
+                session_id=session_id,
+                agent_id=agent_id,
+                role="user",
+                content=message,
+            )
+        except Exception as e:
+            logger.warning(f"Failed to save user message: {e}")
+
+    # 2. Check Cache
+    cached_response = None
     try:
-        # Save user message first (if session_id provided)
+        # We use the original message for cache lookup, ignoring context_str
+        # because context (like UserID) shouldn't invalidate semantic knowledge
+        cached_response = semantic_cache.get(message, agent_id_filter=agent_id)
+    except Exception as e:
+        logger.warning(f"Cache lookup failed: {e}")
+
+    if cached_response:
+        logger.info(f"Serving cached response for session {session_id}")
+        # Yield events for cached response
+        yield (
+            json.dumps(
+                {"type": "run.started", "agent_id": agent_id}, ensure_ascii=False
+            )
+            + "\n"
+        )
+        yield (
+            json.dumps(
+                {"type": "text.delta", "content": cached_response}, ensure_ascii=False
+            )
+            + "\n"
+        )
+        yield json.dumps({"type": "run.finished"}, ensure_ascii=False) + "\n"
+
+        # Save assistant message
         if session_id:
             try:
                 save_agent_message(
                     session_id=session_id,
                     agent_id=agent_id,
-                    role="user",
-                    content=message,
+                    role="assistant",
+                    content=cached_response,
+                    metadata={"cached": True},
                 )
             except Exception as e:
-                logger.warning(f"Failed to save user message: {e}")
+                logger.warning(f"Failed to save cached agent message: {e}")
+        return
 
+    # 3. If no cache, proceed with Agent Run
+    try:
         # Prepare message with context if provided
         run_message = message
         if context_str:
@@ -89,6 +136,18 @@ async def stream_generator(
 
         async for chunk in processor.process(response_stream):
             yield chunk
+
+        # 4. Save to Cache and Database
+        full_response = processor.full_response
+
+        # Save to Cache
+        if (
+            full_response and len(full_response) > 10
+        ):  # Avoid caching empty/short errors
+            try:
+                semantic_cache.set(message, full_response, agent_id)
+            except Exception as e:
+                logger.warning(f"Failed to set cache: {e}")
 
         # Save the full agent message to the database
         if session_id:
@@ -115,6 +174,7 @@ async def chat_qa(request: QARequest):
     Chat with the Q&A Dental Agent.
     Supports streaming response using Vercel AI SDK Text Stream Protocol.
     """
+    # Use attribute access for consistency
     ctx = f"Context: Current User ID is '{request.userId}'."
     if request.context:
         ctx += (
@@ -160,7 +220,7 @@ async def analyze_image(request: ImageAnalysisRequest):
     try:
         response = odonto_vision.run(
             message,
-            images=[request.imageUrl],
+            images=[Image(url=request.imageUrl)],
             stream=False,  # Image analysis usually better as complete response
             session_id=request.sessionId,
         )
@@ -185,7 +245,7 @@ async def general_chat(request: ChatRequest):
         target_agent = odonto_vision
         agent_id = "odonto-vision"
         if request.imageUrl:
-            images = [request.imageUrl]
+            images = [Image(url=request.imageUrl)]
 
     return StreamingResponse(
         stream_generator_with_images(
@@ -212,22 +272,24 @@ async def general_chat(request: ChatRequest):
 async def stream_generator_with_images(
     agent,
     message: str,
-    images: list,
-    session_id: str = None,
+    images: Sequence[Image],
+    session_id: Optional[str] = None,
     agent_id: str = "image-analysis",
-    context_str: str = None,
+    context_str: Optional[str] = None,
 ) -> AsyncGenerator[str, None]:
     """Generate streaming response with images and save to database"""
     try:
         # Save user message first
         if session_id:
             try:
+                # Convert Image objects back to strings for DB storage
+                image_urls = [img.url for img in images] if images else []
                 save_agent_message(
                     session_id=session_id,
                     agent_id=agent_id,
                     role="user",
                     content=message,
-                    metadata={"images": images} if images else None,
+                    metadata={"images": image_urls} if image_urls else None,
                 )
             except Exception as e:
                 logger.warning(f"Failed to save user message: {e}")
@@ -252,12 +314,14 @@ async def stream_generator_with_images(
         # Save the full agent message to the database
         if session_id:
             try:
+                # Convert Image objects back to strings for DB storage
+                image_urls = [img.url for img in images] if images else []
                 save_agent_message(
                     session_id=session_id,
                     agent_id=agent_id,
                     role="assistant",
                     content=processor.full_response,
-                    metadata={"images": images} if images else None,
+                    metadata={"images": image_urls} if image_urls else None,
                 )
             except Exception as e:
                 logger.warning(f"Failed to save agent message: {e}")
@@ -300,7 +364,7 @@ async def get_sessions(userId: str):
 
 
 @router.post("/sessions")
-async def create_session(request: dict):
+async def create_session(request: dict) -> Optional[dict]:
     """
     Create a new agent session in the database.
     This is called by the frontend to track sessions.
@@ -331,7 +395,7 @@ async def create_session(request: dict):
         logger.info(f"Creating session for user {user_id} with agent_type {agent_type}")
         result = supabase.table("agent_sessions").insert(session_data).execute()
 
-        if not result.data:
+        if not result or not result.data or len(result.data) == 0:
             logger.error("Failed to create session: No data returned from Supabase")
             raise HTTPException(status_code=500, detail="Failed to create session")
 
@@ -352,7 +416,7 @@ async def create_session(request: dict):
 
 
 @router.get("/sessions/{session_id}")
-async def get_session(session_id: str):
+async def get_session(session_id: str) -> Optional[dict]:
     """
     Get a specific session with its messages.
     """
@@ -367,27 +431,27 @@ async def get_session(session_id: str):
             .execute()
         )
 
-        if not result.data:
+        if not result or not result.data:
             raise HTTPException(status_code=404, detail="Session not found")
 
         session = result.data
         return {
-            "id": session["id"],
-            "agentType": session["agent_type"],
-            "status": session["status"],
-            "metadata": session["metadata"],
-            "createdAt": session["created_at"],
-            "updatedAt": session["updated_at"],
+            "id": session.get("id"),
+            "agentType": session.get("agent_type"),
+            "status": session.get("status"),
+            "metadata": session.get("metadata"),
+            "createdAt": session.get("created_at"),
+            "updatedAt": session.get("updated_at"),
             "messages": [
                 {
-                    "id": msg["id"],
-                    "agentId": msg["agent_id"],
-                    "role": msg["role"],
-                    "content": msg["content"],
+                    "id": msg.get("id"),
+                    "agentId": msg.get("agent_id"),
+                    "role": msg.get("role"),
+                    "content": msg.get("content"),
                     "toolCalls": msg.get("tool_calls"),
                     "toolResults": msg.get("tool_results"),
                     "metadata": msg.get("metadata"),
-                    "createdAt": msg["created_at"],
+                    "createdAt": msg.get("created_at"),
                 }
                 for msg in session.get("agent_messages", [])
             ],
@@ -598,7 +662,7 @@ async def chat_equipe(request: ChatRequest):
                     stream_generator_with_images(
                         agent,
                         request.message,
-                        [request.imageUrl],
+                        [Image(url=request.imageUrl)],
                         session_id=request.sessionId,
                         agent_id=agent_id,
                         context_str=ctx,
@@ -662,7 +726,7 @@ async def chat_equipe(request: ChatRequest):
             stream_generator_with_images(
                 agent,
                 request.message,
-                [request.imageUrl],
+                [Image(url=request.imageUrl)],
                 session_id=request.sessionId,
                 agent_id=agent_id,
                 context_str=ctx,
@@ -902,7 +966,7 @@ async def stream_summary_generator(
     message: str,
     summary_id: str,
     format: str,
-    session_id: str = None,
+    session_id: Optional[str] = None,
     agent_id: str = "summary",
 ) -> AsyncGenerator[str, None]:
     """Generate streaming response and update appropriate tables based on format"""

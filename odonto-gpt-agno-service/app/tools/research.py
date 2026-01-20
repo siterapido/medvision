@@ -43,18 +43,21 @@ def ask_perplexity(query: str) -> str:
     }
 
     # Modelo Perplexity Sonar (que faz web search)
-    # Fallback para um modelo que sabemos que existe se a ENV falhar
-    # Tentando modelo small que costuma ser mais disponível
-    model = os.getenv(
-        "OPENROUTER_MODEL_RESEARCH", "perplexity/llama-3.1-sonar-small-128k-online"
-    )
+    # Upgrade para o modelo reasoning que é superior para pesquisa acadêmica
+    model = os.getenv("OPENROUTER_MODEL_RESEARCH", "perplexity/sonar-reasoning")
 
     payload = {
         "model": model,
         "messages": [
             {
                 "role": "system",
-                "content": "You are a helpful research assistant for Odonto GPT. Answer in Portuguese (Brazil). Search the web and provide a detailed answer with citations. CRITICAL: At the end of your response, list all source URLs you used in a section called '### Fontes'.",
+                "content": (
+                    "Você é um assistente de pesquisa acadêmica para Odonto GPT. "
+                    "Sua tarefa é encontrar artigos científicos e evidências clínicas atualizadas. "
+                    "Responda sempre em Português (Brasil). "
+                    "Inclua citações no corpo do texto. "
+                    "CRITICAL: No final da resposta, crie uma seção '### Fontes' com a lista numerada de URLs usadas."
+                ),
             },
             {"role": "user", "content": query},
         ],
@@ -329,9 +332,57 @@ def search_clinical_trials(condition: str, max_results: int = 5) -> str:
         return f"Error searching clinical trials: {str(e)}"
 
 
+@tool
+def verify_sources(urls: List[str]) -> List[Dict[str, Any]]:
+    """
+    Verifies if the provided URLs are accessible and valid.
+    Use this tool after receiving search results to ensure you don't provide dead links.
+
+    Args:
+        urls (List[str]): List of URLs to check.
+
+    Returns:
+        List[Dict[str, Any]]: List of results with status (valid/invalid) and title.
+    """
+    results = []
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
+
+    for url in urls:
+        if not url.startswith("http"):
+            results.append({"url": url, "status": "invalid", "reason": "Malformed URL"})
+            continue
+
+        try:
+            # Try a HEAD request first (faster)
+            response = requests.head(
+                url, headers=headers, timeout=5, allow_redirects=True
+            )
+
+            # If HEAD is not allowed or 405, try GET but only for status
+            if response.status_code >= 400:
+                response = requests.get(url, headers=headers, timeout=5, stream=True)
+
+            if response.status_code < 400:
+                results.append(
+                    {"url": url, "status": "valid", "code": response.status_code}
+                )
+            else:
+                results.append(
+                    {"url": url, "status": "invalid", "code": response.status_code}
+                )
+
+        except Exception as e:
+            results.append({"url": url, "status": "invalid", "reason": str(e)})
+
+    return results
+
+
 # Export tools list for easy import
 RESEARCH_TOOLS = [
     ask_perplexity,
+    verify_sources,
     search_pubmed,
     search_arxiv,
     get_latest_dental_research,

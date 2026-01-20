@@ -20,6 +20,7 @@ from .writer_agent import odonto_write
 from .summary_agent import dental_summary_agent
 from app.tools.navigation import NAVIGATION_TOOLS
 from app.database.supabase import get_agent_config
+from app.router import hybrid_router
 from typing import List, Dict, Any, Optional
 from dotenv import load_dotenv
 import os
@@ -173,12 +174,7 @@ def rotear_para_agente_apropriado(
     agente_atual: Optional[str] = None,
 ) -> str:
     """
-    Roteia requisição para agente apropriado baseado no conteúdo.
-
-    MELHORIAS v2.2:
-    - Prevenção de troca para o mesmo agente (Stickiness)
-    - Suporte a contexto de IA e regras (ia-context -> GPT)
-    - Pesos ajustados para evitar trocas desnecessárias
+    Roteia requisição para agente apropriado usando HybridRouter.
 
     Args:
         mensagem_usuario: Mensagem do usuário
@@ -187,16 +183,13 @@ def rotear_para_agente_apropriado(
         agente_atual: ID do agente atualmente ativo (ex: 'odonto-gpt', 'odonto-research')
 
     Returns:
-        Tipo de agente: 'ciencia', 'estudo', 'redator', 'imagem', 'resumo' ou 'equipe'
+        Tipo de agente: 'ciencia', 'estudo', 'redator', 'imagem', 'resumo', 'gpt' ou 'equipe'
     """
-    mensagem_lower = mensagem_usuario.lower()
-
     # =========================================================================
-    # OPTIMIZATION: IA-CONTEXT ROUTING
+    # 1. OPTIMIZATION: IA-CONTEXT OVERRIDE
     # =========================================================================
     # Se o contexto trouxer um agente específico ou instrução de roteamento, usa-o.
     if contexto:
-        # Se houver um campo 'target_agent' ou 'agentType' no contexto que não seja 'auto'
         target = contexto.get("target_agent") or contexto.get("agentType")
         if target and target != "auto":
             # Mapeia para as chaves internas
@@ -215,201 +208,12 @@ def rotear_para_agente_apropriado(
                 return mapping[target]
 
     # =========================================================================
-    # KEYWORDS ATUALIZADAS (Agressivas)
+    # 2. HYBRID ROUTER DELEGATION
     # =========================================================================
-
-    WEIGHTED_KEYWORDS_CIENCIA = {  # Odonto Research (Inclui General Knowledge)
-        "pubmed": 10,
-        "revisão sistemática": 10,
-        "meta-análise": 10,
-        "pesquisa": 10,
-        "pesquisar": 10,
-        "busca": 5,
-        "buscar": 5,
-        "evidências": 10,
-        "artigos": 8,
-        "artigo": 8,
-        "saber sobre": 5,
-        "o que é": 5,
-        "quais são": 5,
-        "sintomas": 5,
-        "tratamento": 5,
-        "causas": 5,
-        "diagnóstico": 5,
-        "fale sobre": 4,
-        "explicação": 4,
-        "literatura": 5,
-    }
-
-    WEIGHTED_KEYWORDS_ESTUDO = {  # Odonto Practice
-        "questão": 10,
-        "questões": 10,
-        "simulado": 10,
-        "prova": 10,
-        "quiz": 10,
-        "exercício": 8,
-        "praticar": 8,
-        "estudar": 8,
-        "aprender": 5,
-        "ensine": 5,
-        "banca": 5,
-        "residência": 5,
-    }
-
-    WEIGHTED_KEYWORDS_REDATOR = {  # Odonto Writer
-        "tcc": 10,
-        "monografia": 10,
-        "artigo científico": 8,
-        "escrever": 6,
-        "redigir": 6,
-        "abnt": 10,
-        "vancouver": 10,
-        "formatar": 8,
-        "referências": 6,
-    }
-
-    WEIGHTED_KEYWORDS_IMAGEM = {  # Odonto Vision
-        "radiografia": 10,
-        "imagem": 8,
-        "raio-x": 10,
-        "tomografia": 10,
-        "analise": 5,
-        "laudo": 8,
-        "veja": 4,
-    }
-
-    WEIGHTED_KEYWORDS_RESUMO = {  # Odonto Summary
-        "resumo": 10,
-        "resumir": 10,
-        "sintetize": 8,
-        "flashcards": 10,
-        "flashcard": 10,
-        "cards": 8,
-        "cartões": 8,
-        "memória": 5,
-        "mapa mental": 10,
-        "mind map": 10,
-        "mapa": 8,
-        "esquema": 8,
-        "conceitos": 5,
-    }
-
-    WEIGHTED_KEYWORDS_GPT = {  # Odonto GPT - Chat e Explicações
-        "explicação": 8,
-        "me explica": 10,
-        "entender": 8,
-        "duvida": 10,
-        "dúvida": 10,
-        "como funciona": 8,
-        "por que": 5,
-        "porque": 5,
-        "bate papo": 10,
-        "bater papo": 10,
-        "conversa": 8,
-        "conversar": 8,
-        "ajuda": 5,
-        "não entendi": 10,
-        "me ajude": 8,
-        "simples": 5,
-        "didatico": 5,
-        "papo": 5,
-        # IA Context / Rules keywords
-        "regras": 10,
-        "contexto": 10,
-        "instruções": 10,
-        "projeto": 8,
-        "sistema": 5,
-        "quem é você": 10,
-        "o que você faz": 10,
-        "sua função": 10,
-    }
-
-    # ... (restante da lógica de formatação e pontuação permanece)
-
-    # PRIORIDADE 1: CONTEXTO DE FORMATAÇÃO
-    # Use regex for precise word matching to avoid false positives (e.g., 'apa' in 'mapa')
-    formatting_pattern = r"\b(abnt|vancouver|apa|formatação|normas)\b"
-    if re.search(formatting_pattern, mensagem_lower):
-        return "redator"
-
-    # FUNÇÃO AUXILIAR SCORE
-    def calcular_score(keywords_dict: Dict[str, int]) -> float:
-        score = 0
-        for keyword, peso in keywords_dict.items():
-            if keyword in mensagem_lower:
-                score += peso
-        return score
-
-    score_ciencia = calcular_score(WEIGHTED_KEYWORDS_CIENCIA)
-    score_estudo = calcular_score(WEIGHTED_KEYWORDS_ESTUDO)
-    score_redator = calcular_score(WEIGHTED_KEYWORDS_REDATOR)
-    score_imagem = calcular_score(WEIGHTED_KEYWORDS_IMAGEM)
-    score_resumo = calcular_score(WEIGHTED_KEYWORDS_RESUMO)
-    score_gpt = calcular_score(WEIGHTED_KEYWORDS_GPT)
-
-    if tem_imagem:
-        return "equipe" if (score_ciencia > 5 or score_estudo > 5) else "imagem"
-
-    if score_imagem >= 8:  # Increased confidence for text-only image requests
-        return "imagem"
-
-    scores = {
-        "ciencia": score_ciencia,
-        "estudo": score_estudo,
-        "redator": score_redator,
-        "resumo": score_resumo,
-        "gpt": score_gpt,
-    }
-
-    # Detecção de IA-Context explícito
-    if "ia-context" in mensagem_lower or "odonto gpt" in mensagem_lower:
-        scores["gpt"] += 20  # Boost massivo para GPT
-
-    # Lógica de "Stickiness" (Inércia)
-    # Se já estamos em um agente, aumentamos seu score para evitar trocas por pequenas menções
-    if agente_atual:
-        # Mapeia IDs de agente para chaves de score
-        id_to_key = {
-            "odonto-research": "ciencia",
-            "odonto-practice": "estudo",
-            "odonto-write": "redator",
-            "odonto-vision": "imagem",
-            "odonto-summary": "resumo",
-            "odonto-gpt": "gpt",
-            "odonto-gpt-team": "equipe",
-        }
-
-        current_key = id_to_key.get(agente_atual)
-        if current_key and current_key in scores:
-            # Adiciona bônus de inércia (ex: 5 pontos)
-            # Isso significa que outro agente precisa ser significativamente mais relevante para justificar a troca
-            scores[current_key] += 5.0
-
-    max_score = max(scores.values())
-
-    # SAUDAÇÕES PURAS (Sem outro conteúdo)
-    greetings = ["oi", "olá", "ola", "bom dia", "boa tarde"]
-    is_pure_greeting = any(mensagem_lower.strip() == g for g in greetings)
-
-    if is_pure_greeting and max_score < 3:
-        # Se já estiver no GPT, mantém no GPT em vez de coordenador
-        if agente_atual == "odonto-gpt":
-            return "gpt"
-        return "coordenador"
-
-    # Se pontuação for muito baixa mas tem algum sinal, chuta o melhor (não pergunta!)
-    # Threshold reduzido de 4 para 1 para evitar perguntas
-    if max_score > 0:
-        # Retorna a chave com maior score
-        best_agent = max(scores, key=scores.get)
-        return best_agent
-
-    # Só chama coordenador se ZERO keywords encontradas
-    # Mas se já estivermos num agente conversacional (GPT), mantém ele
-    if agente_atual == "odonto-gpt":
-        return "gpt"
-
-    return "coordenador"
+    # Delegar a decisão complexa para o roteador híbrido (Semântico + Keywords)
+    return hybrid_router.route(
+        text=mensagem_usuario, has_image=tem_imagem, current_agent=agente_atual
+    )
 
 
 async def executar_agente(
