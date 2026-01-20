@@ -8,7 +8,6 @@ from app.api import router as api_router
 from app.routes.artifacts import router as artifacts_router
 from app.models.schemas import HealthResponse
 import uvicorn
-import os
 
 app = FastAPI(
     title="Odonto GPT Agent Service",
