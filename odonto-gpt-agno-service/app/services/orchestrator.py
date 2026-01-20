@@ -38,24 +38,27 @@ class Orchestrator:
         self.agent_map = self._initialize_agent_map()
 
     def _initialize_agent_map(self) -> Dict[str, Tuple[Any, str]]:
+        # UNIFICATION: 'gpt', 'equipe', and 'odonto-gpt' all point to the Unified Team
         return {
             "ciencia": (odonto_research, "odonto-research"),
             "estudo": (odonto_practice, "odonto-practice"),
             "redator": (odonto_write, "odonto-write"),
             "imagem": (odonto_vision, "odonto-vision"),
             "resumo": (dental_summary_agent, "odonto-summary"),
+            # Unified endpoints
             "equipe": (odonto_gpt_team, "odonto-gpt"),
+            "gpt": (odonto_gpt_team, "odonto-gpt"),  # Redirects to Unified Team
+            "odonto-flow": (odonto_gpt_team, "odonto-gpt"),
+            "odonto-gpt-team": (odonto_gpt_team, "odonto-gpt"),
+            "odonto-gpt": (odonto_gpt_team, "odonto-gpt"),  # Redirects to Unified Team
             "coordenador": (odonto_coordinator, "odonto-coordinator"),
-            "gpt": (odonto_gpt, "odonto-gpt"),
-            # Direct ID mappings
+            # Direct ID mappings for specialists
             "odonto-research": (odonto_research, "odonto-research"),
             "odonto-practice": (odonto_practice, "odonto-practice"),
             "odonto-write": (odonto_write, "odonto-write"),
             "odonto-vision": (odonto_vision, "odonto-vision"),
             "odonto-summary": (dental_summary_agent, "odonto-summary"),
-            "odonto-gpt-team": (odonto_gpt_team, "odonto-gpt"),
             "odonto-coordinator": (odonto_coordinator, "odonto-coordinator"),
-            "odonto-gpt": (odonto_gpt, "odonto-gpt"),
         }
 
     async def get_stream(
@@ -69,7 +72,8 @@ class Orchestrator:
     ) -> AsyncGenerator[str, None]:
         """Core streaming logic with caching and DB persistence."""
 
-        agent, agent_id = self.agent_map.get(agent_key, (odonto_gpt, "odonto-gpt"))
+        # Default to Unified Team (odonto_gpt_team) instead of old standalone agent
+        agent, agent_id = self.agent_map.get(agent_key, (odonto_gpt_team, "odonto-gpt"))
 
         # 1. Save User Message
         if session_id:

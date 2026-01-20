@@ -28,9 +28,9 @@ async def list_agents():
     return {
         "agentes": [
             {
-                "id": "odonto-flow",
-                "nome": "Odonto Flow",
-                "descricao": "Orquestrador inteligente que coordena toda a equipe de especialistas.",
+                "id": "odonto-gpt",  # Renamed from odonto-flow
+                "nome": "Odonto GPT (Unificado)",
+                "descricao": "Seu assistente central inteligente. Conversa amigável e acesso a toda a equipe de especialistas.",
             },
             {
                 "id": "odonto-research",

@@ -75,9 +75,9 @@ export function useAgnoAgents(options: UseAgnoAgentsOptions = {}): UseAgnoAgents
 
             setAgents(agentList)
 
-            // Auto-select Odonto Flow (orchestrator) as default agent
+            // Auto-select Odonto GPT (unified) as default agent
             if (autoSelect && agentList.length > 0 && !selectedAgent) {
-                const flowAgent = agentList.find(a => a.id === 'odonto-flow')
+                const flowAgent = agentList.find(a => a.id === 'odonto-gpt')
                 setSelectedAgent(flowAgent || agentList[0])
             }
         } catch (err) {

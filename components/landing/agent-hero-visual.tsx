@@ -94,7 +94,7 @@ export function AgentHeroVisual() {
         {
             id: 6,
             icon: MessageCircle,
-            label: "Odonto GPT",
+            label: "Odonto Chat",
             color: "bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500",
             position: "right-[-8%] bottom-[5%] md:right-[5%] md:bottom-[15%]"
         },

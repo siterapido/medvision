@@ -49,7 +49,7 @@ export function useAgentChat({
                 "odonto-write": "dr-redator",
                 "odonto-summary": "gerador-resumos",
                 "odonto-vision": "odonto-vision",
-                "odonto-flow": "flow"
+                "odonto-gpt": "equipe" // Unified endpoint
             }
 
             const agentPath = agentEndpoints[agentId] || agentId

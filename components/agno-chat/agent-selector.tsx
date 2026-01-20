@@ -24,12 +24,12 @@ interface AgentSelectorProps {
 
 // Configuração visual dos agentes - Gradientes estilo Apple (cores vibrantes, transições suaves)
 const agentConfig: Record<string, { icon: React.ElementType, gradient: string, isAuto?: boolean }> = {
-    'odonto-flow': { icon: Sparkles, gradient: 'from-[#00D4FF] via-[#00A3FF] to-[#0066FF]', isAuto: true },
+    // Odonto GPT agora é o agente unificado (antigo Flow)
+    'odonto-gpt': { icon: Sparkles, gradient: 'from-[#00D4FF] via-[#00A3FF] to-[#0066FF]', isAuto: true },
     'odonto-research': { icon: FlaskConical, gradient: 'from-[#BF5AF2] via-[#9D4EDD] to-[#7B2CBF]' },
     'odonto-practice': { icon: GraduationCap, gradient: 'from-[#FF9F0A] via-[#FF6B35] to-[#FF453A]' },
     'odonto-write': { icon: FileText, gradient: 'from-[#30D158] via-[#00C7BE] to-[#00B4D8]' },
     'odonto-vision': { icon: ScanEye, gradient: 'from-[#FF6B6B] via-[#EE5A70] to-[#DA4167]' },
-    'odonto-gpt': { icon: MessageCircle, gradient: 'from-[#5E5CE6] via-[#7C3AED] to-[#A855F7]' },
 }
 
 export function AgentSelector({
@@ -69,11 +69,12 @@ export function AgentSelector({
         )
     }
 
-    // Separar agentes: Flow (automático) vs Especializados (direto)
-    const flowAgent = agents.find(a => a.id === 'odonto-flow')
-    const specializedAgents = agents.filter(a => a.id !== 'odonto-flow')
+    // Separar agentes: Odonto GPT (automático) vs Especializados (direto)
+    // O ID deve corresponder ao retornado pela API (/agentes)
+    const flowAgent = agents.find(a => a.id === 'odonto-gpt')
+    const specializedAgents = agents.filter(a => a.id !== 'odonto-gpt')
 
-    const selectedConfig = selectedAgent ? agentConfig[selectedAgent.id] : agentConfig['odonto-flow']
+    const selectedConfig = selectedAgent ? agentConfig[selectedAgent.id] : agentConfig['odonto-gpt']
     const SelectedIcon = selectedConfig?.icon || Bot
 
     return (
@@ -95,19 +96,19 @@ export function AgentSelector({
                     <span className="truncate text-sm">
                         {selectedAgent?.name || "Selecionar Agente"}
                     </span>
-                    {selectedAgent?.id === 'odonto-flow' && (
+                    {selectedAgent?.id === 'odonto-gpt' && (
                         <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded">
-                            AUTO
+                            UNIFIED
                         </span>
                     )}
                 </div>
             </SelectTrigger>
             <SelectContent className="bg-slate-900 border-slate-800">
-                {/* Fluxo Automático (Flow) */}
+                {/* Fluxo Automático (Flow/GPT) */}
                 {flowAgent && (
                     <SelectGroup>
                         <SelectLabel className="text-[10px] uppercase text-slate-500 px-2">
-                            🤖 Roteamento Inteligente
+                            🤖 Odonto GPT Unificado
                         </SelectLabel>
                         <SelectItem
                             value={flowAgent.id}
@@ -120,7 +121,7 @@ export function AgentSelector({
                                 <div className="flex flex-col text-left">
                                     <span className="font-medium">{flowAgent.name}</span>
                                     <span className="text-[10px] text-slate-500">
-                                        Escolhe o especialista ideal automaticamente
+                                        Chat inteligente que chama especialistas quando necessário
                                     </span>
                                 </div>
                             </div>
@@ -132,7 +133,7 @@ export function AgentSelector({
                 {specializedAgents.length > 0 && (
                     <SelectGroup>
                         <SelectLabel className="text-[10px] uppercase text-slate-500 px-2 mt-2">
-                            🎯 Escolha Direta (sem roteamento)
+                            🎯 Especialistas Dedicados
                         </SelectLabel>
                         {specializedAgents.map((agent) => {
                             const config = agentConfig[agent.id] || { icon: Bot, gradient: 'from-slate-500 to-slate-600' }

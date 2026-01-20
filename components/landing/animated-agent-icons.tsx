@@ -159,7 +159,7 @@ export const AnimatedAgentIcons = () => {
             icon: MessageCircle,
             color: "#6366F1",
             gradient: "from-indigo-500 via-purple-500 to-pink-500",
-            name: "Odonto GPT",
+            name: "Odonto Chat",
             position: { x: 85, y: 45 },
             mobilePosition: { x: 62, y: 75 }
         }
@@ -187,8 +187,8 @@ export const AnimatedAgentIcons = () => {
                     style={{ willChange: "transform", transform: "translateZ(0)" }}
                 >
                     <div className="text-center">
-                        <div className="text-xl md:text-3xl font-bold text-primary">AI</div>
-                        <div className="text-[10px] md:text-xs text-muted-foreground">Hub</div>
+                        <div className="text-lg md:text-2xl font-bold text-primary leading-tight">Odonto</div>
+                        <div className="text-[10px] md:text-xs text-muted-foreground font-semibold">GPT</div>
                     </div>
                 </motion.div>
 

@@ -9,7 +9,7 @@ export const AGENT_IDS = {
     WRITE: 'odonto-write',
     VISION: 'odonto-vision',
     SUMMARY: 'odonto-summary',
-    FLOW: 'odonto-flow',
+    FLOW: 'odonto-gpt', // Unified Agent
     QA: 'odonto-qa',
 } as const;
 
@@ -34,6 +34,6 @@ export const AGENT_NAMES = {
     [AGENT_IDS.WRITE]: 'Odonto Write',
     [AGENT_IDS.VISION]: 'Odonto Vision',
     [AGENT_IDS.SUMMARY]: 'Odonto Summary',
-    [AGENT_IDS.FLOW]: 'Odonto Flow',
-    [AGENT_IDS.QA]: 'Odonto GPT',
+    [AGENT_IDS.FLOW]: 'Odonto GPT', // Unified Name
+    [AGENT_IDS.QA]: 'Odonto GPT Legacy',
 } as const;

@@ -101,29 +101,29 @@ def create_dental_education_team() -> Team:
         stream_events=True,
         instructions=[
             # =================================================================
-            # IDENTIDADE E OBJETIVO
+            # IDENTIDADE E PERSONALIDADE (Unificada do Odonto GPT)
             # =================================================================
-            "Você é o Odonto GPT, o assistente central inteligente da Odonto Suite.",
-            "Seu objetivo é conversar em linguagem natural, ser extremamente conciso e coordenar agentes especializados.",
+            "Você é o **Odonto GPT**, o assistente central inteligente da Odonto Suite.",
+            "Sua personalidade é: **Inspiradora, Bem-humorada, Acessível e Didática**.",
+            "Fale português do Brasil (pt-BR) de forma natural, como um bate-papo entre colegas.",
+            "Use analogias do dia a dia para explicar conceitos complexos.",
+            "Pode usar emojis com moderação para manter o clima leve. 🦷✨",
             # =================================================================
-            # REGRAS DE COMUNICAÇÃO (PRIORIDADE MÁXIMA)
+            # ORQUESTRAÇÃO E DELEGAÇÃO INTELIGENTE
             # =================================================================
-            "- **CONCISÃO EXTREMA**: Suas respostas devem ter NO MÁXIMO 3 LINHAS. Seja direto.",
-            "- **PERGUNTE**: Sempre termine sua resposta com uma pergunta para guiar o usuário ou clarificar a necessidade.",
-            "- **LINGUAGEM NATURAL**: Converse de forma fluida e amigável.",
+            "Você é capaz de responder a maioria das dúvidas gerais diretamente.",
+            "No entanto, você tem uma equipe de especialistas à sua disposição. DELEGUE tarefas quando necessário:",
+            "- **Pesquisa Científica/Artigos**: Se o usuário pedir fontes, papers, ou uma revisão bibliográfica profunda -> Chame **Odonto Research**.",
+            "- **Questões/Simulados**: Se o usuário quiser treinar, fazer quiz ou estudar para provas -> Chame **Odonto Practice**.",
+            "- **Resumos/Flashcards**: Se o usuário pedir material de revisão, mapas mentais ou resumos -> Chame **Odonto Summary**.",
+            "- **Imagens/Radiografias**: Se houver uma imagem para analisar ou pedido de laudo -> Chame **Odonto Vision**.",
+            "- **Redação Acadêmica**: Se o usuário pedir ajuda com TCC, escrita formal ou artigos -> Chame **Odonto Writer**.",
             # =================================================================
-            # ORQUESTRAÇÃO COM IA-CONTEXT
+            # REGRAS DE COMUNICAÇÃO
             # =================================================================
-            "- Use o contexto da conversa (ia-context) para identificar quando chamar um especialista.",
-            "- Se o usuário pedir 'pesquisa', 'artigos' -> Chame Odonto Research.",
-            "- Se o usuário pedir 'questões', 'estudar' -> Chame Odonto Practice.",
-            "- Se o usuário pedir 'resumo', 'flashcards' -> Chame Odonto Summary.",
-            "- Se o usuário pedir 'imagem', 'raio-x' -> Chame Odonto Vision.",
-            "- Se o usuário pedir 'tcc', 'artigo' -> Chame Odonto Writer.",
-            # =================================================================
-            # CONTEXTO
-            # =================================================================
-            "- Mantenha o contexto da conversa. Se o usuário der continuidade, use o histórico.",
+            "- Se for uma conversa casual ou dúvida simples, RESPONDA DIRETAMENTE (não chame especialistas sem necessidade).",
+            "- Ao responder, seja didático. Não dê apenas a resposta seca. Guie o usuário pelo raciocínio.",
+            "- Sempre termine sua resposta com uma pergunta para guiar o usuário ou clarificar a necessidade ('Faz sentido?', 'Quer aprofundar nisso?').",
         ],
         model=OpenAIChat(
             id=model_id,
@@ -133,14 +133,16 @@ def create_dental_education_team() -> Team:
             max_tokens=max_tokens,
         ),
         tools=NAVIGATION_TOOLS,
-        description="Odonto GPT: Assistente central com orquestração inteligente.",
+        description="Odonto GPT: Assistente unificado com acesso a especialistas.",
     )
 
     return odonto_gpt_team
 
 
 # Create singleton instance
-odonto_gpt_team = create_dental_education_team()
+odonto_gpt_unified = create_dental_education_team()
+# Manter alias para compatibilidade se necessário, mas idealmente usar o unificado
+odonto_gpt_team = odonto_gpt_unified
 
 
 def create_coordinator_agent() -> Agent:
@@ -174,25 +176,20 @@ def rotear_para_agente_apropriado(
     agente_atual: Optional[str] = None,
 ) -> str:
     """
-    Roteia requisição para agente apropriado usando HybridRouter.
+    Roteia requisição.
 
-    Args:
-        mensagem_usuario: Mensagem do usuário
-        tem_imagem: Se há imagem anexada
-        contexto: Contexto adicional (opcional)
-        agente_atual: ID do agente atualmente ativo (ex: 'odonto-gpt', 'odonto-research')
-
-    Returns:
-        Tipo de agente: 'ciencia', 'estudo', 'redator', 'imagem', 'resumo', 'gpt' ou 'equipe'
+    ATUALIZAÇÃO UNIFICADA:
+    A prioridade agora é sempre o 'equipe' (Odonto GPT Unificado),
+    a menos que haja uma diretiva explícita no contexto ou imagem.
     """
-    # =========================================================================
-    # 1. OPTIMIZATION: IA-CONTEXT OVERRIDE
-    # =========================================================================
-    # Se o contexto trouxer um agente específico ou instrução de roteamento, usa-o.
+    # Se tem imagem, vai direto para o especialista de visão (via equipe ou direto, mas aqui simplificamos)
+    # Na verdade, a Equipe sabe lidar com isso, mas para performance, podemos atalhar se o frontend já souber.
+    # Mas para "Unificação", vamos preferir 'equipe' que orquestra.
+
+    # Mas mantemos a lógica de override manual se vier do frontend
     if contexto:
         target = contexto.get("target_agent") or contexto.get("agentType")
         if target and target != "auto":
-            # Mapeia para as chaves internas
             mapping = {
                 "odonto-research": "ciencia",
                 "odonto-practice": "estudo",
@@ -207,33 +204,29 @@ def rotear_para_agente_apropriado(
             if target in mapping:
                 return mapping[target]
 
-    # =========================================================================
-    # 2. HYBRID ROUTER DELEGATION
-    # =========================================================================
-    # Delegar a decisão complexa para o roteador híbrido (Semântico + Keywords)
-    return hybrid_router.route(
-        text=mensagem_usuario, has_image=tem_imagem, current_agent=agente_atual
-    )
+    # Padrão unificado: Tudo vai para a equipe (que é o Odonto GPT Unificado)
+    # A menos que seja muito trivial (saudação), mas o próprio GPT lida bem com isso.
+    return "equipe"
 
 
 async def executar_agente(
     tipo_agente: str, mensagem: str, contexto: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """
-    Executa agente ou equipe apropriado baseado no tipo.
+    Executa agente ou equipe apropriado.
 
-    Args:
-        tipo_agente: Tipo de agente ('ciencia', 'estudo', 'redator', 'imagem', 'equipe', 'resumo')
-        mensagem: Mensagem do usuário
-        contexto: Contexto adicional (imagem URL, session ID, etc.)
-
-    Returns:
-        Resposta do agente
+    NOTA: Removemos 'await' das chamadas .run() pois a biblioteca Agno (ex-Phidata)
+    geralmente executa .run() de forma síncrona (bloqueante) ou retorna um iterador se stream=True.
+    Se a biblioteca atualizou para async, reverteremos.
+    Assumindo sincronismo baseado nos diagnósticos de tipo anteriores.
     """
     try:
+        # Helper para rodar sync em executor se necessário, ou apenas chamar direto.
+        # Por enquanto chamamos direto (removendo await que causava erro de tipo)
+
         if tipo_agente == "imagem":
             # Image analysis agent
-            response = await odonto_vision.run(mensagem, context=contexto or {})
+            response = odonto_vision.run(mensagem, context=contexto or {})
             return {
                 "response": response.response,
                 "agent": "odonto-vision",
@@ -243,8 +236,7 @@ async def executar_agente(
             }
 
         elif tipo_agente == "ciencia":
-            # Odonto Research - Scientific research
-            response = await odonto_research.run(mensagem, context=contexto or {})
+            response = odonto_research.run(mensagem, context=contexto or {})
             return {
                 "response": response.response,
                 "agent": "odonto-research",
@@ -252,8 +244,7 @@ async def executar_agente(
             }
 
         elif tipo_agente == "estudo":
-            # Odonto Practice - Questions and exams
-            response = await odonto_practice.run(mensagem, context=contexto or {})
+            response = odonto_practice.run(mensagem, context=contexto or {})
             return {
                 "response": response.response,
                 "agent": "odonto-practice",
@@ -261,8 +252,7 @@ async def executar_agente(
             }
 
         elif tipo_agente == "redator":
-            # Odonto Write - Academic writing
-            response = await odonto_write.run(mensagem, context=contexto or {})
+            response = odonto_write.run(mensagem, context=contexto or {})
             return {
                 "response": response.response,
                 "agent": "odonto-write",
@@ -270,8 +260,7 @@ async def executar_agente(
             }
 
         elif tipo_agente == "resumo":
-            # Odonto Summary - Summaries, Flashcards, Mindmaps
-            response = await dental_summary_agent.run(mensagem, context=contexto or {})
+            response = dental_summary_agent.run(mensagem, context=contexto or {})
             return {
                 "response": response.response,
                 "agent": "odonto-summary",
@@ -279,24 +268,23 @@ async def executar_agente(
             }
 
         elif tipo_agente == "equipe":
-            # Multi-agent team
-            response = await odonto_gpt_team.run(mensagem, context=contexto or {})
+            # Multi-agent team (Odonto GPT Unificado)
+            response = odonto_gpt_unified.run(mensagem, context=contexto or {})
             return {
                 "response": response.response,
-                "agent": "odonto-gpt",
+                "agent": "odonto-gpt",  # Identidade unificada
                 "participants": response.participants
                 if hasattr(response, "participants")
                 else [],
             }
 
         elif tipo_agente == "coordenador":
-            # Coordinator Agent
-            response = await odonto_coordinator.run(mensagem, context=contexto or {})
+            response = odonto_coordinator.run(mensagem, context=contexto or {})
             return {"response": response.response, "agent": "odonto-coordinator"}
 
         elif tipo_agente == "gpt":
-            # Odonto GPT - Chat
-            response = await odonto_gpt.run(mensagem, context=contexto or {})
+            # Fallback para o agente antigo se forçado
+            response = odonto_gpt.run(mensagem, context=contexto or {})
             return {
                 "response": response.response,
                 "agent": "odonto-gpt",

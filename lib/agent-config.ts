@@ -58,16 +58,16 @@ export const AGENT_CONFIGS: Record<string, AgentInfo> = {
         handoffMessage: "Analisando imagem odontológica...",
         description: "Interprete radiografias e imagens odontológicas com apoio de IA. Auxílio na leitura clínica, identificação de padrões e geração de laudos."
     },
-    "odonto-flow": {
-        id: "odonto-flow",
-        name: "Odonto Flow",
-        icon: Workflow,
+    "odonto-gpt": {
+        id: "odonto-gpt",
+        name: "Odonto GPT",
+        icon: Workflow, // Represents the Unified/Orchestrator nature
         color: "cyan",
         gradient: "from-cyan-500 via-blue-500 to-indigo-500",
         ringColor: "ring-cyan-500/50",
         bgGlow: "shadow-cyan-500/20",
-        handoffMessage: "Analisando sua solicitação...",
-        description: "Central inteligente que entende a necessidade do usuário e ativa o módulo certo automaticamente.",
+        handoffMessage: "Odonto GPT pensando...",
+        description: "Seu assistente central inteligente. Conversa amigável e acesso automático a toda a equipe de especialistas quando necessário.",
         isOrchestrator: true
     },
     "odonto-summary": {
@@ -80,23 +80,12 @@ export const AGENT_CONFIGS: Record<string, AgentInfo> = {
         bgGlow: "shadow-pink-500/20",
         handoffMessage: "Criando materiais de estudo...",
         description: "Gera resumos inteligentes, flashcards e mapas mentais a partir de tópicos odontológicos."
-    },
-    "odonto-gpt": {
-        id: "odonto-gpt",
-        name: "Odonto GPT",
-        icon: MessageCircle,
-        color: "indigo",
-        gradient: "from-indigo-500 via-purple-500 to-pink-500",
-        ringColor: "ring-indigo-500/50",
-        bgGlow: "shadow-indigo-500/20",
-        handoffMessage: "Iniciando conversa...",
-        description: "Seu mentor digital amigável. Tira dúvidas, explica conceitos complexos de forma simples e guia seu aprendizado com bom humor."
     }
 }
 
 export function getAgentInfo(agentId?: string): AgentInfo {
-    if (!agentId) return AGENT_CONFIGS["odonto-flow"]
-    return AGENT_CONFIGS[agentId] || AGENT_CONFIGS["odonto-flow"]
+    if (!agentId) return AGENT_CONFIGS["odonto-gpt"]
+    return AGENT_CONFIGS[agentId] || AGENT_CONFIGS["odonto-gpt"]
 }
 
 /**
@@ -108,7 +97,7 @@ export const TAB_AGENT_MAP: Record<string, string> = {
     "/dashboard/flashcards": "odonto-practice",
     "/dashboard/questionarios": "odonto-practice",
     "/dashboard/mindmaps": "odonto-summary",
-    "/dashboard/chat": "odonto-flow",
+    "/dashboard/chat": "odonto-gpt",
     "/dashboard/escritor": "odonto-write",
     "/dashboard/imagens": "odonto-vision"
 }
@@ -142,20 +131,16 @@ export const AGENT_SUGGESTIONS: Record<string, string[]> = {
         "Interpretar panorâmica",
         "Laudo de tomografia"
     ],
-    "odonto-flow": [
-        "Quero pesquisar e criar um resumo",
-        "Me ajude com meu TCC",
-        "Questões sobre periodontite"
-    ],
     "odonto-gpt": [
+        "Quero pesquisar e criar um resumo",
         "Como funciona o tratamento de canal?",
-        "Me explica periodontite de forma simples",
-        "Vamos bater um papo sobre anatomia"
+        "Me ajuda com meu TCC",
+        "Questões sobre periodontite"
     ]
 }
 
 export function getAgentSuggestions(agentId: string): string[] {
-    return AGENT_SUGGESTIONS[agentId] || AGENT_SUGGESTIONS["odonto-flow"]
+    return AGENT_SUGGESTIONS[agentId] || AGENT_SUGGESTIONS["odonto-gpt"]
 }
 
 export function getAgentForTab(pathname: string): string {
@@ -165,5 +150,5 @@ export function getAgentForTab(pathname: string): string {
             return agent
         }
     }
-    return "odonto-flow"
+    return "odonto-gpt"
 }
