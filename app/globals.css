@@ -760,6 +760,20 @@ body:has(.landing-scroll) {
   }
 }
 
+@keyframes scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* Seamless loop: animate to -50% because we have 2 identical sets of content */
+    transform: translateX(-50%);
+  }
+}
+
+.animate-scroll {
+  animation: scroll var(--duration) linear infinite;
+}
+
 /* Custom Animations for Agent Transitions */
 @keyframes ping-once {
   0% {
