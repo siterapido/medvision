@@ -24,8 +24,8 @@ class ChatRequest(BaseModel):
     message: str = Field(..., description="User message")
     sessionId: Optional[str] = Field(None, description="Existing session ID")
     userId: str = Field(..., description="User ID from Supabase")
-    agentType: Optional[Literal["image-analysis", "qa", "auto"]] = Field(
-        "auto", description="Which agent to use"
+    agentType: Optional[str] = Field(
+        "auto", description="Which agent to use (key or ID)"
     )
     context: Optional[Dict[str, Any]] = Field(
         default_factory=dict, description="Additional context for the conversation"
@@ -131,7 +131,7 @@ class CreateSessionRequest(BaseModel):
     """Request to create new agent session"""
 
     userId: str
-    agentType: Literal["image-analysis", "qa", "orchestrated"]
+    agentType: str = Field(..., description="Agent type (e.g. 'qa', 'odonto-research')")
     metadata: Optional[Dict[str, Any]] = None
 
 
