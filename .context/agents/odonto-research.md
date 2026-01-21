@@ -27,3 +27,12 @@ Specialized in evidence-based dental research, synthesizing scientific literatur
 - **Fact-Check**: Always verify if the generated URL exists or looks plausible.
 - **Structure**: Follow the `ResearchArtifact` schema: `title`, `content` (Markdown), `sources` (List[Dict]), `suggestions` (List[str]).
 - **Tone**: Academic, objective, clinical, and precise.
+
+## Related Code
+- **Tool Implementations**: 
+  - [`lib/ai/tools/research/pubmed.ts`](../../lib/ai/tools/research/pubmed.ts) - PubMed search integration.
+  - [`lib/ai/tools/research/perplexity.ts`](../../lib/ai/tools/research/perplexity.ts) - Perplexity API integration.
+- **Agent Definition**: 
+  - [`lib/ai/agents/research.ts`](../../lib/ai/agents/research.ts) (Verify if exists) or [`lib/ai/tools/index.ts`](../../lib/ai/tools/index.ts).
+- **Data Models**:
+  - [`lib/ai/tools/research/index.ts`](../../lib/ai/tools/research/index.ts) - Exported types and schemas.
