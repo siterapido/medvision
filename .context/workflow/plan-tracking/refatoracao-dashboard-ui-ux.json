@@ -1,0 +1,27 @@
+{
+  "phases": {
+    "phase-1": {
+      "status": "completed",
+      "updatedAt": "2026-01-21T12:44:41.550Z"
+    },
+    "phase-3": {
+      "status": "completed",
+      "updatedAt": "2026-01-20T21:21:08.484Z"
+    }
+  },
+  "progress": 67,
+  "decisions": [
+    {
+      "title": "Sistema de Tokens de Agentes Implementado",
+      "description": "Implementado sistema completo de tokens de agentes em `lib/agent-themes.ts` com suporte a:\n- Cores primárias, accent e glow para cada agente\n- Gradientes personalizados\n- Funções utilitárias para gerar CSS vars\n- Integração com componente AgentIdentity\n\nAgentes configurados: chat, pesquisas, escritor, imagens, resumos, questionarios, cursos, materiais.\n\nO componente AgentIdentity foi atualizado para suportar efeitos de glow dinâmicos baseados no tema do agente ativo, melhorando a identidade visual e experiência do usuário.",
+      "phase": "E",
+      "alternatives": [
+        "Usar apenas Tailwind classes estáticas",
+        "Criar um sistema de tema global com Context API"
+      ],
+      "status": "accepted",
+      "id": "dec-1768999495885",
+      "decidedAt": "2026-01-21T12:44:55.885Z"
+    }
+  ]
+}

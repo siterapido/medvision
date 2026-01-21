@@ -39,6 +39,14 @@
       "summary": "Simplificar a orquestração de agentes, padronizar protocolos de resposta e limpar artefatos legados na documentação de contexto.",
       "linkedAt": "2026-01-20T16:30:13.776Z",
       "status": "active"
+    },
+    {
+      "slug": "refatoracao-dashboard-ui-ux",
+      "path": "plans/refatoracao-dashboard-ui-ux.md",
+      "title": "Plano de Refatoração de UI/UX do Dashboard",
+      "summary": "Plano abrangente para refatorar o Front-end do Dashboard, alinhando-o visualmente à Landing Page, implementando temas Claro/Escuro robustos, personificação de agentes e otimização Mobile-First.",
+      "linkedAt": "2026-01-20T21:02:58.377Z",
+      "status": "active"
     }
   ],
   "completed": [],
