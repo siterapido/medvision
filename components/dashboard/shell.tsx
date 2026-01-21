@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react"
 import { usePathname, useRouter } from "next/navigation"
+import { Menu } from "lucide-react"
 
-import { DashboardHeader } from "@/components/dashboard/header"
+import { NewSidebar } from "@/components/dashboard/new-sidebar"
 import {
-  DashboardSidebar,
   DashboardSidebarContent,
   DashboardSidebarTopBar,
 } from "@/components/dashboard/sidebar"
@@ -14,6 +14,7 @@ import { resolveUserRole } from "@/lib/auth/roles"
 import type { DashboardProfile } from "@/components/dashboard/types"
 import type { User } from "@supabase/supabase-js"
 import { TrialCountdownBanner } from "@/components/trial/trial-countdown-banner"
+import { Logo } from "@/components/logo"
 
 interface DashboardLayoutShellProps {
   user: User
@@ -22,30 +23,30 @@ interface DashboardLayoutShellProps {
 }
 
 export function DashboardLayoutShell({ user, profile, children }: DashboardLayoutShellProps) {
-  const SIDEBAR_STORAGE_KEY = "dashboard-sidebar-visible"
+  const SIDEBAR_STORAGE_KEY = "dashboard-sidebar-collapsed"
   const [isDrawerOpen, setIsDrawerOpen] = useState(false)
-  const [isSidebarVisible, setIsSidebarVisible] = useState(() => {
+  
+  // Estado para controlar se a sidebar está colapsada (Desktop)
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     if (typeof window === "undefined") {
-      return true
+      return false // Padrão expandido
     }
     const storedValue = window.localStorage.getItem(SIDEBAR_STORAGE_KEY)
-    if (storedValue === "false") {
-      return false
-    }
-    return true
+    return storedValue === "true"
   })
+
   const [isDesktop, setIsDesktop] = useState(() => {
     if (typeof window === "undefined") {
       return false
     }
     return window.matchMedia("(min-width: 768px)").matches
   })
+  
   const pathname = usePathname()
 
+  // Monitora resize para desktop
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return undefined
-    }
+    if (typeof window === "undefined") return
 
     const mediaQuery = window.matchMedia("(min-width: 768px)")
     const handleMediaChange = (event: MediaQueryListEvent) => {
@@ -53,33 +54,23 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
     }
 
     mediaQuery.addEventListener("change", handleMediaChange)
-    return () => {
-      mediaQuery.removeEventListener("change", handleMediaChange)
-    }
+    return () => mediaQuery.removeEventListener("change", handleMediaChange)
   }, [])
 
+  // Persiste estado da sidebar
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return
-    }
+    if (typeof window === "undefined") return
+    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(isSidebarCollapsed))
+  }, [isSidebarCollapsed])
 
-    window.localStorage.setItem(SIDEBAR_STORAGE_KEY, String(isSidebarVisible))
-  }, [isSidebarVisible])
-
+  // Fecha drawer ao navegar
   useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      setIsDrawerOpen(false)
-    }, 0)
-
-    return () => {
-      window.clearTimeout(timeout)
-    }
+    setIsDrawerOpen(false)
   }, [pathname])
 
+  // Gerencia scroll do body quando drawer abre
   useEffect(() => {
-    if (!isDrawerOpen) {
-      return undefined
-    }
+    if (!isDrawerOpen) return
 
     const originalOverflow = document.body.style.overflow
     document.body.style.overflow = "hidden"
@@ -88,75 +79,19 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
     }
   }, [isDrawerOpen])
 
+  // Fecha drawer com ESC
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
         setIsDrawerOpen(false)
       }
     }
-
     document.addEventListener("keydown", handleEscape)
-    return () => {
-      document.removeEventListener("keydown", handleEscape)
-    }
+    return () => document.removeEventListener("keydown", handleEscape)
   }, [])
 
-  useEffect(() => {
-    if (!(isDesktop && isDrawerOpen)) {
-      return undefined
-    }
-
-    const timeout = window.setTimeout(() => {
-      setIsDrawerOpen(false)
-    }, 0)
-
-    return () => {
-      window.clearTimeout(timeout)
-    }
-  }, [isDesktop, isDrawerOpen])
-
-  useEffect(() => {
-    if (!isDrawerOpen || isDesktop) {
-      return undefined
-    }
-
-    let startX: number | null = null
-    const handleTouchStart = (event: TouchEvent) => {
-      startX = event.touches[0].clientX
-    }
-
-    const handleTouchMove = (event: TouchEvent) => {
-      if (startX === null) {
-        return
-      }
-      const currentX = event.touches[0].clientX
-      if (startX - currentX > 60) {
-        setIsDrawerOpen(false)
-        startX = null
-      }
-    }
-
-    const handleTouchEnd = () => {
-      startX = null
-    }
-
-    document.addEventListener("touchstart", handleTouchStart)
-    document.addEventListener("touchmove", handleTouchMove)
-    document.addEventListener("touchend", handleTouchEnd)
-
-    return () => {
-      document.removeEventListener("touchstart", handleTouchStart)
-      document.removeEventListener("touchmove", handleTouchMove)
-      document.removeEventListener("touchend", handleTouchEnd)
-    }
-  }, [isDrawerOpen, isDesktop])
-
   const handleToggleSidebar = () => {
-    if (isDesktop) {
-      setIsSidebarVisible((prev) => !prev)
-    } else {
-      setIsDrawerOpen((prev) => !prev)
-    }
+    setIsSidebarCollapsed(prev => !prev)
   }
 
   const closeDrawer = () => setIsDrawerOpen(false)
@@ -164,10 +99,6 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
   const router = useRouter()
   const supabase = createClient()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
-
-  const planLabel = ((user.user_metadata ?? {}) as { plan?: string }).plan || "Free"
-  const resolvedUserRole = resolveUserRole(profile?.role, user)
-  const roleLabel = resolvedUserRole === "admin" ? "Administrador" : "Membro"
 
   const handleLogout = async () => {
     try {
@@ -182,18 +113,26 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
     }
   }
 
-  const isTrialExpired =
-    profile?.plan_type === 'free' &&
-    profile?.trial_ends_at &&
-    new Date(profile.trial_ends_at) < new Date()
-
   return (
-    <div className={`h-screen supports-[height:100dvh]:h-[100dvh] flex overflow-hidden ${pathname === '/dashboard/chat' || pathname?.startsWith('/dashboard/cursos') || pathname?.startsWith('/dashboard/resumos') || pathname?.startsWith('/dashboard/pesquisas') || pathname?.startsWith('/dashboard/questionarios') || pathname?.startsWith('/dashboard/escritor') || pathname?.startsWith('/dashboard/imagens') || pathname === '/dashboard/upgrade' ? 'bg-slate-950' : 'bg-slate-50'}`}>
-      <DashboardSidebar
-        isVisible={isSidebarVisible}
-        isTrialExpired={!!isTrialExpired}
-      />
-      <div className={`flex flex-1 flex-col min-h-0 ${pathname === '/dashboard/chat' ? 'overflow-hidden' : ''}`}>
+    <div className="flex h-screen overflow-hidden bg-background text-foreground">
+      {/* Desktop Sidebar (New Style) */}
+      <div className="hidden md:block h-full shrink-0 z-30">
+        <NewSidebar 
+          isCollapsed={isSidebarCollapsed} 
+          toggleCollapse={handleToggleSidebar}
+          onLogout={handleLogout}
+        />
+      </div>
+
+      <div className="flex flex-1 flex-col min-w-0 overflow-hidden relative">
+        {/* Mobile Header */}
+        <div className="md:hidden flex items-center justify-between p-4 border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-20">
+          <button onClick={() => setIsDrawerOpen(true)} className="p-2 -ml-2 hover:bg-muted rounded-md">
+            <Menu className="w-6 h-6" />
+          </button>
+          <Logo width={100} height={24} />
+          <div className="w-8" /> {/* Spacer para centralizar logo visualmente */}
+        </div>
 
         {/* Banner de Trial */}
         <TrialCountdownBanner
@@ -201,56 +140,36 @@ export function DashboardLayoutShell({ user, profile, children }: DashboardLayou
           planType={profile?.plan_type}
         />
 
-        <div className="shrink-0 z-20 relative">
-          <DashboardHeader
-            user={user}
-            profile={profile}
-            isSidebarVisible={isSidebarVisible}
-            isDrawerOpen={isDrawerOpen}
-            onToggleSidebar={handleToggleSidebar}
-            isLoggingOut={isLoggingOut}
-            onLogout={handleLogout}
-          />
-        </div>
-        <main
-          className={`flex flex-1 flex-col min-h-0 ${pathname === "/dashboard/chat" || pathname?.startsWith("/dashboard/cursos") || pathname?.startsWith("/dashboard/resumos") || pathname?.startsWith("/dashboard/pesquisas") || pathname?.startsWith("/dashboard/questionarios") || pathname?.startsWith("/dashboard/escritor") || pathname?.startsWith("/dashboard/imagens")
-            ? "bg-transparent p-0 overflow-hidden"
-            : pathname === "/dashboard/upgrade"
-              ? "bg-transparent p-0 overflow-y-auto"
-              : "bg-[#eff4fb] pt-4 px-4 md:pt-6 md:px-6 lg:pt-8 lg:px-8 overflow-y-auto"
-            }`}
-        >
-          {children}
+        {/* Conteúdo Principal */}
+        <main className="flex-1 overflow-y-auto scroll-smooth custom-scrollbar relative w-full">
+           {children}
         </main>
-
       </div>
 
+      {/* Mobile Drawer (Overlay) */}
       <>
         <div
-          className={`fixed inset-0 z-40 bg-slate-950/75 transition-opacity duration-300 md:hidden ${isDrawerOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-            }`}
-          aria-hidden={!isDrawerOpen}
+          className={cn(
+            "fixed inset-0 z-40 bg-background/80 backdrop-blur-sm transition-opacity duration-300 md:hidden",
+            isDrawerOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+          )}
           onClick={closeDrawer}
         />
         <aside
-          className={`fixed inset-y-0 left-0 z-50 w-[200px] max-w-[80vw] transform overflow-hidden transition-transform duration-300 md:hidden ${isDrawerOpen ? "translate-x-0" : "-translate-x-full"
-            }`}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Navegação da dashboard"
+          className={cn(
+            "fixed inset-y-0 left-0 z-50 w-[240px] max-w-[80vw] bg-sidebar border-r border-border shadow-2xl transform transition-transform duration-300 md:hidden flex flex-col",
+            isDrawerOpen ? "translate-x-0" : "-translate-x-full"
+          )}
         >
-          <div className="flex h-full flex-col divide-y divide-slate-900 border-r border-slate-800 bg-gradient-to-b from-slate-950 to-slate-900 shadow-2xl">
-            <DashboardSidebarTopBar onClose={closeDrawer} />
-            <div className="flex flex-1 flex-col overflow-y-auto">
-              <DashboardSidebarContent
+          <DashboardSidebarTopBar onClose={closeDrawer} />
+          <div className="flex-1 overflow-y-auto">
+             <DashboardSidebarContent
                 onClose={closeDrawer}
-                className="px-6 pb-8"
                 isLoggedIn={Boolean(user)}
                 isLoggingOut={isLoggingOut}
                 onLogout={handleLogout}
-                isTrialExpired={!!isTrialExpired}
-              />
-            </div>
+                // isTrialExpired={...} // Se necessário passar
+             />
           </div>
         </aside>
       </>

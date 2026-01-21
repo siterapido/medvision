@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation"
+import { SearchHome } from "@/components/dashboard/search-home"
 
 export default function DashboardPage() {
-  redirect("/dashboard/chat")
+  return <SearchHome />
 }
