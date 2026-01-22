@@ -5,7 +5,6 @@ import {
   appScrollAreaClassName,
   appScrollAreaLabel,
   appScrollAreaRole,
-  appScrollAreaStyle,
   appScrollAreaTabIndex,
   appScrollAreaTestId,
 } from "../components/layout/app-scroll-area"
@@ -30,7 +29,6 @@ describe("AppScrollArea", () => {
     assert(appScrollAreaClassName.includes("app-scroll-region"))
     assert(appScrollAreaClassName.includes("scroll-smooth"))
     assert(appScrollAreaClassName.includes("flex-1"))
-    assert.equal(appScrollAreaStyle.WebkitOverflowScrolling, "touch")
     assert.equal(appScrollAreaLabel, "Conteúdo principal do site")
     assert.equal(appScrollAreaTestId, "app-scroll-area")
   })

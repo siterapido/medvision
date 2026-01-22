@@ -5,122 +5,152 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Custom Odonto GPT color palette - medical professional theme */
+  /* Vercel Geist Design System - Light Theme */
   --background: #ffffff;
-  --foreground: #1a1a1a;
+  --background-secondary: #fafafa;
+  --foreground: #171717;
 
-  /* Primary: Medical teal/cyan - trustworthy and professional */
-  --primary: #0891b2;
+  /* Gray Scale - Vercel Style */
+  --gray-100: #f5f5f5;
+  --gray-200: #e5e5e5;
+  --gray-300: #d4d4d4;
+  --gray-400: #a3a3a3;
+  --gray-500: #737373;
+  --gray-600: #525252;
+  --gray-700: #404040;
+  --gray-800: #262626;
+  --gray-900: #171717;
+
+  /* Primary: Vercel Blue */
+  --primary: #0070f3;
   --primary-foreground: #ffffff;
-  --primary-hover: #0e7490;
+  --primary-hover: #0060df;
 
-  /* Secondary: Soft blue-gray for secondary actions */
-  --secondary: #64748b;
-  --secondary-foreground: #ffffff;
+  /* Secondary: Neutral gray */
+  --secondary: #f5f5f5;
+  --secondary-foreground: #171717;
 
-  /* Accent: Vibrant teal for highlights */
-  --accent: #06b6d4;
+  /* Accent: Vercel cyan/teal for highlights */
+  --accent: #00a8ff;
   --accent-foreground: #ffffff;
 
   /* Neutrals */
-  --muted: #f8fafc;
-  --muted-foreground: #64748b;
+  --muted: #fafafa;
+  --muted-foreground: #737373;
   --card: #ffffff;
-  --card-foreground: #1a1a1a;
+  --card-foreground: #171717;
   --popover: #ffffff;
-  --popover-foreground: #1a1a1a;
+  --popover-foreground: #171717;
 
-  /* Borders and inputs */
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #0891b2;
+  /* Borders and inputs - Vercel style */
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #0070f3;
 
-  /* Sidebar specific */
-  --sidebar: #f8fafc;
-  --sidebar-foreground: #1a1a1a;
-  --sidebar-primary: #0891b2;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f0fdfa;
-  --sidebar-accent-foreground: #0891b2;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #0891b2;
+  /* Sidebar specific - Odonto GPT Identity (Blue) */
+  --sidebar: #0F192F;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #22d3ee;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #16243F;
+  --sidebar-accent-foreground: #22d3ee;
+  --sidebar-border: #1E293B;
+  --sidebar-ring: #22d3ee;
+  --sidebar-muted: #94a3b8;
 
-  /* Status colors */
-  --destructive: #ef4444;
+  /* Status colors - Vercel palette */
+  --destructive: #e5484d;
   --destructive-foreground: #ffffff;
-  --success: #10b981;
+  --success: #45a557;
   --success-foreground: #ffffff;
-  --warning: #f59e0b;
-  --warning-foreground: #ffffff;
+  --warning: #f5a623;
+  --warning-foreground: #171717;
+  --info: #0070f3;
+  --info-foreground: #ffffff;
 
   /* Chart colors */
-  --chart-1: #0891b2;
-  --chart-2: #06b6d4;
-  --chart-3: #22d3ee;
-  --chart-4: #67e8f9;
-  --chart-5: #a5f3fc;
+  --chart-1: #0070f3;
+  --chart-2: #00a8ff;
+  --chart-3: #7928ca;
+  --chart-4: #ff0080;
+  --chart-5: #f5a623;
 
   --radius: 0.5rem;
 
-  /* Shadow system */
+  /* Shadow system - Vercel style */
   --shadow-x: 0px;
   --shadow-y: 1px;
   --shadow-blur: 3px;
   --shadow-spread: 0px;
-  --shadow-opacity: 0.1;
-  --shadow-color: #0891b2;
+  --shadow-opacity: 0.08;
+  --shadow-color: #000000;
 }
 
 .dark {
-  /* Dark mode with medical professional aesthetic */
-  --background: #0f172a;
-  --foreground: #f1f5f9;
+  /* Vercel Geist Design System - Dark Theme */
+  --background: #080D19;
+  --background-secondary: #0F192F;
+  --foreground: #ededed;
 
-  --primary: #06b6d4;
-  --primary-foreground: #0f172a;
-  --primary-hover: #0891b2;
+  /* Gray Scale - Vercel Dark Style */
+  --gray-100: #1a1a1a;
+  --gray-200: #262626;
+  --gray-300: #404040;
+  --gray-400: #525252;
+  --gray-500: #737373;
+  --gray-600: #a3a3a3;
+  --gray-700: #d4d4d4;
+  --gray-800: #e5e5e5;
+  --gray-900: #f5f5f5;
 
-  --secondary: #475569;
-  --secondary-foreground: #f1f5f9;
+  --primary: #0070f3;
+  --primary-foreground: #ffffff;
+  --primary-hover: #0060df;
 
-  --accent: #22d3ee;
-  --accent-foreground: #0f172a;
+  --secondary: #262626;
+  --secondary-foreground: #ededed;
 
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --card: #1e293b;
-  --card-foreground: #f1f5f9;
-  --popover: #1e293b;
-  --popover-foreground: #f1f5f9;
+  --accent: #00a8ff;
+  --accent-foreground: #ffffff;
 
-  --border: #334155;
-  --input: #334155;
-  --ring: #06b6d4;
+  --muted: #171717;
+  --muted-foreground: #a3a3a3;
+  --card: #16243F;
+  --card-foreground: #ededed;
+  --popover: #16243F;
+  --popover-foreground: #ededed;
 
-  --sidebar: #1e293b;
-  --sidebar-foreground: #f1f5f9;
-  --sidebar-primary: #06b6d4;
-  --sidebar-primary-foreground: #0f172a;
-  --sidebar-accent: #164e63;
-  --sidebar-accent-foreground: #06b6d4;
-  --sidebar-border: #334155;
-  --sidebar-ring: #06b6d4;
+  --border: #262626;
+  --input: #262626;
+  --ring: #0070f3;
 
-  --destructive: #ef4444;
+  --sidebar: #0F192F;
+  --sidebar-foreground: #ededed;
+  --sidebar-primary: #22d3ee;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: #16243F;
+  --sidebar-accent-foreground: #22d3ee;
+  --sidebar-border: #1E293B;
+  --sidebar-ring: #22d3ee;
+  --sidebar-muted: #94a3b8;
+
+  --destructive: #e5484d;
   --destructive-foreground: #ffffff;
-  --success: #10b981;
+  --success: #45a557;
   --success-foreground: #ffffff;
-  --warning: #f59e0b;
-  --warning-foreground: #ffffff;
+  --warning: #f5a623;
+  --warning-foreground: #171717;
+  --info: #0070f3;
+  --info-foreground: #ffffff;
 
-  --chart-1: #06b6d4;
-  --chart-2: #22d3ee;
-  --chart-3: #67e8f9;
-  --chart-4: #a5f3fc;
-  --chart-5: #cffafe;
+  --chart-1: #0070f3;
+  --chart-2: #00a8ff;
+  --chart-3: #7928ca;
+  --chart-4: #ff0080;
+  --chart-5: #f5a623;
 
   --shadow-color: #000000;
-  --shadow-opacity: 0.3;
+  --shadow-opacity: 0.4;
 }
 
 @theme inline {

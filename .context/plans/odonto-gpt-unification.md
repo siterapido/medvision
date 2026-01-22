@@ -33,7 +33,6 @@ A classe `Team` definida em `team.py` será refatorada para se tornar a identida
 3.  **Integração com `ai-context`**:
     *   Nas instruções da `Team`, adicionar regras claras baseadas nos arquivos `.context`:
         *   `Se o contexto indicar necessidade de imagem -> Delegar para Odonto Vision`
-        *   `Se o contexto indicar dúvida acadêmica profunda -> Delegar para Odonto Research`
 
 ### Fase 2: Limpeza e Simplificação
 *   Remover a necessidade de chamar `odonto_gpt` separadamente. Ele passa a ser um "membro interno" transparente.

@@ -1,17 +1,17 @@
 "use client"
 
-import { useState, useCallback, useRef } from "react"
+import { useState, useCallback, useEffect } from "react"
+import { useChat } from "@ai-sdk/react"
+import { createClient } from "@/lib/supabase/client"
 import {
-    generateMessageId,
     type ChatMessage,
     type AgentDetails,
     type SessionEntry,
-    type AgnoStreamEvent,
+    generateMessageId,
 } from "@/lib/agno"
-import { AGENT_IDS } from "@/lib/constants"
 
 interface UseAgnoChatOptions {
-    baseUrl?: string
+    baseUrl?: string // Deprecated but kept for compatibility
     userId: string
     onArtifactCreated?: (artifact: any) => void
     onError?: (error: string) => void
@@ -30,424 +30,187 @@ interface UseAgnoChatReturn {
     loadSessions: () => Promise<void>
 }
 
-/**
- * Hook for managing chat with Custom Agno Service
- * Handles streaming responses and session management
- */
 export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
-    const {
-        baseUrl = process.env.NEXT_PUBLIC_AGNO_SERVICE_URL || "http://localhost:8000/api/v1",
-        userId,
-        onArtifactCreated,
-        onError
-    } = options
-
-    const [messages, setMessages] = useState<ChatMessage[]>([])
+    const { userId, onArtifactCreated, onError } = options
     const [sessionId, setSessionId] = useState<string | null>(null)
     const [sessions, setSessions] = useState<SessionEntry[]>([])
-    const [isStreaming, setIsStreaming] = useState(false)
     const [isLoadingSessions, setIsLoadingSessions] = useState(false)
     const [error, setError] = useState<string | null>(null)
 
-    const abortControllerRef = useRef<AbortController | null>(null)
+    // Supabase client
+    const supabase = createClient()
 
-    /**
-     * Send a message to the agent and stream the response
-     */
-    const sendMessage = useCallback(
-        async (message: string, agent: AgentDetails, imageUrl?: string) => {
-            if ((!message.trim() && !imageUrl) || isStreaming) return
-
-            setError(null)
-            setIsStreaming(true)
-
-            let currentSessionId = sessionId
-
-            // Generate temporary message ID for UI optimistic update
-            const userMessageId = generateMessageId()
-            const agentMessageId = generateMessageId()
-
-            // Optimistic UI updates
-            const userMessage: ChatMessage = {
-                id: userMessageId,
-                role: "user",
-                content: message,
-                created_at: Math.floor(Date.now() / 1000),
-                images: imageUrl ? [imageUrl] : undefined
-            }
-
-            setMessages((prev) => [...prev, userMessage])
-
-            const agentMessageStub: ChatMessage = {
-                id: agentMessageId,
-                role: "agent",
-                content: "",
-                created_at: Math.floor(Date.now() / 1000),
-                isStreaming: true,
-                agent_id: agent.id,
-            }
-            setMessages((prev) => [...prev, agentMessageStub])
-
-            // Abort any existing request
-            if (abortControllerRef.current) {
-                abortControllerRef.current.abort()
-            }
-            abortControllerRef.current = new AbortController()
-
-            try {
-                // 1. Create session if it doesn't exist
-                if (!currentSessionId) {
-                    try {
-                        const sessionRes = await fetch(`${baseUrl}/sessions`, {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                                userId,
-                                // Backend expects: 'image-analysis', 'qa', or 'auto'
-                                agentType: agent.id === AGENT_IDS.VISION ? "image-analysis" : "qa",
-                                metadata: {
-                                    title: message.substring(0, 50) + (message.length > 50 ? "..." : "")
-                                }
-                            })
-                        })
-
-                        if (!sessionRes.ok) {
-                            throw new Error("Failed to create session")
-                        }
-
-                        const sessionData = await sessionRes.json()
-                        currentSessionId = sessionData.id
-                        setSessionId(currentSessionId)
-
-                        // Add to sessions list immediately
-                        const newSessionEntry: SessionEntry = {
-                            session_id: sessionData.id,
-                            session_name: sessionData.metadata?.title || "Nova Conversa",
-                            created_at: Math.floor(Date.now() / 1000)
-                        }
-                        setSessions((prev) => [newSessionEntry, ...prev])
-                    } catch (err) {
-                        console.error("Error creating session:", err)
-                        throw new Error("Erro ao iniciar sessão de chat")
-                    }
-                }
-
-                // 2. Determine the correct endpoint
-                // SIMPLIFICADO: Usar sempre /equipe/chat com forceAgent
-                // O backend cuida do roteamento (automático ou forçado)
-                let endpoint = "/equipe/chat"
-
-                // Exceção: análise de imagem usa endpoint específico
-                if (agent.id === AGENT_IDS.VISION) {
-                    endpoint = "/image/analyze"
-                }
-
-                // 3. Send message to appropriate endpoint
-                const response = await fetch(`${baseUrl}${endpoint}`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({
-                        message,
-                        imageUrl,
-                        userId,
-                        sessionId: currentSessionId,
-                        // Backend expects: 'image-analysis', 'qa', or 'auto'
-                        agentType: agent.id === AGENT_IDS.VISION ? "image-analysis" : "auto",
-                        // Se não for odonto-flow, forçar o agente específico (bypass de roteamento)
-                        forceAgent: agent.id !== AGENT_IDS.FLOW ? agent.id : undefined,
-                        // Context must be an object, not a string (backend expects Dict[str, Any])
-                        context: {},
-                    }),
-                    signal: abortControllerRef.current.signal,
-                })
-
-                if (!response.ok) {
-                    throw new Error(`Erro na requisição: ${response.statusText}`)
-                }
-
-
-
-                const reader = response.body?.getReader()
-                if (!reader) {
-                    throw new Error("Não foi possível ler a resposta")
-                }
-
-                const decoder = new TextDecoder()
-                let buffer = ""
-
-                while (true) {
-                    const { done, value } = await reader.read()
-                    if (done) break
-
-                    buffer += decoder.decode(value, { stream: true })
-
-                    // Split by newlines to process NDJSON
-                    const lines = buffer.split('\n')
-
-                    // Keep the last chunk in buffer if it's not a complete line
-                    buffer = lines.pop() || ""
-
-                    for (const line of lines) {
-                        if (!line.trim()) continue
-
-                        try {
-                            const event = JSON.parse(line) as AgnoStreamEvent
-
-                            switch (event.type) {
-                                case "run.started":
-                                    // Could handle run start
-                                    break
-
-                                case "agent.switch": {
-                                    const rawAgentId = event.agentId || event.agent_id;
-                                    if (rawAgentId) {
-                                        // Usar o ID retornado pelo backend diretamente
-                                        // O backend já garante o formato correto (odonto-research, odonto-practice, etc)
-                                        setMessages((prev) =>
-                                            prev.map((msg) =>
-                                                msg.id === agentMessageId
-                                                    ? { ...msg, agent_id: rawAgentId }
-                                                    : msg
-                                            )
-                                        )
-                                    }
-                                    break;
-                                }
-
-                                case "text.delta":
-                                    setMessages((prev) =>
-                                        prev.map((msg) =>
-                                            msg.id === agentMessageId
-                                                ? { ...msg, content: (msg.content || "") + event.content }
-                                                : msg
-                                        )
-                                    )
-                                    break
-
-                                case "artifact.created":
-                                    console.log("Artifact created:", event.artifact)
-                                    if (onArtifactCreated) {
-                                        onArtifactCreated(event.artifact)
-                                    }
-                                    break
-
-                                case "tool_call.start":
-                                    // Log tool call start for debugging
-                                    console.log(`[ToolCall] Starting ${event.toolCallName}`);
-
-                                    setMessages((prev) =>
-                                        prev.map((msg) => {
-                                            if (msg.id === agentMessageId) {
-                                                const newToolCalls = [...(msg.tool_calls || [])]
-                                                newToolCalls.push({
-                                                    tool_call_id: event.toolCallId,
-                                                    tool_name: event.toolCallName,
-                                                    result: undefined // In progress
-                                                })
-                                                return { ...msg, tool_calls: newToolCalls }
-                                            }
-                                            return msg
-                                        })
-                                    )
-                                    break
-
-                                case "tool_call.result":
-                                    // Handle artifact detection from tool result
-                                    const toolName = event.toolCallName || "";
-                                    const result = event.result || "";
-
-                                    if (result && typeof result === 'string' && result.includes('"success": true')) {
-                                        try {
-                                            const parsed = JSON.parse(result);
-                                            if (parsed.artifact && onArtifactCreated) {
-                                                console.log("[useAgnoChat] Artefato detectado via tool result:", parsed.artifact);
-                                                onArtifactCreated(parsed.artifact);
-                                            }
-                                        } catch (e) {
-                                            // Ignore parsing error
-                                        }
-                                    }
-
-                                    setMessages((prev) =>
-                                        prev.map((msg) => {
-                                            if (msg.id === agentMessageId && msg.tool_calls && msg.tool_calls.length > 0) {
-                                                const newToolCalls = [...msg.tool_calls]
-                                                // Try to match by name or ID if available, otherwise use last one
-                                                const toolIndex = event.toolCallId !== "unknown"
-                                                    ? newToolCalls.findIndex(tc => tc.tool_call_id === event.toolCallId)
-                                                    : newToolCalls.findLastIndex(tc => tc.tool_name === toolName && tc.result === undefined);
-
-                                                const indexToUpdate = toolIndex !== -1 ? toolIndex : newToolCalls.findLastIndex(tc => tc.result === undefined);
-
-                                                if (indexToUpdate !== -1) {
-                                                    newToolCalls[indexToUpdate] = { ...newToolCalls[indexToUpdate], result: result };
-                                                }
-                                                return { ...msg, tool_calls: newToolCalls }
-                                            }
-                                            return msg
-                                        })
-                                    )
-                                    break
-
-                                case "error":
-                                    throw new Error(event.message)
-                            }
-                        } catch (e) {
-                            // Log parse errors but don't append invalid JSON as content
-                            // This prevents malformed JSON from appearing in chat messages
-                            console.error("[useAgnoChat] Invalid NDJSON event:", line.substring(0, 100))
-                        }
-                    }
-                }
-
-                // Process remaining buffer
-                if (buffer.trim()) {
-                    try {
-                        const event = JSON.parse(buffer)
-                        if (event.type === "text.delta") {
-                            setMessages((prev) =>
-                                prev.map((msg) =>
-                                    msg.id === agentMessageId
-                                        ? { ...msg, content: (msg.content || "") + event.content }
-                                        : msg
-                                )
-                            )
-                        }
-                    } catch (e) {
-                        // ignore or append
-                    }
-                }
-
-            } catch (err) {
-                if ((err as Error).name === "AbortError") {
-                    return // Ignore abort errors
-                }
-
-                const errorMessage = err instanceof Error ? err.message : "Erro desconhecido"
-                setError(errorMessage)
-                onError?.(errorMessage)
-
-                setMessages((prev) =>
-                    prev.map((msg) =>
-                        msg.id === agentMessageId
-                            ? { ...msg, content: errorMessage, streamingError: true, isStreaming: false }
-                            : msg
-                    )
-                )
-            } finally {
-                setIsStreaming(false)
-
-                // Final update to unset streaming flag
-                setMessages((prev) =>
-                    prev.map((msg) =>
-                        msg.id === agentMessageId
-                            ? { ...msg, isStreaming: false }
-                            : msg
-                    )
-                )
-
-                abortControllerRef.current = null
-            }
+    const { messages, append, setMessages, isLoading, stop } = useChat({
+        api: "/api/chat",
+        id: sessionId || undefined,
+        body: {
+            userId,
+            sessionId // Pass current session ID to reuse it on server
         },
-        [baseUrl, userId, sessionId, isStreaming, onError]
-    )
-
-    /**
-     * Clear chat and start new session
-     */
-    const clearChat = useCallback(() => {
-        if (abortControllerRef.current) {
-            abortControllerRef.current.abort()
+        onFinish: (message: any) => {
+            // Check for tool invocations that created artifacts
+            message.toolInvocations?.forEach((tool: any) => {
+                if (tool.state === 'result') {
+                    try {
+                        // The result is usually a stringified JSON
+                        const resultStr = typeof tool.result === 'string' ? tool.result : JSON.stringify(tool.result);
+                        if (resultStr.includes('"success": true')) {
+                             const result = JSON.parse(resultStr);
+                             if (result.artifact && onArtifactCreated) {
+                                 onArtifactCreated(result.artifact);
+                             }
+                        }
+                    } catch (e) { 
+                        // ignore parse errors
+                    }
+                }
+            })
+        },
+        onError: (err) => {
+            setError(err.message)
+            onError?.(err.message)
+        },
+        onResponse: (response: any) => {
+            // Get session ID from header if available (created on server)
+            const serverSessionId = response.headers.get('x-session-id')
+            if (serverSessionId && !sessionId) {
+                setSessionId(serverSessionId)
+                // Refresh sessions list to show the new one
+                loadSessions()
+            }
         }
-        setMessages([])
-        setSessionId(null)
-        setError(null)
-        setIsStreaming(false)
-    }, [])
+    })
 
-    /**
-     * Load existing sessions
-     */
+    // Map AI SDK messages to Agno ChatMessage format for UI compatibility
+    const mappedMessages: ChatMessage[] = messages.map((m: any) => ({
+        id: m.id,
+        role: m.role === 'assistant' ? 'agent' : m.role as any,
+        content: m.content,
+        created_at: m.createdAt ? new Date(m.createdAt).getTime() / 1000 : Date.now() / 1000,
+        isStreaming: isLoading && m.id === messages[messages.length - 1].id,
+        tool_calls: m.toolInvocations?.map((t: any) => ({
+            tool_call_id: t.toolCallId,
+            tool_name: t.toolName,
+            tool_args: t.args,
+            result: t.state === 'result' ? (typeof t.result === 'string' ? t.result : JSON.stringify(t.result)) : undefined
+        }))
+    }))
+
+    const sendMessage = useCallback(async (message: string, agent: AgentDetails, imageUrl?: string) => {
+        setError(null);
+        
+        // Prepare attachments if image is provided
+        // Vercel AI SDK handles files/images via experimental_attachments or just plain text content if model supports it
+        // We will assume using content array if image is present
+        
+        /* 
+           NOTE: 'append' supports string | CreateMessage. 
+           CreateMessage can have 'content' as string or array of parts.
+        */
+
+        const messageData: any = {
+            role: 'user',
+            content: message
+        };
+
+        // Note: For now, we are sending image URL as text or relying on future implementation of image upload
+        // If imageUrl is a URL, we can pass it. 
+        // Vercel AI SDK standard is evolving. We will pass it as a regular message for now or use the proper structure if supported.
+        // For simplicity in migration, we'll append the image URL to text if present, or use experimental_attachments if configured.
+        
+        await append(messageData, {
+            body: { 
+                agentId: agent.id,
+                sessionId 
+            }
+        });
+    }, [append, sessionId]);
+
+    const clearChat = useCallback(() => {
+        stop();
+        setMessages([]);
+        setSessionId(null);
+        setError(null);
+    }, [stop, setMessages]);
+
     const loadSessions = useCallback(async () => {
         if (!userId) return
-
         setIsLoadingSessions(true)
         try {
-            const response = await fetch(`${baseUrl}/sessions?userId=${userId}`)
+            const { data, error } = await supabase
+                .from('agent_sessions')
+                .select('id, metadata, created_at, agent_type')
+                .eq('user_id', userId)
+                .order('created_at', { ascending: false });
 
-            if (!response.ok) {
-                // If 404/500, just allow empty sessions
-                console.warn("Failed to load sessions")
-                return
-            }
+            if (error) throw error;
 
-            const data = await response.json()
-
-            // Map backend session objects to SessionEntry
             const mappedSessions: SessionEntry[] = data.map((s: any) => ({
                 session_id: s.id,
-                session_name: s.metadata?.title || s.agent_type || "Conversa Sem Título",
+                session_name: s.metadata?.title || s.agent_type || "Nova Conversa",
                 created_at: new Date(s.created_at).getTime() / 1000
-            }))
+            }));
 
-            setSessions(mappedSessions)
-        } catch (error) {
-            console.error("Error loading sessions:", error)
+            setSessions(mappedSessions);
+        } catch (err: any) {
+            console.error("Error loading sessions:", err)
         } finally {
             setIsLoadingSessions(false)
         }
-    }, [baseUrl, userId])
+    }, [userId, supabase]);
 
-    /**
-     * Load messages from an existing session
-     */
-    const loadSession = useCallback(
-        async (targetSessionId: string) => {
-            if (isStreaming) return // Prevent switching while streaming
+    const loadSession = useCallback(async (targetSessionId: string) => {
+        if (isLoading) return; // Prevent switching while streaming
 
-            try {
-                // First clear current chat
-                setMessages([])
-                setError(null)
+        try {
+            setMessages([]); // Clear current
+            setError(null);
+            setSessionId(targetSessionId);
 
-                const response = await fetch(`${baseUrl}/sessions/${targetSessionId}`)
+            // Fetch messages from Supabase
+            const { data, error } = await supabase
+                .from('agent_messages')
+                .select('*')
+                .eq('session_id', targetSessionId)
+                .order('created_at', { ascending: true });
 
-                if (!response.ok) {
-                    throw new Error("Erro ao carregar sessão")
-                }
+            if (error) throw error;
 
-                const data = await response.json()
-
-                if (data && data.messages) {
-                    const loadedMessages: ChatMessage[] = data.messages.map((msg: any) => ({
-                        id: msg.id,
-                        role: msg.role,
-                        content: msg.content,
-                        created_at: msg.createdAt || Date.now() / 1000,
-                        agent_id: msg.agentId || msg.agent_id,  // Extrair agent_id do backend
-                        tool_calls: msg.toolCalls,
-                        images: msg.metadata?.images,
-                    }))
-
-                    setMessages(loadedMessages)
-                    setSessionId(targetSessionId)
-                }
-            } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : "Erro ao carregar sessão"
-                setError(errorMessage)
-                onError?.(errorMessage)
+            if (data) {
+                const loadedMessages: any[] = data.map((msg: any) => ({
+                    id: msg.id,
+                    role: msg.role,
+                    content: msg.content || "",
+                    createdAt: new Date(msg.created_at),
+                    toolInvocations: msg.tool_calls ? msg.tool_calls.map((tc: any) => ({
+                        toolCallId: tc.tool_call_id || tc.id, // Adaptation
+                        toolName: tc.tool_name || tc.function?.name,
+                        args: tc.tool_args || JSON.parse(tc.function?.arguments || "{}"),
+                        state: 'result',
+                        result: tc.result || "Completed"
+                    })) : undefined
+                }));
+                
+                setMessages(loadedMessages);
             }
-        },
-        [baseUrl, isStreaming, onError]
-    )
+        } catch (err: any) {
+            setError(err.message);
+            onError?.(err.message);
+        }
+    }, [isLoading, onError, setMessages, supabase]);
+
+    // Initial load
+    useEffect(() => {
+        if (userId) {
+            loadSessions();
+        }
+    }, [userId, loadSessions]);
 
     return {
-        messages,
+        messages: mappedMessages,
         sessionId,
         sessions,
-        isStreaming,
+        isStreaming: isLoading,
         isLoadingSessions,
         error,
         sendMessage,

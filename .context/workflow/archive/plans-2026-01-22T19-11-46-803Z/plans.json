@@ -1,0 +1,14 @@
+{
+  "active": [
+    {
+      "slug": "odontoflix-implementation",
+      "path": "plans/odontoflix-implementation.md",
+      "title": "OdontoFlix - Sistema de Cursos Estilo Netflix",
+      "summary": "Last updated: 2026-01-22T18:57:03.216Z | Progress: 100%",
+      "linkedAt": "2026-01-22T18:57:11.799Z",
+      "status": "active"
+    }
+  ],
+  "completed": [],
+  "primary": "odontoflix-implementation"
+}

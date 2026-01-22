@@ -8,6 +8,7 @@ import { Logo } from "@/components/logo"
 import { resolveUserRole } from "@/lib/auth/roles"
 import { createClient } from "@/lib/supabase/client"
 import {
+  Award,
   BookOpen,
   Bot,
   FileText,
@@ -51,6 +52,7 @@ const allNavigationItems: NavItem[] = [
   { name: "Agentes IA", href: "/admin/agentes", icon: Bot },
   { name: "Pipeline", href: "/admin/pipeline", icon: Workflow },
   { name: "Trials", href: "/admin/trials", icon: Sparkles },
+  { name: "Certificados", href: "/admin/certificados", icon: Award },
   { name: "Usuários", href: "/admin/usuarios", icon: Users },
 ]
 

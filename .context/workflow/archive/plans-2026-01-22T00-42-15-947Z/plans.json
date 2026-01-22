@@ -1,0 +1,46 @@
+{
+  "active": [
+    {
+      "slug": "corrigir-erro-cors-backend",
+      "path": "plans/corrigir-erro-cors-backend.md",
+      "title": "Correção de Erro CORS em Produção",
+      "summary": "Adicionar o domínio de produção www.odontogpt.com à lista de origens permitidas (CORS) no serviço backend FastAPI.",
+      "linkedAt": "2026-01-19T21:26:24.492Z",
+      "status": "active"
+    },
+    {
+      "slug": "test-chat-flow",
+      "path": "plans/test-chat-flow.md",
+      "title": "Plano de Teste: Fluxo Integrado do Chat Principal",
+      "summary": "Plano de teste abrangente focado na orquestração entre agentes (Research, Summary), métricas de latência e validação rigorosa de artefatos.",
+      "linkedAt": "2026-01-19T23:52:28.350Z",
+      "status": "active"
+    },
+    {
+      "slug": "optimize-routing-perf",
+      "path": "plans/optimize-routing-perf.md",
+      "title": "Plano de Otimização: Roteamento Inteligente & Performance",
+      "summary": "Melhoria do sistema de roteamento (migração para busca semântica) e otimização de performance (caching, streaming especulativo) para reduzir latência.",
+      "linkedAt": "2026-01-20T00:09:04.539Z",
+      "status": "active"
+    },
+    {
+      "slug": "advanced-optimization-plan",
+      "path": "plans/advanced-optimization-plan.md",
+      "title": "Plano de Otimização Avançada (Cache & UX)",
+      "summary": "Plano para implementar Cache Semântico (Redis/Supabase), refinar roteamento multi-agente e introduzir Streaming Especulativo para melhor UX.",
+      "linkedAt": "2026-01-20T01:54:42.846Z",
+      "status": "active"
+    },
+    {
+      "slug": "code-simplification-plan",
+      "path": "plans/code-simplification-plan.md",
+      "title": "Plano de Simplificação de Código e Contexto IA",
+      "summary": "Simplificar a orquestração de agentes, padronizar protocolos de resposta e limpar artefatos legados na documentação de contexto.",
+      "linkedAt": "2026-01-20T16:30:13.776Z",
+      "status": "active"
+    }
+  ],
+  "completed": [],
+  "primary": "corrigir-erro-cors-backend"
+}

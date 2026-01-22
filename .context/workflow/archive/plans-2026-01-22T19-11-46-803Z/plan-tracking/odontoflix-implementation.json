@@ -1,0 +1,48 @@
+{
+  "planSlug": "odontoflix-implementation",
+  "progress": 100,
+  "phases": {
+    "P": {
+      "phaseId": "P",
+      "status": "completed",
+      "startedAt": "2026-01-22T18:57:03.216Z",
+      "steps": [
+        {
+          "stepIndex": 1,
+          "description": "Step 1",
+          "status": "completed",
+          "completedAt": "2026-01-22T18:57:03.216Z"
+        }
+      ],
+      "completedAt": "2026-01-22T18:57:03.216Z"
+    },
+    "E": {
+      "phaseId": "E",
+      "status": "completed",
+      "startedAt": "2026-01-22T19:00:04.858Z",
+      "steps": [
+        {
+          "stepIndex": 1,
+          "description": "Step 1",
+          "status": "completed",
+          "completedAt": "2026-01-22T19:00:04.858Z"
+        },
+        {
+          "stepIndex": 2,
+          "description": "Step 2",
+          "status": "completed",
+          "completedAt": "2026-01-22T19:00:05.067Z"
+        },
+        {
+          "stepIndex": 3,
+          "description": "Step 3",
+          "status": "completed",
+          "completedAt": "2026-01-22T19:00:05.191Z"
+        }
+      ],
+      "completedAt": "2026-01-22T19:00:05.191Z"
+    }
+  },
+  "decisions": [],
+  "lastUpdated": "2026-01-22T19:00:05.191Z"
+}

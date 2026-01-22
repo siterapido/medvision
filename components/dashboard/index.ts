@@ -1,2 +1,3 @@
-export { QuickCreateArtifact } from "./quick-create-artifact"
-export { ArtifactCard } from "./artifact-card"
+export { Sidebar, useSidebar, MobileSidebarTrigger } from './sidebar'
+export { UserProfile } from './user-profile'
+export { ThemeToggle } from './theme-toggle'

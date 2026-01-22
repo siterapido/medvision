@@ -1,22 +1,10 @@
-import { ChatClient } from "@/components/dashboard/chat-client"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { OdontoAIChat } from '@/components/dashboard/odonto-ai-chat'
 
 export const metadata = {
-  title: "Chat IA | Odonto Suite",
-  description: "Converse com nosso assistente de IA especializado em odontologia",
+  title: 'Chat | Odonto GPT',
+  description: 'Converse com seu tutor inteligente de Odontologia',
 }
 
-export default async function ChatPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
-
-  if (error || !user) {
-    redirect("/login")
-  }
-
-  return <ChatClient userId={user.id} />
+export default function ChatPage() {
+  return <OdontoAIChat />
 }

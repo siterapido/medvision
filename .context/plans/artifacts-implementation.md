@@ -6,7 +6,7 @@ status: completed
 
 # Plano de Implementação Completa: Ecossistema de Artefatos Odonto GPT
 
-Este documento descreve a arquitetura completa, fluxo de dados e implementação da interface para os artefatos gerados pelos agentes especializados (Odonto Research, Practice, Vision, Summary).
+Este documento descreve a arquitetura completa, fluxo de dados e implementação da interface para os artefatos gerados pelos agentes especializados (Odonto Practice, Vision, Summary).
 
 ## 1. Visão Geral da Arquitetura
 
@@ -22,7 +22,6 @@ Cada agente é responsável por tipos específicos de artefatos. A persistência
 | Agente | ID | Artefatos Gerados | Ferramentas (Python) | Tabela Supabase | Rota Frontend |
 | :--- | :--- | :--- | :--- | :--- | :--- |
 | **Odonto GPT** | `odonto-gpt` | *Nenhum direto (Triage)* | (Encaminha para especialistas) | - | - |
-| **Odonto Research** | `odonto-research` | Pesquisas Científicas | `save_research` | `research_artifacts` | `/dashboard/pesquisas/[id]` |
 | **Odonto Practice** | `odonto-practice` | Simulados, Questões | `save_practice_exam` | `practice_exams` | `/dashboard/questionarios/[id]` |
 | **Odonto Summary** | `odonto-summary` | Resumos, Flashcards, Mapas Mentais | `save_summary`, `save_flashcards`, `save_mind_map` | `summaries`, `flashcard_decks`, `mind_map_artifacts` | `/dashboard/{resumos|flashcards|mindmaps}/[id]` |
 | **Odonto Vision** | `odonto-vision` | Análise de Imagem | `save_image_analysis` | `image_artifacts` | `/dashboard/imagens/[id]` * |
@@ -55,7 +54,7 @@ Páginas dedicadas para consumo e gestão dos artefatos:
 ## 4. Plano de Ação para Implementação Final
 
 ### Fase 1: Padronização e Correções (Imediato)
--   [x] Verificar ferramentas de salvamento nos agentes (`study`, `summary`, `research` OK).
+-   [x] Verificar ferramentas de salvamento nos agentes (`study`, `summary` OK).
 -   [ ] **Ação**: Adicionar suporte visual para `save_image_analysis` no `AgnoMessage`.
 -   [ ] **Ação**: Criar/Verificar página de detalhes para Análise de Imagem (`/dashboard/imagens/[id]`).
 
@@ -70,7 +69,6 @@ Atualmente, apenas artefatos gerados via ferramentas são salvos. Para permitir 
 ## 5. Estrutura de Tabelas (Referência)
 
 As tabelas já devem existir via migrations (`20260114...` em diante):
--   `research_artifacts`: `id`, `title`, `content` (md), `sources` (json), `suggestions` (array).
 -   `practice_exams`: `id`, `title`, `topic`, `difficulty`.
 -   `practice_questions`: `id`, `exam_id`, `question_text`, `correct_answer`, `explanation`.
 -   `summaries`: `id`, `title`, `content`, `tags`.

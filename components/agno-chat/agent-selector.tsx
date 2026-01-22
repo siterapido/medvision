@@ -1,7 +1,7 @@
 "use client"
 
 import { Bot, Loader2, WifiOff, Sparkles, FlaskConical, GraduationCap, FileText, ScanEye, MessageCircle } from "lucide-react"
-import type { AgentDetails } from "@/lib/agno"
+import type { AgentConfig } from "@/lib/ai/agents/config"
 import {
     Select,
     SelectContent,
@@ -14,9 +14,9 @@ import {
 import { cn } from "@/lib/utils"
 
 interface AgentSelectorProps {
-    agents: AgentDetails[]
-    selectedAgent: AgentDetails | null
-    onSelect: (agent: AgentDetails) => void
+    agents: AgentConfig[]
+    selectedAgent: AgentConfig | null
+    onSelect: (agent: AgentConfig) => void
     isLoading?: boolean
     isConnected?: boolean
     error?: string | null
@@ -69,8 +69,6 @@ export function AgentSelector({
         )
     }
 
-    // Separar agentes: Odonto GPT (automático) vs Especializados (direto)
-    // O ID deve corresponder ao retornado pela API (/agentes)
     const flowAgent = agents.find(a => a.id === 'odonto-gpt')
     const specializedAgents = agents.filter(a => a.id !== 'odonto-gpt')
 

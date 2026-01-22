@@ -37,6 +37,10 @@ interface ProfileFormProps {
     profession?: string
     cro?: string
     company?: string
+    university?: string
+    semester?: string
+    specialty_interest?: string
+    level?: string
   }
 }
 
@@ -46,6 +50,11 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
   const [profession, setProfession] = useState(initialData.profession || "")
   const [cro, setCro] = useState(initialData.cro || "")
   const [company, setCompany] = useState(initialData.company || "")
+  const [university, setUniversity] = useState(initialData.university || "")
+  const [semester, setSemester] = useState(initialData.semester || "")
+  const [specialtyInterest, setSpecialtyInterest] = useState(initialData.specialty_interest || "")
+  const [level, setLevel] = useState(initialData.level || "")
+
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
   const [confirmPassword, setConfirmPassword] = useState("")
@@ -82,6 +91,10 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
           profession: profession,
           cro: cro,
           company: company,
+          university: university,
+          semester: semester,
+          specialty_interest: specialtyInterest,
+          level: level,
         })
         .eq("id", user.id)
 
@@ -149,6 +162,10 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
     setProfession(initialData.profession || "")
     setCro(initialData.cro || "")
     setCompany(initialData.company || "")
+    setUniversity(initialData.university || "")
+    setSemester(initialData.semester || "")
+    setSpecialtyInterest(initialData.specialty_interest || "")
+    setLevel(initialData.level || "")
     setMessage(null)
   }
 
@@ -160,16 +177,16 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
           <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),transparent)] mix-blend-screen" />
         </div>
         <CardHeader className="relative border-b border-white/10 pb-6">
-          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-3">
             <div className="flex flex-wrap items-center gap-2">
               <Badge className="border-white/20 bg-white/10 text-[0.65rem] uppercase tracking-[0.25em] text-white">
                 Perfil clínico
               </Badge>
               <span className="text-xs text-white/60">Sincronizado com a IA do Odonto Suite</span>
             </div>
-            <CardTitle className="text-2xl font-semibold text-white">Informações Pessoais</CardTitle>
+            <CardTitle className="text-2xl font-semibold text-white">Informações Pessoais & Acadêmicas</CardTitle>
             <CardDescription className="max-w-2xl text-white/70">
-              Atualize seus dados básicos para que o copiloto entenda o contexto da clínica e personalize as respostas.
+              Atualize seus dados para que o copiloto entenda seu contexto (universidade, semestre, interesse) e personalize o ensino.
             </CardDescription>
           </div>
         </CardHeader>
@@ -217,8 +234,64 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
               </div>
 
               <div className="space-y-2">
+                <Label htmlFor="university" className="text-white/80">
+                  Universidade / Instituição
+                </Label>
+                <Input
+                  id="university"
+                  type="text"
+                  value={university}
+                  onChange={(e) => setUniversity(e.target.value)}
+                  placeholder="Ex: USP, UNIP, Especialização ABO"
+                  className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="level" className="text-white/80">
+                  Nível de Formação
+                </Label>
+                <Input
+                  id="level"
+                  type="text"
+                  value={level}
+                  onChange={(e) => setLevel(e.target.value)}
+                  placeholder="Ex: Graduando, Residente, Especialista"
+                  className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="semester" className="text-white/80">
+                  Semestre / Ano Atual
+                </Label>
+                <Input
+                  id="semester"
+                  type="text"
+                  value={semester}
+                  onChange={(e) => setSemester(e.target.value)}
+                  placeholder="Ex: 8º Semestre, Concluído"
+                  className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="specialty_interest" className="text-white/80">
+                  Especialidade de Interesse
+                </Label>
+                <Input
+                  id="specialty_interest"
+                  type="text"
+                  value={specialtyInterest}
+                  onChange={(e) => setSpecialtyInterest(e.target.value)}
+                  placeholder="Ex: Ortodontia, Cirurgia"
+                  className="h-11 border-white/15 bg-white/5 text-white placeholder:text-white/40"
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="profession" className="text-white/80">
-                  Profissão
+                  Profissão / Cargo
                 </Label>
                 <Input
                   id="profession"
@@ -233,7 +306,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
 
               <div className="space-y-2">
                 <Label htmlFor="cro" className="text-white/80">
-                  CRO
+                  CRO (se houver)
                 </Label>
                 <Input
                   id="cro"
@@ -247,7 +320,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
 
               <div className="space-y-2 md:col-span-2">
                 <Label htmlFor="company" className="text-white/80">
-                  Empresa/Clínica
+                  Empresa / Clínica
                 </Label>
                 <Input
                   id="company"

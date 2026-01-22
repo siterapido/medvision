@@ -12,6 +12,7 @@ Welcome to the repository knowledge base. Start with the project overview, then 
 - [Tooling & Productivity Guide](./tooling.md)
 
 ## Repository Snapshot
+- `_archived/`
 - `AGENTS.md/`
 - `app/`
 - `CLAUDE.md/`
@@ -24,6 +25,7 @@ Welcome to the repository knowledge base. Start with the project overview, then 
 - `eslint.config.mjs/`
 - `EXECUTE_THIS_IN_SUPABASE.sql/`
 - `FIX_RLS_POLICIES.sql/`
+- `IMPLEMENTATION_CHECKLIST.md/`
 - `IMPROVEMENT_PLAN_SUMMARY.md/`
 - `iniciar-odontogpt/`
 - `instrumentation-client.ts/`
@@ -34,10 +36,13 @@ Welcome to the repository knowledge base. Start with the project overview, then 
 - `middleware.ts/`
 - `next-env.d.ts/`
 - `next.config.mjs/`
-- `odonto-gpt-agno-service/`
+- `ODONTO_GPT_CONVERSATIONAL_PLAN.md/`
 - `package-lock.json/`
 - `package.json/`
+- `PLANO_MELHORIAS_2026.md/`
 - `PLANO_MELHORIAS_README.md/`
+- `playwright-report/`
+- `playwright.config.ts/`
 - `postcss.config.mjs/`
 - `PROXIMOS_PASSOS_BUNNY.md/`
 - `public/`
@@ -53,8 +58,10 @@ Welcome to the repository knowledge base. Start with the project overview, then 
 - `styles/`
 - `supabase/`
 - `SUPABASE_SETUP.md/`
+- `test-results/`
 - `test-webhook-cakto.sh/`
 - `tests/` — Automated tests and fixtures.
+- `tests-e2e/`
 - `tmp/`
 - `tsconfig.json/`
 - `tsconfig.test.json/`
@@ -69,10 +76,10 @@ Welcome to the repository knowledge base. Start with the project overview, then 
 ## Document Map
 | Guide | File | Primary Inputs |
 | --- | --- | --- |
-| Project Overview | project-overview.md | `package.json`, `README.md` |
-| Architecture | architecture.md | File structure, imports |
-| Development Workflow | development-workflow.md | `scripts`, `Makefile`, CI config |
-| Testing Strategy | testing-strategy.md | `tests/`, `jest.config.js` |
-| Glossary | glossary.md | Domain terms in code |
-| Security | security.md | Auth patterns, middleware |
-| Tooling | tooling.md | Config files, dependencies |
+| Project Overview | `project-overview.md` | Roadmap, README, stakeholder notes |
+| Architecture Notes | `architecture.md` | ADRs, service boundaries, dependency graphs |
+| Development Workflow | `development-workflow.md` | Branching rules, CI config, contributing guide |
+| Testing Strategy | `testing-strategy.md` | Test configs, CI gates, known flaky suites |
+| Glossary & Domain Concepts | `glossary.md` | Business terminology, user personas, domain rules |
+| Security & Compliance Notes | `security.md` | Auth model, secrets management, compliance requirements |
+| Tooling & Productivity Guide | `tooling.md` | CLI scripts, IDE configs, automation workflows |

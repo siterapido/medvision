@@ -73,12 +73,12 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
                     return (
                         <pre
                             key={index}
-                            className="my-2 p-3 rounded-lg bg-black/30 overflow-x-auto text-xs"
+                            className="my-2 p-3 rounded-lg bg-black/50 overflow-x-auto text-xs border border-white/10"
                         >
                             {lang && (
-                                <div className="text-xs text-slate-500 mb-2">{lang}</div>
+                                <div className="text-xs text-muted-foreground mb-2">{lang}</div>
                             )}
-                            <code className="text-slate-300">{code.trim()}</code>
+                            <code className="text-slate-200">{code.trim()}</code>
                         </pre>
                     )
                 }
@@ -208,12 +208,12 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
                     className={`rounded-2xl px-5 py-3 ${isUser
                         ? "bg-gradient-to-r from-cyan-600 to-cyan-500 text-white"
                         : hasError
-                            ? "bg-red-900/30 border border-red-500/30 text-red-200"
-                            : "bg-slate-800/80 border border-slate-700/50 text-slate-100"
+                            ? "bg-destructive/10 border border-destructive/30 text-destructive-foreground"
+                            : "bg-muted/80 border border-border/50 text-foreground"
                         } ${message.isStreaming ? "animate-pulse" : ""}`}
                 >
                     {hasError && (
-                        <div className="flex items-center gap-2 mb-2 text-red-400">
+                        <div className="flex items-center gap-2 mb-2 text-destructive">
                             <AlertCircle className="w-4 h-4" />
                             <span className="text-xs">Erro na resposta</span>
                         </div>
@@ -238,10 +238,10 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
                     {!message.content && message.isStreaming ? (
                         <div className="flex items-center gap-2">
                             <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
-                            <span className="text-slate-400">Pensando...</span>
+                            <span className="text-muted-foreground">Pensando...</span>
                         </div>
                     ) : (
-                        <div className="text-sm leading-relaxed text-slate-300">
+                        <div className="text-sm leading-relaxed text-foreground/90">
                             <MarkdownRenderer
                                 remarkPlugins={[remarkGfm]}
                                 components={MarkdownComponents}
@@ -477,17 +477,17 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
 
                                 // Generic Tool
                                 return (
-                                    <div key={idx} className="p-2 bg-slate-800/30 rounded border border-slate-700/30 text-xs">
+                                    <div key={idx} className="p-2 bg-muted/40 rounded border border-border/40 text-xs">
                                         <div className="flex items-center gap-2 mb-1">
                                             {isLoading ? (
-                                                <Loader2 className="w-3 h-3 animate-spin text-slate-400" />
+                                                <Loader2 className="w-3 h-3 animate-spin text-muted-foreground" />
                                             ) : (
-                                                <span className="text-green-400">✓</span>
+                                                <span className="text-green-500">✓</span>
                                             )}
-                                            <span className="font-mono text-slate-400">{tool.tool_name}</span>
+                                            <span className="font-mono text-muted-foreground">{tool.tool_name}</span>
                                         </div>
                                         {!isLoading && tool.result && (
-                                            <div className="pl-5 text-slate-500 font-mono truncate max-w-[200px]" title={tool.result}>
+                                            <div className="pl-5 text-muted-foreground font-mono truncate max-w-[200px]" title={tool.result}>
                                                 → {tool.result.slice(0, 50)}...
                                             </div>
                                         )}
@@ -504,7 +504,7 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
                         <button
                             onClick={copyContent}
                             title="Copiar"
-                            className="p-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all"
+                            className="p-2 rounded-lg bg-muted/50 border border-border/50 text-muted-foreground hover:text-cyan-400 hover:border-cyan-500/50 transition-all"
                         >
                             {copied ? (
                                 <CheckCheck className="w-4 h-4 text-green-400" />
@@ -517,7 +517,7 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
                             onClick={handleSaveNote}
                             disabled={saving}
                             title="Salvar como Nota"
-                            className="p-2 rounded-lg bg-slate-800/50 border border-slate-700/50 text-slate-400 hover:text-cyan-400 hover:border-cyan-500/50 transition-all disabled:opacity-50"
+                            className="p-2 rounded-lg bg-muted/50 border border-border/50 text-muted-foreground hover:text-cyan-400 hover:border-cyan-500/50 transition-all disabled:opacity-50"
                         >
                             {saving ? (
                                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -531,8 +531,8 @@ export function AgnoMessage({ message }: AgnoMessageProps) {
 
             {
                 isUser && (
-                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-slate-700 flex items-center justify-center">
-                        <User className="w-5 h-5 text-slate-300" />
+                    <div className="flex-shrink-0 w-10 h-10 rounded-full bg-muted flex items-center justify-center border border-border/50">
+                        <User className="w-5 h-5 text-muted-foreground" />
                     </div>
                 )
             }
