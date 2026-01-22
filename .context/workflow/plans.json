@@ -1,13 +1,13 @@
 {
   "active": [
     {
-      "slug": "odonto-vision-tab-implementation",
-      "path": "plans/odonto-vision-tab-implementation.md",
-      "title": "Plano de Implementação: Odonto Vision",
-      "linkedAt": "2026-01-22T23:23:08.691Z",
+      "slug": "deploy-assistants-prod",
+      "path": "plans/deploy-assistants-prod.md",
+      "title": "Plano de Colocação em Produção: Assistentes Odonto GPT",
+      "linkedAt": "2026-01-22T23:28:27.482Z",
       "status": "active"
     }
   ],
   "completed": [],
-  "primary": "odonto-vision-tab-implementation"
+  "primary": "deploy-assistants-prod"
 }

@@ -1,7 +1,7 @@
 ---
 title: "Produção de Assistentes de Chat Odonto GPT"
 summary: "Plano para implementar, validar e colocar em produção os diversos assistentes de IA (Clinical, Planning, Academic, etc.) no chat da plataforma Odonto GPT."
-status: in_progress
+status: completed
 priority: High
 agents:
   - type: "feature-developer"
@@ -32,21 +32,21 @@ Este plano detalha os passos necessários para garantir que os assistentes de IA
 
 ## 2. Fases de Implementação
 
-### Fase 1: Estabilização do Backend e Agentes
+### Fase 1: Estabilização do Backend e Agentes (CONCLUÍDO)
 - **Passo 1.1**: Validar o roteamento de agentes no `app/api/newchat/route.ts`.
 - **Passo 1.2**: Garantir que o `convertToModelMessages` suporte o histórico compartilhado entre agentes.
 - **Passo 1.3**: Testar a chamada do `gemini-flash` via OpenRouter com as chaves de produção.
 
-### Fase 2: Experiência do Usuário (UI/UX)
+### Fase 2: Experiência do Usuário (UI/UX) (CONCLUÍDO)
 - **Passo 2.1**: Implementar seleção de agentes com animações `framer-motion`.
 - **Passo 2.2**: Adotar design monocromático e minimalista (Perplexity-inspired) nos ícones de agentes.
 - **Passo 2.3**: Fixar o input de chat no rodapé para melhor uso mobile.
 
-### Fase 3: Persistência de Artefatos
+### Fase 3: Persistência de Artefatos (CONCLUÍDO)
 - **Passo 3.1**: Validar a função de salvamento de artefatos no Supabase.
-- **Passo 3.2**: Garantir que o usuário `marckexpert1@gmail.com` (e outros) consiga visualizar os artefatos gerados na "Biblioteca".
+- **Passo 3.2**: Garantir que o usuário `marckexpert1@gmail.com` (e outros) consiga visualizar os artefatos gerados na \"Biblioteca\".
 
-### Fase 4: Preparação para Produção
+### Fase 4: Preparação para Produção (CONCLUÍDO)
 - **Passo 4.1**: Configurar segredos no Vercel/GitHub Actions.
 - **Passo 4.2**: Executar testes de fumaça (smoke tests) em todos os agentes principais.
 
