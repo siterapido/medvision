@@ -1,0 +1,12 @@
+{
+  "decisions": [
+    {
+      "title": "Unificação de Tom e Ferramentas dos Agentes",
+      "description": "Decidido unificar o tom de voz dos agentes e garantir que todos tenham acesso às ferramentas de gerenciamento de perfil do usuário (updateUserProfile) para manter a continuidade do contexto pedagógico. Também será adicionado um reforço nos prompts sobre o uso da Zona de Desenvolvimento Proximal (ZPD) para os agentes de Summary e Practice.",
+      "phase": "E",
+      "status": "accepted",
+      "id": "dec-1769042574503",
+      "decidedAt": "2026-01-22T00:42:54.503Z"
+    }
+  ]
+}

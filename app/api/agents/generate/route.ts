@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-
-const AGNO_SERVICE_URL = process.env.AGNO_SERVICE_URL || "http://localhost:8000"
+import { generateText, stepCountIs } from "ai"
+import { openrouter } from "@/lib/ai/openrouter"
+import { saveSummary, saveFlashcards, saveMindMap } from "@/lib/ai/tools/definitions"
 
 interface GenerateRequest {
     type: string
@@ -13,7 +14,7 @@ interface GenerateRequest {
 
 export async function POST(request: NextRequest) {
     try {
-        // Autenticação
+        // Autenticacao
         const supabase = await createClient()
         const {
             data: { user }
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
 
         if (!user) {
             return NextResponse.json(
-                { success: false, error: "Não autenticado" },
+                { success: false, error: "Nao autenticado" },
                 { status: 401 }
             )
         }
@@ -31,51 +32,80 @@ export async function POST(request: NextRequest) {
 
         if (!body.type || !body.topic) {
             return NextResponse.json(
-                { success: false, error: "Tipo e tema são obrigatórios" },
+                { success: false, error: "Tipo e tema sao obrigatorios" },
                 { status: 400 }
             )
         }
 
-        // Chamar o serviço Agno
-        const response = await fetch(`${AGNO_SERVICE_URL}/api/artifacts/generate`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "X-User-ID": user.id
-            },
-            body: JSON.stringify({
-                artifact_type: body.type,
-                topic: body.topic,
-                user_id: user.id,
-                instructions: body.instructions,
-                difficulty: body.difficulty,
-                num_items: body.num_items
-            })
-        })
+        const model = openrouter('google/gemini-2.0-flash-exp:free') // Fast model for generation
 
-        if (!response.ok) {
-            const errorText = await response.text()
-            console.error("Agno service error:", errorText)
-            return NextResponse.json(
-                {
-                    success: false,
-                    error: "Erro no serviço de geração",
-                    details: errorText
-                },
-                { status: response.status }
+        let result: string | undefined;
+        
+        // Construct prompt based on type
+        let systemPrompt = `Voce e um especialista em educacao odontologica. 
+        Sua tarefa e criar materiais de estudo de alta qualidade sobre o tema: "${body.topic}".
+        ${body.instructions ? `Instrucoes adicionais: ${body.instructions}` : ""}
+        ${body.difficulty ? `Nivel de dificuldade: ${body.difficulty}` : ""}
+        ${body.num_items ? `Quantidade de itens: ${body.num_items}` : ""}
+        `;
+
+        // We inject the user_id into the tool call by prompting or pre-filling?
+        // The tool definition requires `userId`. The model doesn't know the userId.
+        // We must provide it in the prompt or use a wrapper.
+        // Since we can't easily partial apply the tool in `generateText` tools definition, 
+        // we will tell the model the userId is "${user.id}".
+        
+        systemPrompt += `\nID do usuario atual: "${user.id}". Use este ID ao salvar os artefatos.`;
+
+        if (body.type === 'summary' || body.type === 'resumo') {
+            const response = await generateText({
+                model: model as any,
+                system: systemPrompt,
+                prompt: `Gere um resumo completo sobre ${body.topic}. Salve-o usando a ferramenta saveSummary.`,
+                tools: { saveSummary },
+                toolChoice: 'required', 
+                stopWhen: stepCountIs(5),
+            });
+            // Get result from steps
+            const toolResult = response.steps.flatMap(s => s.toolResults).find(t => t.toolName === 'saveSummary');
+            result = toolResult?.output as string | undefined;
+        } 
+        else if (body.type === 'flashcards') {
+            const response = await generateText({
+                model: model as any,
+                system: systemPrompt,
+                prompt: `Crie um deck de flashcards sobre ${body.topic}. Salve-o usando a ferramenta saveFlashcards.`,
+                tools: { saveFlashcards },
+                toolChoice: 'required',
+                stopWhen: stepCountIs(5),
+            });
+            const toolResult = response.steps.flatMap(s => s.toolResults).find(t => t.toolName === 'saveFlashcards');
+            result = toolResult?.output as string | undefined;
+        }
+        else if (body.type === 'mindmap' || body.type === 'mind_map') {
+            const response = await generateText({
+                model: model as any,
+                system: systemPrompt,
+                prompt: `Crie um mapa mental sobre ${body.topic}. Salve-o usando a ferramenta saveMindMap.`,
+                tools: { saveMindMap },
+                toolChoice: 'required',
+                stopWhen: stepCountIs(5),
+            });
+            const toolResult = response.steps.flatMap(s => s.toolResults).find(t => t.toolName === 'saveMindMap');
+            result = toolResult?.output as string | undefined;
+        }
+        else {
+             return NextResponse.json(
+                { success: false, error: "Tipo de artefato nao suportado para geracao automatica." },
+                { status: 400 }
             )
         }
 
-        const result = await response.json()
-
         return NextResponse.json({
-            success: result.success ?? true,
-            artifact_id: result.artifact_id,
-            artifact_type: result.artifact_type || body.type,
-            title: result.title,
-            message: result.message || "Artefato criado com sucesso",
-            error: result.error
+            success: !!result,
+            message: result || "Geracao concluida",
         })
+
     } catch (error) {
         console.error("Error in generate API:", error)
         return NextResponse.json(

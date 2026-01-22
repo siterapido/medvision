@@ -1,34 +1,39 @@
 {
   "version": "1.0.0",
-  "generated": "2026-01-16T04:36:19.435Z",
+  "generated": "2026-01-22T18:57:59.747Z",
   "stack": {
     "primaryLanguage": "typescript",
     "languages": [
       "javascript",
       "typescript",
-      "python",
-      "c"
+      "python"
     ],
     "frameworks": [
       "nextjs"
     ],
     "buildTools": [],
-    "testFrameworks": [],
+    "testFrameworks": [
+      "playwright"
+    ],
     "packageManager": "npm",
     "isMonorepo": false,
     "hasDocker": false,
     "hasCI": true
   },
   "structure": {
-    "totalFiles": 993,
+    "totalFiles": 12090,
     "topDirectories": [
+      {
+        "name": "_archived",
+        "fileCount": 10117
+      },
       {
         "name": "AGENTS.md",
         "fileCount": 1
       },
       {
         "name": "app",
-        "fileCount": 103
+        "fileCount": 116
       },
       {
         "name": "CLAUDE.md",
@@ -36,7 +41,7 @@
       },
       {
         "name": "components",
-        "fileCount": 190
+        "fileCount": 227
       },
       {
         "name": "components.json",
@@ -52,7 +57,7 @@
       },
       {
         "name": "docs",
-        "fileCount": 36
+        "fileCount": 37
       },
       {
         "name": "DOCUMENTATION_INDEX.md",
@@ -68,6 +73,10 @@
       },
       {
         "name": "FIX_RLS_POLICIES.sql",
+        "fileCount": 1
+      },
+      {
+        "name": "IMPLEMENTATION_CHECKLIST.md",
         "fileCount": 1
       },
       {
@@ -88,7 +97,7 @@
       },
       {
         "name": "lib",
-        "fileCount": 44
+        "fileCount": 61
       },
       {
         "name": "LOCAL_DEVELOPMENT_GUIDE.md",
@@ -111,8 +120,8 @@
         "fileCount": 1
       },
       {
-        "name": "odonto-gpt-agno-service",
-        "fileCount": 182
+        "name": "ODONTO_GPT_CONVERSATIONAL_PLAN.md",
+        "fileCount": 1
       },
       {
         "name": "package-lock.json",
@@ -123,7 +132,19 @@
         "fileCount": 1
       },
       {
+        "name": "PLANO_MELHORIAS_2026.md",
+        "fileCount": 1
+      },
+      {
         "name": "PLANO_MELHORIAS_README.md",
+        "fileCount": 1
+      },
+      {
+        "name": "playwright-report",
+        "fileCount": 1
+      },
+      {
+        "name": "playwright.config.ts",
         "fileCount": 1
       },
       {
@@ -156,7 +177,7 @@
       },
       {
         "name": "scripts",
-        "fileCount": 17
+        "fileCount": 26
       },
       {
         "name": "sentry.client.config.ts",
@@ -180,11 +201,15 @@
       },
       {
         "name": "supabase",
-        "fileCount": 69
+        "fileCount": 74
       },
       {
         "name": "SUPABASE_SETUP.md",
         "fileCount": 1
+      },
+      {
+        "name": "test-results",
+        "fileCount": 0
       },
       {
         "name": "test-webhook-cakto.sh",
@@ -195,8 +220,12 @@
         "fileCount": 13
       },
       {
-        "name": "tmp",
+        "name": "tests-e2e",
         "fileCount": 1
+      },
+      {
+        "name": "tmp",
+        "fileCount": 1075
       },
       {
         "name": "tsconfig.json",
@@ -237,44 +266,44 @@
     ],
     "languageDistribution": [
       {
-        "extension": ".tsx",
-        "count": 409
-      },
-      {
-        "extension": ".ts",
-        "count": 224
-      },
-      {
-        "extension": ".sql",
-        "count": 101
-      },
-      {
-        "extension": ".md",
-        "count": 90
-      },
-      {
         "extension": ".py",
-        "count": 51
+        "count": 6481
       },
       {
         "extension": ".pyc",
-        "count": 30
+        "count": 2830
       },
       {
-        "extension": ".json",
-        "count": 22
+        "extension": ".tsx",
+        "count": 450
       },
       {
-        "extension": ".png",
-        "count": 10
+        "extension": ".pyi",
+        "count": 306
       },
       {
-        "extension": ".sh",
-        "count": 8
+        "extension": ".ts",
+        "count": 253
       },
       {
-        "extension": ".mjs",
-        "count": 8
+        "extension": ".txt",
+        "count": 132
+      },
+      {
+        "extension": ".md",
+        "count": 121
+      },
+      {
+        "extension": ".h",
+        "count": 112
+      },
+      {
+        "extension": ".sql",
+        "count": 107
+      },
+      {
+        "extension": ".typed",
+        "count": 106
       }
     ]
   },
@@ -299,11 +328,15 @@
           "scripts",
           "lib",
           "v0-odonto-gpt-ui/tests",
+          "lib/ai",
           "app/auth/callback",
+          "app/api/research",
+          "app/api/newchat",
           "app/api/sessions",
           "app/api/sentry-example-api",
-          "app/api/research",
           "app/api/health",
+          "app/api/chat",
+          "app/api/artifacts",
           "v0-odonto-gpt-ui/app/auth/callback",
           "v0-odonto-gpt-ui/app/api/sentry-example-api",
           "v0-odonto-gpt-ui/app/api/health",
@@ -312,47 +345,55 @@
           "app/api/webhooks/cakto",
           "app/api/uploads/materials",
           "app/api/test/zapi",
+          "app/api/research/save",
           "app/api/sessions/[id]",
           "app/api/live-events/reminders",
-          "app/api/research/save",
-          "app/api/cron/notifications",
           "app/api/live-events/calendar",
-          "app/api/cakto/validate",
-          "app/api/cakto/subscription",
-          "app/api/cakto/payment-history",
-          "app/api/cakto/checkout-url",
+          "app/api/cron/notifications",
           "app/api/auth/reset-password",
           "app/api/auth/magic-link",
+          "app/api/artifacts/[id]",
+          "app/api/agents/generate",
           "app/api/admin/users",
           "app/api/admin/agents",
+          "app/api/cakto/validate",
+          "app/api/cakto/checkout-url",
+          "app/api/cakto/subscription",
+          "app/api/cakto/payment-history",
           "v0-odonto-gpt-ui/app/api/webhooks/cakto",
-          "v0-odonto-gpt-ui/app/api/live-events/reminders",
           "v0-odonto-gpt-ui/app/api/live-events/calendar",
+          "v0-odonto-gpt-ui/app/api/live-events/reminders",
           "v0-odonto-gpt-ui/app/api/cakto/validate",
           "v0-odonto-gpt-ui/app/api/cakto/subscription",
           "v0-odonto-gpt-ui/app/api/cakto/payment-history",
           "v0-odonto-gpt-ui/app/api/cakto/checkout-url",
           "v0-odonto-gpt-ui/app/api/auth/reset-password",
-          "v0-odonto-gpt-ui/app/api/admin/users",
           "v0-odonto-gpt-ui/app/api/auth/magic-link",
+          "v0-odonto-gpt-ui/app/api/admin/users",
           "app/api/lessons/[lessonId]/attachments",
           "app/api/courses/lessons/complete",
+          "app/api/copilotkit/chat/[[...slug]]",
           "app/api/admin/users/vendedor",
           "app/api/admin/users/[id]",
-          "app/api/admin/notifications/templates",
           "app/api/admin/notifications/send",
           "app/api/admin/agents/models",
-          "app/api/copilotkit/chat/[[...slug]]",
-          "v0-odonto-gpt-ui/app/api/lessons/[lessonId]/attachments",
+          "app/api/admin/notifications/templates",
           "v0-odonto-gpt-ui/app/api/courses/lessons/complete",
+          "v0-odonto-gpt-ui/app/api/lessons/[lessonId]/attachments",
           "app/api/lessons/[lessonId]/attachments/[attachmentId]",
           "v0-odonto-gpt-ui/app/api/lessons/[lessonId]/attachments/[attachmentId]",
           "app/api/lessons/[lessonId]/attachments/[attachmentId]/download",
           "app/api/admin/courses/[id]/lessons/import",
           "v0-odonto-gpt-ui/app/api/lessons/[lessonId]/attachments/[attachmentId]/download",
-          "components/admin/notifications"
+          "components/admin/notifications",
+          "tmp/test_venv/lib/python3.14/site-packages/requests",
+          "tmp/test_venv/lib/python3.14/site-packages/charset_normalizer",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/truststore",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/requests",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/platformdirs",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/cachecontrol"
         ],
-        "symbolCount": 118,
+        "symbolCount": 160,
         "dependsOn": []
       },
       {
@@ -362,9 +403,11 @@
           "tests",
           "v0-odonto-gpt-ui/tests",
           "components/research",
+          "components/newdashboard",
           "components/materials",
           "components/dashboard",
           "components/chat",
+          "components/artifacts",
           "components/agno-chat",
           "v0-odonto-gpt-ui/components/materials",
           "v0-odonto-gpt-ui/components/dashboard",
@@ -374,59 +417,61 @@
           "v0-odonto-gpt-ui/app",
           "v0-odonto-gpt-ui/components",
           "components/video",
-          "components/trial",
-          "components/profile",
           "components/ui",
+          "components/profile",
+          "components/newchat",
           "components/marketing",
           "components/lives",
-          "components/layout",
           "components/landing",
+          "components/layout",
           "components/courses",
           "components/auth",
-          "components/artifacts",
           "components/ai-elements",
           "components/admin",
+          "components/trial",
           "app/sentry-example-page",
           "app/register",
           "app/notes",
-          "app/login",
+          "app/newdashboard",
           "app/lp-test-2",
           "app/lp-test",
+          "app/login",
           "app/forgot-password",
           "app/dashboard",
           "app/admin",
           "v0-odonto-gpt-ui/app/sentry-example-page",
+          "v0-odonto-gpt-ui/app/register",
           "v0-odonto-gpt-ui/app/notes",
           "v0-odonto-gpt-ui/app/login",
-          "v0-odonto-gpt-ui/app/register",
           "v0-odonto-gpt-ui/app/forgot-password",
           "v0-odonto-gpt-ui/app/dashboard",
           "v0-odonto-gpt-ui/app/admin",
           "v0-odonto-gpt-ui/components/video",
-          "v0-odonto-gpt-ui/components/layout",
           "v0-odonto-gpt-ui/components/ui",
+          "v0-odonto-gpt-ui/components/profile",
+          "v0-odonto-gpt-ui/components/layout",
           "v0-odonto-gpt-ui/components/courses",
           "v0-odonto-gpt-ui/components/chat",
           "v0-odonto-gpt-ui/components/auth",
-          "v0-odonto-gpt-ui/components/admin",
-          "v0-odonto-gpt-ui/components/profile",
           "v0-odonto-gpt-ui/components/ai-elements",
-          "components/admin/pipeline",
+          "v0-odonto-gpt-ui/components/admin",
           "components/admin/trials",
+          "components/admin/pipeline",
+          "app/newdashboard/chat",
+          "app/newdashboard/biblioteca",
           "app/dashboard/whatsapp",
           "app/dashboard/upgrade",
           "app/dashboard/resumos",
           "app/dashboard/questionarios",
-          "app/dashboard/pesquisas",
           "app/dashboard/perfil",
-          "app/dashboard/mindmaps",
+          "app/dashboard/pesquisas",
+          "app/dashboard/notas",
           "app/dashboard/materiais",
           "app/dashboard/imagens",
           "app/dashboard/flashcards",
           "app/dashboard/escritor",
           "app/dashboard/cursos",
           "app/dashboard/chat",
-          "app/dashboard/assinatura",
           "app/admin/usuarios",
           "app/admin/trials",
           "app/admin/pipeline",
@@ -435,14 +480,16 @@
           "app/admin/lives",
           "app/admin/cursos",
           "app/admin/agentes",
+          "app/dashboard/mindmaps",
+          "app/dashboard/assinatura",
           "v0-odonto-gpt-ui/app/dashboard/perfil",
           "v0-odonto-gpt-ui/app/dashboard/materiais",
           "v0-odonto-gpt-ui/app/dashboard/cursos",
           "v0-odonto-gpt-ui/app/dashboard/chat",
           "v0-odonto-gpt-ui/app/dashboard/assinatura",
           "v0-odonto-gpt-ui/app/admin/materiais",
-          "v0-odonto-gpt-ui/app/admin/lives",
           "v0-odonto-gpt-ui/app/admin/cursos",
+          "v0-odonto-gpt-ui/app/admin/lives",
           "app/register/trial/[days]",
           "app/dashboard/resumos/novo",
           "app/dashboard/resumos/lixeira",
@@ -450,18 +497,18 @@
           "app/dashboard/resumos/[id]",
           "app/dashboard/questionarios/[id]",
           "app/dashboard/pesquisas/[id]",
-          "app/dashboard/mindmaps/[id]",
           "app/dashboard/imagens/[id]",
           "app/dashboard/flashcards/[id]",
           "app/dashboard/cursos/[id]",
           "app/dashboard/chat/history",
           "app/admin/usuarios/[id]",
+          "app/dashboard/mindmaps/[id]",
           "v0-odonto-gpt-ui/app/dashboard/cursos/[id]",
           "app/dashboard/cursos/live/[id]",
           "app/admin/cursos/[id]/aulas",
           "v0-odonto-gpt-ui/app/admin/cursos/[id]/aulas"
         ],
-        "symbolCount": 2126,
+        "symbolCount": 2266,
         "dependsOn": [
           "Models"
         ]
@@ -474,30 +521,94 @@
           "lib",
           "v0-odonto-gpt-ui/tests",
           "v0-odonto-gpt-ui/lib",
-          "lib/video",
-          "lib/validations",
+          "lib/utils",
+          "lib/types",
           "lib/supabase",
+          "lib/odontoflix",
           "lib/material",
           "lib/leads",
-          "lib/hooks",
           "lib/dashboard",
+          "lib/hooks",
           "lib/course",
           "lib/bunny",
           "lib/auth",
           "lib/attachments",
           "lib/ai",
+          "lib/validations",
+          "lib/video",
           "app/lib",
+          "v0-odonto-gpt-ui/app/lib",
+          "v0-odonto-gpt-ui/lib/validations",
           "v0-odonto-gpt-ui/lib/supabase",
           "v0-odonto-gpt-ui/lib/material",
           "v0-odonto-gpt-ui/lib/dashboard",
           "v0-odonto-gpt-ui/lib/course",
           "v0-odonto-gpt-ui/lib/auth",
           "v0-odonto-gpt-ui/lib/attachments",
-          "v0-odonto-gpt-ui/app/lib",
-          "v0-odonto-gpt-ui/lib/validations",
-          "lib/ai/prompts"
+          "lib/ai/prompts",
+          "lib/ai/tools",
+          "lib/ai/agents",
+          "lib/ai/tools/artifacts",
+          "lib/ai/tools/research",
+          "tmp/test_venv/lib/python3.14/site-packages/urllib3/contrib/emscripten",
+          "tmp/test_venv/lib/python3.14/site-packages/urllib3",
+          "tmp/test_venv/lib/python3.14/site-packages/requests",
+          "tmp/test_venv/lib/python3.14/site-packages/pip",
+          "tmp/test_venv/lib/python3.14/site-packages/idna",
+          "tmp/test_venv/lib/python3.14/site-packages/charset_normalizer",
+          "tmp/test_venv/lib/python3.14/site-packages/certifi",
+          "tmp/test_venv/lib/python3.14/site-packages/urllib3/util",
+          "tmp/test_venv/lib/python3.14/site-packages/urllib3/http2",
+          "tmp/test_venv/lib/python3.14/site-packages/urllib3/contrib",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor",
+          "tmp/test_venv/lib/python3.14/site-packages/charset_normalizer/cli",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/vcs",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/utils",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/req",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/operations",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/resolution",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/locations",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/network",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/index",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/distributions",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/commands",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/cli",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/urllib3",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/tomli_w",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/truststore",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/requests",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/rich",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/tomli",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/resolvelib",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/pygments",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/pyproject_hooks",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/platformdirs",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/pkg_resources",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/packaging",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/idna",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/msgpack",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/distlib",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/distro",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/certifi",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/dependency_groups",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/cachecontrol",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/operations/install",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/resolution/resolvelib",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/resolution/legacy",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/urllib3/util",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/urllib3/packages",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/urllib3/contrib",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/resolvelib/resolvers",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/pygments/styles",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/pygments/lexers",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/pygments/formatters",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/pygments/filters",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/pyproject_hooks/_in_process",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/packaging/licenses",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/cachecontrol/caches"
         ],
-        "symbolCount": 302,
+        "symbolCount": 2551,
         "dependsOn": [
           "Services"
         ]
@@ -506,483 +617,417 @@
         "name": "Services",
         "description": "Business logic and orchestration",
         "directories": [
+          "lib/services",
           "lib/ai",
-          "odonto-gpt-agno-service/agent-ui",
-          "odonto-gpt-agno-service/agent-ui/src",
-          "odonto-gpt-agno-service/agent-ui/src/types",
-          "odonto-gpt-agno-service/agent-ui/src/lib",
-          "odonto-gpt-agno-service/agent-ui/src/hooks",
-          "odonto-gpt-agno-service/agent-ui/src/api",
-          "odonto-gpt-agno-service/agent-ui/src/components/chat/Sidebar",
-          "odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea",
-          "odonto-gpt-agno-service/agent-ui/src/components/ui/tooltip",
-          "odonto-gpt-agno-service/agent-ui/src/components/ui/icon",
-          "odonto-gpt-agno-service/agent-ui/src/components/chat/Sidebar/Sessions",
-          "odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages",
-          "odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/ChatInput",
-          "odonto-gpt-agno-service/agent-ui/src/components/ui/typography/Paragraph",
-          "odonto-gpt-agno-service/agent-ui/src/components/ui/typography/MarkdownRenderer",
-          "odonto-gpt-agno-service/agent-ui/src/components/ui/typography/Heading",
-          "odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages/Multimedia/Videos",
-          "odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages/Multimedia/Images",
-          "odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages/Multimedia/Audios",
-          "odonto-gpt-agno-service/agent-ui/src/app",
-          "odonto-gpt-agno-service/agent-ui/src/components/ui",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/urllib3/contrib/emscripten",
-          "odonto-gpt-agno-service",
-          "odonto-gpt-agno-service/tests",
-          "odonto-gpt-agno-service/data",
-          "odonto-gpt-agno-service/scripts",
-          "odonto-gpt-agno-service/app",
-          "odonto-gpt-agno-service/app/services",
-          "odonto-gpt-agno-service/app/tools",
-          "odonto-gpt-agno-service/app/models",
-          "odonto-gpt-agno-service/app/database",
-          "odonto-gpt-agno-service/app/agents",
-          "odonto-gpt-agno-service/app/tools/database",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/yarl",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/yaml",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/watchfiles",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvloop",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/urllib3",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/typing_inspection",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/unidecode",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/typer",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/tqdm",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/tomli",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/tests",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/tenacity",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase_functions",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase_auth",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/strictyaml",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/strenum",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/storage3",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/starlette",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sortedcontainers",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sniffio",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/smmap",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/shellingham",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/scripts",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/rsa",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/rich",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/requests",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/realtime",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pytokens",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/python_multipart",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pytest_asyncio",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pytest",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyparsing",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pymed",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic_settings",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic_core",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pycparser",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pubmed_parser",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/psycopg2",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/propcache",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/postgrest",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pluggy",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/platformdirs",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pathspec",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/packaging",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/multipart",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/multidict",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/mdurl",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/lxml",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/jose",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/jwt",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/jiter",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/iniconfig",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/idna",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hyperframe",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httpx",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httptools",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httpcore",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hpack",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/h2",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/h11",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/gitdb",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/git",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/feedparser",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fb303",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fastapi",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/ecdsa",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/dotenv",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/docstring_parser",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/docs",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/distro",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/dateutil",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cryptography",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/colorama",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/click",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/charset_normalizer",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cffi",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/certifi",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cachetools",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/blib2to3",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/blackd",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/black",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/arxiv",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anyio",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anthropic",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/annotated_doc",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/annotated_types",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_yaml",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/sync",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/legacy",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/extensions",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/asyncio",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvloop/includes",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/protocols",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/middleware",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/loops",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/lifespan",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/supervisors",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/urllib3/util",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/urllib3/http2",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/urllib3/contrib",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/tqdm/contrib",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/tenacity/asyncio",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase_functions/_sync",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase_functions/_async",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase_auth/_sync",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase_auth/_async",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase/lib",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase/_sync",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase/_async",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/strictyaml/ruamel",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/storage3/_async",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/storage3/_sync",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/starlette/middleware",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/util",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/pool",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/sql",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/testing",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/future",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/event",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/engine",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/cyextension",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/connectors",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sniffio/_tests",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/smmap/test",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/shellingham/posix",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/realtime/_sync",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/realtime/_async",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyparsing/tools",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyparsing/diagram",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyparsing/ai",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/utils",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/table",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/io",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/expressions",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/cli",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/catalog",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/avro",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/filters",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/formatters",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/styles",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/lexers",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic_settings/sources",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/v1",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/plugin",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/experimental",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/deprecated",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/_internal",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pycparser/ply",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/type",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/compat",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/postgrest/_sync",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/postgrest/_async",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/workspace",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/workflow",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/vectordb",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/utils",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/tools",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/storage",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/run",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/resource",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/reranker",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/reasoning",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/prompt",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/playground",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/memory",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/knowledge",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/infra",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/file",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/eval",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/embedder",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/document",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/docker",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/cli",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/aws",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/assistant",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/app",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/api",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/agent",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pathspec/patterns",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pathspec/_backends",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/packaging/licenses",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/types",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/resources",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/helpers",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/cli",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/_extras",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/_utils",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/lib",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/typing",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/tests",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/testing",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/strings",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/rec",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/random",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/polynomial",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/matrixlib",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/ma",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/linalg",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/lib",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/fft",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/f2py",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/doc",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/ctypeslib",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/core",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/char",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/_utils",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/_typing",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/_pyinstaller",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/_core",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it/rules_core",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it/rules_inline",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it/rules_block",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it/presets",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it/helpers",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it/common",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it/cli",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/lxml/isoschematron",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/lxml/html",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/lxml/includes",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/jose/backends",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httpx/_transports",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httptools/parser",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httpcore/_sync",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httpcore/_backends",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httpcore/_async",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/gitdb/utils",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/gitdb/test",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/gitdb/db",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/git/repo",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/git/refs",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/git/objects",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/git/index",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/implementations",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/feedparser/parsers",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/feedparser/namespaces",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/feedparser/datetimes",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fastapi/security",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fastapi/openapi",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fastapi/middleware",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fastapi/dependencies",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fastapi/_compat",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/docstring_parser/tests",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/dateutil/zoneinfo",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/dateutil/parser",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/dateutil/tz",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cryptography/x509",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cryptography/hazmat",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/colorama/tests",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/charset_normalizer/cli",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/blib2to3/pgen2",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/black/resources",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anyio/streams",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anyio/abc",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anyio/_core",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anyio/_backends",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anthropic/types",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anthropic/resources",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anthropic/lib",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anthropic/_utils",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anthropic/_decoders",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/workflow",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/vectordb",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/utils",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/tracing",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/tools",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/team",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/skills",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/session",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/run",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/remote",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/reasoning",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/os",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/memory",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/models",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/integrations",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/knowledge",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/hooks",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/guardrails",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/eval",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/db",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/culture",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/compression",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/client",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/api",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/agent",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/config",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/mark",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/assertion",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/_py",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/_io",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/_code",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/protocols/websockets",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/protocols/http",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/testing/suite",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/testing/plugin",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/testing/fixtures",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/mypy",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/declarative",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/asyncio",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/sqlite",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/oracle",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/mysql",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/mssql",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyparsing/ai/show_best_practices",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/table/update",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/catalog/rest",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/avro/codecs",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic_settings/sources/providers",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/native",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/der",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/cer",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/urllib3",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/truststore",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/tomli",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/resolvelib",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/requests",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/pyproject_hooks",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/pygments",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/platformdirs",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/pkg_resources",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/packaging",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/msgpack",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/idna",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/distro",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/distlib",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/dependency_groups",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/certifi",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/cachecontrol",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/tomli_w",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/rich",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/vcs",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/utils",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/resolution",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/operations",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/network",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/models",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/metadata",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/locations",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/index",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/distributions",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/commands",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/cli",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/req",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/vectordb/singlestore",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/vectordb/qdrant",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/vectordb/pgvector",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/vectordb/pineconedb",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/vectordb/mongodb",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/vectordb/milvus",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/vectordb/lancedb",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/vectordb/clickhouse",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/vectordb/chroma",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/vectordb/cassandra",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/tools/streamlit",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/storage/workflow",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/storage/assistant",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/storage/agent",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/xai",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/vertexai",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/sambanova",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/together",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/openrouter",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/ollama",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/nvidia",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/openai",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/huggingface",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/mistral",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/google",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/groq",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/fireworks",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/deepseek",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/cohere",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/azure",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/aws",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/anthropic",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model/InternLM",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/memory/db",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm/vertexai",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm/together",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm/openrouter",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm/openai",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm/ollama",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm/mistral",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm/groq",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm/google",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm/fireworks",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm/deepseek",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm/cohere",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm/azure",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm/aws",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm/anthropic",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/knowledge/s3",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/file/local",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/document/reader",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/document/chunking",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/docker/resource",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/docker/app",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/cli/ws",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/aws/resource",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/aws/app",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/assistant/openai",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/api/schemas",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pathspec/patterns/gitignore",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pathspec/_backends/simple",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pathspec/_backends/re2",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pathspec/_backends/hyperscan",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/types/vector_stores",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/types/webhooks",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/types/uploads",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/types/shared_params",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/types/shared",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/types/responses",
-          "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/types/realtime"
+          "_archived/odonto-gpt-agno-service/agent-ui",
+          "_archived/odonto-gpt-agno-service/agent-ui/src",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/types",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/lib",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/hooks",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/api",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/Sidebar",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/components/ui/tooltip",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/components/ui/icon",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/Sidebar/Sessions",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/ChatInput",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/components/ui/typography/Paragraph",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/components/ui/typography/MarkdownRenderer",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/components/ui/typography/Heading",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages/Multimedia/Videos",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages/Multimedia/Images",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages/Multimedia/Audios",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/app",
+          "_archived/odonto-gpt-agno-service/agent-ui/src/components/ui",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/urllib3/contrib/emscripten",
+          "_archived/odonto-gpt-agno-service",
+          "_archived/odonto-gpt-agno-service/tests",
+          "_archived/odonto-gpt-agno-service/scripts",
+          "_archived/odonto-gpt-agno-service/data",
+          "_archived/odonto-gpt-agno-service/app",
+          "_archived/odonto-gpt-agno-service/app/workflows",
+          "_archived/odonto-gpt-agno-service/app/validation",
+          "_archived/odonto-gpt-agno-service/app/services",
+          "_archived/odonto-gpt-agno-service/app/tools",
+          "_archived/odonto-gpt-agno-service/app/routes",
+          "_archived/odonto-gpt-agno-service/app/observability",
+          "_archived/odonto-gpt-agno-service/app/models",
+          "_archived/odonto-gpt-agno-service/app/database",
+          "_archived/odonto-gpt-agno-service/app/agents",
+          "_archived/odonto-gpt-agno-service/app/tools/database",
+          "_archived/odonto-gpt-agno-service/app/agents/refinement",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/yarl",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/yaml",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/watchfiles",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvloop",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/urllib3",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/typing_inspection",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/unidecode",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/typer",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/tqdm",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/tests",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/tomli",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/tenacity",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase_functions",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase_auth",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/strenum",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/storage3",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/strictyaml",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/starlette",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sortedcontainers",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sniffio",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/smmap",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/shellingham",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/scripts",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/rsa",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/rich",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/requests",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/realtime",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pytokens",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/python_multipart",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pytest_asyncio",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pytest",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyparsing",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pymed",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic_settings",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic_core",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pycparser",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pubmed_parser",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/psycopg2",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/propcache",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/primp",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/postgrest",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pluggy",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/platformdirs",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pathspec",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/packaging",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/multipart",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/multidict",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/mdurl",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/jwt",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/lxml",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/jiter",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/jose",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/iniconfig",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/idna",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hyperframe",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httpx",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httptools",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httpcore",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hpack",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/h2",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/h11",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/gitdb",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/git",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fb303",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/feedparser",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fastapi",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/ecdsa",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/duckduckgo_search",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/dotenv",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/docstring_parser",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/docs",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/distro",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/dateutil",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cryptography",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/colorama",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/click",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/charset_normalizer",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cffi",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/certifi",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cachetools",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/blib2to3",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/blackd",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/arxiv",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/black",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anyio",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anthropic",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/annotated_types",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/annotated_doc",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_yaml",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/extensions",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/sync",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/legacy",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/asyncio",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvloop/includes",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/protocols",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/supervisors",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/middleware",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/lifespan",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/loops",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/urllib3/util",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/urllib3/http2",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/urllib3/contrib",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/tqdm/contrib",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/tenacity/asyncio",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase_functions/_sync",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase_functions/_async",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase_auth/_sync",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase_auth/_async",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase/lib",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase/_sync",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/supabase/_async",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/storage3/_sync",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/storage3/_async",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/strictyaml/ruamel",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/starlette/middleware",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/util",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/testing",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/sql",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/pool",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/future",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/event",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/connectors",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/cyextension",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/engine",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sniffio/_tests",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/smmap/test",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/shellingham/posix",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/realtime/_sync",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/realtime/_async",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyparsing/diagram",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyparsing/tools",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyparsing/ai",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/io",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/table",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/utils",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/expressions",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/cli",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/avro",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/catalog",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/filters",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/formatters",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/styles",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/lexers",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic_settings/sources",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/plugin",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/experimental",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/v1",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/deprecated",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/_internal",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pycparser/ply",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/type",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/compat",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/postgrest/_sync",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/postgrest/_async",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/workspace",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/workflow",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/utils",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/storage",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/tools",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/resource",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/run",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/reranker",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/reasoning",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/prompt",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/playground",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/model",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/vectordb",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/memory",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/knowledge",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/llm",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/infra",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/file",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/eval",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/embedder",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/document",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/docker",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/cli",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/aws",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/assistant",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/api",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/app",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/agent",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pathspec/patterns",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pathspec/_backends",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/packaging/licenses",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/helpers",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/resources",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/lib",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/cli",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/_utils",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/_extras",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/types",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/typing",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/testing",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/tests",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/strings",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/rec",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/polynomial",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/random",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/matrixlib",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/ma",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/linalg",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/lib",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/doc",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/fft",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/f2py",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/ctypeslib",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/core",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/_utils",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/char",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/_typing",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/_pyinstaller",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/_core",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it/rules_inline",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it/rules_core",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it/helpers",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it/rules_block",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it/presets",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it/common",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/markdown_it/cli",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/lxml/isoschematron",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/lxml/includes",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/lxml/html",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/jose/backends",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httpx/_transports",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httptools/parser",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httpcore/_async",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httpcore/_backends",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/httpcore/_sync",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/gitdb/utils",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/gitdb/test",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/gitdb/db",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/git/repo",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/git/index",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/git/refs",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/git/objects",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/implementations",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/feedparser/parsers",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/feedparser/namespaces",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/feedparser/datetimes",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fastapi/openapi",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fastapi/middleware",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fastapi/security",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fastapi/dependencies",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fastapi/_compat",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/docstring_parser/tests",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/dateutil/zoneinfo",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/dateutil/tz",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/dateutil/parser",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cryptography/hazmat",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cryptography/x509",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/colorama/tests",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/charset_normalizer/cli",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/blib2to3/pgen2",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/black/resources",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anyio/streams",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anyio/abc",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anyio/_core",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anyio/_backends",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anthropic/resources",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anthropic/lib",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anthropic/_utils",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anthropic/_decoders",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anthropic/types",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/workflow",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/tracing",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/vectordb",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/utils",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/skills",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/team",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/tools",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/session",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/remote",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/run",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/reasoning",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/os",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/memory",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/models",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/knowledge",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/hooks",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/integrations",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/eval",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/db",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/culture",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/compression",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/api",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/agent",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/guardrails",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/client",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/mark",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/_py",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/assertion",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/_io",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/_code",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/config",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/protocols/websockets",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/protocols/http",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/testing/plugin",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/testing/suite",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/testing/fixtures",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/declarative",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/mypy",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/asyncio",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/sqlite",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/oracle",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/mysql",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/mssql",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyparsing/ai/show_best_practices",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/table/update",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/avro/codecs",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/catalog/rest",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic_settings/sources/providers",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/der",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/cer",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/native",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/vcs",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/utils",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/resolution",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/req",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/operations",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/network",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/metadata",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/locations",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/models",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/index",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/distributions",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/commands",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/cli",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/urllib3",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/truststore",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/tomli_w",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/tomli",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/rich",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/resolvelib",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/requests",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/pyproject_hooks",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/pygments",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/platformdirs",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/pkg_resources",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/packaging",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/msgpack",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/idna",
+          "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/distro"
         ],
-        "symbolCount": 21190,
+        "symbolCount": 20376,
         "dependsOn": []
       },
       {
@@ -990,9 +1035,27 @@
         "description": "Data structures and domain objects",
         "directories": [
           "components/ai-elements",
-          "v0-odonto-gpt-ui/components/ai-elements"
+          "v0-odonto-gpt-ui/components/ai-elements",
+          "tmp/test_venv/lib/python3.14/site-packages/requests",
+          "tmp/test_venv/lib/python3.14/site-packages/charset_normalizer",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/models",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/requests",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/pygments"
         ],
-        "symbolCount": 56,
+        "symbolCount": 110,
+        "dependsOn": []
+      },
+      {
+        "name": "Repositories",
+        "description": "Data access and persistence",
+        "directories": [
+          "tmp/test_venv/lib/python3.14/site-packages/idna",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/metadata",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/packaging",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/idna",
+          "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/metadata/importlib"
+        ],
+        "symbolCount": 207,
         "dependsOn": []
       }
     ],
@@ -1001,7 +1064,7 @@
         "name": "Factory",
         "confidence": 0.9,
         "description": "Creates instances of related objects without specifying concrete classes",
-        "occurrences": 16
+        "occurrences": 17
       },
       {
         "name": "Singleton",
@@ -1013,6 +1076,12 @@
         "name": "Repository",
         "confidence": 0.9,
         "description": "Abstracts data access logic",
+        "occurrences": 1
+      },
+      {
+        "name": "Service Layer",
+        "confidence": 0.85,
+        "description": "Encapsulates business logic in service classes",
         "occurrences": 1
       },
       {
@@ -1031,30 +1100,37 @@
         "name": "Observer",
         "confidence": 0.75,
         "description": "Defines a subscription mechanism to notify multiple objects",
-        "occurrences": 39
+        "occurrences": 42
       }
     ],
     "entryPoints": [
       "lib/supabase/server.ts",
       "components/research/index.ts",
+      "components/newdashboard/index.ts",
+      "components/dashboard/index.ts",
       "components/chat/index.ts",
+      "components/artifacts/index.ts",
       "components/agno-chat/index.ts",
       "v0-odonto-gpt-ui/lib/supabase/server.ts",
       "supabase/functions/cakto/index.ts",
+      "lib/ai/prompts/index.ts",
+      "lib/ai/tools/index.ts",
       "v0-odonto-gpt-ui/supabase/functions/cakto/index.ts",
-      "odonto-gpt-agno-service/agent-ui/src/components/chat/Sidebar/index.ts",
-      "odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/index.ts",
-      "odonto-gpt-agno-service/agent-ui/src/components/ui/tooltip/index.ts",
-      "odonto-gpt-agno-service/agent-ui/src/components/ui/icon/index.ts",
-      "odonto-gpt-agno-service/agent-ui/src/components/chat/Sidebar/Sessions/index.ts",
-      "odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages/index.ts",
-      "odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/ChatInput/index.ts",
-      "odonto-gpt-agno-service/agent-ui/src/components/ui/typography/Paragraph/index.ts",
-      "odonto-gpt-agno-service/agent-ui/src/components/ui/typography/MarkdownRenderer/index.ts",
-      "odonto-gpt-agno-service/agent-ui/src/components/ui/typography/Heading/index.ts",
-      "odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages/Multimedia/Videos/index.ts",
-      "odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages/Multimedia/Images/index.ts",
-      "odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages/Multimedia/Audios/index.ts"
+      "lib/ai/tools/artifacts/index.ts",
+      "lib/ai/tools/research/index.ts",
+      "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/Sidebar/index.ts",
+      "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/index.ts",
+      "_archived/odonto-gpt-agno-service/agent-ui/src/components/ui/tooltip/index.ts",
+      "_archived/odonto-gpt-agno-service/agent-ui/src/components/ui/icon/index.ts",
+      "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/Sidebar/Sessions/index.ts",
+      "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages/index.ts",
+      "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/ChatInput/index.ts",
+      "_archived/odonto-gpt-agno-service/agent-ui/src/components/ui/typography/Paragraph/index.ts",
+      "_archived/odonto-gpt-agno-service/agent-ui/src/components/ui/typography/MarkdownRenderer/index.ts",
+      "_archived/odonto-gpt-agno-service/agent-ui/src/components/ui/typography/Heading/index.ts",
+      "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages/Multimedia/Videos/index.ts",
+      "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages/Multimedia/Images/index.ts",
+      "_archived/odonto-gpt-agno-service/agent-ui/src/components/chat/ChatArea/Messages/Multimedia/Audios/index.ts"
     ]
   },
   "symbols": {
@@ -1062,351 +1138,351 @@
       {
         "name": "ABAPLexer",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/lexers/business.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/lexers/business.py",
         "line": 242,
         "exported": true
       },
       {
         "name": "AbapStyle",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/styles/abap.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/styles/abap.py",
         "line": 19,
         "exported": true
       },
       {
         "name": "ABCPolyBase",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/polynomial/_polybase.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/polynomial/_polybase.py",
         "line": 20,
         "exported": true
       },
       {
         "name": "AbnfLexer",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/lexers/grammar_notation.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/lexers/grammar_notation.py",
         "line": 66,
         "exported": true
       },
       {
         "name": "Abort",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/click/exceptions.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/click/exceptions.py",
         "line": 294,
         "exported": true
       },
       {
         "name": "abort_txn_args",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
         "line": 56102,
         "exported": true
       },
       {
         "name": "abort_txn_result",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
         "line": 56178,
         "exported": true
       },
       {
         "name": "abort_txns_args",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
         "line": 56253,
         "exported": true
       },
       {
         "name": "abort_txns_result",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
         "line": 56329,
         "exported": true
       },
       {
         "name": "AbortHandshake",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/legacy/exceptions.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/legacy/exceptions.py",
         "line": 27,
         "exported": true
       },
       {
         "name": "AbortTxnRequest",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ttypes.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ttypes.py",
         "line": 14013,
         "exported": true
       },
       {
         "name": "AbortTxnsRequest",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ttypes.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ttypes.py",
         "line": 14103,
         "exported": true
       },
       {
         "name": "AboveMax",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/expressions/literals.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/expressions/literals.py",
         "line": 162,
         "exported": true
       },
       {
         "name": "AbstractArchiveFileSystem",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/archive.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/archive.py",
         "line": 7,
         "exported": true
       },
       {
         "name": "AbstractAsyncStreamedFile",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/asyn.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/asyn.py",
         "line": 989,
         "exported": true
       },
       {
         "name": "AbstractBufferedFile",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/spec.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/spec.py",
         "line": 1840,
         "exported": true
       },
       {
         "name": "AbstractCacheMapper",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/implementations/cache_mapper.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/implementations/cache_mapper.py",
         "line": 9,
         "exported": true
       },
       {
         "name": "AbstractCharacterString",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/type/char.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/type/char.py",
         "line": 21,
         "exported": true
       },
       {
         "name": "AbstractCollectionWriter",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/writeonly.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/writeonly.py",
         "line": 488,
         "exported": true
       },
       {
         "name": "AbstractConcreteBase",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/declarative/extensions.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/declarative/extensions.py",
         "line": 129,
         "exported": true
       },
       {
         "name": "AbstractConnectionPool",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/psycopg2/pool.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/psycopg2/pool.py",
         "line": 36,
         "exported": true
       },
       {
         "name": "AbstractConstraint",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/type/constraint.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/type/constraint.py",
         "line": 20,
         "exported": true
       },
       {
         "name": "AbstractConstraintSet",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/type/constraint.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/type/constraint.py",
         "line": 624,
         "exported": true
       },
       {
         "name": "AbstractConstructedPayloadDecoder",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/decoder.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/decoder.py",
         "line": 617,
         "exported": true
       },
       {
         "name": "AbstractDistribution",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/distributions/base.py",
+        "file": "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/distributions/base.py",
+        "line": 13,
+        "exported": true
+      },
+      {
+        "name": "AbstractDistribution",
+        "kind": "class",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/distributions/base.py",
         "line": 13,
         "exported": true
       },
       {
         "name": "AbstractEntityRegistry",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/path_registry.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/path_registry.py",
         "line": 656,
         "exported": true
       },
       {
         "name": "AbstractFileSystem",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/spec.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/spec.py",
         "line": 100,
         "exported": true
       },
       {
         "name": "AbstractItemEncoder",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/native/encoder.py",
-        "line": 24,
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/encoder.py",
+        "line": 25,
         "exported": true
       },
       {
         "name": "AbstractItemEncoder",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/encoder.py",
-        "line": 25,
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/native/encoder.py",
+        "line": 24,
         "exported": true
       },
       {
         "name": "AbstractKey",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/rsa/key.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/rsa/key.py",
         "line": 51,
         "exported": true
       },
       {
         "name": "AbstractMultiRange",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
         "line": 911,
         "exported": true
       },
       {
         "name": "AbstractMultiRangeImpl",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
         "line": 947,
         "exported": true
       },
       {
         "name": "AbstractORMCompileState",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py",
         "line": 223,
         "exported": true
       },
       {
         "name": "AbstractPayloadDecoder",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/decoder.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/decoder.py",
         "line": 37,
         "exported": true
       },
       {
         "name": "AbstractPoint",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/ecdsa/ellipticcurve.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/ecdsa/ellipticcurve.py",
         "line": 242,
         "exported": true
       },
       {
         "name": "AbstractProvider",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/resolvelib/providers.py",
+        "file": "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/resolvelib/providers.py",
+        "line": 21,
+        "exported": true
+      },
+      {
+        "name": "AbstractProvider",
+        "kind": "class",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/resolvelib/providers.py",
         "line": 21,
         "exported": true
       },
       {
         "name": "AbstractRaises",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/raises.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/raises.py",
         "line": 382,
         "exported": true
       },
       {
         "name": "AbstractRange",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
         "line": 741,
         "exported": true
       },
       {
         "name": "AbstractRelationshipLoader",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/strategies.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/strategies.py",
         "line": 581,
+        "exported": true
+      },
+      {
+        "name": "AbstractResolver",
+        "kind": "class",
+        "file": "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/resolvelib/resolvers/abstract.py",
+        "line": 22,
         "exported": true
       },
       {
         "name": "AbstractScalarPayloadDecoder",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/native/decoder.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/native/decoder.py",
         "line": 23,
         "exported": true
       },
       {
         "name": "AbstractSimplePayloadDecoder",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/decoder.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/decoder.py",
         "line": 68,
         "exported": true
       },
       {
         "name": "AbstractSingleRange",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
         "line": 871,
         "exported": true
       },
       {
         "name": "AbstractSingleRangeImpl",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
         "line": 906,
         "exported": true
       },
       {
         "name": "AccessDescription",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cryptography/x509/extensions.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cryptography/x509/extensions.py",
         "line": 384,
         "exported": true
       },
       {
         "name": "AccessFormatter",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/logging.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/logging.py",
         "line": 73,
         "exported": true
       },
       {
         "name": "Accessor",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/schema.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/schema.py",
         "line": 828,
         "exported": true
       },
       {
         "name": "AccessTokenMessage",
         "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/realtime/message.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/realtime/message.py",
         "line": 102,
-        "exported": true
-      },
-      {
-        "name": "AccessTokenPayload",
-        "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/realtime/message.py",
-        "line": 98,
-        "exported": true
-      },
-      {
-        "name": "AccuracyAgentResponse",
-        "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/eval/accuracy.py",
-        "line": 22,
-        "exported": true
-      },
-      {
-        "name": "AccuracyEval",
-        "kind": "class",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/eval/accuracy.py",
-        "line": 140,
         "exported": true
       }
     ],
@@ -1414,7 +1490,7 @@
       {
         "name": "Agent",
         "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
+        "file": "_archived/odonto-gpt-agno-service/agent-ui/src/types/os.ts",
         "line": 64,
         "exported": true
       },
@@ -1433,6 +1509,13 @@
         "exported": true
       },
       {
+        "name": "AgentConfig",
+        "kind": "interface",
+        "file": "lib/ai/agents/config.ts",
+        "line": 3,
+        "exported": true
+      },
+      {
         "name": "AgentDetails",
         "kind": "interface",
         "file": "lib/agno.ts",
@@ -1442,21 +1525,21 @@
       {
         "name": "AgentDetails",
         "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
+        "file": "_archived/odonto-gpt-agno-service/agent-ui/src/types/os.ts",
         "line": 214,
         "exported": true
       },
       {
         "name": "AgentExtraData",
         "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
+        "file": "_archived/odonto-gpt-agno-service/agent-ui/src/types/os.ts",
         "line": 174,
         "exported": true
       },
       {
         "name": "AgentExtraData",
         "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
+        "file": "_archived/odonto-gpt-agno-service/agent-ui/src/types/os.ts",
         "line": 180,
         "exported": true
       },
@@ -1465,6 +1548,13 @@
         "kind": "interface",
         "file": "lib/agent-config.ts",
         "line": 3,
+        "exported": true
+      },
+      {
+        "name": "AIContext",
+        "kind": "interface",
+        "file": "lib/types/artifacts.ts",
+        "line": 7,
         "exported": true
       },
       {
@@ -1482,10 +1572,45 @@
         "exported": true
       },
       {
+        "name": "Artifact",
+        "kind": "interface",
+        "file": "lib/types/artifacts.ts",
+        "line": 16,
+        "exported": true
+      },
+      {
+        "name": "ArtifactBase",
+        "kind": "interface",
+        "file": "components/artifacts/types.ts",
+        "line": 19,
+        "exported": true
+      },
+      {
         "name": "ArtifactData",
         "kind": "interface",
         "file": "lib/agno.ts",
         "line": 138,
+        "exported": true
+      },
+      {
+        "name": "ArtifactFilters",
+        "kind": "interface",
+        "file": "lib/types/artifacts.ts",
+        "line": 45,
+        "exported": true
+      },
+      {
+        "name": "ArtifactListParams",
+        "kind": "interface",
+        "file": "lib/types/artifacts.ts",
+        "line": 62,
+        "exported": true
+      },
+      {
+        "name": "ArtifactMeta",
+        "kind": "interface",
+        "file": "lib/hooks/useArtifactState.ts",
+        "line": 5,
         "exported": true
       },
       {
@@ -1496,23 +1621,37 @@
         "exported": true
       },
       {
+        "name": "ArtifactResult",
+        "kind": "interface",
+        "file": "lib/ai/tools/artifacts/index.ts",
+        "line": 14,
+        "exported": true
+      },
+      {
         "name": "AudioData",
         "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
+        "file": "_archived/odonto-gpt-agno-service/agent-ui/src/types/os.ts",
         "line": 242,
         "exported": true
       },
       {
         "name": "ButtonProps",
         "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/components/ui/button.tsx",
+        "file": "_archived/odonto-gpt-agno-service/agent-ui/src/components/ui/button.tsx",
         "line": 37,
+        "exported": true
+      },
+      {
+        "name": "ChartArtifact",
+        "kind": "interface",
+        "file": "components/artifacts/types.ts",
+        "line": 49,
         "exported": true
       },
       {
         "name": "ChatEntry",
         "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
+        "file": "_archived/odonto-gpt-agno-service/agent-ui/src/types/os.ts",
         "line": 286,
         "exported": true
       },
@@ -1533,7 +1672,7 @@
       {
         "name": "ChatMessage",
         "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
+        "file": "_archived/odonto-gpt-agno-service/agent-ui/src/types/os.ts",
         "line": 197,
         "exported": true
       },
@@ -1542,6 +1681,13 @@
         "kind": "interface",
         "file": "components/chat/types.ts",
         "line": 14,
+        "exported": true
+      },
+      {
+        "name": "CodeArtifact",
+        "kind": "interface",
+        "file": "components/artifacts/types.ts",
+        "line": 27,
         "exported": true
       },
       {
@@ -1559,6 +1705,13 @@
         "exported": true
       },
       {
+        "name": "CreateArtifactInput",
+        "kind": "interface",
+        "file": "lib/types/artifacts.ts",
+        "line": 29,
+        "exported": true
+      },
+      {
         "name": "DashboardProfile",
         "kind": "interface",
         "file": "components/dashboard/types.ts",
@@ -1573,23 +1726,51 @@
         "exported": true
       },
       {
+        "name": "DiagramArtifact",
+        "kind": "interface",
+        "file": "components/artifacts/types.ts",
+        "line": 94,
+        "exported": true
+      },
+      {
+        "name": "DocumentArtifact",
+        "kind": "interface",
+        "file": "components/artifacts/types.ts",
+        "line": 85,
+        "exported": true
+      },
+      {
+        "name": "FlashcardArtifact",
+        "kind": "interface",
+        "file": "components/artifacts/types.ts",
+        "line": 68,
+        "exported": true
+      },
+      {
         "name": "HeadingProps",
         "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/components/ui/typography/Heading/types.ts",
+        "file": "_archived/odonto-gpt-agno-service/agent-ui/src/components/ui/typography/Heading/types.ts",
         "line": 7,
         "exported": true
       },
       {
         "name": "IconProps",
         "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/components/ui/icon/types.ts",
+        "file": "_archived/odonto-gpt-agno-service/agent-ui/src/components/ui/icon/types.ts",
         "line": 40,
+        "exported": true
+      },
+      {
+        "name": "ImageArtifact",
+        "kind": "interface",
+        "file": "components/artifacts/types.ts",
+        "line": 35,
         "exported": true
       },
       {
         "name": "ImageData",
         "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
+        "file": "_archived/odonto-gpt-agno-service/agent-ui/src/types/os.ts",
         "line": 231,
         "exported": true
       },
@@ -1608,16 +1789,23 @@
         "exported": true
       },
       {
+        "name": "MarkdownRendererProps",
+        "kind": "interface",
+        "file": "components/ui/markdown-renderer.tsx",
+        "line": 11,
+        "exported": true
+      },
+      {
         "name": "Model",
         "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
+        "file": "_archived/odonto-gpt-agno-service/agent-ui/src/types/os.ts",
         "line": 58,
         "exported": true
       },
       {
         "name": "NewRunResponse",
         "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
+        "file": "_archived/odonto-gpt-agno-service/agent-ui/src/types/os.ts",
         "line": 126,
         "exported": true
       },
@@ -1643,122 +1831,10 @@
         "exported": true
       },
       {
-        "name": "Pagination",
+        "name": "PaginatedArtifacts",
         "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
-        "line": 274,
-        "exported": true
-      },
-      {
-        "name": "ParagraphProps",
-        "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/components/ui/typography/Paragraph/types.ts",
-        "line": 14,
-        "exported": true
-      },
-      {
-        "name": "ParsedSheet",
-        "kind": "interface",
-        "file": "lib/leads/import-parser.ts",
-        "line": 4,
-        "exported": true
-      },
-      {
-        "name": "ProcessMessageOptions",
-        "kind": "interface",
-        "file": "lib/ai/types.ts",
-        "line": 16,
-        "exported": true
-      },
-      {
-        "name": "ReasoningMessage",
-        "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
-        "line": 185,
-        "exported": true
-      },
-      {
-        "name": "ReasoningProps",
-        "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
-        "line": 26,
-        "exported": true
-      },
-      {
-        "name": "ReasoningStepProps",
-        "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
-        "line": 22,
-        "exported": true
-      },
-      {
-        "name": "ReasoningSteps",
-        "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
-        "line": 14,
-        "exported": true
-      },
-      {
-        "name": "Reference",
-        "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
-        "line": 258,
-        "exported": true
-      },
-      {
-        "name": "ReferenceData",
-        "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
-        "line": 252,
-        "exported": true
-      },
-      {
-        "name": "ResponseAudio",
-        "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
-        "line": 118,
-        "exported": true
-      },
-      {
-        "name": "RunResponse",
-        "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
-        "line": 152,
-        "exported": true
-      },
-      {
-        "name": "RunResponseChunk",
-        "kind": "interface",
-        "file": "lib/agno.ts",
-        "line": 88,
-        "exported": true
-      },
-      {
-        "name": "RunResponseContent",
-        "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
-        "line": 130,
-        "exported": true
-      },
-      {
-        "name": "SessionEntry",
-        "kind": "interface",
-        "file": "lib/agno.ts",
-        "line": 154,
-        "exported": true
-      },
-      {
-        "name": "SessionEntry",
-        "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
-        "line": 267,
-        "exported": true
-      },
-      {
-        "name": "Sessions",
-        "kind": "interface",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
-        "line": 281,
+        "file": "lib/types/artifacts.ts",
+        "line": 54,
         "exported": true
       }
     ],
@@ -1766,91 +1842,91 @@
       {
         "name": "about_section",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/utils/streamlit.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/utils/streamlit.py",
         "line": 438,
         "exported": true
       },
       {
         "name": "absolutepath",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/pathlib.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/pathlib.py",
         "line": 998,
         "exported": true
       },
       {
         "name": "acancel_run",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/run/cancel.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/run/cancel.py",
         "line": 52,
         "exported": true
       },
       {
         "name": "accept_key",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/utils.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/utils.py",
         "line": 24,
         "exported": true
       },
       {
         "name": "accept_suggestion",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/lib/_validators.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/lib/_validators.py",
         "line": 566,
         "exported": true
       },
       {
         "name": "acleanup_run",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/run/cancel.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/run/cancel.py",
         "line": 72,
         "exported": true
       },
       {
         "name": "aclose_default_clients",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/utils/http.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/utils/http.py",
         "line": 92,
         "exported": true
       },
       {
         "name": "aclose_forcefully",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anyio/_core/_resources.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anyio/_core/_resources.py",
         "line": 7,
         "exported": true
       },
       {
         "name": "acreate_agent_run",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/api/agent.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/api/agent.py",
         "line": 55,
         "exported": true
       },
       {
         "name": "acreate_agent_run",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/api/agent.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/api/agent.py",
         "line": 19,
         "exported": true
       },
       {
         "name": "acreate_agent_session",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/api/agent.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/phi/api/agent.py",
         "line": 40,
         "exported": true
       },
       {
         "name": "acreate_team_run",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/api/team.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/api/team.py",
         "line": 20,
         "exported": true
       },
       {
         "name": "acreate_workflow_run",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/api/workflow.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/api/workflow.py",
         "line": 19,
         "exported": true
       },
@@ -1906,211 +1982,211 @@
       {
         "name": "actor_id_to_tool_name",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/tools/apify.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/tools/apify.py",
         "line": 245,
         "exported": true
       },
       {
         "name": "adapt_criterion_to_null",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/sql/util.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/sql/util.py",
         "line": 815,
         "exported": true
       },
       {
         "name": "adapt_ipaddress",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/psycopg2/_ipaddress.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/psycopg2/_ipaddress.py",
         "line": 89,
         "exported": true
       },
       {
         "name": "adapt_type",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/sql/type_api.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/sql/type_api.py",
         "line": 2347,
         "exported": true
       },
       {
         "name": "add_additional_orm_attributes",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/mypy/apply.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/mypy/apply.py",
         "line": 255,
         "exported": true
       },
       {
         "name": "add_attribute_docstrings",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/docstring_parser/attrdoc.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/docstring_parser/attrdoc.py",
         "line": 104,
         "exported": true
       },
       {
         "name": "add_cffi_module",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cffi/setuptools_ext.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cffi/setuptools_ext.py",
         "line": 29,
         "exported": true
       },
       {
         "name": "add_class",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/clsregistry.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/clsregistry.py",
         "line": 64,
         "exported": true
       },
       {
         "name": "add_completion_class",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/click/shell_completion.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/click/shell_completion.py",
         "line": 436,
         "exported": true
       },
       {
         "name": "add_constructor",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/yaml/__init__.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/yaml/__init__.py",
         "line": 302,
         "exported": true
       },
       {
         "name": "add_constructor",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/strictyaml/ruamel/main.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/strictyaml/ruamel/main.py",
         "line": 1428,
         "exported": true
       },
       {
         "name": "add_dict_to_cookiejar",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/requests/utils.py",
+        "file": "tmp/test_venv/lib/python3.14/site-packages/requests/utils.py",
         "line": 468,
         "exported": true
       },
       {
         "name": "add_dict_to_cookiejar",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/requests/utils.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/requests/utils.py",
+        "line": 468,
+        "exported": true
+      },
+      {
+        "name": "add_dict_to_cookiejar",
+        "kind": "function",
+        "file": "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/requests/utils.py",
+        "line": 468,
+        "exported": true
+      },
+      {
+        "name": "add_dict_to_cookiejar",
+        "kind": "function",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/requests/utils.py",
         "line": 468,
         "exported": true
       },
       {
         "name": "add_error_event",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/utils/events.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/utils/events.py",
         "line": 777,
         "exported": true
       },
       {
         "name": "add_field_type_to_schema",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/v1/schema.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/v1/schema.py",
         "line": 804,
         "exported": true
       },
       {
         "name": "add_global",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/mypy/util.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/mypy/util.py",
         "line": 196,
         "exported": true
       },
       {
         "name": "add_implicit_resolver",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/yaml/__init__.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/yaml/__init__.py",
         "line": 271,
         "exported": true
       },
       {
         "name": "add_implicit_resolver",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/strictyaml/ruamel/main.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/strictyaml/ruamel/main.py",
         "line": 1357,
         "exported": true
       },
       {
         "name": "add_interaction_to_team_run_context",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/utils/team.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/utils/team.py",
         "line": 58,
         "exported": true
       },
       {
         "name": "add_luhn_digit",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/v1/_hypothesis_plugin.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/v1/_hypothesis_plugin.py",
         "line": 122,
         "exported": true
       },
       {
         "name": "add_mapped_attribute",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_api.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/decl_api.py",
         "line": 972,
         "exported": true
       },
       {
         "name": "add_message",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/utils/streamlit.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/utils/streamlit.py",
         "line": 20,
         "exported": true
       },
       {
         "name": "add_metaclass",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/six.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/six.py",
         "line": 885,
+        "exported": true
+      },
+      {
+        "name": "add_metaclass",
+        "kind": "function",
+        "file": "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/urllib3/packages/six.py",
+        "line": 953,
         "exported": true
       },
       {
         "name": "add_method",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/mypy.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/mypy.py",
         "line": 1266,
         "exported": true
       },
       {
         "name": "add_method",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/v1/mypy.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/v1/mypy.py",
         "line": 824,
         "exported": true
       },
       {
         "name": "add_move",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/six.py",
+        "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/six.py",
         "line": 515,
         "exported": true
       },
       {
-        "name": "add_multi_constructor",
+        "name": "add_move",
         "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/yaml/__init__.py",
-        "line": 315,
-        "exported": true
-      },
-      {
-        "name": "add_multi_constructor",
-        "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/strictyaml/ruamel/main.py",
-        "line": 1453,
-        "exported": true
-      },
-      {
-        "name": "add_multi_representer",
-        "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/yaml/__init__.py",
-        "line": 338,
-        "exported": true
-      },
-      {
-        "name": "add_multi_representer",
-        "kind": "function",
-        "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/strictyaml/ruamel/main.py",
-        "line": 1510,
+        "file": "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/urllib3/packages/six.py",
+        "line": 544,
         "exported": true
       }
     ],
@@ -2235,6 +2311,13 @@
         "exported": true
       },
       {
+        "name": "Artifact",
+        "kind": "type",
+        "file": "components/artifacts/types.ts",
+        "line": 101,
+        "exported": true
+      },
+      {
         "name": "ArtifactActionProps",
         "kind": "type",
         "file": "components/ai-elements/artifact.tsx",
@@ -2319,6 +2402,13 @@
         "exported": true
       },
       {
+        "name": "ArtifactKind",
+        "kind": "type",
+        "file": "components/artifacts/types.ts",
+        "line": 8,
+        "exported": true
+      },
+      {
         "name": "ArtifactProps",
         "kind": "type",
         "file": "components/ai-elements/artifact.tsx",
@@ -2344,6 +2434,13 @@
         "kind": "type",
         "file": "v0-odonto-gpt-ui/components/ai-elements/artifact.tsx",
         "line": 65,
+        "exported": true
+      },
+      {
+        "name": "ArtifactType",
+        "kind": "type",
+        "file": "lib/types/artifacts.ts",
+        "line": 5,
         "exported": true
       },
       {
@@ -2443,27 +2540,6 @@
         "file": "components/ai-elements/branch.tsx",
         "line": 31,
         "exported": true
-      },
-      {
-        "name": "BranchProps",
-        "kind": "type",
-        "file": "v0-odonto-gpt-ui/components/ai-elements/branch.tsx",
-        "line": 31,
-        "exported": true
-      },
-      {
-        "name": "BranchSelectorProps",
-        "kind": "type",
-        "file": "components/ai-elements/branch.tsx",
-        "line": 108,
-        "exported": true
-      },
-      {
-        "name": "BranchSelectorProps",
-        "kind": "type",
-        "file": "v0-odonto-gpt-ui/components/ai-elements/branch.tsx",
-        "line": 108,
-        "exported": true
       }
     ],
     "enums": [
@@ -2477,7 +2553,7 @@
       {
         "name": "RunEvent",
         "kind": "enum",
-        "file": "odonto-gpt-agno-service/agent-ui/src/types/os.ts",
+        "file": "_archived/odonto-gpt-agno-service/agent-ui/src/types/os.ts",
         "line": 86,
         "exported": true
       }
@@ -2487,441 +2563,441 @@
     {
       "name": "ABAPLexer",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/lexers/business.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/lexers/business.py",
       "line": 242,
       "exported": true
     },
     {
       "name": "AbapStyle",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/styles/abap.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/styles/abap.py",
       "line": 19,
       "exported": true
     },
     {
       "name": "ABCPolyBase",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/polynomial/_polybase.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/polynomial/_polybase.py",
       "line": 20,
       "exported": true
     },
     {
       "name": "AbnfLexer",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/lexers/grammar_notation.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pygments/lexers/grammar_notation.py",
       "line": 66,
       "exported": true
     },
     {
       "name": "Abort",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/click/exceptions.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/click/exceptions.py",
       "line": 294,
       "exported": true
     },
     {
       "name": "abort_txn_args",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
       "line": 56102,
       "exported": true
     },
     {
       "name": "abort_txn_result",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
       "line": 56178,
       "exported": true
     },
     {
       "name": "abort_txns_args",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
       "line": 56253,
       "exported": true
     },
     {
       "name": "abort_txns_result",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ThriftHiveMetastore.py",
       "line": 56329,
       "exported": true
     },
     {
       "name": "AbortHandshake",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/legacy/exceptions.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/legacy/exceptions.py",
       "line": 27,
       "exported": true
     },
     {
       "name": "AbortTxnRequest",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ttypes.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ttypes.py",
       "line": 14013,
       "exported": true
     },
     {
       "name": "AbortTxnsRequest",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ttypes.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/hive_metastore/ttypes.py",
       "line": 14103,
       "exported": true
     },
     {
       "name": "about_section",
       "kind": "function",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/utils/streamlit.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/utils/streamlit.py",
       "line": 438,
       "exported": true
     },
     {
       "name": "AboveMax",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/expressions/literals.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyiceberg/expressions/literals.py",
       "line": 162,
       "exported": true
     },
     {
       "name": "absolutepath",
       "kind": "function",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/pathlib.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/pathlib.py",
       "line": 998,
       "exported": true
     },
     {
       "name": "AbstractArchiveFileSystem",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/archive.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/archive.py",
       "line": 7,
       "exported": true
     },
     {
       "name": "AbstractAsyncStreamedFile",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/asyn.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/asyn.py",
       "line": 989,
       "exported": true
     },
     {
       "name": "AbstractBufferedFile",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/spec.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/spec.py",
       "line": 1840,
       "exported": true
     },
     {
       "name": "AbstractCacheMapper",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/implementations/cache_mapper.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/implementations/cache_mapper.py",
       "line": 9,
       "exported": true
     },
     {
       "name": "AbstractCharacterString",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/type/char.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/type/char.py",
       "line": 21,
       "exported": true
     },
     {
       "name": "AbstractCollectionWriter",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/writeonly.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/writeonly.py",
       "line": 488,
       "exported": true
     },
     {
       "name": "AbstractConcreteBase",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/declarative/extensions.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/declarative/extensions.py",
       "line": 129,
       "exported": true
     },
     {
       "name": "AbstractConnectionPool",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/psycopg2/pool.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/psycopg2/pool.py",
       "line": 36,
       "exported": true
     },
     {
       "name": "AbstractConstraint",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/type/constraint.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/type/constraint.py",
       "line": 20,
       "exported": true
     },
     {
       "name": "AbstractConstraintSet",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/type/constraint.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/type/constraint.py",
       "line": 624,
       "exported": true
     },
     {
       "name": "AbstractConstructedPayloadDecoder",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/decoder.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/decoder.py",
       "line": 617,
       "exported": true
     },
     {
       "name": "AbstractDistribution",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/distributions/base.py",
+      "file": "tmp/test_venv/lib/python3.14/site-packages/pip/_internal/distributions/base.py",
+      "line": 13,
+      "exported": true
+    },
+    {
+      "name": "AbstractDistribution",
+      "kind": "class",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_internal/distributions/base.py",
       "line": 13,
       "exported": true
     },
     {
       "name": "AbstractEntityRegistry",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/path_registry.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/path_registry.py",
       "line": 656,
       "exported": true
     },
     {
       "name": "AbstractFileSystem",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/spec.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/fsspec/spec.py",
       "line": 100,
       "exported": true
     },
     {
       "name": "AbstractItemEncoder",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/native/encoder.py",
-      "line": 24,
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/encoder.py",
+      "line": 25,
       "exported": true
     },
     {
       "name": "AbstractItemEncoder",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/encoder.py",
-      "line": 25,
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/native/encoder.py",
+      "line": 24,
       "exported": true
     },
     {
       "name": "AbstractKey",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/rsa/key.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/rsa/key.py",
       "line": 51,
       "exported": true
     },
     {
       "name": "AbstractMultiRange",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
       "line": 911,
       "exported": true
     },
     {
       "name": "AbstractMultiRangeImpl",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
       "line": 947,
       "exported": true
     },
     {
       "name": "AbstractORMCompileState",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py",
       "line": 223,
       "exported": true
     },
     {
       "name": "AbstractPayloadDecoder",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/decoder.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/decoder.py",
       "line": 37,
       "exported": true
     },
     {
       "name": "AbstractPoint",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/ecdsa/ellipticcurve.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/ecdsa/ellipticcurve.py",
       "line": 242,
       "exported": true
     },
     {
       "name": "AbstractProvider",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/resolvelib/providers.py",
+      "file": "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/resolvelib/providers.py",
+      "line": 21,
+      "exported": true
+    },
+    {
+      "name": "AbstractProvider",
+      "kind": "class",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/resolvelib/providers.py",
       "line": 21,
       "exported": true
     },
     {
       "name": "AbstractRaises",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/raises.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/_pytest/raises.py",
       "line": 382,
       "exported": true
     },
     {
       "name": "AbstractRange",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
       "line": 741,
       "exported": true
     },
     {
       "name": "AbstractRelationshipLoader",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/strategies.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm/strategies.py",
       "line": 581,
+      "exported": true
+    },
+    {
+      "name": "AbstractResolver",
+      "kind": "class",
+      "file": "tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/resolvelib/resolvers/abstract.py",
+      "line": 22,
       "exported": true
     },
     {
       "name": "AbstractScalarPayloadDecoder",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/native/decoder.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/native/decoder.py",
       "line": 23,
       "exported": true
     },
     {
       "name": "AbstractSimplePayloadDecoder",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/decoder.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pyasn1/codec/ber/decoder.py",
       "line": 68,
       "exported": true
     },
     {
       "name": "AbstractSingleRange",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
       "line": 871,
       "exported": true
     },
     {
       "name": "AbstractSingleRangeImpl",
       "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql/ranges.py",
       "line": 906,
       "exported": true
     },
     {
       "name": "acancel_run",
       "kind": "function",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/run/cancel.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/agno/run/cancel.py",
       "line": 52,
       "exported": true
     },
     {
       "name": "accept_key",
       "kind": "function",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/utils.py",
+      "file": "_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/websockets/utils.py",
       "line": 24,
-      "exported": true
-    },
-    {
-      "name": "accept_suggestion",
-      "kind": "function",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai/lib/_validators.py",
-      "line": 566,
-      "exported": true
-    },
-    {
-      "name": "AccessDescription",
-      "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cryptography/x509/extensions.py",
-      "line": 384,
-      "exported": true
-    },
-    {
-      "name": "AccessFormatter",
-      "kind": "class",
-      "file": "odonto-gpt-agno-service/venv/lib/python3.14/site-packages/uvicorn/logging.py",
-      "line": 73,
       "exported": true
     }
   ],
   "dependencies": {
     "mostImported": [
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy",
         "importedBy": 263
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/orm",
         "importedBy": 111
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/sql",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/sql",
         "importedBy": 75
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/testing",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/testing",
         "importedBy": 68
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/postgresql",
         "importedBy": 18
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/ecdsa",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/ecdsa",
         "importedBy": 17
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/openai",
         "importedBy": 16
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/_core",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/_core",
         "importedBy": 15
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/rich",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/rich",
         "importedBy": 12
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/f2py",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/f2py",
         "importedBy": 12
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anyio",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/anyio",
         "importedBy": 11
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/mypy",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/tmp/test_venv/lib/python3.14/site-packages/pip/_vendor/rich",
         "importedBy": 11
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/rich",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/ext/mypy",
         "importedBy": 11
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cffi",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pip/_vendor/rich",
+        "importedBy": 11
+      },
+      {
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/cffi",
         "importedBy": 10
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/mysql",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/mysql",
         "importedBy": 10
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/engine",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/engine",
         "importedBy": 8
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/_internal",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/pydantic/_internal",
         "importedBy": 8
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/polynomial",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/_archived/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/numpy/polynomial",
         "importedBy": 7
       },
       {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/util",
-        "importedBy": 6
-      },
-      {
-        "file": "/Users/marcosalexandre/v0-odonto-gpt-ui/odonto-gpt-agno-service/venv/lib/python3.14/site-packages/sqlalchemy/dialects/oracle",
+        "file": "/Users/marcosalexandre/Library/CloudStorage/GoogleDrive-marckexpert1@gmail.com/Meu Drive/Mac_Sync/Projetos/v0-odonto-gpt-ui/components/artifacts/types.ts",
         "importedBy": 6
       }
     ]
   },
   "stats": {
-    "totalSymbols": 24043,
-    "exportedSymbols": 18793,
-    "analysisTimeMs": 36816
+    "totalSymbols": 25934,
+    "exportedSymbols": 19956,
+    "analysisTimeMs": 50997
   }
 }

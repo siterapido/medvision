@@ -5,47 +5,28 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Custom Odonto GPT color palette - medical professional theme */
+  /* --- Perplexity-Style Design System --- */
+
+  /* Base Colors - Deep Space Dark Mode preferred */
   --background: #ffffff;
-  --foreground: #1a1a1a;
+  --foreground: #0f172a;
 
-  /* Primary: Medical teal/cyan - trustworthy and professional */
-  --primary: #0891b2;
+  /* Primary Accent - Cyan/Teal Tech Feel */
+  --primary: #06b6d4;  /* Cyan 500 */
   --primary-foreground: #ffffff;
-  --primary-hover: #0e7490;
+  --primary-hover: #0891b2; /* Cyan 600 */
 
-  /* Secondary: Soft blue-gray for secondary actions */
-  --secondary: #64748b;
-  --secondary-foreground: #ffffff;
-
-  /* Accent: Vibrant teal for highlights */
-  --accent: #06b6d4;
-  --accent-foreground: #ffffff;
-
-  /* Neutrals */
+  /* Secondary Accents */
+  --secondary: #f1f5f9;  /* Slate 100 */
+  --secondary-foreground: #0f172a;
+  
+  /* UI States */
   --muted: #f8fafc;
-  --muted-foreground: #64748b;
-  --card: #ffffff;
-  --card-foreground: #1a1a1a;
-  --popover: #ffffff;
-  --popover-foreground: #1a1a1a;
-
-  /* Borders and inputs */
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: #0891b2;
-
-  /* Sidebar specific */
-  --sidebar: #f8fafc;
-  --sidebar-foreground: #1a1a1a;
-  --sidebar-primary: #0891b2;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f0fdfa;
-  --sidebar-accent-foreground: #0891b2;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: #0891b2;
-
-  /* Status colors */
+  --muted-foreground: #64748b; /* Slate 500 */
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  
+  /* Feedback */
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   --success: #10b981;
@@ -53,74 +34,95 @@
   --warning: #f59e0b;
   --warning-foreground: #ffffff;
 
-  /* Chart colors */
-  --chart-1: #0891b2;
-  --chart-2: #06b6d4;
-  --chart-3: #22d3ee;
-  --chart-4: #67e8f9;
-  --chart-5: #a5f3fc;
+  /* Surfaces */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
 
-  --radius: 0.5rem;
+  /* Borders & Inputs */
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #06b6d4;
 
-  /* Shadow system */
-  --shadow-x: 0px;
-  --shadow-y: 1px;
-  --shadow-blur: 3px;
-  --shadow-spread: 0px;
-  --shadow-opacity: 0.1;
-  --shadow-color: #0891b2;
+  /* Sidebar Specific */
+  --sidebar: #0f172a;       /* Slate 900 */
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #06b6d4;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e293b;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1e293b;
+  --sidebar-ring: #06b6d4;
+
+  /* Chart Colors */
+  --chart-1: #06b6d4;
+  --chart-2: #3b82f6;
+  --chart-3: #8b5cf6;
+  --chart-4: #ec4899;
+  --chart-5: #10b981;
+
+  /* Radius */
+  --radius: 0.75rem;
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-heading: 'Outfit', sans-serif;
 }
 
 .dark {
-  /* Dark mode with medical professional aesthetic */
-  --background: #0f172a;
-  --foreground: #f1f5f9;
+  /* --- Dark Mode (Default/Preferred) --- */
+  
+  /* Deep Tech Background */
+  --background: #0B1120;  /* Darker than Slate 950 */
+  --background-secondary: #0F172A; /* Slate 900 */
+  --foreground: #f8fafc;  /* Slate 50 */
 
-  --primary: #06b6d4;
-  --primary-foreground: #0f172a;
-  --primary-hover: #0891b2;
+  /* Glassmorphism Bases */
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(15, 23, 42, 0.6);
 
-  --secondary: #475569;
-  --secondary-foreground: #f1f5f9;
+  /* Primary Accents */
+  --primary: #06b6d4;     /* Cyan 500 */
+  --primary-foreground: #ffffff;
+  --primary-hover: #22d3ee; /* Cyan 400 - Lighter for dark mode hover */
 
-  --accent: #22d3ee;
-  --accent-foreground: #0f172a;
+  /* Secondary Surfaces */
+  --secondary: #1e293b;   /* Slate 800 */
+  --secondary-foreground: #f8fafc;
 
+  /* UI States */
   --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --card: #1e293b;
-  --card-foreground: #f1f5f9;
-  --popover: #1e293b;
-  --popover-foreground: #f1f5f9;
+  --muted-foreground: #94a3b8; /* Slate 400 */
+  --accent: #1e293b;
+  --accent-foreground: #f8fafc;
 
-  --border: #334155;
-  --input: #334155;
+  /* Surfaces */
+  --card: #0F172A;        /* Slate 900 - Solid Fallback */
+  --card-foreground: #f8fafc;
+  --popover: #0F172A;
+  --popover-foreground: #f8fafc;
+
+  /* Borders & Inputs */
+  --border: #1e293b;      /* Slate 800 */
+  --input: #1e293b;
   --ring: #06b6d4;
 
-  --sidebar: #1e293b;
-  --sidebar-foreground: #f1f5f9;
+  /* Sidebar overrides */
+  --sidebar: #0B1120;     /* Matches main background for seamless feel */
+  --sidebar-foreground: #f8fafc;
   --sidebar-primary: #06b6d4;
-  --sidebar-primary-foreground: #0f172a;
-  --sidebar-accent: #164e63;
-  --sidebar-accent-foreground: #06b6d4;
-  --sidebar-border: #334155;
-  --sidebar-ring: #06b6d4;
-
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --success: #10b981;
-  --success-foreground: #ffffff;
-  --warning: #f59e0b;
-  --warning-foreground: #ffffff;
-
-  --chart-1: #06b6d4;
-  --chart-2: #22d3ee;
-  --chart-3: #67e8f9;
-  --chart-4: #a5f3fc;
-  --chart-5: #cffafe;
-
-  --shadow-color: #000000;
-  --shadow-opacity: 0.3;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e293b;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.05);
+  
+  /* Chart Colors */
+  --chart-1: #22d3ee;     /* Cyan */
+  --chart-2: #60a5fa;     /* Blue */
+  --chart-3: #a78bfa;     /* Violet */
+  --chart-4: #f472b6;     /* Pink */
+  --chart-5: #34d399;     /* Emerald */
 }
 
 @theme inline {
@@ -160,127 +162,69 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-  /* computed shadow variables below - do not modify */
-  --shadow-2xs: var(--shadow-x) var(--shadow-y) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 100%), transparent);
-  --shadow-xs: var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-spread) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 100%), transparent);
-  --shadow-sm: var(--shadow-x) var(--shadow-y) calc(var(--shadow-blur) * 1.5) var(--shadow-spread) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 100%), transparent);
-  --shadow-md: calc(var(--shadow-x) * 2) calc(var(--shadow-y) * 2) calc(var(--shadow-blur) * 3) calc(var(--shadow-spread) - 1px) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 100%), transparent);
-  --shadow-lg: calc(var(--shadow-x) * 4) calc(var(--shadow-y) * 4) calc(var(--shadow-blur) * 5) calc(var(--shadow-spread) - 3px) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 100%), transparent);
-  --shadow-xl: calc(var(--shadow-x) * 6) calc(var(--shadow-y) * 6) calc(var(--shadow-blur) * 7) calc(var(--shadow-spread) - 5px) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 100%), transparent);
-  --shadow-2xl: calc(var(--shadow-x) * 8) calc(var(--shadow-y) * 8) calc(max(0px, var(--shadow-blur) * 9 - 8px)) calc(var(--shadow-spread) - 12px) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 250%), transparent);
-  --shadow: var(--shadow-md);
-  --color-shadow-color: var(--shadow-color);
-  --shadow-opacity: var(--shadow-opacity);
-  --shadow-spread: var(--shadow-spread);
-  --shadow-blur: var(--shadow-blur);
-  --shadow-y: var(--shadow-y);
-  --shadow-x: var(--shadow-x);
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-
   body {
     @apply bg-background text-foreground;
-    margin: 0;
-    padding: 0;
-  }
-
-  footer {
-    margin: 0;
-    padding: 0;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-/* Modern micro-interactions and subtle animated gradients */
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
+/* --- Modern Animations & Effects --- */
 
-  100% {
-    background-position: -200% 0;
-  }
+/* Smooth Fade In */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Staggered delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+
+/* Pulse Glow */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
+  50% { box-shadow: 0 0 20px 0 rgba(6, 182, 212, 0.3); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Shimmer Effect */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.1) 50%,
-      rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(90deg, 
+    rgba(255,255,255,0) 0%, 
+    rgba(255,255,255,0.05) 50%, 
+    rgba(255,255,255,0) 100%);
   background-size: 200% 100%;
   animation: shimmer 2s infinite linear;
-}
-
-/* Custom animations for agent indicators */
-@keyframes pulse-soft {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.7;
-  }
-}
-
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes pulse-slow {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.5;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-pulse-soft {
-  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.animate-spin-slow {
-  animation: spin-slow 3s linear infinite;
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 3s ease-in-out infinite;
-}
-
-.animate-fade-in {
-  animation: fade-in 0.5s ease-out;
 }
 
 /* Glassmorphism utilities */

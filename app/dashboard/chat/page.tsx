@@ -1,22 +1,33 @@
-import { ChatClient } from "@/components/dashboard/chat-client"
-import { createClient } from "@/lib/supabase/server"
-import { redirect } from "next/navigation"
+import { OdontoAIChat } from '@/components/dashboard/odonto-ai-chat'
+import { getSessionMessages } from '@/app/actions/chat'
+import { Message } from 'ai'
 
 export const metadata = {
-  title: "Chat IA | Odonto Suite",
-  description: "Converse com nosso assistente de IA especializado em odontologia",
+  title: 'Chat | Odonto GPT',
+  description: 'Converse com seu tutor inteligente de Odontologia',
 }
 
-export default async function ChatPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+export default async function ChatPage({ searchParams }: { searchParams: Promise<{ id?: string }> }) {
+  const resolvedSearchParams = await searchParams
+  const id = resolvedSearchParams.id
 
-  if (error || !user) {
-    redirect("/login")
+  let initialMessages: Message[] = []
+
+  if (id) {
+    try {
+      const savedMessages = await getSessionMessages(id)
+      // Convert DB messages to AI SDK Message format
+      initialMessages = savedMessages.map(m => ({
+        id: m.id,
+        role: m.role as any,
+        content: m.content || "",
+        // If we stored tool calls/results in metadata or specialized columns, we'd map them here.
+        // For now simplest text restoration.
+      }))
+    } catch (error) {
+      console.error("Error fetching messages", error)
+    }
   }
 
-  return <ChatClient userId={user.id} />
+  return <OdontoAIChat initialMessages={initialMessages} initialChatId={id} />
 }

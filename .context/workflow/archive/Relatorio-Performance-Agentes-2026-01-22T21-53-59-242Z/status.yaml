@@ -1,0 +1,25 @@
+project:
+  name: "Relatorio-Performance-Agentes"
+  scale: QUICK
+  started: "2026-01-22T21:09:33.124Z"
+  current_phase: E
+
+phases:
+  P:
+    status: skipped
+    reason: "Not required for scale QUICK"
+  R:
+    status: skipped
+    reason: "Not required for scale QUICK"
+  E:
+    status: in_progress
+    started_at: "2026-01-22T21:09:33.123Z"
+  V:
+    status: pending
+  C:
+    status: skipped
+    reason: "Not required for scale QUICK"
+
+roles:
+  solo-dev:
+    status: pending

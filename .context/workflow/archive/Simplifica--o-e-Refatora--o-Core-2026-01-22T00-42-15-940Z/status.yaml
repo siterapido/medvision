@@ -1,0 +1,78 @@
+project:
+  name: "Simplificação e Refatoração Core"
+  scale: SMALL
+  started: "2026-01-20T16:28:43.604Z"
+  current_phase: V
+
+phases:
+  P:
+    status: filled
+    started_at: "2026-01-20T16:28:43.603Z"
+    completed_at: "2026-01-20T16:40:02.105Z"
+  R:
+    status: skipped
+    reason: "Not required for scale SMALL"
+  E:
+    status: filled
+    started_at: "2026-01-20T16:40:02.107Z"
+    completed_at: "2026-01-20T16:40:43.580Z"
+  V:
+    status: completed
+    started_at: "2026-01-20T16:40:43.582Z"
+    completed_at: "2026-01-22T00:30:24.255Z"
+    outputs:
+      - path: "./context/docs/development-workflow.md"
+        status: filled
+      - path: "./context/docs/architecture.md"
+        status: filled
+      - path: "./context/agents/*.md"
+        status: filled
+      - path: "./context/skills/*.md"
+        status: filled
+  C:
+    status: skipped
+    reason: "Not required for scale SMALL"
+
+roles:
+  planner:
+    status: pending
+  developer:
+    status: pending
+  qa:
+    status: pending
+
+execution:
+  history:
+    - timestamp: "2026-01-20T16:28:43.603Z"
+      phase: P
+      action: started
+    - timestamp: "2026-01-20T16:40:02.105Z"
+      phase: P
+      action: completed
+    - timestamp: "2026-01-20T16:40:02.107Z"
+      phase: E
+      action: started
+    - timestamp: "2026-01-20T16:40:43.580Z"
+      phase: E
+      action: completed
+    - timestamp: "2026-01-20T16:40:43.582Z"
+      phase: V
+      action: started
+    - timestamp: "2026-01-22T00:30:24.255Z"
+      phase: R
+      action: phase_skipped
+    - timestamp: "2026-01-22T00:30:24.255Z"
+      phase: C
+      action: phase_skipped
+    - timestamp: "2026-01-22T00:30:24.255Z"
+      phase: V
+      action: completed
+  last_activity: "2026-01-22T00:30:24.255Z"
+  resume_context: "Fase V (Validação) concluída"
+
+approval:
+  plan_created: false
+  plan_approved: true
+  approved_by: "system-migration"
+  approved_at: "2026-01-22T00:30:24.255Z"
+

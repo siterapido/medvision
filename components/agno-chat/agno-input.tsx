@@ -217,8 +217,8 @@ export function AgnoInput({
                         <div
                             key={index}
                             className={cn(
-                                "relative group rounded-xl overflow-hidden border border-slate-700",
-                                attached.type === 'image' ? "w-16 h-16" : "px-3 py-2 flex items-center gap-2 bg-slate-800/50"
+                                "relative group rounded-xl overflow-hidden border border-border",
+                                attached.type === 'image' ? "w-16 h-16" : "px-3 py-2 flex items-center gap-2 bg-muted/50"
                             )}
                         >
                             {attached.type === 'image' && attached.previewUrl ? (
@@ -229,13 +229,13 @@ export function AgnoInput({
                                 />
                             ) : attached.type === 'audio' ? (
                                 <>
-                                    <FileAudio className="w-4 h-4 text-cyan-400" />
-                                    <span className="text-xs text-slate-400 truncate max-w-[80px]">
+                                    <FileAudio className="w-4 h-4 text-primary" />
+                                    <span className="text-xs text-muted-foreground truncate max-w-[80px]">
                                         {attached.file.name}
                                     </span>
                                 </>
                             ) : (
-                                <span className="text-xs text-slate-400 truncate max-w-[100px]">
+                                <span className="text-xs text-muted-foreground truncate max-w-[100px]">
                                     {attached.file.name}
                                 </span>
                             )}
@@ -243,8 +243,8 @@ export function AgnoInput({
                             <button
                                 onClick={() => removeFile(index)}
                                 className={cn(
-                                    "absolute -top-1 -right-1 p-1 rounded-full bg-slate-900 border border-slate-700",
-                                    "text-slate-400 hover:text-red-400 transition-colors",
+                                    "absolute -top-1 -right-1 p-1 rounded-full bg-background border border-border",
+                                    "text-muted-foreground hover:text-destructive transition-colors",
                                     attached.type !== 'image' && "relative top-0 right-0"
                                 )}
                             >
@@ -256,7 +256,7 @@ export function AgnoInput({
                     {attachedFiles.length > 1 && (
                         <button
                             onClick={clearAllFiles}
-                            className="p-2 rounded-lg hover:bg-slate-700/50 text-slate-500 hover:text-red-400 transition-colors"
+                            className="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-destructive transition-colors"
                             title="Remover todos"
                         >
                             <Trash2 className="w-4 h-4" />
@@ -268,10 +268,10 @@ export function AgnoInput({
             {/* Input Area */}
             <div className="flex gap-2 items-end">
                 <div className={cn(
-                    "flex-1 relative bg-slate-800/80 rounded-xl border transition-all",
+                    "flex-1 relative bg-input/50 rounded-xl border transition-all",
                     isDragging
-                        ? "border-cyan-500/50 ring-2 ring-cyan-500/20"
-                        : "border-slate-700/50 focus-within:border-cyan-500/50 focus-within:ring-2 focus-within:ring-cyan-500/20"
+                        ? "border-primary/50 ring-2 ring-primary/20"
+                        : "border-border/50 focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20"
                 )}>
                     <input
                         type="file"
@@ -290,8 +290,8 @@ export function AgnoInput({
                             className={cn(
                                 "p-2 rounded-lg transition-colors",
                                 attachedFiles.length >= 3
-                                    ? "text-slate-600 cursor-not-allowed"
-                                    : "hover:bg-slate-700/50 text-slate-400 hover:text-cyan-400"
+                                    ? "text-muted-foreground cursor-not-allowed"
+                                    : "hover:bg-muted/50 text-muted-foreground hover:text-primary"
                             )}
                             title="Adicionar arquivo"
                         >
@@ -303,8 +303,8 @@ export function AgnoInput({
                             className={cn(
                                 "p-2 rounded-lg transition-colors",
                                 isRecording
-                                    ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                                    : "hover:bg-slate-700/50 text-slate-400 hover:text-cyan-400"
+                                    ? "bg-destructive/20 text-destructive hover:bg-destructive/30"
+                                    : "hover:bg-muted/50 text-muted-foreground hover:text-primary"
                             )}
                             title={isRecording ? "Parar gravação" : "Gravar áudio"}
                         >
@@ -312,7 +312,7 @@ export function AgnoInput({
                         </button>
 
                         {isRecording && (
-                            <span className="text-xs text-red-400 font-mono animate-pulse">
+                            <span className="text-xs text-destructive font-mono animate-pulse">
                                 {formatRecordingTime(recordingTime)}
                             </span>
                         )}
@@ -326,7 +326,7 @@ export function AgnoInput({
                         placeholder={isRecording ? "Gravando áudio..." : placeholder}
                         disabled={disabled || isRecording}
                         rows={1}
-                        className="w-full pl-24 pr-4 py-3 bg-transparent border-none focus:ring-0 resize-none text-slate-100 placeholder:text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full pl-24 pr-4 py-3 bg-transparent border-none focus:ring-0 resize-none text-foreground placeholder:text-muted-foreground disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{
                             minHeight: "48px",
                             maxHeight: "120px",
@@ -342,7 +342,7 @@ export function AgnoInput({
                         "flex-shrink-0 w-12 h-12 rounded-xl text-white flex items-center justify-center shadow-lg transition-all",
                         "active:scale-95 disabled:cursor-not-allowed",
                         isDisabled
-                            ? "bg-slate-700 opacity-50"
+                            ? "bg-muted opacity-50"
                             : "bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400"
                     )}
                 >
@@ -359,7 +359,7 @@ export function AgnoInput({
                 <div className="text-right">
                     <span className={cn(
                         "text-xs",
-                        value.length > 2000 ? "text-amber-400" : "text-slate-500"
+                        value.length > 2000 ? "text-warning" : "text-muted-foreground"
                     )}>
                         {value.length} / 4000
                     </span>

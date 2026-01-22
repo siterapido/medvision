@@ -2,7 +2,7 @@ import type React from "react"
 import type { Metadata } from "next"
 
 import { Analytics } from "@vercel/analytics/next"
-import { Inter } from 'next/font/google'
+import { Plus_Jakarta_Sans, Outfit } from 'next/font/google'
 import "./globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import EnvWarning from "@/components/env-warning"
@@ -12,12 +12,21 @@ import { CopilotProvider } from "@/components/copilot-provider"
 // Sentry must be imported in the root layout
 import * as Sentry from "@sentry/nextjs"
 
-// Otimizando carregamento de fontes - usando Variable Font (sem definir pesos) para melhor performance
-const inter = Inter({
+// Fontes modernas Perplexity-style
+// Heading - Minimal e geométrico
+const outfit = Outfit({
   subsets: ["latin"],
+  variable: "--font-heading",
   display: 'swap',
   preload: true,
-  fallback: ['system-ui', 'arial']
+})
+
+// Body - Legível e tech-friendly
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: 'swap',
+  preload: true,
 })
 
 export const metadata: Metadata = {
@@ -43,12 +52,11 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://images.converteai.net" />
         <link rel="dns-prefetch" href="https://api.vturb.com.br" />
       </head>
-      <body className={`${inter.className} font-sans antialiased app-shell`}>
+      <body className={`${plusJakarta.variable} ${outfit.variable} font-sans antialiased app-shell`}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
-          enableSystem={false}
-          forcedTheme="dark"
+          defaultTheme="dark" // Prefer dark mode for Perplexity aesthetic
+          enableSystem={true}
           disableTransitionOnChange
         >
           <CopilotProvider>
