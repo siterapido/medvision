@@ -1,21 +1,13 @@
 {
   "active": [
     {
-      "slug": "dashboard-perplexity-redesign",
-      "path": "plans/dashboard-perplexity-redesign.md",
-      "title": "Refatoração do Frontend Dashboard - Design SaaS Ultra Moderno (Perplexity-Style)",
-      "linkedAt": "2026-01-22T21:54:06.528Z",
-      "status": "active"
-    },
-    {
-      "slug": "refatoracao-dashboard-ui-ux",
-      "path": "plans/refatoracao-dashboard-ui-ux.md",
-      "title": "Plano de Refatoração de UI/UX do Dashboard",
-      "summary": "Plano abrangente para refatorar o Front-end do Dashboard, alinhando-o visualmente à Landing Page, implementando temas Claro/Escuro robustos, personificação de agentes e otimização Mobile-First.",
-      "linkedAt": "2026-01-20T21:02:58.377Z",
+      "slug": "odonto-vision-tab-implementation",
+      "path": "plans/odonto-vision-tab-implementation.md",
+      "title": "Plano de Implementação: Odonto Vision",
+      "linkedAt": "2026-01-22T23:23:08.691Z",
       "status": "active"
     }
   ],
   "completed": [],
-  "primary": "dashboard-perplexity-redesign"
+  "primary": "odonto-vision-tab-implementation"
 }

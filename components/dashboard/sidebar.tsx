@@ -208,7 +208,12 @@ export function Sidebar({ user }: SidebarProps) {
             </Link>
           ))}
 
-          <div className="flex items-center gap-2 justify-between pt-2">
+          {/* Theme Toggle */}
+          <div className="py-1">
+            <ThemeToggle collapsed={isCollapsed} />
+          </div>
+
+          <div className="flex items-center gap-2 justify-between pt-1">
             <UserProfile user={user} collapsed={isCollapsed} />
           </div>
         </div>
