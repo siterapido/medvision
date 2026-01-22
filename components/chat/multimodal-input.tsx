@@ -9,11 +9,12 @@
  * - Suporte a Shift+Enter para nova linha
  */
 
-import { useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
-import { ArrowUpIcon, StopIcon } from './icons'
+import { ArrowUpIcon, StopIcon, MicIcon } from './icons'
 import { cn } from '@/lib/utils'
+import { toast } from 'sonner'
 
 interface MultimodalInputProps {
   input: string
@@ -55,6 +56,56 @@ export function MultimodalInput({
     return () => clearTimeout(timer)
   }, [])
 
+  const [isListening, setIsListening] = useState(false)
+  const recognitionRef = useRef<any>(null)
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+      }
+      setIsListening(false)
+      return
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      toast.error('Seu navegador não suporta reconhecimento de voz.')
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognitionRef.current = recognition
+    recognition.lang = 'pt-BR'
+    recognition.continuous = true
+    recognition.interimResults = false
+
+    recognition.onstart = () => {
+      setIsListening(true)
+      toast.info("Ouvindo...")
+    }
+
+    recognition.onend = () => {
+      setIsListening(false)
+    }
+
+    recognition.onerror = (event: any) => {
+      console.error('Erro no reconhecimento:', event.error)
+      setIsListening(false)
+    }
+
+    recognition.onresult = (event: any) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          const transcript = event.results[i][0].transcript
+          setInput(input + (input ? ' ' : '') + transcript)
+        }
+      }
+    }
+
+    recognition.start()
+  }
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
@@ -79,6 +130,21 @@ export function MultimodalInput({
         className="rounded-xl border border-border bg-background p-3 shadow-xs transition-all duration-200 focus-within:border-ring hover:border-muted-foreground/50"
       >
         <div className="flex flex-row items-start gap-1 sm:gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={toggleVoiceInput}
+            className={cn(
+              "size-8 shrink-0 rounded-lg transition-all duration-200 mt-1",
+              isListening
+                ? "bg-red-500/10 text-red-500 animate-pulse"
+                : "text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+            )}
+            title={isListening ? "Parar" : "Voz"}
+          >
+            <MicIcon size={16} />
+          </Button>
           <Textarea
             ref={textareaRef}
             value={input}

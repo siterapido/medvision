@@ -2,12 +2,12 @@
 
 import { useState, useCallback, useEffect } from "react"
 import { useChat } from "@ai-sdk/react"
+import { DefaultChatTransport, UIMessage } from "ai"
 import { createClient } from "@/lib/supabase/client"
 import {
     type ChatMessage,
     type AgentDetails,
     type SessionEntry,
-    generateMessageId,
 } from "@/lib/agno"
 
 interface UseAgnoChatOptions {
@@ -36,95 +36,82 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
     const [sessions, setSessions] = useState<SessionEntry[]>([])
     const [isLoadingSessions, setIsLoadingSessions] = useState(false)
     const [error, setError] = useState<string | null>(null)
+    const [currentAgentId, setCurrentAgentId] = useState<string>('odonto-gpt')
 
     // Supabase client
     const supabase = createClient()
 
-    const { messages, append, setMessages, isLoading, stop } = useChat({
-        api: "/api/chat",
+    const { messages, sendMessage: sendChatMessage, setMessages, status, stop } = useChat<UIMessage>({
         id: sessionId || undefined,
-        body: {
-            userId,
-            sessionId // Pass current session ID to reuse it on server
-        },
-        onFinish: (message: any) => {
+        transport: new DefaultChatTransport({
+            api: "/api/chat",
+            body: {
+                userId,
+                sessionId,
+                agentId: currentAgentId
+            },
+        }),
+        onFinish: ({ message }) => {
             // Check for tool invocations that created artifacts
-            message.toolInvocations?.forEach((tool: any) => {
-                if (tool.state === 'result') {
-                    try {
-                        // The result is usually a stringified JSON
-                        const resultStr = typeof tool.result === 'string' ? tool.result : JSON.stringify(tool.result);
-                        if (resultStr.includes('"success": true')) {
-                             const result = JSON.parse(resultStr);
-                             if (result.artifact && onArtifactCreated) {
-                                 onArtifactCreated(result.artifact);
-                             }
+            if (message.parts) {
+                message.parts.forEach((part: any) => {
+                    if (part.type?.startsWith('tool-') && part.state === 'output-available') {
+                        try {
+                            const resultStr = typeof part.output === 'string' ? part.output : JSON.stringify(part.output);
+                            if (resultStr.includes('"success": true')) {
+                                 const result = JSON.parse(resultStr);
+                                 if (result.artifact && onArtifactCreated) {
+                                     onArtifactCreated(result.artifact);
+                                 }
+                            }
+                        } catch (e) { 
+                            // ignore parse errors
                         }
-                    } catch (e) { 
-                        // ignore parse errors
                     }
-                }
-            })
+                })
+            }
         },
         onError: (err) => {
             setError(err.message)
             onError?.(err.message)
         },
-        onResponse: (response: any) => {
-            // Get session ID from header if available (created on server)
-            const serverSessionId = response.headers.get('x-session-id')
-            if (serverSessionId && !sessionId) {
-                setSessionId(serverSessionId)
-                // Refresh sessions list to show the new one
-                loadSessions()
-            }
+    })
+
+    const isLoading = status === 'submitted' || status === 'streaming'
+
+    // Map AI SDK messages to Agno ChatMessage format for UI compatibility
+    const mappedMessages: ChatMessage[] = messages.map((m) => {
+        let content = '';
+        if (m.parts) {
+            const textPart = m.parts.find((p: any) => p.type === 'text');
+            content = (textPart as any)?.text || '';
+        }
+        
+        return {
+            id: m.id,
+            role: m.role === 'assistant' ? 'agent' : m.role as any,
+            content,
+            created_at: Date.now() / 1000,
+            isStreaming: isLoading && m.id === messages[messages.length - 1]?.id,
+            tool_calls: m.parts?.filter((p: any) => p.type?.startsWith('tool-')).map((t: any) => ({
+                tool_call_id: t.toolCallId,
+                tool_name: t.toolName,
+                tool_args: t.input,
+                result: t.state === 'output-available' ? (typeof t.output === 'string' ? t.output : JSON.stringify(t.output)) : undefined
+            }))
         }
     })
 
-    // Map AI SDK messages to Agno ChatMessage format for UI compatibility
-    const mappedMessages: ChatMessage[] = messages.map((m: any) => ({
-        id: m.id,
-        role: m.role === 'assistant' ? 'agent' : m.role as any,
-        content: m.content,
-        created_at: m.createdAt ? new Date(m.createdAt).getTime() / 1000 : Date.now() / 1000,
-        isStreaming: isLoading && m.id === messages[messages.length - 1].id,
-        tool_calls: m.toolInvocations?.map((t: any) => ({
-            tool_call_id: t.toolCallId,
-            tool_name: t.toolName,
-            tool_args: t.args,
-            result: t.state === 'result' ? (typeof t.result === 'string' ? t.result : JSON.stringify(t.result)) : undefined
-        }))
-    }))
-
-    const sendMessage = useCallback(async (message: string, agent: AgentDetails, imageUrl?: string) => {
+    const sendMessage = useCallback(async (message: string, agent: AgentDetails, _imageUrl?: string) => {
         setError(null);
+        setCurrentAgentId(agent.id);
         
-        // Prepare attachments if image is provided
-        // Vercel AI SDK handles files/images via experimental_attachments or just plain text content if model supports it
-        // We will assume using content array if image is present
-        
-        /* 
-           NOTE: 'append' supports string | CreateMessage. 
-           CreateMessage can have 'content' as string or array of parts.
-        */
-
-        const messageData: any = {
+        // Send message using the new API
+        sendChatMessage({
             role: 'user',
-            content: message
-        };
-
-        // Note: For now, we are sending image URL as text or relying on future implementation of image upload
-        // If imageUrl is a URL, we can pass it. 
-        // Vercel AI SDK standard is evolving. We will pass it as a regular message for now or use the proper structure if supported.
-        // For simplicity in migration, we'll append the image URL to text if present, or use experimental_attachments if configured.
-        
-        await append(messageData, {
-            body: { 
-                agentId: agent.id,
-                sessionId 
-            }
+            parts: [{ type: 'text', text: message }],
         });
-    }, [append, sessionId]);
+    }, [sendChatMessage]);
 
     const clearChat = useCallback(() => {
         stop();
@@ -137,15 +124,15 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
         if (!userId) return
         setIsLoadingSessions(true)
         try {
-            const { data, error } = await supabase
+            const { data, error: fetchError } = await supabase
                 .from('agent_sessions')
                 .select('id, metadata, created_at, agent_type')
                 .eq('user_id', userId)
                 .order('created_at', { ascending: false });
 
-            if (error) throw error;
+            if (fetchError) throw fetchError;
 
-            const mappedSessions: SessionEntry[] = data.map((s: any) => ({
+            const mappedSessions: SessionEntry[] = (data || []).map((s: any) => ({
                 session_id: s.id,
                 session_name: s.metadata?.title || s.agent_type || "Nova Conversa",
                 created_at: new Date(s.created_at).getTime() / 1000
@@ -168,27 +155,19 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
             setSessionId(targetSessionId);
 
             // Fetch messages from Supabase
-            const { data, error } = await supabase
+            const { data, error: fetchError } = await supabase
                 .from('agent_messages')
                 .select('*')
                 .eq('session_id', targetSessionId)
                 .order('created_at', { ascending: true });
 
-            if (error) throw error;
+            if (fetchError) throw fetchError;
 
             if (data) {
-                const loadedMessages: any[] = data.map((msg: any) => ({
+                const loadedMessages: UIMessage[] = data.map((msg: any) => ({
                     id: msg.id,
-                    role: msg.role,
-                    content: msg.content || "",
-                    createdAt: new Date(msg.created_at),
-                    toolInvocations: msg.tool_calls ? msg.tool_calls.map((tc: any) => ({
-                        toolCallId: tc.tool_call_id || tc.id, // Adaptation
-                        toolName: tc.tool_name || tc.function?.name,
-                        args: tc.tool_args || JSON.parse(tc.function?.arguments || "{}"),
-                        state: 'result',
-                        result: tc.result || "Completed"
-                    })) : undefined
+                    role: msg.role as 'user' | 'assistant',
+                    parts: [{ type: 'text' as const, text: msg.content || "" }],
                 }));
                 
                 setMessages(loadedMessages);

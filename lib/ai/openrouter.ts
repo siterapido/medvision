@@ -18,12 +18,10 @@ export const openrouter = createOpenAI({
   },
 })
 
-// Modelos disponíveis via OpenRouter
+// Modelos disponíveis via OpenRouter (versões pagas - mais estáveis)
 export const MODELS = {
-  // Chat principal - modelo gratuito de alta qualidade
-  chat: 'google/gemini-2.0-flash-exp:free',
-
-
+  // Chat principal - Gemini Flash (muito barato: ~$0.075/1M tokens)
+  chat: 'google/gemini-2.0-flash-001',
 
   // Pesquisa - Perplexity Sonar
   research: 'perplexity/sonar',
@@ -34,8 +32,8 @@ export const MODELS = {
   // Escrita - para geração de conteúdo
   writer: 'anthropic/claude-3-haiku',
 
-  // Fallback econômico
-  fallback: 'meta-llama/llama-3.1-8b-instruct:free',
+  // Fallback econômico - Llama 3.1 8B (muito barato)
+  fallback: 'meta-llama/llama-3.1-8b-instruct',
 } as const
 
 export type ModelId = typeof MODELS[keyof typeof MODELS]

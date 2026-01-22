@@ -64,14 +64,14 @@ export function HeroSection({ course }: HeroSectionProps) {
                     </p>
 
                     <div className="flex flex-wrap items-center gap-4 pt-4 animate-in fade-in slide-in-from-left-10 duration-700 delay-300">
-                        <Link href={`/dashboard/odontoflix/cursos/${course.id}`}>
+                        <Link href={`/newdashboard/odontoflix/cursos/${course.id}`}>
                             <Button size="lg" className="h-14 px-8 text-lg font-bold bg-cyan-500 hover:bg-cyan-400 text-white shadow-xl shadow-cyan-500/30 transition-all hover:scale-105">
                                 <PlayCircle className="mr-2 h-6 w-6 fill-current" />
                                 {hasStarted ? "Continuar Assistindo" : "Começar Agora"}
                             </Button>
                         </Link>
 
-                        <Link href={`/dashboard/odontoflix/cursos/${course.id}`}>
+                        <Link href={`/newdashboard/odontoflix/cursos/${course.id}`}>
                             <Button size="lg" variant="outline" className="h-14 px-8 text-lg font-bold border-white/20 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 transition-all hover:scale-105">
                                 <Info className="mr-2 h-6 w-6" />
                                 Mais Informações

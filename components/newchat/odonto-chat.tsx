@@ -10,7 +10,7 @@
 import { useChat } from '@ai-sdk/react'
 import { DefaultChatTransport, UIMessage } from 'ai'
 import { useState, useRef, useEffect } from 'react'
-import { Send, Loader2, StopCircle } from 'lucide-react'
+import { Send, Loader2, StopCircle, Mic } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { cn } from '@/lib/utils'
@@ -64,6 +64,61 @@ export function OdontoChat({ chatId, initialMessages, className }: OdontoChatPro
       e.preventDefault()
       handleSubmit(e)
     }
+  }
+
+  const [isListening, setIsListening] = useState(false)
+  const recognitionRef = useRef<any>(null)
+
+  const toggleVoiceInput = () => {
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop()
+      }
+      setIsListening(false)
+      return
+    }
+
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      alert('Seu navegador não suporta reconhecimento de voz.')
+      return
+    }
+
+    const recognition = new SpeechRecognition()
+    recognitionRef.current = recognition
+    recognition.lang = 'pt-BR'
+    recognition.continuous = true
+    recognition.interimResults = false // Usar apenas resultados finais para evitar complexidade de cursor
+
+    recognition.onstart = () => {
+      setIsListening(true)
+    }
+
+    recognition.onend = () => {
+      setIsListening(false)
+    }
+
+    recognition.onerror = (event: any) => {
+      console.error('Erro no reconhecimento:', event.error)
+      setIsListening(false)
+    }
+
+    recognition.onresult = (event: any) => {
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+          const transcript = event.results[i][0].transcript
+          setInput((prev) => prev + (prev ? ' ' : '') + transcript)
+
+          // Ajusta altura do textarea
+          if (textareaRef.current) {
+            textareaRef.current.style.height = 'auto'
+            textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 200)}px`
+          }
+        }
+      }
+    }
+
+    recognition.start()
   }
 
   const isLoading = status === 'submitted' || status === 'streaming'
@@ -191,13 +246,28 @@ export function OdontoChat({ chatId, initialMessages, className }: OdontoChatPro
 
       {/* Input */}
       <div className="border-t p-4">
-        <form onSubmit={handleSubmit} className="flex gap-2">
+        <form onSubmit={handleSubmit} className="flex gap-2 items-end">
+          <Button
+            type="button"
+            variant={isListening ? "destructive" : "ghost"}
+            size="icon"
+            onClick={toggleVoiceInput}
+            className={cn("shrink-0", isListening && "animate-pulse ring-2 ring-red-500 ring-offset-2")}
+            disabled={isLoading}
+            title="Gravar áudio"
+          >
+            {isListening ? (
+              <StopCircle className="h-5 w-5" />
+            ) : (
+              <Mic className="h-5 w-5" />
+            )}
+          </Button>
           <Textarea
             ref={textareaRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Digite sua pergunta..."
+            placeholder="Digite sua pergunta ou use o microfone..."
             disabled={isLoading}
             rows={1}
             className="resize-none min-h-[44px] max-h-[200px]"

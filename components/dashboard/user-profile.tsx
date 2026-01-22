@@ -35,32 +35,50 @@ export function UserProfile({ user, collapsed }: UserProfileProps) {
       <DropdownMenuTrigger asChild>
         <button
           className={cn(
-            'w-full flex items-center gap-3 px-3 py-2 rounded-md',
+            'w-full flex items-center rounded-md',
             'text-sidebar-muted hover:text-sidebar-foreground',
             'hover:bg-sidebar-accent/50 transition-colors',
             'focus:outline-none focus:ring-2 focus:ring-sidebar-ring focus:ring-offset-2 focus:ring-offset-sidebar',
-            collapsed && 'justify-center px-2'
+            collapsed
+              ? 'flex-col justify-center gap-1.5 p-2 h-auto'
+              : 'flex-row gap-3 px-3 py-2'
           )}
         >
-          {/* Avatar */}
-          <div className="relative shrink-0">
-            {user?.avatar_url ? (
-              <img
-                src={user.avatar_url}
-                alt={displayName}
-                className="h-8 w-8 rounded-full object-cover border border-sidebar-border"
-              />
-            ) : (
-              <div className="h-8 w-8 rounded-full bg-primary/10 border border-sidebar-border flex items-center justify-center">
-                <span className="text-xs font-medium text-primary">{initials}</span>
-              </div>
-            )}
-            {/* Online indicator */}
-            <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-sidebar" />
+          {/* Avatar & Badge Container */}
+          <div className="relative shrink-0 flex flex-col items-center">
+            <div className="relative">
+              {user?.avatar_url ? (
+                <div className="p-0.5 rounded-full border-2 border-primary/30 group-hover:border-primary transition-colors">
+                  <img
+                    src={user.avatar_url}
+                    alt={displayName}
+                    className="h-8 w-8 rounded-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="h-9 w-9 rounded-full bg-primary/10 border border-sidebar-border flex items-center justify-center">
+                  <span className="text-xs font-medium text-primary">{initials}</span>
+                </div>
+              )}
+              {/* Online indicator */}
+              <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-sidebar" />
+            </div>
+
+            {/* Pro Badge (Simulated) */}
+            <div className="mt-[-6px] z-10 bg-[#00A3A3] text-white text-[8px] font-bold px-1 rounded-sm border border-sidebar uppercase tracking-tight">
+              pro
+            </div>
           </div>
 
           {/* User info */}
-          {!collapsed && (
+          {collapsed ? (
+            <div className="flex flex-col items-center gap-0.5">
+              <ChevronDown className="h-3 w-3 text-sidebar-muted group-hover:text-sidebar-foreground transition-colors" />
+              <span className="text-[10px] font-medium text-center leading-none text-sidebar-muted group-hover:text-sidebar-foreground">
+                Conta
+              </span>
+            </div>
+          ) : (
             <>
               <div className="flex-1 text-left min-w-0">
                 <p className="text-sm font-medium text-sidebar-foreground truncate">

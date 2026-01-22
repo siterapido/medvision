@@ -1,21 +1,13 @@
 {
   "active": [
     {
-      "slug": "implement-certificates-tab",
-      "path": "plans/implement-certificates-tab.md",
-      "title": "Plano de Implementação: Aba de Certificados",
-      "linkedAt": "2026-01-22T19:11:49.764Z",
-      "status": "active"
-    },
-    {
-      "slug": "perfil-usuario",
-      "path": "plans/perfil-usuario.md",
-      "title": "Perfil Usuario",
-      "summary": "Implementação da página de perfil do usuário no dashboard, permitindo visualização e edição de dados pessoais e visualização de status da assinatura.",
-      "linkedAt": "2026-01-22T20:00:28.277Z",
+      "slug": "dashboard-perplexity-redesign",
+      "path": "plans/dashboard-perplexity-redesign.md",
+      "title": "Refatoração do Frontend Dashboard - Design SaaS Ultra Moderno (Perplexity-Style)",
+      "linkedAt": "2026-01-22T21:54:06.528Z",
       "status": "active"
     }
   ],
   "completed": [],
-  "primary": "implement-certificates-tab"
+  "primary": "dashboard-perplexity-redesign"
 }

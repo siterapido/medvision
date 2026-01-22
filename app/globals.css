@@ -5,152 +5,124 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  /* Vercel Geist Design System - Light Theme */
+  /* --- Perplexity-Style Design System --- */
+
+  /* Base Colors - Deep Space Dark Mode preferred */
   --background: #ffffff;
-  --background-secondary: #fafafa;
-  --foreground: #171717;
+  --foreground: #0f172a;
 
-  /* Gray Scale - Vercel Style */
-  --gray-100: #f5f5f5;
-  --gray-200: #e5e5e5;
-  --gray-300: #d4d4d4;
-  --gray-400: #a3a3a3;
-  --gray-500: #737373;
-  --gray-600: #525252;
-  --gray-700: #404040;
-  --gray-800: #262626;
-  --gray-900: #171717;
-
-  /* Primary: Vercel Blue */
-  --primary: #0070f3;
+  /* Primary Accent - Cyan/Teal Tech Feel */
+  --primary: #06b6d4;  /* Cyan 500 */
   --primary-foreground: #ffffff;
-  --primary-hover: #0060df;
+  --primary-hover: #0891b2; /* Cyan 600 */
 
-  /* Secondary: Neutral gray */
-  --secondary: #f5f5f5;
-  --secondary-foreground: #171717;
-
-  /* Accent: Vercel cyan/teal for highlights */
-  --accent: #00a8ff;
-  --accent-foreground: #ffffff;
-
-  /* Neutrals */
-  --muted: #fafafa;
-  --muted-foreground: #737373;
-  --card: #ffffff;
-  --card-foreground: #171717;
-  --popover: #ffffff;
-  --popover-foreground: #171717;
-
-  /* Borders and inputs - Vercel style */
-  --border: #e5e5e5;
-  --input: #e5e5e5;
-  --ring: #0070f3;
-
-  /* Sidebar specific - Odonto GPT Identity (Blue) */
-  --sidebar: #0F192F;
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: #22d3ee;
-  --sidebar-primary-foreground: #000000;
-  --sidebar-accent: #16243F;
-  --sidebar-accent-foreground: #22d3ee;
-  --sidebar-border: #1E293B;
-  --sidebar-ring: #22d3ee;
-  --sidebar-muted: #94a3b8;
-
-  /* Status colors - Vercel palette */
-  --destructive: #e5484d;
+  /* Secondary Accents */
+  --secondary: #f1f5f9;  /* Slate 100 */
+  --secondary-foreground: #0f172a;
+  
+  /* UI States */
+  --muted: #f8fafc;
+  --muted-foreground: #64748b; /* Slate 500 */
+  --accent: #f1f5f9;
+  --accent-foreground: #0f172a;
+  
+  /* Feedback */
+  --destructive: #ef4444;
   --destructive-foreground: #ffffff;
-  --success: #45a557;
+  --success: #10b981;
   --success-foreground: #ffffff;
-  --warning: #f5a623;
-  --warning-foreground: #171717;
-  --info: #0070f3;
-  --info-foreground: #ffffff;
+  --warning: #f59e0b;
+  --warning-foreground: #ffffff;
 
-  /* Chart colors */
-  --chart-1: #0070f3;
-  --chart-2: #00a8ff;
-  --chart-3: #7928ca;
-  --chart-4: #ff0080;
-  --chart-5: #f5a623;
+  /* Surfaces */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
 
-  --radius: 0.5rem;
+  /* Borders & Inputs */
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #06b6d4;
 
-  /* Shadow system - Vercel style */
-  --shadow-x: 0px;
-  --shadow-y: 1px;
-  --shadow-blur: 3px;
-  --shadow-spread: 0px;
-  --shadow-opacity: 0.08;
-  --shadow-color: #000000;
+  /* Sidebar Specific */
+  --sidebar: #0f172a;       /* Slate 900 */
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #06b6d4;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e293b;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1e293b;
+  --sidebar-ring: #06b6d4;
+
+  /* Chart Colors */
+  --chart-1: #06b6d4;
+  --chart-2: #3b82f6;
+  --chart-3: #8b5cf6;
+  --chart-4: #ec4899;
+  --chart-5: #10b981;
+
+  /* Radius */
+  --radius: 0.75rem;
+
+  /* Typography */
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+  --font-heading: 'Outfit', sans-serif;
 }
 
 .dark {
-  /* Vercel Geist Design System - Dark Theme */
-  --background: #080D19;
-  --background-secondary: #0F192F;
-  --foreground: #ededed;
+  /* --- Dark Mode (Default/Preferred) --- */
+  
+  /* Deep Tech Background */
+  --background: #0B1120;  /* Darker than Slate 950 */
+  --background-secondary: #0F172A; /* Slate 900 */
+  --foreground: #f8fafc;  /* Slate 50 */
 
-  /* Gray Scale - Vercel Dark Style */
-  --gray-100: #1a1a1a;
-  --gray-200: #262626;
-  --gray-300: #404040;
-  --gray-400: #525252;
-  --gray-500: #737373;
-  --gray-600: #a3a3a3;
-  --gray-700: #d4d4d4;
-  --gray-800: #e5e5e5;
-  --gray-900: #f5f5f5;
+  /* Glassmorphism Bases */
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(15, 23, 42, 0.6);
 
-  --primary: #0070f3;
+  /* Primary Accents */
+  --primary: #06b6d4;     /* Cyan 500 */
   --primary-foreground: #ffffff;
-  --primary-hover: #0060df;
+  --primary-hover: #22d3ee; /* Cyan 400 - Lighter for dark mode hover */
 
-  --secondary: #262626;
-  --secondary-foreground: #ededed;
+  /* Secondary Surfaces */
+  --secondary: #1e293b;   /* Slate 800 */
+  --secondary-foreground: #f8fafc;
 
-  --accent: #00a8ff;
-  --accent-foreground: #ffffff;
+  /* UI States */
+  --muted: #1e293b;
+  --muted-foreground: #94a3b8; /* Slate 400 */
+  --accent: #1e293b;
+  --accent-foreground: #f8fafc;
 
-  --muted: #171717;
-  --muted-foreground: #a3a3a3;
-  --card: #16243F;
-  --card-foreground: #ededed;
-  --popover: #16243F;
-  --popover-foreground: #ededed;
+  /* Surfaces */
+  --card: #0F172A;        /* Slate 900 - Solid Fallback */
+  --card-foreground: #f8fafc;
+  --popover: #0F172A;
+  --popover-foreground: #f8fafc;
 
-  --border: #262626;
-  --input: #262626;
-  --ring: #0070f3;
+  /* Borders & Inputs */
+  --border: #1e293b;      /* Slate 800 */
+  --input: #1e293b;
+  --ring: #06b6d4;
 
-  --sidebar: #0F192F;
-  --sidebar-foreground: #ededed;
-  --sidebar-primary: #22d3ee;
-  --sidebar-primary-foreground: #000000;
-  --sidebar-accent: #16243F;
-  --sidebar-accent-foreground: #22d3ee;
-  --sidebar-border: #1E293B;
-  --sidebar-ring: #22d3ee;
-  --sidebar-muted: #94a3b8;
-
-  --destructive: #e5484d;
-  --destructive-foreground: #ffffff;
-  --success: #45a557;
-  --success-foreground: #ffffff;
-  --warning: #f5a623;
-  --warning-foreground: #171717;
-  --info: #0070f3;
-  --info-foreground: #ffffff;
-
-  --chart-1: #0070f3;
-  --chart-2: #00a8ff;
-  --chart-3: #7928ca;
-  --chart-4: #ff0080;
-  --chart-5: #f5a623;
-
-  --shadow-color: #000000;
-  --shadow-opacity: 0.4;
+  /* Sidebar overrides */
+  --sidebar: #0B1120;     /* Matches main background for seamless feel */
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #06b6d4;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e293b;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: rgba(255, 255, 255, 0.05);
+  
+  /* Chart Colors */
+  --chart-1: #22d3ee;     /* Cyan */
+  --chart-2: #60a5fa;     /* Blue */
+  --chart-3: #a78bfa;     /* Violet */
+  --chart-4: #f472b6;     /* Pink */
+  --chart-5: #34d399;     /* Emerald */
 }
 
 @theme inline {
@@ -190,127 +162,69 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --color-success: var(--success);
-  --color-success-foreground: var(--success-foreground);
-  --color-warning: var(--warning);
-  --color-warning-foreground: var(--warning-foreground);
-  /* computed shadow variables below - do not modify */
-  --shadow-2xs: var(--shadow-x) var(--shadow-y) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 100%), transparent);
-  --shadow-xs: var(--shadow-x) var(--shadow-y) var(--shadow-blur) var(--shadow-spread) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 100%), transparent);
-  --shadow-sm: var(--shadow-x) var(--shadow-y) calc(var(--shadow-blur) * 1.5) var(--shadow-spread) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 100%), transparent);
-  --shadow-md: calc(var(--shadow-x) * 2) calc(var(--shadow-y) * 2) calc(var(--shadow-blur) * 3) calc(var(--shadow-spread) - 1px) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 100%), transparent);
-  --shadow-lg: calc(var(--shadow-x) * 4) calc(var(--shadow-y) * 4) calc(var(--shadow-blur) * 5) calc(var(--shadow-spread) - 3px) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 100%), transparent);
-  --shadow-xl: calc(var(--shadow-x) * 6) calc(var(--shadow-y) * 6) calc(var(--shadow-blur) * 7) calc(var(--shadow-spread) - 5px) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 100%), transparent);
-  --shadow-2xl: calc(var(--shadow-x) * 8) calc(var(--shadow-y) * 8) calc(max(0px, var(--shadow-blur) * 9 - 8px)) calc(var(--shadow-spread) - 12px) color-mix(in srgb, var(--shadow-color) calc(var(--shadow-opacity) * 250%), transparent);
-  --shadow: var(--shadow-md);
-  --color-shadow-color: var(--shadow-color);
-  --shadow-opacity: var(--shadow-opacity);
-  --shadow-spread: var(--shadow-spread);
-  --shadow-blur: var(--shadow-blur);
-  --shadow-y: var(--shadow-y);
-  --shadow-x: var(--shadow-x);
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  @keyframes accordion-down {
+    from { height: 0; }
+    to { height: var(--radix-accordion-content-height); }
+  }
+  @keyframes accordion-up {
+    from { height: var(--radix-accordion-content-height); }
+    to { height: 0; }
+  }
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-
   body {
     @apply bg-background text-foreground;
-    margin: 0;
-    padding: 0;
-  }
-
-  footer {
-    margin: 0;
-    padding: 0;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
 
-/* Modern micro-interactions and subtle animated gradients */
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
+/* --- Modern Animations & Effects --- */
 
-  100% {
-    background-position: -200% 0;
-  }
+/* Smooth Fade In */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-in {
+  animation: fadeIn 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+/* Staggered delays */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+
+/* Pulse Glow */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
+  50% { box-shadow: 0 0 20px 0 rgba(6, 182, 212, 0.3); }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Shimmer Effect */
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg,
-      rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.1) 50%,
-      rgba(255, 255, 255, 0) 100%);
+  background: linear-gradient(90deg, 
+    rgba(255,255,255,0) 0%, 
+    rgba(255,255,255,0.05) 50%, 
+    rgba(255,255,255,0) 100%);
   background-size: 200% 100%;
   animation: shimmer 2s infinite linear;
-}
-
-/* Custom animations for agent indicators */
-@keyframes pulse-soft {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.7;
-  }
-}
-
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-@keyframes pulse-slow {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.5;
-    transform: scale(1.05);
-  }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.animate-pulse-soft {
-  animation: pulse-soft 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-.animate-spin-slow {
-  animation: spin-slow 3s linear infinite;
-}
-
-.animate-pulse-slow {
-  animation: pulse-slow 3s ease-in-out infinite;
-}
-
-.animate-fade-in {
-  animation: fade-in 0.5s ease-out;
 }
 
 /* Glassmorphism utilities */

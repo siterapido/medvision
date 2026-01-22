@@ -1,4 +1,4 @@
-import { streamText, CoreMessage } from 'ai';
+import { streamText, convertToModelMessages, stepCountIs, UIMessage } from 'ai';
 import { openrouter } from '@/lib/ai/openrouter';
 import { AGENT_CONFIGS } from '@/lib/ai/agents/config';
 import { createClient } from '@supabase/supabase-js';
@@ -10,8 +10,19 @@ const supabase = createClient(
     process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
 
+// Helper to extract text from UIMessage parts
+function extractTextFromMessage(message: UIMessage): string {
+    if (!message.parts) return '';
+    for (const part of message.parts) {
+        if ('text' in part && typeof part.text === 'string') {
+            return part.text;
+        }
+    }
+    return JSON.stringify(message.parts);
+}
+
 export async function POST(req: Request) {
-    const { messages, agentId, sessionId, userId }: { messages: CoreMessage[], agentId: string, sessionId?: string, userId?: string } = await req.json();
+    const { messages, agentId, sessionId, userId }: { messages: UIMessage[], agentId: string, sessionId?: string, userId?: string } = await req.json();
 
     const agentConfig = AGENT_CONFIGS[agentId] || AGENT_CONFIGS['odonto-gpt'];
     const modelId = agentConfig.model || 'google/gemma-2-27b-it:free';
@@ -28,17 +39,16 @@ export async function POST(req: Request) {
             const contextParts = [];
             if (profile.university) contextParts.push(`Universidade: ${profile.university}`);
             if (profile.semester) contextParts.push(`Semestre/Fase: ${profile.semester}`);
-            if (profile.level) contextParts.push(`Nível: ${profile.level}`);
+            if (profile.level) contextParts.push(`Nivel: ${profile.level}`);
             if (profile.specialty_interest) contextParts.push(`Interesse: ${profile.specialty_interest}`);
 
             if (contextParts.length > 0) {
-                systemPrompt += `\n\n# CONTEXTO DO ALUNO (PRIORITÁRIO)\n${contextParts.join('\n')}\nAdapte sua linguagem e profundidade para este perfil.`;
+                systemPrompt += `\n\n# CONTEXTO DO ALUNO (PRIORITARIO)\n${contextParts.join('\n')}\nAdapte sua linguagem e profundidade para este perfil.`;
             }
 
             // 2. Setup Mode Trigger
-            // If semester or university is missing, and we are in "odonto-gpt" mode, force setup
             if (agentId === 'odonto-gpt' && (!profile.semester || !profile.university)) {
-                systemPrompt += `\n\n# MODO SETUP ATIVO (MISSING INFO)\nVocê percebeu que não sabe o semestre ou universidade do aluno.\nNo início da sua resposta, pergunte casualmente: "A propósito, em que semestre e faculdade você está? Assim posso calibrar melhor as explicações."\nUse a ferramenta \`updateUserProfile\` assim que ele responder.`;
+                systemPrompt += `\n\n# MODO SETUP ATIVO (MISSING INFO)\nVoce percebeu que nao sabe o semestre ou universidade do aluno.\nNo inicio da sua resposta, pergunte casualmente: "A proposito, em que semestre e faculdade voce esta? Assim posso calibrar melhor as explicacoes."\nUse a ferramenta \`updateUserProfile\` assim que ele responder.`;
             }
         }
     }
@@ -53,16 +63,9 @@ export async function POST(req: Request) {
     // Create session if needed
     if (!currentSessionId && userId) {
         const lastMsg = messages[messages.length - 1];
-        let titleContent = "Nova Conversa";
+        const titleContent = extractTextFromMessage(lastMsg) || "Nova Conversa";
 
-        const content = lastMsg.content as any;
-        if (typeof content === 'string') {
-            titleContent = content;
-        } else if (Array.isArray(content) && content.length > 0 && content[0]?.text) {
-            titleContent = content[0].text;
-        }
-
-        const { data: session, error } = await supabase.from('agent_sessions').insert({
+        const { data: session } = await supabase.from('agent_sessions').insert({
             user_id: userId,
             agent_type: dbAgentType,
             metadata: { title: titleContent.substring(0, 50) }
@@ -77,9 +80,7 @@ export async function POST(req: Request) {
     if (currentSessionId) {
         const lastMsg = messages[messages.length - 1];
         if (lastMsg.role === 'user') {
-            const contentStr = typeof lastMsg.content === 'string'
-                ? lastMsg.content
-                : JSON.stringify(lastMsg.content);
+            const contentStr = extractTextFromMessage(lastMsg);
 
             await supabase.from('agent_messages').insert({
                 session_id: currentSessionId,
@@ -90,11 +91,15 @@ export async function POST(req: Request) {
         }
     }
 
+    // Convert UI messages to model messages
+    const modelMessages = await convertToModelMessages(messages);
+
     const result = streamText({
         model: openrouter(modelId) as any,
         system: systemPrompt,
-        messages: convertToModelMessages(messages),
+        messages: modelMessages,
         tools: agentConfig.tools,
+        stopWhen: stepCountIs(5),
         onFinish: async (event) => {
             if (currentSessionId) {
                 await supabase.from('agent_messages').insert({
@@ -108,7 +113,7 @@ export async function POST(req: Request) {
         }
     });
 
-    return (result as any).toUIMessageStreamResponse({
+    return result.toUIMessageStreamResponse({
         headers: {
             'x-session-id': currentSessionId || '',
         }

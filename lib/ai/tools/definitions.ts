@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { tool } from "ai";
 import { createClient } from "@supabase/supabase-js";
 
 // Supabase client creation
@@ -10,12 +11,12 @@ const createSupabaseClient = () => {
 
 // --- RESEARCH TOOLS ---
 
-export const askPerplexity = {
+export const askPerplexity = tool({
   description: "Performs a deep online search using Perplexity AI (Sonar Reasoning) to answer complex questions with up-to-date information and citations.",
-  parameters: z.object({
+  inputSchema: z.object({
     query: z.string().describe("The research question or topic to search for."),
   }),
-  execute: async ({ query }: { query: string }) => {
+  execute: async ({ query }) => {
     const apiKey = process.env.OPENROUTER_API_KEY || process.env.PERPLEXITY_API_KEY;
     if (!apiKey) {
       return "Error: API key for Perplexity/OpenRouter not configured.";
@@ -38,7 +39,7 @@ export const askPerplexity = {
           messages: [
             {
               role: "system",
-              content: "Você é um assistente de pesquisa acadêmica para Odonto GPT. Sua tarefa é encontrar artigos científicos e evidências clínicas atualizadas. Responda sempre em Português (Brasil). Inclua citações no corpo do texto. CRITICAL: No final da resposta, crie uma seção '### Fontes' com a lista numerada de URLs usadas."
+              content: "Voce e um assistente de pesquisa academica para Odonto GPT. Sua tarefa e encontrar artigos cientificos e evidencias clinicas atualizadas. Responda sempre em Portugues (Brasil). Inclua citacoes no corpo do texto. CRITICAL: No final da resposta, crie uma secao '### Fontes' com a lista numerada de URLs usadas."
             },
             { role: "user", content: query }
           ],
@@ -60,17 +61,16 @@ export const askPerplexity = {
       return `Error querying Perplexity: ${error.message}`;
     }
   },
-};
+});
 
-export const searchPubMed = {
+export const searchPubMed = tool({
   description: "Search PubMed for dental and medical research articles.",
-  parameters: z.object({
+  inputSchema: z.object({
     query: z.string().describe("Search query (e.g., 'dental implant failure')"),
     max_results: z.number().optional().default(5).describe("Number of results to return"),
     specialty: z.string().optional().describe("Filter by dental specialty"),
   }),
-  execute: async ({ query, max_results = 5, specialty }: { query: string, max_results?: number, specialty?: string }) => {
-    // Using E-utilities API
+  execute: async ({ query, max_results = 5, specialty }) => {
     try {
       let searchQuery = query;
       if (specialty) {
@@ -109,29 +109,29 @@ export const searchPubMed = {
       return `Error searching PubMed: ${error.message}`;
     }
   },
-};
+});
 
 // --- PROFILE TOOLS ---
 
-export const updateUserProfile = {
+export const updateUserProfile = tool({
   description: "Updates the user's profile with academic or professional context gathered during the conversation.",
-  parameters: z.object({
+  inputSchema: z.object({
     userId: z.string(),
     university: z.string().optional().describe("University name"),
     semester: z.string().optional().describe("Current semester or 'Graduado'"),
     specialty_interest: z.string().optional().describe("Area of interest"),
     level: z.string().optional().describe("Academic level (Graduando, Especialista)"),
   }),
-  execute: async ({ userId, university, semester, specialty_interest, level }: { userId: string, university?: string, semester?: string, specialty_interest?: string, level?: string }) => {
+  execute: async ({ userId, university, semester, specialty_interest, level }) => {
     const supabase = createSupabaseClient();
 
-    const updates: any = {};
+    const updates: Record<string, string> = {};
     if (university) updates.university = university;
     if (semester) updates.semester = semester;
     if (specialty_interest) updates.specialty_interest = specialty_interest;
     if (level) updates.level = level;
 
-    if (Object.keys(updates).length === 0) return "Nenhuma alteração para salvar.";
+    if (Object.keys(updates).length === 0) return "Nenhuma alteracao para salvar.";
 
     const { error } = await supabase
       .from("profiles")
@@ -141,13 +141,13 @@ export const updateUserProfile = {
     if (error) return `Erro ao atualizar perfil: ${error.message}`;
     return `Perfil atualizado com sucesso! (Contexto salvo)`;
   },
-};
+});
 
 // --- ARTIFACT SAVING TOOLS ---
 
-export const saveResearch = {
-  description: "Salva um dossiê de pesquisa estruturado no banco de dados para consulta posterior.",
-  parameters: z.object({
+export const saveResearch = tool({
+  description: "Salva um dossie de pesquisa estruturado no banco de dados para consulta posterior.",
+  inputSchema: z.object({
     userId: z.string().describe("The ID of the user"),
     title: z.string().describe("Title of the research"),
     content: z.string().describe("Markdown content"),
@@ -159,7 +159,7 @@ export const saveResearch = {
     })).optional().default([]),
     researchType: z.string().optional().default("literature_review"),
   }),
-  execute: async ({ userId, title, content, query, sources, researchType }: { userId: string, title: string, content: string, query?: string, sources: any[], researchType: string }) => {
+  execute: async ({ userId, title, content, query, sources, researchType }) => {
     const supabase = createSupabaseClient();
 
     try {
@@ -188,11 +188,11 @@ export const saveResearch = {
       return `Erro inesperado: ${e.message}`;
     }
   },
-};
+});
 
-export const savePracticeExam = {
+export const savePracticeExam = tool({
   description: "Saves a generated practice exam (simulado) to the database.",
-  parameters: z.object({
+  inputSchema: z.object({
     userId: z.string(),
     title: z.string(),
     topic: z.string(),
@@ -208,7 +208,7 @@ export const savePracticeExam = {
     difficulty: z.string().optional().default("medium"),
     examType: z.string().optional().default("custom"),
   }),
-  execute: async ({ userId, title, topic, questions, specialty, difficulty, examType }: { userId: string, title: string, topic: string, questions: any[], specialty: string, difficulty: string, examType: string }) => {
+  execute: async ({ userId, title, topic, questions, specialty, difficulty, examType }) => {
     const supabase = createSupabaseClient();
 
     const artifactContent = {
@@ -231,20 +231,20 @@ export const savePracticeExam = {
 
     if (examError) return `Error saving exam: ${examError.message}`;
 
-    return `Simulado '${title}' salvo com sucesso! ID: ${exam.id} com ${questions.length} questões.`;
+    return `Simulado '${title}' salvo com sucesso! ID: ${exam.id} com ${questions.length} questoes.`;
   },
-};
+});
 
-export const saveSummary = {
+export const saveSummary = tool({
   description: "Saves a generated summary (Resumo) to the database.",
-  parameters: z.object({
+  inputSchema: z.object({
     userId: z.string(),
     title: z.string(),
     content: z.string().describe("Markdown content"),
     tags: z.array(z.string()).optional().default([]),
     topic: z.string().optional().default(""),
   }),
-  execute: async ({ userId, title, content, tags, topic }: { userId: string, title: string, content: string, tags: string[], topic: string }) => {
+  execute: async ({ userId, title, content, tags, topic }) => {
     const supabase = createSupabaseClient();
 
     const artifactContent = {
@@ -266,11 +266,11 @@ export const saveSummary = {
     if (error) return `Error saving summary: ${error.message}`;
     return `Resumo salvo com sucesso! ID: ${data.id}`;
   },
-};
+});
 
-export const saveFlashcards = {
+export const saveFlashcards = tool({
   description: "Saves a set of flashcards to the database.",
-  parameters: z.object({
+  inputSchema: z.object({
     userId: z.string(),
     title: z.string(),
     cards: z.array(z.object({
@@ -279,7 +279,7 @@ export const saveFlashcards = {
     })),
     topic: z.string().optional().default(""),
   }),
-  execute: async ({ userId, title, cards, topic }: { userId: string, title: string, cards: any[], topic: string }) => {
+  execute: async ({ userId, title, cards, topic }) => {
     const supabase = createSupabaseClient();
 
     const artifactContent = {
@@ -300,17 +300,17 @@ export const saveFlashcards = {
     if (error) return `Error saving flashcards: ${error.message}`;
     return `Flashcards salvos com sucesso! ID: ${data.id}`;
   },
-};
+});
 
-export const saveMindMap = {
+export const saveMindMap = tool({
   description: "Saves a mind map to the database.",
-  parameters: z.object({
+  inputSchema: z.object({
     userId: z.string(),
     title: z.string(),
     mapData: z.record(z.any()).describe("JSON structure of the mind map"),
     topic: z.string().optional().default(""),
   }),
-  execute: async ({ userId, title, mapData, topic }: { userId: string, title: string, mapData: any, topic: string }) => {
+  execute: async ({ userId, title, mapData, topic }) => {
     const supabase = createSupabaseClient();
 
     const artifactContent = {
@@ -325,17 +325,17 @@ export const saveMindMap = {
       content: artifactContent,
       description: `Mapa mental de ${topic}`,
       ai_context: { agent: 'odonto-gpt', model: 'google/gemini-2.0-flash-exp' },
-      metadata: { nodes: Object.keys(mapData).length } // simple approximation
+      metadata: { nodes: Object.keys(mapData).length }
     }).select().single();
 
     if (error) return `Error saving mind map: ${error.message}`;
     return `Mapa mental salvo com sucesso! ID: ${data.id}`;
   },
-};
+});
 
-export const saveImageAnalysis = {
+export const saveImageAnalysis = tool({
   description: "Saves a dental image analysis artifact to the database.",
-  parameters: z.object({
+  inputSchema: z.object({
     userId: z.string(),
     title: z.string(),
     analysis: z.string(),
@@ -344,7 +344,7 @@ export const saveImageAnalysis = {
     recommendations: z.array(z.string()).optional().default([]),
     metadata: z.record(z.any()).optional().default({}),
   }),
-  execute: async ({ userId, title, analysis, imageUrl, findings, recommendations, metadata }: { userId: string, title: string, analysis: string, imageUrl?: string, findings: string[], recommendations: string[], metadata: any }) => {
+  execute: async ({ userId, title, analysis, imageUrl, findings, recommendations, metadata }) => {
     const supabase = createSupabaseClient();
 
     const artifactContent = {
@@ -360,7 +360,7 @@ export const saveImageAnalysis = {
       type: 'image',
       content: artifactContent,
       description: analysis.substring(0, 100) + '...',
-      ai_context: { agent: 'odonto-gpt', model: 'google/gpt-4o' }, // 4o for vision
+      ai_context: { agent: 'odonto-gpt', model: 'google/gpt-4o' },
       metadata: metadata || {}
     }).select().single();
 
@@ -368,8 +368,32 @@ export const saveImageAnalysis = {
 
     return JSON.stringify({
       success: true,
-      message: `Análise de imagem salva com sucesso! ID: ${data.id}`,
+      message: `Analise de imagem salva com sucesso! ID: ${data.id}`,
       artifact: { id: data.id, title: data.title, type: "image" }
     });
   }
-};
+});
+
+// --- ARTIFACT GENERATION TOOL (for chat) ---
+
+export const generateArtifact = tool({
+  description: "Generates a structured educational artifact based on the conversation context. Use this to create study materials like summaries, flashcards, quizzes, or research dossiers.",
+  inputSchema: z.object({
+    type: z.enum(['summary', 'flashcards', 'quiz', 'research-dossier', 'clinical-protocol', 'study-guide', 'case-analysis']).describe("Type of artifact to generate"),
+    title: z.string().describe("Title of the artifact"),
+    content: z.any().describe("Structured content of the artifact"),
+    topic: z.string().optional().describe("Main topic covered"),
+  }),
+  execute: async ({ type, title, content, topic }) => {
+    // This tool returns the artifact structure for rendering in the UI
+    // Actual persistence should be done via specific save tools
+    return {
+      type,
+      title,
+      content,
+      topic: topic || title,
+      createdAt: new Date().toISOString(),
+      status: 'generated'
+    };
+  }
+});

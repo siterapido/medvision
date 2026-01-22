@@ -20,6 +20,8 @@ interface AgentSelectorProps {
     isLoading?: boolean
     isConnected?: boolean
     error?: string | null
+    compact?: boolean
+    className?: string
 }
 
 // Configuração visual dos agentes - Gradientes estilo Apple (cores vibrantes, transições suaves)
@@ -28,7 +30,8 @@ const agentConfig: Record<string, { icon: React.ElementType, gradient: string, i
     'odonto-gpt': { icon: Sparkles, gradient: 'from-[#00D4FF] via-[#00A3FF] to-[#0066FF]', isAuto: true },
     'odonto-research': { icon: FlaskConical, gradient: 'from-[#BF5AF2] via-[#9D4EDD] to-[#7B2CBF]' },
     'odonto-practice': { icon: GraduationCap, gradient: 'from-[#FF9F0A] via-[#FF6B35] to-[#FF453A]' },
-    'odonto-write': { icon: FileText, gradient: 'from-[#30D158] via-[#00C7BE] to-[#00B4D8]' },
+    'odonto-summary': { icon: FileText, gradient: 'from-[#30D158] via-[#00C7BE] to-[#00B4D8]' },
+    'odonto-write': { icon: FileText, gradient: 'from-[#30D158] via-[#00C7BE] to-[#00B4D8]' }, // Legacy
     'odonto-vision': { icon: ScanEye, gradient: 'from-[#FF6B6B] via-[#EE5A70] to-[#DA4167]' },
 }
 
@@ -39,6 +42,8 @@ export function AgentSelector({
     isLoading = false,
     isConnected = true,
     error,
+    compact = false,
+    className,
 }: AgentSelectorProps) {
     if (isLoading) {
         return (
@@ -83,25 +88,34 @@ export function AgentSelector({
                 if (agent) onSelect(agent)
             }}
         >
-            <SelectTrigger className="w-[220px] h-9 border-slate-700/50 bg-slate-800/50 text-slate-200 focus:ring-cyan-500/20 hover:bg-slate-800 transition-colors">
+            <SelectTrigger className={cn(
+                "h-9 border-slate-700/50 bg-slate-800/50 text-slate-200 focus:ring-cyan-500/20 hover:bg-slate-800 transition-colors",
+                compact ? "w-auto px-2 border-0 bg-transparent hover:bg-slate-800/50" : "w-[220px]",
+                className
+            )}>
                 <div className="flex items-center gap-2">
                     <div className={cn(
-                        "w-5 h-5 rounded flex items-center justify-center",
+                        "rounded flex items-center justify-center",
+                        compact ? "w-6 h-6" : "w-5 h-5",
                         `bg-gradient-to-br ${selectedConfig?.gradient || 'from-cyan-500 to-blue-500'}`
                     )}>
-                        <SelectedIcon className="w-3 h-3 text-white" />
+                        <SelectedIcon className={cn("text-white", compact ? "w-3.5 h-3.5" : "w-3 h-3")} />
                     </div>
-                    <span className="truncate text-sm">
-                        {selectedAgent?.name || "Selecionar Agente"}
-                    </span>
-                    {selectedAgent?.id === 'odonto-gpt' && (
-                        <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded">
-                            UNIFIED
-                        </span>
+                    {!compact && (
+                        <>
+                            <span className="truncate text-sm">
+                                {selectedAgent?.name || "Selecionar Agente"}
+                            </span>
+                            {selectedAgent?.id === 'odonto-gpt' && (
+                                <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded">
+                                    UNIFIED
+                                </span>
+                            )}
+                        </>
                     )}
                 </div>
             </SelectTrigger>
-            <SelectContent className="bg-slate-900 border-slate-800">
+            <SelectContent className="bg-slate-900 border-slate-800 min-w-[240px]">
                 {/* Fluxo Automático (Flow/GPT) */}
                 {flowAgent && (
                     <SelectGroup>

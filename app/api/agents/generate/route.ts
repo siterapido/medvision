@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { generateText } from "ai"
+import { generateText, stepCountIs } from "ai"
 import { openrouter } from "@/lib/ai/openrouter"
 import { saveSummary, saveFlashcards, saveMindMap } from "@/lib/ai/tools/definitions"
 
@@ -14,7 +14,7 @@ interface GenerateRequest {
 
 export async function POST(request: NextRequest) {
     try {
-        // Autenticação
+        // Autenticacao
         const supabase = await createClient()
         const {
             data: { user }
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
 
         if (!user) {
             return NextResponse.json(
-                { success: false, error: "Não autenticado" },
+                { success: false, error: "Nao autenticado" },
                 { status: 401 }
             )
         }
@@ -32,20 +32,20 @@ export async function POST(request: NextRequest) {
 
         if (!body.type || !body.topic) {
             return NextResponse.json(
-                { success: false, error: "Tipo e tema são obrigatórios" },
+                { success: false, error: "Tipo e tema sao obrigatorios" },
                 { status: 400 }
             )
         }
 
         const model = openrouter('google/gemini-2.0-flash-exp:free') // Fast model for generation
 
-        let result: any;
+        let result: string | undefined;
         
         // Construct prompt based on type
-        let systemPrompt = `Você é um especialista em educação odontológica. 
-        Sua tarefa é criar materiais de estudo de alta qualidade sobre o tema: "${body.topic}".
-        ${body.instructions ? `Instruções adicionais: ${body.instructions}` : ""}
-        ${body.difficulty ? `Nível de dificuldade: ${body.difficulty}` : ""}
+        let systemPrompt = `Voce e um especialista em educacao odontologica. 
+        Sua tarefa e criar materiais de estudo de alta qualidade sobre o tema: "${body.topic}".
+        ${body.instructions ? `Instrucoes adicionais: ${body.instructions}` : ""}
+        ${body.difficulty ? `Nivel de dificuldade: ${body.difficulty}` : ""}
         ${body.num_items ? `Quantidade de itens: ${body.num_items}` : ""}
         `;
 
@@ -55,60 +55,55 @@ export async function POST(request: NextRequest) {
         // Since we can't easily partial apply the tool in `generateText` tools definition, 
         // we will tell the model the userId is "${user.id}".
         
-        systemPrompt += `\nID do usuário atual: "${user.id}". Use este ID ao salvar os artefatos.`;
+        systemPrompt += `\nID do usuario atual: "${user.id}". Use este ID ao salvar os artefatos.`;
 
         if (body.type === 'summary' || body.type === 'resumo') {
-            const { toolResults } = await generateText({
-                model,
+            const response = await generateText({
+                model: model as any,
                 system: systemPrompt,
                 prompt: `Gere um resumo completo sobre ${body.topic}. Salve-o usando a ferramenta saveSummary.`,
                 tools: { saveSummary },
                 toolChoice: 'required', 
-                maxSteps: 5, // Allow steps for tool execution
+                stopWhen: stepCountIs(5),
             });
-            result = toolResults.find(t => t.toolName === 'saveSummary')?.result;
+            // Get result from steps
+            const toolResult = response.steps.flatMap(s => s.toolResults).find(t => t.toolName === 'saveSummary');
+            result = toolResult?.output as string | undefined;
         } 
         else if (body.type === 'flashcards') {
-            const { toolResults } = await generateText({
-                model,
+            const response = await generateText({
+                model: model as any,
                 system: systemPrompt,
                 prompt: `Crie um deck de flashcards sobre ${body.topic}. Salve-o usando a ferramenta saveFlashcards.`,
                 tools: { saveFlashcards },
                 toolChoice: 'required',
-                maxSteps: 5,
+                stopWhen: stepCountIs(5),
             });
-            result = toolResults.find(t => t.toolName === 'saveFlashcards')?.result;
+            const toolResult = response.steps.flatMap(s => s.toolResults).find(t => t.toolName === 'saveFlashcards');
+            result = toolResult?.output as string | undefined;
         }
         else if (body.type === 'mindmap' || body.type === 'mind_map') {
-            const { toolResults } = await generateText({
-                model,
+            const response = await generateText({
+                model: model as any,
                 system: systemPrompt,
                 prompt: `Crie um mapa mental sobre ${body.topic}. Salve-o usando a ferramenta saveMindMap.`,
                 tools: { saveMindMap },
                 toolChoice: 'required',
-                maxSteps: 5,
+                stopWhen: stepCountIs(5),
             });
-            result = toolResults.find(t => t.toolName === 'saveMindMap')?.result;
+            const toolResult = response.steps.flatMap(s => s.toolResults).find(t => t.toolName === 'saveMindMap');
+            result = toolResult?.output as string | undefined;
         }
         else {
              return NextResponse.json(
-                { success: false, error: "Tipo de artefato não suportado para geração automática." },
+                { success: false, error: "Tipo de artefato nao suportado para geracao automatica." },
                 { status: 400 }
             )
         }
 
-        // result should be the return string from the tool (e.g. "Resumo salvo com sucesso! ID: ...")
-        // or JSON if we changed it to return JSON.
-        // In definitions.ts, saveSummary returns a string.
-        
-        // We can parse the ID from the string or just return success.
-        // Ideally the tool should return JSON.
-        // I will assume success if result is present.
-
         return NextResponse.json({
             success: !!result,
-            message: result || "Geração concluída",
-            // extraction of artifact_id would be better if tool returned JSON
+            message: result || "Geracao concluida",
         })
 
     } catch (error) {
