@@ -68,8 +68,8 @@ export function OdontoAIChat({
   // Use AI SDK chat hook
   const {
     messages,
-    input,
-    setInput,
+    input = "",
+    setInput: setInputFromHook,
     handleSubmit: submitChat,
     isLoading,
     error,
@@ -93,6 +93,15 @@ export function OdontoAIChat({
       console.log("[OdontoAIChat] Message complete:", message.id)
     },
   })
+
+  // Safe wrapper for setInput to prevent undefined issues
+  const setInput = useCallback((value: string) => {
+    if (typeof setInputFromHook === 'function') {
+      setInputFromHook(value)
+    } else {
+      console.error("[OdontoAIChat] setInput is not a function")
+    }
+  }, [setInputFromHook])
 
   // Auto-scroll
   useEffect(() => {
@@ -120,7 +129,8 @@ export function OdontoAIChat({
 
   const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-    if (input.trim() && !isLoading) {
+    const trimmedInput = (input || "").trim()
+    if (trimmedInput && !isLoading) {
       submitChat(e, {
         body: {
           agentId: selectedAgent.id,
@@ -312,7 +322,11 @@ export function OdontoAIChat({
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 + index * 0.05 }}
                     key={s}
-                    onClick={() => setInput(s)}
+                    onClick={() => {
+                      if (typeof setInput === 'function') {
+                        setInput(s)
+                      }
+                    }}
                     className="flex-shrink-0 snap-center px-4 py-2 md:px-6 md:py-2.5 text-xs md:text-sm text-center rounded-2xl bg-card border border-border/50 hover:bg-muted/50 hover:border-primary/20 transition-all text-muted-foreground hover:text-foreground shadow-sm hover:shadow-md hover:-translate-y-0.5 whitespace-nowrap w-auto min-w-[200px]"
                   >
                     {s}

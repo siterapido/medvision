@@ -47,20 +47,39 @@ interface ModernChatInputProps {
 }
 
 export function ModernChatInput({
-    input,
+    input = "",
     setInput,
     onSend,
-    agents,
+    agents = [],
     selectedAgent,
     setSelectedAgent,
-    isLoading,
-    isReady,
+    isLoading = false,
+    isReady = true,
     handleKeyDown,
     inputRef,
     onFileSelect,
 }: ModernChatInputProps) {
     const [showAttachments, setShowAttachments] = useState(false)
     const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+    // Safe wrappers for callbacks
+    const safeSetInput = React.useCallback((value: string) => {
+        if (typeof setInput === 'function') {
+            setInput(value)
+        }
+    }, [setInput])
+
+    const safeSetSelectedAgent = React.useCallback((agent: AgentConfig) => {
+        if (typeof setSelectedAgent === 'function') {
+            setSelectedAgent(agent)
+        }
+    }, [setSelectedAgent])
+
+    const safeHandleKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (typeof handleKeyDown === 'function') {
+            handleKeyDown(e)
+        }
+    }, [handleKeyDown])
 
     const handleFileClick = () => {
         fileInputRef.current?.click()
@@ -92,9 +111,9 @@ export function ModernChatInput({
                 <div className="px-4 pt-2">
                     <textarea
                         ref={inputRef}
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={handleKeyDown}
+                        value={input || ""}
+                        onChange={(e) => safeSetInput(e.target.value)}
+                        onKeyDown={safeHandleKeyDown}
                         placeholder="Perguntar ao Odonto GPT..."
                         rows={1}
                         className="w-full resize-none bg-transparent py-2 text-sm outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 max-h-[200px] overflow-y-auto custom-scrollbar text-zinc-900 dark:text-zinc-100 leading-relaxed font-sans"
@@ -111,14 +130,14 @@ export function ModernChatInput({
                             <TooltipProvider>
                                 {agents.map((agent) => {
                                     const Icon = AGENT_UI_CONFIG[agent.id]?.icon || Sparkles
-                                    const isSelected = selectedAgent.id === agent.id
+                                    const isSelected = selectedAgent?.id === agent.id
 
                                     return (
                                         <Tooltip key={agent.id}>
                                             <TooltipTrigger asChild>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setSelectedAgent(agent)}
+                                                    onClick={() => safeSetSelectedAgent(agent)}
                                                     className={cn(
                                                         "relative flex items-center justify-center h-7 w-7 rounded-xl transition-all duration-300",
                                                         isSelected
@@ -155,11 +174,11 @@ export function ModernChatInput({
                                 <DropdownMenuTrigger asChild>
                                     <button className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
                                         {(() => {
-                                            const Icon = AGENT_UI_CONFIG[selectedAgent.id]?.icon || Sparkles
+                                            const Icon = AGENT_UI_CONFIG[selectedAgent?.id]?.icon || Sparkles
                                             return <Icon className="h-3.5 w-3.5 text-[#8fb6b9]" />
                                         })()}
                                         <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300 max-w-[80px] truncate">
-                                            {selectedAgent.name}
+                                            {selectedAgent?.name || "Selecione"}
                                         </span>
                                         <ChevronDown className="h-3 w-3 text-zinc-400" />
                                     </button>
@@ -170,7 +189,7 @@ export function ModernChatInput({
                                         return (
                                             <DropdownMenuItem
                                                 key={agent.id}
-                                                onClick={() => setSelectedAgent(agent)}
+                                                onClick={() => safeSetSelectedAgent(agent)}
                                                 className="gap-2 cursor-pointer"
                                             >
                                                 <Icon className="h-4 w-4 text-muted-foreground" />
