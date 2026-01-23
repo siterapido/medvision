@@ -65,31 +65,31 @@ export default async function AdminPage() {
     // Courses
     supabase.from("courses").select("*", { count: "exact", head: true }),
     supabase.from("courses").select("*", { count: "exact", head: true }).eq("is_published", true),
-    
+
     // Users - Total
     supabase.from("profiles").select("*", { count: "exact", head: true }),
-    
+
     // Users - Today
     supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", todayStart),
-    
+
     // Users - This Week
     supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", weekStart),
-    
+
     // Users - This Month
     supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", monthStart),
-    
+
     // Lessons
     supabase.from("lessons").select("*", { count: "exact", head: true }),
-    
+
     // Materials
     supabase.from("materials").select("*", { count: "exact", head: true }),
     supabase.from("materials").select("*", { count: "exact", head: true }).eq("is_available", true),
-    
+
     // Lives
     supabase.from("live_events").select("*", { count: "exact", head: true }),
     supabase.from("live_events").select("*", { count: "exact", head: true }).eq("status", "scheduled"),
     supabase.from("live_events").select("*", { count: "exact", head: true }).eq("status", "live"),
-    
+
     // Notifications
     supabase.from("notification_logs").select("*", { count: "exact", head: true }),
     supabase.from("notification_logs").select("*", { count: "exact", head: true }).eq("status", "sent"),
@@ -120,20 +120,20 @@ export default async function AdminPage() {
       .select("id, title, created_at, is_published")
       .order("created_at", { ascending: false })
       .limit(5),
-    
+
     supabase
       .from("materials")
       .select("id, title, created_at, is_available")
       .order("created_at", { ascending: false })
       .limit(5),
-    
+
     supabase
       .from("live_events")
       .select("id, title, start_at, status")
       .in("status", ["scheduled", "live"])
       .order("start_at", { ascending: true })
       .limit(5),
-    
+
     supabase
       .from("notification_logs")
       .select(`
@@ -145,7 +145,7 @@ export default async function AdminPage() {
       `)
       .order("sent_at", { ascending: false })
       .limit(10),
-    
+
     supabase
       .from("profiles")
       .select("id, name, email, created_at, plan_type, subscription_status")
@@ -158,7 +158,7 @@ export default async function AdminPage() {
       {/* Header */}
       <section className="flex flex-col gap-2 sm:gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-100">Visão Geral</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Visão Geral</h1>
           <p className="text-sm sm:text-base text-slate-400 mt-1">
             Acompanhe o desempenho e atividades da plataforma
           </p>
@@ -168,16 +168,16 @@ export default async function AdminPage() {
       {/* Main Stats Grid */}
       <section className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
         {/* Cursos */}
-        <Card className="border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 shadow-lg hover:shadow-xl transition-shadow">
+        <Card className="border border-[#24324F] bg-[#16243F] shadow-lg shadow-cyan-500/5 hover:-translate-y-1 transition-all duration-300">
           <CardContent className="flex items-center gap-3 sm:gap-4 py-4 sm:py-6">
-            <div className="rounded-xl sm:rounded-2xl bg-cyan-500/20 p-2.5 sm:p-3 text-cyan-400 ring-1 ring-cyan-500/30 flex-shrink-0">
+            <div className="rounded-xl sm:rounded-2xl bg-[#0891b2]/10 p-2.5 sm:p-3 text-[#06b6d4] ring-1 ring-[#0891b2]/20 flex-shrink-0">
               <BookOpen className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm text-slate-400">Cursos</p>
-              <p className="text-xl sm:text-2xl font-semibold text-slate-100">{totalCourses}</p>
-              <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-1 text-xs">
-                <span className="text-green-400">{publishedCourses} publicados</span>
+              <p className="text-xs sm:text-sm text-slate-400 font-medium uppercase tracking-wider">Cursos</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{totalCourses}</p>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-1 text-xs font-medium">
+                <span className="text-[#10b981]">{publishedCourses} publicados</span>
                 {draftCourses > 0 && <span className="text-slate-500">• {draftCourses} rascunhos</span>}
               </div>
             </div>
@@ -185,30 +185,30 @@ export default async function AdminPage() {
         </Card>
 
         {/* Materiais */}
-        <Card className="border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 shadow-lg hover:shadow-xl transition-shadow">
+        <Card className="border border-[#24324F] bg-[#16243F] shadow-lg shadow-purple-500/5 hover:-translate-y-1 transition-all duration-300">
           <CardContent className="flex items-center gap-3 sm:gap-4 py-4 sm:py-6">
             <div className="rounded-xl sm:rounded-2xl bg-purple-500/20 p-2.5 sm:p-3 text-purple-400 ring-1 ring-purple-500/30 flex-shrink-0">
               <FileText className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm text-slate-400">Materiais</p>
-              <p className="text-xl sm:text-2xl font-semibold text-slate-100">{totalMaterials}</p>
-              <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-1 text-xs">
-                <span className="text-green-400">{availableMaterials} disponíveis</span>
+              <p className="text-xs sm:text-sm text-slate-400 font-medium uppercase tracking-wider">Materiais</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{totalMaterials}</p>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-1 text-xs font-medium">
+                <span className="text-[#10b981]">{availableMaterials} disponíveis</span>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Lives */}
-        <Card className="border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 shadow-lg hover:shadow-xl transition-shadow">
+        <Card className="border border-[#24324F] bg-[#16243F] shadow-lg shadow-amber-500/5 hover:-translate-y-1 transition-all duration-300">
           <CardContent className="flex items-center gap-3 sm:gap-4 py-4 sm:py-6">
             <div className="rounded-xl sm:rounded-2xl bg-red-500/20 p-2.5 sm:p-3 text-red-400 ring-1 ring-red-500/30 flex-shrink-0">
               <Video className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm text-slate-400">Lives</p>
-              <p className="text-xl sm:text-2xl font-semibold text-slate-100">{totalLives}</p>
+              <p className="text-xs sm:text-sm text-slate-400 font-medium uppercase tracking-wider">Lives</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{totalLives}</p>
               <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-1 text-xs">
                 {liveLives > 0 && <span className="text-red-400">{liveLives} ao vivo</span>}
                 {scheduledLives > 0 && <span className="text-amber-400">{scheduledLives} agendadas</span>}
@@ -218,14 +218,14 @@ export default async function AdminPage() {
         </Card>
 
         {/* Notificações */}
-        <Card className="border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 shadow-lg hover:shadow-xl transition-shadow">
+        <Card className="border border-[#24324F] bg-[#16243F] shadow-lg shadow-emerald-500/5 hover:-translate-y-1 transition-all duration-300">
           <CardContent className="flex items-center gap-3 sm:gap-4 py-4 sm:py-6">
             <div className="rounded-xl sm:rounded-2xl bg-emerald-500/20 p-2.5 sm:p-3 text-emerald-400 ring-1 ring-emerald-500/30 flex-shrink-0">
               <Bell className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs sm:text-sm text-slate-400">Notificações</p>
-              <p className="text-xl sm:text-2xl font-semibold text-slate-100">{totalNotifications}</p>
+              <p className="text-xs sm:text-sm text-slate-400 font-medium uppercase tracking-wider">Notificações</p>
+              <p className="text-2xl sm:text-3xl font-bold text-white mt-1">{totalNotifications}</p>
               <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-1 text-xs">
                 <span className="text-green-400">{successNotifications} enviadas</span>
                 {failedNotifications > 0 && <span className="text-red-400">• {failedNotifications} falhas</span>}
@@ -237,14 +237,14 @@ export default async function AdminPage() {
 
       {/* Secondary Stats */}
       <section className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
-        <Card className="border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800">
+        <Card className="border border-[#24324F] bg-[#131D37]">
           <CardContent className="flex items-center gap-3 sm:gap-4 py-3 sm:py-4">
             <div className="rounded-lg sm:rounded-xl bg-blue-500/20 p-2 sm:p-2.5 text-blue-400 flex-shrink-0">
               <Users className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div className="min-w-0">
               <p className="text-xs sm:text-sm text-slate-400">Usuários</p>
-              <p className="text-lg sm:text-xl font-semibold text-slate-100">{totalUsers}</p>
+              <p className="text-lg sm:text-xl font-semibold text-white">{totalUsers}</p>
             </div>
           </CardContent>
         </Card>
@@ -256,7 +256,7 @@ export default async function AdminPage() {
             </div>
             <div className="min-w-0">
               <p className="text-xs sm:text-sm text-slate-400">Aulas</p>
-              <p className="text-lg sm:text-xl font-semibold text-slate-100">{totalLessons}</p>
+              <p className="text-lg sm:text-xl font-semibold text-white">{totalLessons}</p>
             </div>
           </CardContent>
         </Card>
@@ -268,7 +268,7 @@ export default async function AdminPage() {
             </div>
             <div className="min-w-0">
               <p className="text-xs sm:text-sm text-slate-400">Lives Agendadas</p>
-              <p className="text-lg sm:text-xl font-semibold text-slate-100">{scheduledLives}</p>
+              <p className="text-lg sm:text-xl font-semibold text-white">{scheduledLives}</p>
             </div>
           </CardContent>
         </Card>
@@ -277,9 +277,9 @@ export default async function AdminPage() {
       {/* New Users Section */}
       <section className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-3">
         {/* New Users Stats */}
-        <Card className="border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 lg:col-span-1">
+        <Card className="border border-[#24324F] bg-[#131D37] lg:col-span-1">
           <CardHeader>
-            <CardTitle className="text-base sm:text-lg text-slate-100 flex items-center gap-2">
+            <CardTitle className="text-base sm:text-lg text-white flex items-center gap-2">
               <UserPlus className="h-4 w-4 sm:h-5 sm:w-5 text-green-400" />
               Novos Usuários
             </CardTitle>
@@ -288,28 +288,28 @@ export default async function AdminPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3 sm:space-y-4">
-            <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-slate-800/50">
+            <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-[#0F192F]">
               <div>
                 <p className="text-xs sm:text-sm text-slate-400">Hoje</p>
-                <p className="text-lg sm:text-xl font-semibold text-slate-100">{newUsersToday}</p>
+                <p className="text-lg sm:text-xl font-semibold text-white">{newUsersToday}</p>
               </div>
               <div className="rounded-lg bg-green-500/20 p-2 text-green-400">
                 <UserPlus className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
             </div>
-            <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-slate-800/50">
+            <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-[#0F192F]">
               <div>
                 <p className="text-xs sm:text-sm text-slate-400">Esta Semana</p>
-                <p className="text-lg sm:text-xl font-semibold text-slate-100">{newUsersWeek}</p>
+                <p className="text-lg sm:text-xl font-semibold text-white">{newUsersWeek}</p>
               </div>
               <div className="rounded-lg bg-blue-500/20 p-2 text-blue-400">
                 <Calendar className="h-4 w-4 sm:h-5 sm:w-5" />
               </div>
             </div>
-            <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-slate-800/50">
+            <div className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-[#0F192F]">
               <div>
                 <p className="text-xs sm:text-sm text-slate-400">Este Mês</p>
-                <p className="text-lg sm:text-xl font-semibold text-slate-100">{newUsersMonth}</p>
+                <p className="text-lg sm:text-xl font-semibold text-white">{newUsersMonth}</p>
               </div>
               <div className="rounded-lg bg-purple-500/20 p-2 text-purple-400">
                 <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />
@@ -319,10 +319,10 @@ export default async function AdminPage() {
         </Card>
 
         {/* Recent Users List */}
-        <Card className="border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800 lg:col-span-2">
+        <Card className="border border-[#24324F] bg-[#16243F] lg:col-span-2">
           <CardHeader className="flex flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-base sm:text-lg text-slate-100">Usuários Recentes</CardTitle>
+              <CardTitle className="text-base sm:text-lg text-white">Usuários Recentes</CardTitle>
               <CardDescription className="text-xs sm:text-sm text-slate-400 mt-0.5">
                 Últimos usuários cadastrados na plataforma
               </CardDescription>
@@ -339,7 +339,7 @@ export default async function AdminPage() {
                 {recentUsers.data.map((user) => (
                   <div
                     key={user.id}
-                    className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                    className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-[#0F192F] hover:bg-[#131D37] transition-colors"
                   >
                     <div className="flex-1 min-w-0 pr-2">
                       <div className="flex items-center gap-2">
@@ -347,7 +347,7 @@ export default async function AdminPage() {
                           <Users className="h-3 w-3 sm:h-4 sm:w-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs sm:text-sm font-medium text-slate-100 truncate">
+                          <p className="text-xs sm:text-sm font-medium text-white truncate">
                             {user.name || user.email || "Usuário sem nome"}
                           </p>
                           <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
@@ -387,10 +387,10 @@ export default async function AdminPage() {
       {/* Recent Activity & Quick Actions */}
       <section className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
         {/* Recent Courses */}
-        <Card className="border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800">
+        <Card className="border border-[#24324F] bg-[#16243F]">
           <CardHeader className="flex flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-base sm:text-lg text-slate-100">Cursos Recentes</CardTitle>
+              <CardTitle className="text-base sm:text-lg text-white">Cursos Recentes</CardTitle>
               <CardDescription className="text-xs sm:text-sm text-slate-400 mt-0.5">
                 Últimos cursos criados ou atualizados
               </CardDescription>
@@ -407,10 +407,10 @@ export default async function AdminPage() {
                 {recentCourses.data.map((course) => (
                   <div
                     key={course.id}
-                    className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                    className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-[#0F192F] hover:bg-[#131D37] transition-colors"
                   >
                     <div className="flex-1 min-w-0 pr-2">
-                      <p className="text-xs sm:text-sm font-medium text-slate-100 truncate">
+                      <p className="text-xs sm:text-sm font-medium text-white truncate">
                         {course.title}
                       </p>
                       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
@@ -445,10 +445,10 @@ export default async function AdminPage() {
         </Card>
 
         {/* Recent Materials */}
-        <Card className="border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800">
+        <Card className="border border-[#24324F] bg-[#16243F]">
           <CardHeader className="flex flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-base sm:text-lg text-slate-100">Materiais Recentes</CardTitle>
+              <CardTitle className="text-base sm:text-lg text-white">Materiais Recentes</CardTitle>
               <CardDescription className="text-xs sm:text-sm text-slate-400 mt-0.5">
                 Últimos materiais adicionados
               </CardDescription>
@@ -465,10 +465,10 @@ export default async function AdminPage() {
                 {recentMaterials.data.map((material) => (
                   <div
                     key={material.id}
-                    className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                    className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-[#0F192F] hover:bg-[#131D37] transition-colors"
                   >
                     <div className="flex-1 min-w-0 pr-2">
-                      <p className="text-xs sm:text-sm font-medium text-slate-100 truncate">
+                      <p className="text-xs sm:text-sm font-medium text-white truncate">
                         {material.title}
                       </p>
                       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
@@ -503,10 +503,10 @@ export default async function AdminPage() {
         </Card>
 
         {/* Upcoming Lives */}
-        <Card className="border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800">
+        <Card className="border border-[#24324F] bg-[#16243F]">
           <CardHeader className="flex flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-base sm:text-lg text-slate-100">Próximas Lives</CardTitle>
+              <CardTitle className="text-base sm:text-lg text-white">Próximas Lives</CardTitle>
               <CardDescription className="text-xs sm:text-sm text-slate-400 mt-0.5">
                 Lives agendadas e ao vivo
               </CardDescription>
@@ -523,10 +523,10 @@ export default async function AdminPage() {
                 {upcomingLives.data.map((live: any) => (
                   <div
                     key={live.id}
-                    className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                    className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-[#0F192F] hover:bg-[#131D37] transition-colors"
                   >
                     <div className="flex-1 min-w-0 pr-2">
-                      <p className="text-xs sm:text-sm font-medium text-slate-100 truncate">
+                      <p className="text-xs sm:text-sm font-medium text-white truncate">
                         {live.title}
                       </p>
                       <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">
@@ -563,10 +563,10 @@ export default async function AdminPage() {
         </Card>
 
         {/* Recent Notifications */}
-        <Card className="border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-800">
+        <Card className="border border-[#24324F] bg-[#16243F]">
           <CardHeader className="flex flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
             <div className="flex-1 min-w-0">
-              <CardTitle className="text-base sm:text-lg text-slate-100">Notificações Recentes</CardTitle>
+              <CardTitle className="text-base sm:text-lg text-white">Notificações Recentes</CardTitle>
               <CardDescription className="text-xs sm:text-sm text-slate-400 mt-0.5">
                 Últimas notificações enviadas
               </CardDescription>
@@ -585,14 +585,14 @@ export default async function AdminPage() {
                     ? notification.notification_templates[0]
                     : notification.notification_templates
                   const templateName = template?.name || "Notificação"
-                  
+
                   return (
                     <div
                       key={notification.id}
-                      className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-slate-800/50 hover:bg-slate-800 transition-colors"
+                      className="flex items-center justify-between p-2.5 sm:p-3 rounded-lg bg-[#0F192F] hover:bg-[#131D37] transition-colors"
                     >
                       <div className="flex-1 min-w-0 pr-2">
-                        <p className="text-xs sm:text-sm font-medium text-slate-100 truncate">
+                        <p className="text-xs sm:text-sm font-medium text-white truncate">
                           {templateName}
                         </p>
                         <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 mt-1">

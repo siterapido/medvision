@@ -93,7 +93,7 @@ export function AdminSidebar({ user, profile, isVisible = true }: AdminSidebarPr
       aria-hidden={!isVisible}
       style={{ width: isVisible ? '288px' : '0' }}
       className={cn(
-        "hidden flex-col border-r border-slate-800 bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 shadow-2xl transition-all duration-300 ease-in-out md:flex md:sticky md:top-0 md:h-screen md:overflow-y-auto",
+        "hidden flex-col border-r border-[#24324F] bg-[#0F192F] transition-all duration-300 ease-in-out md:flex md:sticky md:top-0 md:h-screen md:overflow-y-auto",
         isVisible
           ? "md:opacity-100 md:translate-x-0 md:pointer-events-auto"
           : "md:opacity-0 md:-translate-x-full md:pointer-events-none"
@@ -129,8 +129,8 @@ export function AdminSidebar({ user, profile, isVisible = true }: AdminSidebarPr
               className={cn(
                 "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-gradient-to-r from-primary/20 to-primary/10 text-white border border-primary/30 shadow-lg shadow-primary/10"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-slate-200 border border-transparent",
+                  ? "bg-gradient-to-r from-[#0891b2]/20 to-[#06b6d4]/10 text-white border border-[#0891b2]/30 shadow-lg shadow-[#06b6d4]/10"
+                  : "text-slate-400 hover:bg-[#131D37] hover:text-slate-200 border border-transparent",
               )}
             >
               <Icon className={cn("h-5 w-5", isActive && "text-primary")} />
@@ -141,14 +141,14 @@ export function AdminSidebar({ user, profile, isVisible = true }: AdminSidebarPr
       </nav>
 
       <div className="space-y-3 px-4 pb-8">
-        <div className="rounded-xl border border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900 px-4 py-3 shadow-lg">
+        <div className="rounded-xl border border-[#24324F] bg-[#131D37] px-4 py-3 shadow-lg">
           <p className="text-sm font-semibold text-white truncate mb-1" title={userName}>
             {userName}
           </p>
           <p className="text-xs text-slate-400 truncate mb-2" title={userEmail}>
             {userEmail}
           </p>
-          <div className="text-xs text-slate-400 pt-2 border-t border-slate-700">
+          <div className="text-xs text-slate-400 pt-2 border-t border-[#24324F]">
             Função: <span className="font-semibold text-white">{userRoleLabel}</span>
           </div>
         </div>
@@ -157,7 +157,7 @@ export function AdminSidebar({ user, profile, isVisible = true }: AdminSidebarPr
           type="button"
           onClick={handleLogout}
           disabled={isLoggingOut}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-slate-700 bg-slate-800/50 px-4 py-3 text-sm font-medium text-slate-300 transition-all hover:bg-slate-700 hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#24324F] bg-[#131D37] hover:bg-[#1A2847] px-4 py-3 text-sm font-medium text-slate-300 transition-all hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <LogOut className="h-4 w-4" />
           {isLoggingOut ? "Saindo..." : "Sair"}

@@ -172,7 +172,7 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
       // Filtro de busca
       const matchesSearch = searchQuery
         ? (user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchQuery.toLowerCase()))
+          user.email.toLowerCase().includes(searchQuery.toLowerCase()))
         : true
 
       // Filtro de role
@@ -184,24 +184,24 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
         subscriptionFilter === "all"
           ? true
           : subscriptionFilter === "active"
-          ? user.subscription_status === "active" || user.plan_type !== "free"
-          : subscriptionFilter === "free"
-          ? user.plan_type === "free" || !user.plan_type
-          : user.subscription_status === subscriptionFilter
+            ? user.subscription_status === "active" || user.plan_type !== "free"
+            : subscriptionFilter === "free"
+              ? user.plan_type === "free" || !user.plan_type
+              : user.subscription_status === subscriptionFilter
 
       // Filtro de trial
       const matchesTrial =
         trialFilter === "all"
           ? true
           : trialFilter === "used"
-          ? user.trial_used === true
-          : trialFilter === "not_used"
-          ? user.trial_used === false || user.trial_used === null
-          : trialFilter === "active"
-          ? user.trial_ends_at &&
-            new Date(user.trial_ends_at) > new Date() &&
-            user.trial_used === false
-          : true
+            ? user.trial_used === true
+            : trialFilter === "not_used"
+              ? user.trial_used === false || user.trial_used === null
+              : trialFilter === "active"
+                ? user.trial_ends_at &&
+                new Date(user.trial_ends_at) > new Date() &&
+                user.trial_used === false
+                : true
 
       return matchesSearch && matchesRole && matchesSubscription && matchesTrial
     })
@@ -445,8 +445,8 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
       user.trial_used === true
         ? "mark_used"
         : user.trial_ends_at && new Date(user.trial_ends_at) > new Date()
-        ? "clear"
-        : "start"
+          ? "clear"
+          : "start"
     const currentDuration = user.trial_started_at && user.trial_ends_at
       ? getTrialDurationFromDates(user.trial_started_at, user.trial_ends_at, DEFAULT_TRIAL_DAYS)
       : DEFAULT_TRIAL_DAYS
@@ -633,7 +633,7 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
         progressInterval = setInterval(() => {
           progressValue += Math.max(1, Math.floor(totalUsers / 15))
           const cappedProgress = Math.min(progressValue, Math.floor(totalUsers * 0.85))
-          
+
           setBulkDeleteProgress((prev) => {
             if (prev.status !== "processing") {
               if (progressInterval) clearInterval(progressInterval)
@@ -644,25 +644,25 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
         }, 150)
 
         const result = await bulkDeleteUsers({ userIds: selectedUsers })
-        
+
         if (progressInterval) {
           clearInterval(progressInterval)
           progressInterval = null
         }
-        
+
         if (result.success) {
           // Atualizar para 100% imediatamente
           setBulkDeleteProgress({ current: totalUsers, total: totalUsers, status: "completed" })
-          
+
           const affected = result.data?.affected || selectedUsers.length
           const failed = result.data?.failed || 0
-          
+
           // Delay para mostrar conclusão antes de fechar
           setTimeout(() => {
             setBulkDeleteDialogOpen(false)
             setSelectedUsers([])
             setBulkDeleteProgress({ current: 0, total: 0, status: "idle" })
-            
+
             if (failed > 0 && result.error) {
               handleActionSuccess(result.error)
             } else {
@@ -718,7 +718,7 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
 
       {/* Estatísticas */}
       <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4">
-        <div className="bg-[#131D37] border border-slate-700 rounded-lg p-3 sm:p-4">
+        <div className="bg-[#131D37] border border-[#24324F] rounded-lg p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm text-slate-400 truncate">Total de Usuários</p>
@@ -730,7 +730,7 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
           </div>
         </div>
 
-        <div className="bg-[#131D37] border border-slate-700 rounded-lg p-3 sm:p-4">
+        <div className="bg-[#131D37] border border-[#24324F] rounded-lg p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm text-slate-400 truncate">Administradores</p>
@@ -744,7 +744,7 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
           </div>
         </div>
 
-        <div className="bg-[#131D37] border border-slate-700 rounded-lg p-3 sm:p-4">
+        <div className="bg-[#131D37] border border-[#24324F] rounded-lg p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm text-slate-400 truncate">Clientes</p>
@@ -758,7 +758,7 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
           </div>
         </div>
 
-        <div className="bg-[#131D37] border border-slate-700 rounded-lg p-3 sm:p-4">
+        <div className="bg-[#131D37] border border-[#24324F] rounded-lg p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm text-slate-400 truncate">Vendedores</p>
@@ -772,7 +772,7 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
           </div>
         </div>
 
-        <div className="bg-[#131D37] border border-slate-700 rounded-lg p-3 sm:p-4">
+        <div className="bg-[#131D37] border border-[#24324F] rounded-lg p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm text-slate-400 truncate">Com Assinatura</p>
@@ -786,7 +786,7 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
           </div>
         </div>
 
-        <div className="bg-[#131D37] border border-slate-700 rounded-lg p-3 sm:p-4">
+        <div className="bg-[#131D37] border border-[#24324F] rounded-lg p-3 sm:p-4">
           <div className="flex items-center justify-between">
             <div className="min-w-0 flex-1">
               <p className="text-xs sm:text-sm text-slate-400 truncate">Trial Usado</p>
@@ -903,14 +903,14 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
       {/* Seleção em massa */}
       {hasBulkSelection && (
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4 rounded-lg border border-slate-700 bg-[#0F192F] p-3 sm:p-4">
-        <div className="flex items-center gap-3">
-          <Checkbox
-            id="select-all-users"
-            checked={allFilteredSelected}
-            onCheckedChange={(value) => handleSelectAll(value === true)}
-            className="data-[state=checked]:bg-cyan-600 data-[state=indeterminate]:bg-cyan-600 border-slate-600"
-            aria-label="Selecionar todos os usuários filtrados"
-          />
+          <div className="flex items-center gap-3">
+            <Checkbox
+              id="select-all-users"
+              checked={allFilteredSelected}
+              onCheckedChange={(value) => handleSelectAll(value === true)}
+              className="data-[state=checked]:bg-cyan-600 data-[state=indeterminate]:bg-cyan-600 border-slate-600"
+              aria-label="Selecionar todos os usuários filtrados"
+            />
             <div className="space-y-0.5">
               <Label htmlFor="select-all-users" className="text-sm font-semibold text-white">
                 Selecionar todos os {filteredUsers.length} exibidos
@@ -1372,8 +1372,8 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
                         planValue === "free"
                           ? "free"
                           : prev.subscription_status === "free"
-                          ? "active"
-                          : prev.subscription_status,
+                            ? "active"
+                            : prev.subscription_status,
                     }))
                   }}
                   disabled={!bulkPlanEnabled}
@@ -1596,8 +1596,8 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
                         planValue === "free"
                           ? "free"
                           : prev.subscription_status === "free"
-                          ? "active"
-                          : prev.subscription_status,
+                            ? "active"
+                            : prev.subscription_status,
                     }))
                   }}
                 >

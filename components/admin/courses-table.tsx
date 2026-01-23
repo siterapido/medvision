@@ -146,11 +146,11 @@ export function CoursesTable({
 
   return (
     <>
-      <div className="rounded-lg border border-slate-700 bg-[#0F192F] overflow-hidden">
+      <div className="rounded-lg border border-[#24324F] bg-[#0F192F] overflow-hidden">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="border-slate-700 hover:bg-[#131D37]">
+              <TableRow className="border-[#24324F] hover:bg-[#131D37]">
                 <TableHead className="w-12">
                   <Checkbox
                     checked={allSelected}
@@ -181,7 +181,7 @@ export function CoursesTable({
                 courses.map((course) => (
                   <TableRow
                     key={course.id}
-                    className="border-slate-700 hover:bg-[#131D37]"
+                    className="border-[#24324F] hover:bg-[#131D37]"
                   >
                     <TableCell>
                       <Checkbox

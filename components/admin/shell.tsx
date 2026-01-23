@@ -45,14 +45,14 @@ export function AdminLayoutShell({ user, profile, children }: AdminLayoutShellPr
   }
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+    <div className="flex min-h-screen bg-[#0F192F]">
       <AdminSidebar user={user} profile={profile} isVisible={isSidebarVisible} />
       <div className="flex flex-1 flex-col overflow-hidden">
         <AdminHeader
           isSidebarVisible={isSidebarVisible}
           onToggleSidebar={handleToggleSidebar}
         />
-        <main className="flex flex-1 flex-col overflow-y-auto bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
+        <main className="flex flex-1 flex-col overflow-y-auto bg-[#0F192F]">
           {children}
         </main>
       </div>
