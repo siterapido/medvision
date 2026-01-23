@@ -1,40 +1,47 @@
 /**
  * API Route: New Chat
- * 
- * Rota principal de chat usando Vercel AI SDK v6 com OpenRouter.
- * Inclui persistência de histórico e memória compartilhada (longa/curta).
+ *
+ * Compatible with AI SDK v6 useChat hook data stream protocol
  * Endpoint: POST /api/newchat
  */
 
-import { streamText, convertToModelMessages, stepCountIs } from 'ai'
-import { openrouter, MODELS } from '@/lib/ai/openrouter'
 import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
-import { createClient } from '@/lib/supabase/server'
-import { ChatService } from '@/lib/ai/chat-service'
-import { UIMessageSchema } from '@/lib/ai/message-schema'
+import { MODELS } from '@/lib/ai/openrouter'
+import { streamText } from 'ai'
+import { createOpenAI } from '@ai-sdk/openai'
 
-// Configuracao para Edge Runtime (melhor performance)
-// Configuracao para Edge Runtime (melhor performance)
-// export const runtime = 'edge' // Disabled to fix stability issues
 export const maxDuration = 60
+export const runtime = 'edge'
 
-// Helper to extract text from UIMessage parts
+// Configure OpenAI provider for OpenRouter
+const openrouter = createOpenAI({
+  apiKey: process.env.OPENROUTER_API_KEY,
+  baseURL: 'https://openrouter.ai/api/v1',
+  headers: {
+    'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+    'X-Title': 'OdontoGPT',
+  }
+})
+
+// Helper to extract text from message (supports UIMessage parts and legacy content)
 function extractTextFromMessage(message: any): string {
-  if (typeof message.content === 'string' && message.content) return message.content;
-  if (!message.parts) return '';
-  for (const part of message.parts) {
-    if ('text' in part && typeof part.text === 'string') {
-      return part.text;
+  if (typeof message.content === 'string' && message.content) {
+    return message.content
+  }
+  if (message.parts && Array.isArray(message.parts)) {
+    for (const part of message.parts) {
+      if (part.type === 'text' && part.text) {
+        return part.text
+      }
     }
   }
-  return '';
+  return ''
 }
 
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-    console.log("[API/newchat] Received Body:", JSON.stringify(body, null, 2))
-    const { messages, agentId, userId, chatId: incomingChatId } = body
+    const { messages, agentId } = body
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: 'Messages are required' }), {
@@ -43,179 +50,27 @@ export async function POST(req: Request) {
       })
     }
 
-    // Validar formato das mensagens
-    const validatedMessages = messages.map(msg => {
-      const result = UIMessageSchema.safeParse(msg);
-      if (!result.success) {
-        console.warn('[Validation Warning] Message skipped:', result.error.message);
-        return null; // ou lançar erro se preferir strict mode
-      }
-      return result.data;
-    }).filter(Boolean); // Remover inválidos
-
-    if (validatedMessages.length === 0) {
-      // Fallback se tudo falhar, usar original mas logar erro
-      console.error('[Validation Error] All messages invalid, using raw input as fallback');
-    }
-
-    // Usar mensagens validadas ou originais (fallback)
-    const messagesProcess = validatedMessages.length > 0 ? validatedMessages : messages;
-
-    // Inicializar Supabase & ChatService
-    const supabase = await createClient()
-    const chatService = new ChatService(supabase)
-
-    // Selecionar o agente (default: odonto-gpt)
+    // Selecionar o agente
     const selectedAgentId = agentId || 'odonto-gpt'
     const agentConfig = AGENT_CONFIGS[selectedAgentId] || AGENT_CONFIGS['odonto-gpt']
-    const modelId = agentConfig.model || MODELS.chat;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const model = openrouter(modelId) as any
 
-    // 1. Obter Memória/Contexto Relevante
-    // Pegar ultima mensagem do usuário para busca vetorial (futura) ou keyword
-    // Tratamos apenas mensagens de texto simples por enquanto
-    // Tratamos apenas mensagens de texto simples por enquanto
-    // Cast messagesProcess to any to verify user role
-    const lastUserMessageNode = (messagesProcess as any[]).slice().reverse().find((m: any) => m.role === 'user')
-    const lastUserMessage = lastUserMessageNode ? extractTextFromMessage(lastUserMessageNode) : ""
+    console.log(`[Chat] Agent: ${selectedAgentId}, Messages: ${messages.length}`)
 
-    let systemContext = agentConfig.system
-
-    // Se tiver user, buscar memoria
-    if (userId && typeof lastUserMessage === 'string') {
-      try {
-        // Buscar memórias relevantes (Fatos, Longo Prazo)
-        const memories = await chatService.searchMemories(userId, lastUserMessage, 5)
-
-        const memoryContext = memories && memories.length > 0
-          ? `\n\n# MEMÓRIA COMPARTILHADA (Histórico Relevante):\n${memories.map((m: any) => `- ${m.content}`).join('\n')}`
-          : ""
-
-        systemContext = `${agentConfig.system}
-# CONTEXTO DE SISTEMA
-ID DO USUARIO ATUAL: ${userId}
-${memoryContext}
-IMPORTANTE: 
-1. Use as memórias acima para personalizar a resposta.
-2. Ao usar ferramentas como saveSummary, saveResearch, etc., voce DEVE usar este ID (${userId}) no campo 'userId'.
-3. Se o usuário fornecer um FATO novo importante (ex: "meu nome é X", "sou especialista em Y"), considere relevante.`
-      } catch (e) {
-        console.error("Erro ao buscar memórias:", e)
-        // Continua sem memoria em caso de erro
-      }
-    }
-
-    // Converter mensagens usando o helper do AI SDK
-    const modelMessages = await convertToModelMessages(messagesProcess as any)
-
-    // Identificar ID da sessão (novo ou existente)
-    // Se o cliente nao mandou, vamos criar DEPOIS no onFinish para não criar lixo, 
-    // MAS para associar mensagens precisamos dele.
-    // Vamos gerar um temporário se não vier.
-    const chatId = incomingChatId || crypto.randomUUID()
-
-    // Log
-    console.log(`[Chat] Sessão: ${chatId}, Agente: ${selectedAgentId}, User: ${userId}`)
-
-    console.log("[API/newchat] Starting streamText for ChatId:", chatId)
+    // Usar AI SDK streamText com OpenRouter provider
     const result = streamText({
-      model,
-      system: systemContext,
-      messages: modelMessages,
-      tools: agentConfig.tools,
+      model: openrouter(agentConfig.model || MODELS.chat),
+      system: agentConfig.system,
+      messages: messages.map(msg => ({
+        role: msg.role,
+        content: extractTextFromMessage(msg)
+      })),
       temperature: 0.1,
-      maxOutputTokens: 4000,
-      stopWhen: stepCountIs(5),
-
-      // Callback executado ao finalizar a stream (Server Side)
-      // Nota: Isso roda em background após a resposta começar a ir para o cliente
-      onFinish: async ({ response }) => {
-        console.log("[API/newchat] Stream onFinish triggered")
-        if (!userId) {
-          console.log("[API/newchat] No userId, skipping persistence")
-          return;
-        }
-
-        try {
-          // 1. Garantir que a sessão existe no Banco
-          let session = await chatService.getSession(chatId)
-          if (!session) {
-            // Tentar usar o primeiro texto do user como título
-            const title = (lastUserMessage as string).slice(0, 50) || "Nova Conversa"
-
-            // Se o ID for novo (gerado aqui), passamos ele?
-            // Se o cliente mandou incomingChatId, usamos ele.
-            // A sessão NÃO EXISTE, então precisamos criar, com o ID fornecido (ou gerado antes).
-
-            const newSession = await chatService.createSession(userId, selectedAgentId, title, chatId)
-
-            // Se createSession rejeitar o ID, ou se usarmos o ID retornado, precisamos garantir consistencia.
-            // Na nossa implementação do createSession, se passamos ID, ele usa.
-
-            // Salvar mensagem do usuário na nova sessão
-            await chatService.saveMessage(newSession.id, {
-              role: 'user',
-              content: lastUserMessage,
-              agent_id: 'user'
-            })
-
-            const assistantContent = response.messages.find(m => m.role === 'assistant')
-            if (assistantContent) {
-              let text = ""
-              if (typeof assistantContent.content === 'string') text = assistantContent.content
-              else if (Array.isArray(assistantContent.content)) {
-                text = assistantContent.content
-                  .filter(c => c.type === 'text')
-                  .map(c => (c as any).text)
-                  .join('\n')
-              }
-
-              await chatService.saveMessage(newSession.id, {
-                role: 'assistant',
-                content: text,
-                agent_id: selectedAgentId
-              })
-            }
-            return
-          }
-
-          // Se sessão já existe (incomingChatId valido)
-          await chatService.saveMessage(chatId, {
-            role: 'user',
-            content: lastUserMessage,
-            agent_id: 'user'
-          })
-
-          const assistantContent = response.messages.find(m => m.role === 'assistant')
-          if (assistantContent) {
-            let text = ""
-            if (typeof assistantContent.content === 'string') text = assistantContent.content
-            else if (Array.isArray(assistantContent.content)) {
-              text = assistantContent.content
-                .filter(c => c.type === 'text')
-                .map(c => (c as any).text)
-                .join('\n')
-            }
-
-            await chatService.saveMessage(chatId, {
-              role: 'assistant',
-              content: text,
-              agent_id: selectedAgentId
-            })
-          }
-
-          console.log("[API/newchat] Message saved successfully for Session:", chatId)
-        } catch (err) {
-          console.error('[Chat Persistence Error] in onFinish:', err)
-        }
-      }
     })
 
-    return (result as any).toDataStreamResponse({
-      getErrorMessage: (error: any) => {
-        if (error instanceof Error) return error.message;
-        return String(error);
+    return result.toDataStreamResponse({
+      getErrorMessage: (error) => {
+        console.error('[Chat Stream Error]', error)
+        return error instanceof Error ? error.message : 'Erro ao processar resposta'
       }
     })
   } catch (error) {

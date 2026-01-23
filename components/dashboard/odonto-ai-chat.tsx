@@ -1,7 +1,8 @@
 "use client"
 
 import { useEffect, useRef, useState, useCallback } from "react"
-import { useChat, type Message } from "@ai-sdk/react"
+import { useChat } from "@ai-sdk/react"
+import type { Message as UIMessage } from "ai"
 import { Sparkles, Paperclip, X, Wrench } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -16,7 +17,7 @@ import type { ArtifactKind } from "@/components/artifacts/types"
 interface OdontoAIChatProps {
   userId?: string
   agentId?: string
-  initialMessages?: Message[]
+  initialMessages?: UIMessage[]
   initialChatId?: string
   userName?: string
 }
@@ -77,7 +78,7 @@ export function OdontoAIChat({
     stop,
     setMessages,
   } = useChat({
-    api: '/api/chat',
+    api: '/api/newchat',
     id: chatId,
     initialMessages,
     body: {
@@ -157,7 +158,7 @@ export function OdontoAIChat({
   ]
 
   // Render message content with artifacts
-  const renderMessageContent = (message: Message) => {
+  const renderMessageContent = (message: UIMessage) => {
     const parts = message.parts || []
     const textParts: string[] = []
     const artifacts: Artifact[] = []
@@ -193,7 +194,7 @@ export function OdontoAIChat({
   }
 
   // Render tool invocation status (loading state)
-  const renderToolStatus = (message: Message) => {
+  const renderToolStatus = (message: UIMessage) => {
     const parts = message.parts || []
     const pendingTools = parts.filter(
       (part) => part.type === 'tool-invocation' && part.toolInvocation?.state === 'call'
