@@ -60,9 +60,15 @@ export async function GET(request: NextRequest) {
 
         return NextResponse.json(result)
     } catch (error) {
-        console.error('Error listing artifacts:', error)
+        console.error('[API /artifacts GET] Error listing artifacts:', {
+            error: error instanceof Error ? error.message : String(error),
+            stack: error instanceof Error ? error.stack : undefined,
+            userId: user?.id
+        })
+
+        const errorMessage = error instanceof Error ? error.message : 'Failed to list artifacts'
         return NextResponse.json(
-            { error: 'Failed to list artifacts' },
+            { error: 'Failed to list artifacts', details: errorMessage },
             { status: 500 }
         )
     }

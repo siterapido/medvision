@@ -100,7 +100,10 @@ export function OdontoAIChat({
     if (typeof setInputFromHook === 'function') {
       setInputFromHook(value)
     } else {
-      console.error("[OdontoAIChat] setInput is not a function")
+      // Only log once per component lifecycle to avoid spam
+      if (process.env.NODE_ENV === 'development') {
+        console.warn("[OdontoAIChat] setInput unavailable - useChat hook may not have initialized")
+      }
     }
   }, [setInputFromHook])
 

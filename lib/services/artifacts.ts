@@ -99,6 +99,12 @@ export class ArtifactsService {
         input: CreateArtifactInput,
         userId: string
     ): Promise<Artifact> {
+        // Validar tipo antes de inserir
+        const validTypes = ['chat', 'document', 'code', 'image', 'research', 'exam', 'summary', 'flashcards', 'mindmap', 'other'] as const
+        if (!validTypes.includes(input.type as any)) {
+            throw new Error(`Invalid artifact type: ${input.type}. Must be one of: ${validTypes.join(', ')}`)
+        }
+
         const supabase = await createClient()
 
         const { data, error } = await supabase
