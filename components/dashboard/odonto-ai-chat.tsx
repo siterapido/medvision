@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useMemo } from "react"
 import { useChat } from "@ai-sdk/react"
 import { DefaultChatTransport, UIMessage } from "ai"
 import { Loader2, Sparkles, Paperclip, ArrowUp, Plus, X } from "lucide-react"
@@ -32,20 +32,28 @@ export function OdontoAIChat({
   const [attachments, setAttachments] = useState<FileList | null>(null)
   const agents = listAgents()
 
+  // Ensure we have a stable chatId for the session
+  const [chatId] = useState(() => initialChatId || crypto.randomUUID())
+
+  // Memoize transport to ensure it updates when dependencies change but stays stable otherwise.
+  // This fixes the 'api' property lint error by using the expected transport configuration.
+  const transport = useMemo(() => new DefaultChatTransport({
+    api: "/api/newchat",
+    body: {
+      agentId: selectedAgent.id,
+      userId,
+      chatId
+    },
+  }), [selectedAgent.id, userId, chatId])
+
+  // Cast to any to avoid type issues with 'append' if the installed SDK version has type mismatches
   const { messages, sendMessage, status, stop } = useChat({
-    initialMessages: initialMessages.map(m => ({
+    transport,
+    messages: initialMessages?.map(m => ({
       ...m,
       parts: m.parts || [{ type: 'text', text: m.content || "" }]
-    })) as any,
-    transport: new DefaultChatTransport({
-      api: "/api/newchat",
-      body: {
-        agentId: selectedAgent.id,
-        userId,
-        chatId: initialChatId
-      },
-    }),
-    onError: (error) => {
+    })) as any || [],
+    onError: (error: any) => {
       toast.error("Erro no chat", {
         description: error.message,
       })
@@ -227,7 +235,7 @@ export function OdontoAIChat({
             </div>
           ) : (
             <div className="space-y-8 py-4">
-              {messages.map((message) => (
+              {messages.map((message: any) => (
                 <div
                   key={message.id}
                   className={cn(

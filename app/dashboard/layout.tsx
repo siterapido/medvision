@@ -2,6 +2,7 @@ import type React from "react"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { Sidebar } from "@/components/dashboard/sidebar"
+import { MobileNav } from "@/components/dashboard/mobile-nav"
 import { cn } from "@/lib/utils"
 
 export default async function NewDashboardLayout({
@@ -37,10 +38,12 @@ export default async function NewDashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       <Sidebar user={userData} />
+      <MobileNav user={userData} />
       {/* Main content area - adjusts based on sidebar state via CSS */}
       <main className={cn(
         "min-h-screen transition-all duration-300 ease-in-out",
-        "ml-16 lg:ml-64" // Default: collapsed on mobile, expanded on desktop
+        "lg:ml-[72px] xl:ml-72", // Desktop: Sidebar width alignment (collapsed/expanded) - adjusted to match Sidebar
+        "pb-24 lg:pb-0" // Mobile bottom padding for nav
       )}>
         {children}
       </main>

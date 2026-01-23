@@ -31,26 +31,7 @@ const SidebarContext = createContext<{
 
 export const useSidebar = () => useContext(SidebarContext)
 
-interface NavItem {
-  href: string
-  label: string
-  icon: React.ComponentType<{ className?: string }>
-  badge?: number
-  shortcut?: string
-}
-
-const navItems: NavItem[] = [
-  { href: '/dashboard', label: 'Início', icon: Home },
-  { href: '/dashboard/chat', label: 'Chat', icon: MessageCircle },
-  { href: '/dashboard/biblioteca', label: 'Biblioteca', icon: BookOpen },
-  { href: '/dashboard/odontoflix', label: 'OdontoFlix', icon: MonitorPlay },
-  { href: '/dashboard/odonto-vision', label: 'Odonto Vision', icon: Eye },
-  { href: '/dashboard/certificados', label: 'Certificados', icon: FileBadge },
-]
-
-const bottomNavItems: NavItem[] = [
-  { href: '/dashboard/notificacoes', label: 'Notificações', icon: Bell },
-]
+import { NAV_ITEMS, BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation'
 
 interface SidebarProps {
   user?: {
@@ -90,7 +71,7 @@ export function Sidebar({ user }: SidebarProps) {
     <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
       <aside
         className={cn(
-          'fixed inset-y-0 left-0 z-50 flex flex-col',
+          'fixed inset-y-0 left-0 z-50 hidden lg:flex flex-col',
           'bg-sidebar border-r border-sidebar-border backdrop-blur-xl',
           'transition-all duration-300 cubic-bezier(0.2, 0.8, 0.2, 1)', // Smooth implementation
           isCollapsed ? 'w-20' : 'w-72'
@@ -130,7 +111,7 @@ export function Sidebar({ user }: SidebarProps) {
         {/* Main Navigation */}
         <nav className="flex-1 px-3 py-6 space-y-1.5 overflow-y-auto custom-scrollbar">
 
-          {navItems.map((item) => {
+          {NAV_ITEMS.map((item) => {
             const active = isActive(item.href)
             return (
               <Link
@@ -179,7 +160,7 @@ export function Sidebar({ user }: SidebarProps) {
 
         {/* Bottom Section */}
         <div className="p-2 border-t border-sidebar-border bg-sidebar/50 backdrop-blur-sm space-y-1">
-          {bottomNavItems.map((item) => (
+          {BOTTOM_NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
               href={item.href}

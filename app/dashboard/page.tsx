@@ -107,7 +107,7 @@ export default async function NewDashboardPage() {
   } : null
 
   return (
-    <div className="min-h-screen pb-32 md:pb-10 pt-6 px-4 md:px-8 max-w-6xl mx-auto animate-in fade-in duration-500">
+    <div className="min-h-screen pb-4 md:pb-10 pt-6 px-4 md:px-8 max-w-6xl mx-auto animate-in fade-in duration-500">
 
       {/* Mobile-First Header */}
       <header className="mb-10 space-y-4 text-center md:text-left">
@@ -172,7 +172,7 @@ export default async function NewDashboardPage() {
 
           {/* Featured / Suggestion */}
           <section>
-            <GlassCard variant="gradient" className="p-6 relative overflow-hidden group border-primary/10">
+            <GlassCard gradient={true} className="p-6 relative overflow-hidden group border-primary/10">
               <div className="absolute top-0 right-0 p-32 bg-primary/5 rounded-full blur-3xl -z-10 transition-opacity group-hover:opacity-75" />
 
               <div className="flex flex-col sm:flex-row gap-6 items-start z-10">
@@ -251,7 +251,7 @@ export default async function NewDashboardPage() {
               <Link href="/dashboard/biblioteca" className="text-xs text-primary hover:underline">Biblioteca</Link>
             </div>
             <div className="space-y-3">
-              {artifacts.length > 0 ? (
+              {artifacts && artifacts.length > 0 ? (
                 artifacts.map((artifact) => {
                   const typeInfo = ARTIFACT_TYPE_LABELS[artifact.type as string] || { label: artifact.type, icon: FileText }
                   const ArtifactIcon = typeInfo.icon

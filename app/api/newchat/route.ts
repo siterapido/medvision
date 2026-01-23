@@ -114,50 +114,41 @@ IMPORTANTE:
           if (!session) {
             // Tentar usar o primeiro texto do user como título
             const title = (lastUserMessage as string).slice(0, 50) || "Nova Conversa"
+
             // Se o ID for novo (gerado aqui), passamos ele?
-            // O método createSession original gerava um ID. Vamos ajustar o POST para confiar no gerado pelo DB
-            // OU vamos alterar o service para aceitar ID. 
-            // Como não alterei o service para aceitar ID forçado, vamos criar uma nova sessão
-            // e usar O ID DELA para salvar as mensagens.
+            // Se o cliente mandou incomingChatId, usamos ele.
+            // A sessão NÃO EXISTE, então precisamos criar, com o ID fornecido (ou gerado antes).
 
-            // Por simplificacao neste passo, chamamos createSession.
-            // O front terá que lidar com o fato de que o ID pode mudar se não enviou um.
-            // Mas se o front mandou incomingChatId (existente), session não será null.
+            const newSession = await chatService.createSession(userId, selectedAgentId, title, chatId)
 
-            if (!incomingChatId) {
-              // É um chat novo. Criamos a sessão.
-              const newSession = await chatService.createSession(userId, selectedAgentId, title)
-              // Atualizamos o ID para o ID real do banco
-              // Mas espere, as mensagens salvas abaixo usarao 'chatId' variavel.
-              // Precisamos atualizar a variavel 'chatId' para 'newSession.id'
-              // Mas 'chatId' é const.
+            // Se createSession rejeitar o ID, ou se usarmos o ID retornado, precisamos garantir consistencia.
+            // Na nossa implementação do createSession, se passamos ID, ele usa.
 
-              // Solução rápida: salvar usando newSession.id
-              await chatService.saveMessage(newSession.id, {
-                role: 'user',
-                content: lastUserMessage,
-                agent_id: 'user'
-              })
+            // Salvar mensagem do usuário na nova sessão
+            await chatService.saveMessage(newSession.id, {
+              role: 'user',
+              content: lastUserMessage,
+              agent_id: 'user'
+            })
 
-              const assistantContent = response.messages.find(m => m.role === 'assistant')
-              if (assistantContent) {
-                let text = ""
-                if (typeof assistantContent.content === 'string') text = assistantContent.content
-                else if (Array.isArray(assistantContent.content)) {
-                  text = assistantContent.content
-                    .filter(c => c.type === 'text')
-                    .map(c => (c as any).text)
-                    .join('\n')
-                }
-
-                await chatService.saveMessage(newSession.id, {
-                  role: 'assistant',
-                  content: text,
-                  agent_id: selectedAgentId
-                })
+            const assistantContent = response.messages.find(m => m.role === 'assistant')
+            if (assistantContent) {
+              let text = ""
+              if (typeof assistantContent.content === 'string') text = assistantContent.content
+              else if (Array.isArray(assistantContent.content)) {
+                text = assistantContent.content
+                  .filter(c => c.type === 'text')
+                  .map(c => (c as any).text)
+                  .join('\n')
               }
-              return
+
+              await chatService.saveMessage(newSession.id, {
+                role: 'assistant',
+                content: text,
+                agent_id: selectedAgentId
+              })
             }
+            return
           }
 
           // Se sessão já existe (incomingChatId valido)

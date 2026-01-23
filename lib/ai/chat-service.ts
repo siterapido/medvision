@@ -26,15 +26,18 @@ export interface AgentMessage {
 export class ChatService {
     constructor(private supabase: SupabaseClient) { }
 
-    async createSession(userId: string, agentId: string, title?: string): Promise<AgentSession> {
+    async createSession(userId: string, agentId: string, title?: string, id?: string): Promise<AgentSession> {
+        const insertData: any = {
+            user_id: userId,
+            agent_type: agentId,
+            title: title || 'Nova Conversa',
+            status: 'active'
+        }
+        if (id) insertData.id = id
+
         const { data, error } = await this.supabase
             .from('agent_sessions')
-            .insert({
-                user_id: userId,
-                agent_type: agentId,
-                title: title || 'Nova Conversa',
-                status: 'active'
-            })
+            .insert(insertData)
             .select()
             .single()
 
