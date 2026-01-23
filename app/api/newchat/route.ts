@@ -13,7 +13,8 @@ import { createClient } from '@/lib/supabase/server'
 import { ChatService } from '@/lib/ai/chat-service'
 
 // Configuracao para Edge Runtime (melhor performance)
-export const runtime = 'edge'
+// Configuracao para Edge Runtime (melhor performance)
+// export const runtime = 'edge' // Disabled to fix stability issues
 export const maxDuration = 60
 
 // Helper to extract text from UIMessage parts

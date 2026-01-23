@@ -80,7 +80,7 @@ export function ModernChatInput({
     }
 
     return (
-        <div className="relative w-full max-w-4xl mx-auto px-2 pb-4 md:px-4 md:pb-12">
+        <div className="relative w-full max-w-4xl mx-auto px-2 pb-6 md:px-4 md:pb-12">
             <div
                 className={cn(
                     "relative flex flex-col gap-1 p-2 rounded-[28px] bg-white dark:bg-zinc-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-zinc-200 dark:ring-zinc-800 transition-all duration-500",
@@ -96,7 +96,7 @@ export function ModernChatInput({
                         onKeyDown={handleKeyDown}
                         placeholder="Perguntar ao Odonto GPT..."
                         rows={1}
-                        className="w-full resize-none bg-transparent py-2 text-[17px] outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 max-h-[200px] overflow-y-auto custom-scrollbar text-zinc-900 dark:text-zinc-100 leading-relaxed font-sans"
+                        className="w-full resize-none bg-transparent py-2 text-sm outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 max-h-[200px] overflow-y-auto custom-scrollbar text-zinc-900 dark:text-zinc-100 leading-relaxed font-sans"
                     />
                 </div>
 
@@ -119,14 +119,14 @@ export function ModernChatInput({
                                                     type="button"
                                                     onClick={() => setSelectedAgent(agent)}
                                                     className={cn(
-                                                        "relative flex items-center justify-center h-8 w-8 rounded-xl transition-all duration-300",
+                                                        "relative flex items-center justify-center h-7 w-7 rounded-xl transition-all duration-300",
                                                         isSelected
                                                             ? "bg-white dark:bg-zinc-700 text-[#8fb6b9] shadow-sm ring-1 ring-zinc-200 dark:ring-zinc-600"
                                                             : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100/50 dark:hover:bg-zinc-800"
                                                     )}
                                                 >
                                                     <Icon className={cn(
-                                                        "h-[18px] w-[18px] transition-transform duration-300",
+                                                        "h-4 w-4 transition-transform duration-300",
                                                         isSelected ? "scale-100" : "scale-90"
                                                     )} />
 
@@ -152,10 +152,10 @@ export function ModernChatInput({
                         <div className="flex md:hidden">
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                    <button className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                                    <button className="flex items-center gap-2 px-2 py-1 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
                                         {(() => {
                                             const Icon = AGENT_UI_CONFIG[selectedAgent.id]?.icon || Sparkles
-                                            return <Icon className="h-4 w-4 text-[#8fb6b9]" />
+                                            return <Icon className="h-3.5 w-3.5 text-[#8fb6b9]" />
                                         })()}
                                         <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300 max-w-[80px] truncate">
                                             {selectedAgent.name}
@@ -203,7 +203,7 @@ export function ModernChatInput({
                                         showAttachments && "text-zinc-900 dark:text-zinc-100"
                                     )}
                                 >
-                                    <Paperclip className="h-[18px] w-[18px]" />
+                                    <Paperclip className="h-4 w-4" />
                                 </button>
 
                                 <AnimatePresence>
@@ -237,14 +237,14 @@ export function ModernChatInput({
                                 type="button"
                                 className="p-2 rounded-full text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors hidden sm:flex"
                             >
-                                <Mic className="h-[18px] w-[18px]" />
+                                <Mic className="h-4 w-4" />
                             </button>
 
                             <button
                                 type="button"
                                 className="p-2 rounded-full text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors hidden sm:flex"
                             >
-                                <Cpu className="h-[18px] w-[18px]" />
+                                <Cpu className="h-4 w-4" />
                             </button>
                         </div>
 
@@ -253,7 +253,7 @@ export function ModernChatInput({
                             onClick={handleSubmit}
                             disabled={isLoading || !(input || "").trim() || !isReady}
                             className={cn(
-                                "flex items-center justify-center shrink-0 h-9 w-9 rounded-xl transition-all duration-300",
+                                "flex items-center justify-center shrink-0 h-8 w-8 rounded-xl transition-all duration-300",
                                 (input || "").trim() && isReady
                                     ? "bg-[#8fb6b9] text-white hover:opacity-90 active:scale-95 shadow-md shadow-[#8fb6b9]/20"
                                     : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed"
@@ -262,17 +262,14 @@ export function ModernChatInput({
                             {isLoading ? (
                                 <div className="h-4 w-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             ) : (
-                                <ArrowUp className="h-5 w-5 stroke-[2.5]" />
+                                <ArrowUp className="h-4 w-4 stroke-[2.5]" />
                             )}
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Footer disclaimer - extra subtle */}
-            <p className="mt-4 text-center text-[11px] text-zinc-400 dark:text-zinc-600 font-medium tracking-wide">
-                Odonto GPT: O Futuro da Educação Odontológica
-            </p>
+
         </div>
     )
 }

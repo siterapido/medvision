@@ -165,11 +165,11 @@ export function OdontoAIChat({
 
       {/* Messages Area - App Style Scroll */}
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 custom-scrollbar scroll-smooth">
-        <div className="mx-auto max-w-3xl flex flex-col justify-start min-h-full pb-24">
+        <div className="mx-auto max-w-3xl flex flex-col justify-start min-h-full pb-32 md:pb-32">
           {/* pb-24 ensures vital space for fixed input */}
 
           {messages.length === 0 ? (
-            <div className="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-8 animate-in fade-in zoom-in-95 duration-500">
+            <div className="flex-1 flex flex-col items-center justify-center text-center p-4 space-y-6 animate-in fade-in zoom-in-95 duration-500">
               <div className="relative">
                 <AnimatePresence mode="wait">
                   <motion.div
@@ -179,14 +179,14 @@ export function OdontoAIChat({
                     exit={{ scale: 0.8, opacity: 0, rotate: 10 }}
                     transition={{ type: "spring", damping: 15, stiffness: 200 }}
                     className={cn(
-                      "h-24 w-24 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-border/50 shadow-xl", // Increased size
+                      "h-12 w-12 md:h-16 md:w-16 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-border/50 shadow-xl", // Reduced size
                       `bg-gradient-to-br transition-all duration-500`,
                       getAgentUI(selectedAgent.id).gradient
                     )}
                   >
                     {(() => {
                       const Icon = getAgentUI(selectedAgent.id).icon
-                      return <Icon className="h-10 w-10 text-white" /> // Increased icon size
+                      return <Icon className="h-5 w-5 md:h-7 md:w-7 text-white" /> // Reduced icon size
                     })()}
                   </motion.div>
                 </AnimatePresence>
@@ -208,7 +208,7 @@ export function OdontoAIChat({
                   key={`title-${selectedAgent.id}`}
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  className="text-3xl font-heading font-semibold text-foreground"
+                  className="text-lg md:text-2xl font-heading font-semibold text-foreground"
                 >
                   {selectedAgent.id === 'odonto-gpt' ? `Olá, ${userName?.split(' ')[0] || 'Doutor(a)'}` : selectedAgent.greetingTitle}
                 </motion.h2>
@@ -217,13 +217,13 @@ export function OdontoAIChat({
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="text-lg text-muted-foreground"
+                  className="text-sm md:text-base text-muted-foreground"
                 >
                   {selectedAgent.greetingDescription || "Como posso ajudar você hoje?"}
                 </motion.p>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 w-full max-w-sm">
+              <div className="flex flex-row overflow-x-auto w-full max-w-[90vw] gap-2 pb-2 md:grid md:grid-cols-1 md:max-w-xs md:pb-0 scrollbar-hide snap-x">
                 {suggestions.map((s, index) => (
                   <motion.button
                     initial={{ opacity: 0, y: 10 }}
@@ -231,7 +231,7 @@ export function OdontoAIChat({
                     transition={{ delay: 0.2 + index * 0.05 }}
                     key={s}
                     onClick={() => setInput(s)}
-                    className="px-6 py-4 text-base text-center rounded-2xl bg-card border border-border/50 hover:bg-muted/50 hover:border-primary/20 transition-all text-muted-foreground hover:text-foreground shadow-sm hover:shadow-md hover:-translate-y-0.5"
+                    className="flex-shrink-0 snap-center px-3 py-2 md:px-4 md:py-3 text-xs md:text-sm text-center rounded-xl bg-card border border-border/50 hover:bg-muted/50 hover:border-primary/20 transition-all text-muted-foreground hover:text-foreground shadow-sm hover:shadow-md hover:-translate-y-0.5 whitespace-nowrap md:whitespace-normal"
                   >
                     {s}
                   </motion.button>
