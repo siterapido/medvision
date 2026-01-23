@@ -161,7 +161,7 @@ export function OdontoAIChat({
   ]
 
   return (
-    <div className="flex h-[calc(100vh-theme(spacing.16))] md:h-screen flex-col bg-background relative font-sans text-foreground overflow-hidden">
+    <div className="flex h-[calc(100vh-3.5rem)] md:h-screen flex-col bg-background relative font-sans text-foreground overflow-hidden">
 
       {/* Messages Area - App Style Scroll */}
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 custom-scrollbar scroll-smooth">

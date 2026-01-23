@@ -13,7 +13,8 @@ import {
     Image as ImageIcon,
     File,
     ArrowUp,
-    Cpu
+    Cpu,
+    ChevronDown
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { type AgentConfig } from "@/lib/ai/agents/config"
@@ -24,6 +25,12 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 
 interface ModernChatInputProps {
     input: string
@@ -73,7 +80,7 @@ export function ModernChatInput({
     }
 
     return (
-        <div className="relative w-full max-w-4xl mx-auto px-4 pb-12">
+        <div className="relative w-full max-w-4xl mx-auto px-2 pb-4 md:px-4 md:pb-12">
             <div
                 className={cn(
                     "relative flex flex-col gap-1 p-2 rounded-[28px] bg-white dark:bg-zinc-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-zinc-200 dark:ring-zinc-800 transition-all duration-500",
@@ -97,56 +104,95 @@ export function ModernChatInput({
                 <div className="flex items-center justify-between px-2 pb-1 pt-2">
                     {/* Left: Agent Pill */}
                     <div className="flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800/50 p-1 rounded-2xl border border-zinc-100 dark:border-zinc-800/50">
-                        <TooltipProvider>
-                            {agents.map((agent) => {
-                                const Icon = AGENT_UI_CONFIG[agent.id]?.icon || Sparkles
-                                const isSelected = selectedAgent.id === agent.id
 
-                                return (
-                                    <Tooltip key={agent.id}>
-                                        <TooltipTrigger asChild>
-                                            <button
-                                                type="button"
+                        {/* Desktop: List all agents */}
+                        <div className="hidden md:flex items-center gap-1">
+                            <TooltipProvider>
+                                {agents.map((agent) => {
+                                    const Icon = AGENT_UI_CONFIG[agent.id]?.icon || Sparkles
+                                    const isSelected = selectedAgent.id === agent.id
+
+                                    return (
+                                        <Tooltip key={agent.id}>
+                                            <TooltipTrigger asChild>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setSelectedAgent(agent)}
+                                                    className={cn(
+                                                        "relative flex items-center justify-center h-8 w-8 rounded-xl transition-all duration-300",
+                                                        isSelected
+                                                            ? "bg-white dark:bg-zinc-700 text-[#8fb6b9] shadow-sm ring-1 ring-zinc-200 dark:ring-zinc-600"
+                                                            : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100/50 dark:hover:bg-zinc-800"
+                                                    )}
+                                                >
+                                                    <Icon className={cn(
+                                                        "h-[18px] w-[18px] transition-transform duration-300",
+                                                        isSelected ? "scale-100" : "scale-90"
+                                                    )} />
+
+                                                    {isSelected && (
+                                                        <motion.div
+                                                            layoutId="activeAgentSubtle"
+                                                            className="absolute inset-0 rounded-xl"
+                                                            transition={{ type: "spring", bounce: 0.1, duration: 0.4 }}
+                                                        />
+                                                    )}
+                                                </button>
+                                            </TooltipTrigger>
+                                            <TooltipContent side="top" className="bg-zinc-900 border-zinc-800 text-white">
+                                                <p className="text-[11px] font-medium tracking-tight">{agent.name}</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    )
+                                })}
+                            </TooltipProvider>
+                        </div>
+
+                        {/* Mobile: Dropdown Selection */}
+                        <div className="flex md:hidden">
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors">
+                                        {(() => {
+                                            const Icon = AGENT_UI_CONFIG[selectedAgent.id]?.icon || Sparkles
+                                            return <Icon className="h-4 w-4 text-[#8fb6b9]" />
+                                        })()}
+                                        <span className="text-xs font-medium text-zinc-600 dark:text-zinc-300 max-w-[80px] truncate">
+                                            {selectedAgent.name}
+                                        </span>
+                                        <ChevronDown className="h-3 w-3 text-zinc-400" />
+                                    </button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="start" className="w-[200px]">
+                                    {agents.map((agent) => {
+                                        const Icon = AGENT_UI_CONFIG[agent.id]?.icon || Sparkles
+                                        return (
+                                            <DropdownMenuItem
+                                                key={agent.id}
                                                 onClick={() => setSelectedAgent(agent)}
-                                                className={cn(
-                                                    "relative flex items-center justify-center h-8 w-8 rounded-xl transition-all duration-300",
-                                                    isSelected
-                                                        ? "bg-white dark:bg-zinc-700 text-[#8fb6b9] shadow-sm ring-1 ring-zinc-200 dark:ring-zinc-600"
-                                                        : "text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100/50 dark:hover:bg-zinc-800"
-                                                )}
+                                                className="gap-2 cursor-pointer"
                                             >
-                                                <Icon className={cn(
-                                                    "h-[18px] w-[18px] transition-transform duration-300",
-                                                    isSelected ? "scale-100" : "scale-90"
-                                                )} />
+                                                <Icon className="h-4 w-4 text-muted-foreground" />
+                                                <span className="text-sm">{agent.name}</span>
+                                            </DropdownMenuItem>
+                                        )
+                                    })}
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
 
-                                                {isSelected && (
-                                                    <motion.div
-                                                        layoutId="activeAgentSubtle"
-                                                        className="absolute inset-0 rounded-xl"
-                                                        transition={{ type: "spring", bounce: 0.1, duration: 0.4 }}
-                                                    />
-                                                )}
-                                            </button>
-                                        </TooltipTrigger>
-                                        <TooltipContent side="top" className="bg-zinc-900 border-zinc-800 text-white">
-                                            <p className="text-[11px] font-medium tracking-tight">{agent.name}</p>
-                                        </TooltipContent>
-                                    </Tooltip>
-                                )
-                            })}
-                        </TooltipProvider>
                     </div>
 
                     <div className="flex items-center gap-1 md:gap-3">
                         {/* Action Icons */}
                         <div className="flex items-center gap-1.5 mr-2">
-                            <button
-                                type="button"
-                                className="p-2 rounded-full text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
-                            >
-                                <Cpu className="h-[18px] w-[18px]" />
-                            </button>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                accept="image/*,application/pdf"
+                                onChange={handleFileChange}
+                            />
 
                             <div className="relative">
                                 <button
@@ -187,19 +233,18 @@ export function ModernChatInput({
                                 </AnimatePresence>
                             </div>
 
-                            <input
-                                type="file"
-                                ref={fileInputRef}
-                                className="hidden"
-                                accept="image/*,application/pdf"
-                                onChange={handleFileChange}
-                            />
+                            <button
+                                type="button"
+                                className="p-2 rounded-full text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors hidden sm:flex"
+                            >
+                                <Mic className="h-[18px] w-[18px]" />
+                            </button>
 
                             <button
                                 type="button"
-                                className="p-2 rounded-full text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+                                className="p-2 rounded-full text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors hidden sm:flex"
                             >
-                                <Mic className="h-[18px] w-[18px]" />
+                                <Cpu className="h-[18px] w-[18px]" />
                             </button>
                         </div>
 

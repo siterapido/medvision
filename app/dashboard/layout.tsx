@@ -42,8 +42,7 @@ export default async function NewDashboardLayout({
       {/* Main content area - adjusts based on sidebar state via CSS */}
       <main className={cn(
         "min-h-screen transition-all duration-300 ease-in-out",
-        "lg:ml-[72px] xl:ml-72", // Desktop: Sidebar width alignment (collapsed/expanded) - adjusted to match Sidebar
-        "pb-24 lg:pb-0" // Mobile bottom padding for nav
+        "lg:ml-[72px] xl:ml-72" // Desktop: Sidebar width alignment (collapsed/expanded) - adjusted to match Sidebar
       )}>
         {children}
       </main>
