@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState, useMemo } from "react"
 import { useChat } from "@ai-sdk/react"
-import { DefaultChatTransport, UIMessage } from "ai"
+import { DefaultChatTransport } from "ai"
 import { Loader2, Sparkles, Paperclip, ArrowUp, Plus, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -37,8 +37,7 @@ export function OdontoAIChat({
   // Ensure we have a stable chatId for the session
   const [chatId] = useState(() => initialChatId || crypto.randomUUID())
 
-  // Memoize transport to ensure it updates when dependencies change but stays stable otherwise.
-  // This fixes the 'api' property lint error by using the expected transport configuration.
+  // Configuração de transporte e hook com cast para any para compatibilidade de tipos
   const transport = useMemo(() => new DefaultChatTransport({
     api: "/api/newchat",
     body: {
@@ -48,23 +47,19 @@ export function OdontoAIChat({
     },
   }), [selectedAgent.id, userId, chatId])
 
-  // Cast to any to avoid type issues with 'append' if the installed SDK version has type mismatches
-  const { messages, sendMessage, status, stop } = useChat({
+  const { messages, append, status, stop } = useChat({
     transport,
-    messages: initialMessages?.map(m => ({
-      ...m,
-      parts: m.parts || [{ type: 'text', text: m.content || "" }]
-    })) as any || [],
+    initialMessages: initialMessages || [],
     onError: (error: any) => {
       console.error("[OdontoAIChat] useChat error:", error)
       toast.error("Erro no chat", {
         description: error.message,
       })
     },
-    onFinish: (message) => {
+    onFinish: (message: any) => {
       console.log("[OdontoAIChat] useChat onFinish:", message)
     }
-  })
+  } as any) as any
 
   // Loading states
   const isLoading = status === 'submitted' || status === 'streaming'
@@ -135,11 +130,13 @@ export function OdontoAIChat({
       ) : undefined
 
       console.log("[OdontoAIChat] Sending message:", { input, attachments: experimental_attachments })
-      sendMessage({
+      console.log("[OdontoAIChat] Sending message:", { input, attachments: experimental_attachments })
+      append({
         role: 'user',
-        parts: [{ type: 'text', text: input }],
+        content: input,
+      }, {
         experimental_attachments
-      } as any)
+      })
       setInput("")
       setAttachments(null)
     }

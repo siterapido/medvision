@@ -11,6 +11,7 @@ import { openrouter, MODELS } from '@/lib/ai/openrouter'
 import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
 import { createClient } from '@/lib/supabase/server'
 import { ChatService } from '@/lib/ai/chat-service'
+import { UIMessageSchema } from '@/lib/ai/message-schema'
 
 // Configuracao para Edge Runtime (melhor performance)
 // Configuracao para Edge Runtime (melhor performance)
@@ -42,6 +43,24 @@ export async function POST(req: Request) {
       })
     }
 
+    // Validar formato das mensagens
+    const validatedMessages = messages.map(msg => {
+      const result = UIMessageSchema.safeParse(msg);
+      if (!result.success) {
+        console.warn('[Validation Warning] Message skipped:', result.error.message);
+        return null; // ou lançar erro se preferir strict mode
+      }
+      return result.data;
+    }).filter(Boolean); // Remover inválidos
+
+    if (validatedMessages.length === 0) {
+      // Fallback se tudo falhar, usar original mas logar erro
+      console.error('[Validation Error] All messages invalid, using raw input as fallback');
+    }
+
+    // Usar mensagens validadas ou originais (fallback)
+    const messagesProcess = validatedMessages.length > 0 ? validatedMessages : messages;
+
     // Inicializar Supabase & ChatService
     const supabase = await createClient()
     const chatService = new ChatService(supabase)
@@ -56,7 +75,9 @@ export async function POST(req: Request) {
     // 1. Obter Memória/Contexto Relevante
     // Pegar ultima mensagem do usuário para busca vetorial (futura) ou keyword
     // Tratamos apenas mensagens de texto simples por enquanto
-    const lastUserMessageNode = messages.slice().reverse().find((m: any) => m.role === 'user')
+    // Tratamos apenas mensagens de texto simples por enquanto
+    // Cast messagesProcess to any to verify user role
+    const lastUserMessageNode = (messagesProcess as any[]).slice().reverse().find((m: any) => m.role === 'user')
     const lastUserMessage = lastUserMessageNode ? extractTextFromMessage(lastUserMessageNode) : ""
 
     let systemContext = agentConfig.system
@@ -86,7 +107,7 @@ IMPORTANTE:
     }
 
     // Converter mensagens usando o helper do AI SDK
-    const modelMessages = await convertToModelMessages(messages)
+    const modelMessages = await convertToModelMessages(messagesProcess as any)
 
     // Identificar ID da sessão (novo ou existente)
     // Se o cliente nao mandou, vamos criar DEPOIS no onFinish para não criar lixo, 
@@ -191,7 +212,12 @@ IMPORTANTE:
       }
     })
 
-    return result.toUIMessageStreamResponse()
+    return (result as any).toDataStreamResponse({
+      getErrorMessage: (error: any) => {
+        if (error instanceof Error) return error.message;
+        return String(error);
+      }
+    })
   } catch (error) {
     console.error('[NewChat API Error]', error)
     const errorMessage = error instanceof Error ? error.message : 'Internal server error'
