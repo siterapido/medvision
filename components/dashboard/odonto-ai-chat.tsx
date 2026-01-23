@@ -54,7 +54,7 @@ export function OdontoAIChat({
 
   // Loading states
   const isLoading = status === 'submitted' || status === 'streaming'
-  const isReady = status === 'ready'
+  const isReady = !isLoading // Allow sending as long as not currently loading (e.g. ready, error, initial)
 
   // Refs for scrolling and auto-resize
   const messagesEndRef = useRef<HTMLDivElement>(null)
@@ -85,7 +85,7 @@ export function OdontoAIChat({
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-    if ((input || attachments) && isReady) { // Allow sending if just attachments too? Assuming input usually needed
+    if ((input || attachments) && !isLoading) { // Use !isLoading instead of isReady for clearer logic override
       const experimental_attachments = attachments ? await Promise.all(
         Array.from(attachments).map(async (file) => {
           const contentType = file.type
@@ -155,7 +155,7 @@ export function OdontoAIChat({
 
       {/* Messages Area - App Style Scroll */}
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 custom-scrollbar scroll-smooth">
-        <div className="mx-auto max-w-3xl flex flex-col justify-end min-h-full pb-24">
+        <div className="mx-auto max-w-3xl flex flex-col justify-start min-h-full pb-24">
           {/* pb-24 ensures vital space for fixed input */}
 
           {messages.length === 0 ? (
