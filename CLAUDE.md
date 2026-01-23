@@ -339,7 +339,14 @@ cd odonto-gpt-agno-service
 - **Troubleshooting**: [`.docs/10_TROUBLESHOOTING.md`](.docs/10_TROUBLESHOOTING.md)
 - **Complete Index**: [`.docs/INDEX.md`](.docs/INDEX.md)
 
+## Workflow & Automatização
+
+### Envio para GitHub
+- **Auto-Push**: Após concluir com sucesso uma implementação ou correção solicitada pelo usuário, realize sempre o commit e o push para o branch `main`.
+- **Mensagens de Commit**: Devem ser descritivas e em Português (PT-BR).
+- **Verificação**: Antes de finalizar, certifique-se de que o código passa por lint (se aplicável) e que o ambiente está estável.
+
 ---
 
-**Last Updated**: 2025-01-15
+**Last Updated**: 2026-01-23
 **Documentation System**: v1.0 (LLM-Optimized)

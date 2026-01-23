@@ -1,0 +1,11 @@
+# Regras de Workflow do Projeto
+
+## Auto-Push para GitHub
+- Sempre que você implementar uma solicitação do usuário com sucesso, você deve realizar o commit e o push das alterações para o repositório remoto.
+- O branch padrão para push é `main`.
+- As mensagens de commit devem ser claras, em português do Brasil (pt-br), e seguir o padrão Conventional Commits (ex: `feat:`, `fix:`, `docs:`, `refactor:`).
+- Sempre verifique o status do git antes de realizar o commit para garantir que apenas os arquivos necessários sejam incluídos.
+- Após o push, informe ao usuário que as alterações foram enviadas para o GitHub.
+
+## Idioma
+- Todas as comunicações e comentários no código devem ser em Português do Brasil (pt-br).
