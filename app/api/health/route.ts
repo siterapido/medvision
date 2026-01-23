@@ -25,7 +25,7 @@ export async function GET() {
         },
       })
 
-      const { data, error: dbErr } = await supabase.from("notes").select("id").limit(1)
+      const { data, error: dbErr } = await supabase.from("agent_sessions").select("id").limit(1)
       if (dbErr) throw dbErr
       supabaseOk = true
       dbSample = Array.isArray(data) ? data.length : 0

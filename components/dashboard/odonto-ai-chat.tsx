@@ -29,13 +29,14 @@ export function OdontoAIChat({
 }: OdontoAIChatProps) {
   const [input, setInput] = useState("")
   const [selectedAgent, setSelectedAgent] = useState<AgentConfig>(getAgentConfig(agentId))
+  const [attachments, setAttachments] = useState<FileList | null>(null)
   const agents = listAgents()
 
-  const { messages, sendMessage, status, stop } = useChat<UIMessage>({
+  const { messages, sendMessage, status, stop } = useChat({
     initialMessages: initialMessages.map(m => ({
       ...m,
       parts: m.parts || [{ type: 'text', text: m.content || "" }]
-    })) as UIMessage[],
+    })) as any,
     transport: new DefaultChatTransport({
       api: "/api/newchat",
       body: {
@@ -74,14 +75,36 @@ export function OdontoAIChat({
     }
   }, [input])
 
-  const handleSubmit = (e?: React.FormEvent) => {
+  const handleFileSelect = (file: File) => {
+    // For simplicity, overwriting current selection. Could be appended.
+    const dt = new DataTransfer()
+    dt.items.add(file)
+    setAttachments(dt.files)
+    toast.success("Arquivo anexado!")
+  }
+
+  const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-    if ((input || "").trim() && isReady) {
+    if ((input || attachments) && isReady) { // Allow sending if just attachments too? Assuming input usually needed
+      const experimental_attachments = attachments ? await Promise.all(
+        Array.from(attachments).map(async (file) => {
+          const contentType = file.type
+          const url = await new Promise<string>((resolve) => {
+            const reader = new FileReader()
+            reader.onloadend = () => resolve(reader.result as string)
+            reader.readAsDataURL(file)
+          })
+          return { contentType, url, name: file.name }
+        })
+      ) : undefined
+
       sendMessage({
         role: 'user',
-        parts: [{ type: 'text', text: input }]
-      })
+        parts: [{ type: 'text', text: input }],
+        experimental_attachments
+      } as any)
       setInput("")
+      setAttachments(null)
     }
   }
 
@@ -201,7 +224,7 @@ export function OdontoAIChat({
                       ? "px-5 py-3 rounded-[20px] bg-muted/40 text-foreground border border-border/10 rounded-br-sm" // User Bubble: Modern & Subtle
                       : "pl-0 pr-4 py-1 bg-transparent" // AI: Clean text, no bubble
                   )}>
-                    {(message.parts || [{ type: 'text', text: message.content || "" }]).map((part: any, i: number) => {
+                    {((message as any).parts || [{ type: 'text', text: (message as any).content || "" }]).map((part: any, i: number) => {
                       if (part.type === 'text') {
                         return <Markdown key={i}>{part.text}</Markdown>
                       }
@@ -232,6 +255,23 @@ export function OdontoAIChat({
       {/* Modern Input Area */}
       <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
         <div className="mx-auto max-w-4xl pointer-events-auto">
+          {/* Attachment Preview */}
+          {attachments && attachments.length > 0 && (
+            <div className="px-4 pb-2 flex gap-2 overflow-x-auto">
+              {Array.from(attachments).map((file, i) => (
+                <div key={i} className="relative group bg-muted/80 backdrop-blur-sm rounded-lg p-2 border border-border/50 flex items-center gap-2 max-w-[200px]">
+                  <Paperclip className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className="text-xs truncate">{file.name}</span>
+                  <button
+                    onClick={() => setAttachments(null)}
+                    className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
           <ModernChatInput
             input={input}
             setInput={setInput}
@@ -243,6 +283,7 @@ export function OdontoAIChat({
             isReady={isReady}
             handleKeyDown={handleKeyDown}
             inputRef={inputRef}
+            onFileSelect={handleFileSelect}
           />
         </div>
       </div>

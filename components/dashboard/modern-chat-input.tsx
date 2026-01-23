@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import React, { useState } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import {
     Sparkles,
@@ -36,6 +36,7 @@ interface ModernChatInputProps {
     isReady: boolean
     handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
     inputRef: React.RefObject<HTMLTextAreaElement | null>
+    onFileSelect?: (file: File) => void
 }
 
 export function ModernChatInput({
@@ -49,8 +50,22 @@ export function ModernChatInput({
     isReady,
     handleKeyDown,
     inputRef,
+    onFileSelect,
 }: ModernChatInputProps) {
     const [showAttachments, setShowAttachments] = useState(false)
+    const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+    const handleFileClick = () => {
+        fileInputRef.current?.click()
+        setShowAttachments(false)
+    }
+
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (file && onFileSelect) {
+            onFileSelect(file)
+        }
+    }
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
@@ -153,11 +168,17 @@ export function ModernChatInput({
                                             exit={{ opacity: 0, scale: 0.95, y: 10 }}
                                             className="absolute bottom-full right-0 mb-4 p-2 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl flex flex-col gap-1 min-w-[170px] z-50 overflow-hidden"
                                         >
-                                            <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+                                            <button
+                                                onClick={handleFileClick}
+                                                className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                                            >
                                                 <ImageIcon className="h-4 w-4 text-rose-500" />
                                                 Enviar Foto ou Vídeo
                                             </button>
-                                            <button className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100">
+                                            <button
+                                                onClick={handleFileClick}
+                                                className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100"
+                                            >
                                                 <File className="h-4 w-4 text-blue-500" />
                                                 Anexar Documento
                                             </button>
@@ -165,6 +186,14 @@ export function ModernChatInput({
                                     )}
                                 </AnimatePresence>
                             </div>
+
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                className="hidden"
+                                accept="image/*,application/pdf"
+                                onChange={handleFileChange}
+                            />
 
                             <button
                                 type="button"
