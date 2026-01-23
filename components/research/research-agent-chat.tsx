@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import {
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -290,6 +289,7 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
             )}
 
             {/* Messages */}
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {messages.map((message, index) => (
                 <div
                     key={index}
@@ -387,56 +387,54 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
             <div ref={messagesEndRef} />
         </div>
 
-            {/* Completed State */ }
-    {
-        researchState.status === "completed" && (
-            <div className="flex-shrink-0 p-4 border-t border-slate-800/50 bg-green-500/10">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                        <CheckCircle2 className="w-5 h-5 text-green-400" />
-                        <span className="text-sm text-green-400 font-medium">
-                            Pesquisa salva com sucesso!
-                        </span>
+            {/* Completed State */}
+            {researchState.status === "completed" && (
+                <div className="flex-shrink-0 p-4 border-t border-slate-800/50 bg-green-500/10">
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <CheckCircle2 className="w-5 h-5 text-green-400" />
+                            <span className="text-sm text-green-400 font-medium">
+                                Pesquisa salva com sucesso!
+                            </span>
+                        </div>
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-green-500/30 text-green-400 hover:bg-green-500/10"
+                            onClick={() => router.refresh()}
+                        >
+                            Ver Pesquisas
+                        </Button>
                     </div>
-                    <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-green-500/30 text-green-400 hover:bg-green-500/10"
-                        onClick={() => router.refresh()}
-                    >
-                        Ver Pesquisas
-                    </Button>
                 </div>
-            </div>
-        )
-    }
+            )}
 
-    {/* Input Area */ }
-    <div className="flex-shrink-0 p-4 border-t border-slate-800/50 bg-slate-900/50">
-        <form onSubmit={handleSubmit} className="flex gap-2">
-            <Textarea
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={handleKeyDown}
-                placeholder="Digite sua pergunta de pesquisa..."
-                className="flex-1 min-h-[44px] max-h-32 resize-none bg-slate-800/50 border-slate-700/50 focus:border-cyan-500/50 text-white placeholder-slate-500"
-                disabled={isStreaming}
-            />
-            <Button
-                type="submit"
-                size="icon"
-                disabled={!input.trim() || isStreaming}
-                className="h-11 w-11 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 disabled:opacity-50"
-            >
-                {isStreaming ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                    <Send className="w-5 h-5" />
-                )}
-            </Button>
-        </form>
-    </div>
-        </div >
+            {/* Input Area */}
+            <div className="flex-shrink-0 p-4 border-t border-slate-800/50 bg-slate-900/50">
+                <form onSubmit={handleSubmit} className="flex gap-2">
+                    <Textarea
+                        value={input}
+                        onChange={(e) => setInput(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Digite sua pergunta de pesquisa..."
+                        className="flex-1 min-h-[44px] max-h-32 resize-none bg-slate-800/50 border-slate-700/50 focus:border-cyan-500/50 text-white placeholder-slate-500"
+                        disabled={isStreaming}
+                    />
+                    <Button
+                        type="submit"
+                        size="icon"
+                        disabled={!input.trim() || isStreaming}
+                        className="h-11 w-11 rounded-xl bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-700 hover:to-blue-700 disabled:opacity-50"
+                    >
+                        {isStreaming ? (
+                            <Loader2 className="w-5 h-5 animate-spin" />
+                        ) : (
+                            <Send className="w-5 h-5" />
+                        )}
+                    </Button>
+                </form>
+            </div>
+        </div>
     )
 }
 

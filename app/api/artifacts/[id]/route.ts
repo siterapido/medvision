@@ -22,9 +22,10 @@ const updateArtifactSchema = z.object({
  */
 export async function GET(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const supabase = await createClient()
         const {
             data: { user },
@@ -34,7 +35,7 @@ export async function GET(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        const artifact = await ArtifactsService.getArtifact(params.id, user.id)
+        const artifact = await ArtifactsService.getArtifact(id, user.id)
 
         if (!artifact) {
             return NextResponse.json({ error: 'Artifact not found' }, { status: 404 })
@@ -56,9 +57,10 @@ export async function GET(
  */
 export async function PATCH(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const supabase = await createClient()
         const {
             data: { user },
@@ -83,7 +85,7 @@ export async function PATCH(
         }
 
         const artifact = await ArtifactsService.updateArtifact(
-            params.id,
+            id,
             validationResult.data,
             user.id
         )
@@ -109,9 +111,10 @@ export async function PATCH(
  */
 export async function DELETE(
     request: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
+        const { id } = await params
         const supabase = await createClient()
         const {
             data: { user },
@@ -121,7 +124,7 @@ export async function DELETE(
             return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
         }
 
-        await ArtifactsService.deleteArtifact(params.id, user.id)
+        await ArtifactsService.deleteArtifact(id, user.id)
 
         return NextResponse.json({ success: true }, { status: 200 })
     } catch (error) {

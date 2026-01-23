@@ -6,6 +6,9 @@ import { ImageArtifact } from './image-artifact'
 import { TableArtifact } from './table-artifact'
 import { SummaryArtifact } from './summary-artifact'
 import { FlashcardArtifact } from './flashcard-artifact'
+import { QuizArtifact } from './quiz-artifact'
+import { ResearchArtifact } from './research-artifact'
+import { ReportArtifact } from './report-artifact'
 import { cn } from '@/lib/utils'
 import { FileText, AlertCircle } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
@@ -31,6 +34,15 @@ export function ArtifactRenderer({ artifact, className }: ArtifactRendererProps)
 
     case 'flashcard':
       return <FlashcardArtifact artifact={artifact} className={className} />
+
+    case 'quiz':
+      return <QuizArtifact artifact={artifact} className={className} />
+
+    case 'research':
+      return <ResearchArtifact artifact={artifact} className={className} />
+
+    case 'report':
+      return <ReportArtifact artifact={artifact} className={className} />
 
     case 'text':
       return (
@@ -95,14 +107,14 @@ export function ArtifactRenderer({ artifact, className }: ArtifactRendererProps)
           )}
         >
           <div className="flex items-center gap-2 mb-3">
-            <span className="text-sm font-medium">{artifact.title || 'Grafico'}</span>
+            <span className="text-sm font-medium">{artifact.title || 'Gráfico'}</span>
             <span className="text-xs text-muted-foreground">
               ({artifact.chartType})
             </span>
           </div>
           <div className="h-48 flex items-center justify-center bg-muted/30 rounded-md">
             <p className="text-sm text-muted-foreground">
-              Visualizacao de grafico disponivel em breve
+              Visualização de gráfico disponível em breve
             </p>
           </div>
         </div>
@@ -135,7 +147,7 @@ export function ArtifactRenderer({ artifact, className }: ArtifactRendererProps)
           ) : (
             <div className="h-48 flex items-center justify-center bg-muted/30 rounded-md">
               <p className="text-sm text-muted-foreground">
-                Nenhum conteudo de diagrama disponivel
+                Nenhum conteúdo de diagrama disponível
               </p>
             </div>
           )}
@@ -153,7 +165,7 @@ export function ArtifactRenderer({ artifact, className }: ArtifactRendererProps)
           <div className="flex items-center gap-2 text-destructive">
             <AlertCircle className="h-4 w-4" />
             <span className="text-sm font-medium">
-              Tipo de artefato nao suportado: {(artifact as Artifact).kind}
+              Tipo de artefato não suportado: {(artifact as Artifact).kind}
             </span>
           </div>
         </div>

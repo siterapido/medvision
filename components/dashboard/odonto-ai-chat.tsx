@@ -1,25 +1,51 @@
 "use client"
 
-import { useEffect, useRef, useState, useMemo } from "react"
-import { useChat } from "@ai-sdk/react"
-import { DefaultChatTransport } from "ai"
-import { Loader2, Sparkles, Paperclip, ArrowUp, Plus, X } from "lucide-react"
+import { useEffect, useRef, useState, useCallback } from "react"
+import { useChat, type Message } from "@ai-sdk/react"
+import { Sparkles, Paperclip, X, Wrench } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 import { Markdown } from "@/components/chat/markdown"
-import { ArtifactRenderer, Artifact } from "@/components/chat/artifact-renderer"
-import { AgentSelector } from "@/components/agno-chat/agent-selector"
 import { ModernChatInput } from "@/components/dashboard/modern-chat-input"
-import { motion, AnimatePresence } from "framer-motion"
+import { motion, AnimatePresence } from "motion/react"
 import { listAgents, getAgentConfig, type AgentConfig } from "@/lib/ai/agents/config"
 import { getAgentUI } from "@/lib/ai/agents/ui-config"
+import { ArtifactRenderer, type Artifact } from "@/components/artifacts"
+import type { ArtifactKind } from "@/components/artifacts/types"
 
 interface OdontoAIChatProps {
   userId?: string
   agentId?: string
-  initialMessages?: any[]
+  initialMessages?: Message[]
   initialChatId?: string
   userName?: string
+}
+
+// Map tool result types to artifact kinds
+function mapToolTypeToArtifactKind(toolName: string): ArtifactKind | null {
+  const mapping: Record<string, ArtifactKind> = {
+    createSummary: 'summary',
+    createFlashcards: 'flashcard',
+    createQuiz: 'quiz',
+    createResearch: 'research',
+    createReport: 'report',
+  }
+  return mapping[toolName] || null
+}
+
+// Convert tool result to artifact
+function toolResultToArtifact(toolName: string, result: any): Artifact | null {
+  const kind = mapToolTypeToArtifactKind(toolName)
+  if (!kind || !result) return null
+
+  // The result already has the correct structure from our tools
+  return {
+    ...result,
+    kind,
+    id: result.id || `artifact-${Date.now()}`,
+    title: result.title,
+    createdAt: result.createdAt ? new Date(result.createdAt) : new Date(),
+  } as Artifact
 }
 
 export function OdontoAIChat({
@@ -29,115 +55,79 @@ export function OdontoAIChat({
   initialChatId,
   userName
 }: OdontoAIChatProps) {
-  const [input, setInput] = useState("")
   const [selectedAgent, setSelectedAgent] = useState<AgentConfig>(getAgentConfig(agentId))
   const [attachments, setAttachments] = useState<FileList | null>(null)
+  const [isTransitioning, setIsTransitioning] = useState(false)
   const agents = listAgents()
 
-  // Ensure we have a stable chatId for the session
   const [chatId] = useState(() => initialChatId || crypto.randomUUID())
 
-  // Configuração de transporte e hook com cast para any para compatibilidade de tipos
-  const transport = useMemo(() => new DefaultChatTransport({
-    api: "/api/newchat",
-    body: {
-      agentId: selectedAgent.id,
-      userId,
-      chatId
-    },
-  }), [selectedAgent.id, userId, chatId])
-
-  const { messages, append, status, stop } = useChat({
-    transport,
-    initialMessages: initialMessages || [],
-    onError: (error: any) => {
-      console.error("[OdontoAIChat] useChat error:", error)
-      toast.error("Erro no chat", {
-        description: error.message,
-      })
-    },
-    onFinish: (message: any) => {
-      console.log("[OdontoAIChat] useChat onFinish:", message)
-    }
-  } as any) as any
-
-  // Loading states
-  const isLoading = status === 'submitted' || status === 'streaming'
-  const isReady = !isLoading // Allow sending as long as not currently loading (e.g. ready, error, initial)
-
-  // Refs for scrolling and auto-resize
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Monitor Messages and Status
-  useEffect(() => {
-    console.log(`[OdontoAIChat] Status changed: ${status}, Messages count: ${messages.length}`)
-  }, [status, messages.length])
+  // Use AI SDK chat hook
+  const {
+    messages,
+    input,
+    setInput,
+    handleSubmit: submitChat,
+    isLoading,
+    error,
+    reload,
+    stop,
+    setMessages,
+  } = useChat({
+    api: '/api/chat',
+    id: chatId,
+    initialMessages,
+    body: {
+      agentId: selectedAgent.id,
+      userId,
+      chatId,
+    },
+    onError: (error) => {
+      console.error("[OdontoAIChat] Error:", error)
+      toast.error("Erro no chat", { description: error.message })
+    },
+    onFinish: (message) => {
+      console.log("[OdontoAIChat] Message complete:", message.id)
+    },
+  })
 
-  // Auto-scroll to bottom
+  // Auto-scroll
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
-    }
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
-  // Auto-resize textarea
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.style.height = "auto"
-      inputRef.current.style.height = `${Math.min(inputRef.current.scrollHeight, 150)}px`
-    }
-  }, [input])
+  // Handle agent change
+  const handleAgentChange = useCallback((newAgent: AgentConfig) => {
+    if (newAgent.id === selectedAgent.id) return
+
+    setIsTransitioning(true)
+    setTimeout(() => {
+      setSelectedAgent(newAgent)
+      setIsTransitioning(false)
+      toast.success(`Agente alterado para ${newAgent.name}`)
+    }, 300)
+  }, [selectedAgent.id])
 
   const handleFileSelect = (file: File) => {
-    // For simplicity, overwriting current selection. Could be appended.
     const dt = new DataTransfer()
     dt.items.add(file)
     setAttachments(dt.files)
     toast.success("Arquivo anexado!")
   }
 
-  const handleSubmit = async (e?: React.FormEvent) => {
+  const handleSubmit = (e?: React.FormEvent) => {
     if (e) e.preventDefault()
-    if ((input || attachments) && !isLoading) { // Use !isLoading instead of isReady for clearer logic override
-      const experimental_attachments = attachments ? await Promise.all(
-        Array.from(attachments).map(async (file) => {
-          const contentType = file.type
-          let url = ''
-
-          // Attempt upload first
-          try {
-            const formData = new FormData()
-            formData.append('file', file)
-            const res = await fetch('/api/upload', { method: 'POST', body: formData })
-            if (res.ok) {
-              const data = await res.json()
-              url = data.url
-            }
-          } catch (e) {
-            console.error("Upload failed", e)
-          }
-
-          if (!url) {
-            url = await new Promise<string>((resolve) => {
-              const reader = new FileReader()
-              reader.onloadend = () => resolve(reader.result as string)
-              reader.readAsDataURL(file)
-            })
-          }
-          return { contentType, url, name: file.name }
-        })
-      ) : undefined
-
-      console.log("[OdontoAIChat] Sending message:", { input, attachments: experimental_attachments })
-      console.log("[OdontoAIChat] Sending message:", { input, attachments: experimental_attachments })
-      append({
-        role: 'user',
-        content: input,
-      }, {
-        experimental_attachments
+    if (input.trim() && !isLoading) {
+      submitChat(e, {
+        body: {
+          agentId: selectedAgent.id,
+          userId,
+          chatId,
+        },
       })
-      setInput("")
       setAttachments(null)
     }
   }
@@ -149,32 +139,119 @@ export function OdontoAIChat({
     }
   }
 
-  // Helper: Extract artifacts from tool calls
-  const extractArtifact = (part: any): Artifact | null => {
-    if (part.type?.startsWith('tool-') && part.state === 'output-available') {
-      const output = part.output
-      if (output && typeof output === 'object' && output.type && output.title) {
-        return output as Artifact
-      }
-    }
-    return null
-  }
-
   const suggestions = [
     "Anatomia do primeiro molar",
     "Preparo cavitário classe I",
     "Protocolo de anestesia",
     "Tratamento endodôntico",
-  ].sort((a, b) => b.length - a.length) // Sort by length for funnel effect
+  ]
+
+  // Render message content with artifacts
+  const renderMessageContent = (message: Message) => {
+    const parts = message.parts || []
+    const textParts: string[] = []
+    const artifacts: Artifact[] = []
+
+    // Process parts
+    parts.forEach((part) => {
+      if (part.type === 'text') {
+        textParts.push(part.text)
+      } else if (part.type === 'tool-invocation' && part.toolInvocation) {
+        const { toolName, state, result } = part.toolInvocation
+        if (state === 'result' && result) {
+          const artifact = toolResultToArtifact(toolName, result)
+          if (artifact) {
+            artifacts.push(artifact)
+          }
+        }
+      }
+    })
+
+    // Fallback to content if no parts
+    const textContent = textParts.length > 0 ? textParts.join('\n') : message.content
+
+    return (
+      <>
+        {textContent && <Markdown>{textContent}</Markdown>}
+        {artifacts.map((artifact) => (
+          <div key={artifact.id} className="mt-4">
+            <ArtifactRenderer artifact={artifact} />
+          </div>
+        ))}
+      </>
+    )
+  }
+
+  // Render tool invocation status (loading state)
+  const renderToolStatus = (message: Message) => {
+    const parts = message.parts || []
+    const pendingTools = parts.filter(
+      (part) => part.type === 'tool-invocation' && part.toolInvocation?.state === 'call'
+    )
+
+    if (pendingTools.length === 0) return null
+
+    return pendingTools.map((part, index) => {
+      if (part.type !== 'tool-invocation' || !part.toolInvocation) return null
+      const { toolName, args } = part.toolInvocation
+
+      const toolLabels: Record<string, string> = {
+        createSummary: 'Criando resumo...',
+        createFlashcards: 'Gerando flashcards...',
+        createQuiz: 'Preparando simulado...',
+        createResearch: 'Pesquisando...',
+        createReport: 'Analisando...',
+        askPerplexity: 'Pesquisando na web...',
+        searchPubMed: 'Buscando no PubMed...',
+      }
+
+      return (
+        <motion.div
+          key={`${toolName}-${index}`}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center gap-2 py-2 px-3 mt-2 rounded-lg bg-muted/50 border border-border/50"
+        >
+          <Wrench className="h-4 w-4 text-primary animate-spin" />
+          <span className="text-sm text-muted-foreground">
+            {toolLabels[toolName] || `Executando ${toolName}...`}
+          </span>
+        </motion.div>
+      )
+    })
+  }
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] md:h-screen flex-col bg-background relative font-sans text-foreground overflow-hidden">
+      {/* Agent Transition Overlay */}
+      <AnimatePresence>
+        {isTransitioning && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center"
+          >
+            <motion.div
+              initial={{ scale: 0.8, rotate: -10 }}
+              animate={{ scale: 1, rotate: 0 }}
+              className={cn(
+                "h-16 w-16 rounded-2xl flex items-center justify-center",
+                `bg-gradient-to-br ${getAgentUI(selectedAgent.id).gradient}`
+              )}
+            >
+              {(() => {
+                const Icon = getAgentUI(selectedAgent.id).icon
+                return <Icon className="h-8 w-8 text-white animate-pulse" />
+              })()}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Messages Area - App Style Scroll */}
+      {/* Messages Area */}
       <div className="flex-1 overflow-y-auto px-4 pt-4 pb-4 custom-scrollbar scroll-smooth">
         <div className="mx-auto max-w-3xl flex flex-col justify-start min-h-full pb-32 md:pb-32">
-          {/* pb-24 ensures vital space for fixed input */}
-
           {messages.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-4 space-y-6 animate-in fade-in zoom-in-95 duration-500">
               <div className="relative">
@@ -186,19 +263,17 @@ export function OdontoAIChat({
                     exit={{ scale: 0.8, opacity: 0, rotate: 10 }}
                     transition={{ type: "spring", damping: 15, stiffness: 200 }}
                     className={cn(
-                      "h-12 w-12 md:h-16 md:w-16 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-border/50 shadow-xl", // Reduced size
+                      "h-12 w-12 md:h-16 md:w-16 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-border/50 shadow-xl",
                       `bg-gradient-to-br transition-all duration-500`,
                       getAgentUI(selectedAgent.id).gradient
                     )}
                   >
                     {(() => {
                       const Icon = getAgentUI(selectedAgent.id).icon
-                      return <Icon className="h-5 w-5 md:h-7 md:w-7 text-white" /> // Reduced icon size
+                      return <Icon className="h-5 w-5 md:h-7 md:w-7 text-white" />
                     })()}
                   </motion.div>
                 </AnimatePresence>
-
-                {/* Subtle outer glow that matches the agent theme */}
                 <motion.div
                   key={`glow-${selectedAgent.id}`}
                   initial={{ opacity: 0 }}
@@ -247,7 +322,7 @@ export function OdontoAIChat({
             </div>
           ) : (
             <div className="space-y-8 py-4">
-              {messages.map((message: any) => (
+              {messages.map((message) => (
                 <div
                   key={message.id}
                   className={cn(
@@ -258,28 +333,20 @@ export function OdontoAIChat({
                   <div className={cn(
                     "prose prose-zinc dark:prose-invert max-w-none break-words text-base leading-relaxed",
                     message.role === "user"
-                      ? "px-5 py-3 rounded-[20px] bg-muted/40 text-foreground border border-border/10 rounded-br-sm" // User Bubble: Modern & Subtle
-                      : "pl-0 pr-4 py-1 bg-transparent" // AI: Clean text, no bubble
+                      ? "px-5 py-3 rounded-[20px] bg-muted/40 text-foreground border border-border/10 rounded-br-sm"
+                      : "pl-0 pr-4 py-1 bg-transparent"
                   )}>
-                    {((message as any).parts || [{ type: 'text', text: (message as any).content || "" }]).map((part: any, i: number) => {
-                      if (part.type === 'text') {
-                        return <Markdown key={i}>{part.text}</Markdown>
-                      }
-                      // Artifacts & Tools
-                      if (part.type?.startsWith('tool-')) {
-                        const artifact = extractArtifact(part)
-                        if (artifact) return <ArtifactRenderer key={i} artifact={artifact} />
-                        if (part.state === 'input-available' || part.state === 'input-streaming') {
-                          return (
-                            <div key={i} className="flex items-center gap-2 py-2 text-sm text-muted-foreground/70 animate-pulse">
-                              <Sparkles className="h-4 w-4" />
-                              <span>Analisando...</span>
-                            </div>
-                          )
-                        }
-                      }
-                      return null
-                    })}
+                    {message.role === "assistant" && !message.content && isLoading && !message.parts?.length ? (
+                      <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground/70 animate-pulse">
+                        <Sparkles className="h-4 w-4" />
+                        <span>Pensando...</span>
+                      </div>
+                    ) : (
+                      <>
+                        {renderMessageContent(message)}
+                        {message.role === "assistant" && isLoading && renderToolStatus(message)}
+                      </>
+                    )}
                   </div>
                 </div>
               ))}
@@ -289,10 +356,9 @@ export function OdontoAIChat({
         </div>
       </div>
 
-      {/* Modern Input Area */}
+      {/* Input Area */}
       <div className="absolute bottom-0 left-0 right-0 z-20 pointer-events-none">
         <div className="mx-auto max-w-4xl pointer-events-auto">
-          {/* Attachment Preview */}
           {attachments && attachments.length > 0 && (
             <div className="px-4 pb-2 flex gap-2 overflow-x-auto">
               {Array.from(attachments).map((file, i) => (
@@ -315,16 +381,15 @@ export function OdontoAIChat({
             onSend={handleSubmit}
             agents={agents}
             selectedAgent={selectedAgent}
-            setSelectedAgent={setSelectedAgent}
+            setSelectedAgent={handleAgentChange}
             isLoading={isLoading}
-            isReady={isReady}
+            isReady={!isLoading}
             handleKeyDown={handleKeyDown}
             inputRef={inputRef}
             onFileSelect={handleFileSelect}
           />
         </div>
       </div>
-
     </div>
   )
 }
