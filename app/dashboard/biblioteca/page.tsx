@@ -117,7 +117,7 @@ const itemVariants = {
         opacity: 1,
         y: 0,
         transition: {
-            type: "spring",
+            type: "spring" as const,
             stiffness: 260,
             damping: 20
         }
@@ -203,33 +203,35 @@ export default function BibliotecaPage() {
                             {getLabelForType(item.type)}
                         </Badge>
                     </div>
-                    <DropdownMenu onClick={(e) => e.stopPropagation()}>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
-                                <MoreVertical className="h-4 w-4" />
-                                <span className="sr-only">Menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="glass w-48">
-                            <DropdownMenuItem className="gap-2 focus:bg-primary/10" onClick={() => openPreview(item)}>
-                                <ArrowUpRight className="h-4 w-4" /> Visualizar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="gap-2 focus:bg-primary/10" onClick={() => toast.info("Funcionalidade de contexto em breve")}>
-                                <Sparkles className="h-4 w-4" /> Ver Contexto IA
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                                className="text-red-500 gap-2 focus:bg-red-500/10 focus:text-red-500"
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    setArtifactToDelete(item.id)
-                                    setDeleteDialogOpen(true)
-                                }}
-                            >
-                                <Trash2 className="h-4 w-4" /> Excluir
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-foreground">
+                                    <MoreVertical className="h-4 w-4" />
+                                    <span className="sr-only">Menu</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="glass w-48">
+                                <DropdownMenuItem className="gap-2 focus:bg-primary/10" onClick={() => openPreview(item)}>
+                                    <ArrowUpRight className="h-4 w-4" /> Visualizar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="gap-2 focus:bg-primary/10" onClick={() => toast.info("Funcionalidade de contexto em breve")}>
+                                    <Sparkles className="h-4 w-4" /> Ver Contexto IA
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                    className="text-red-500 gap-2 focus:bg-red-500/10 focus:text-red-500"
+                                    onClick={(e) => {
+                                        e.stopPropagation()
+                                        setArtifactToDelete(item.id)
+                                        setDeleteDialogOpen(true)
+                                    }}
+                                >
+                                    <Trash2 className="h-4 w-4" /> Excluir
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    </div>
                 </CardHeader>
 
                 <CardContent className="space-y-3">
@@ -291,65 +293,59 @@ export default function BibliotecaPage() {
             <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
             <div className="absolute top-1/2 -left-24 w-72 h-72 bg-emerald-500/5 blur-[100px] rounded-full pointer-events-none" />
 
-            <div className="container mx-auto px-6 py-10 md:px-10 md:py-16 space-y-12 relative z-10 max-w-[1600px]">
-                {/* Editorial Header */}
-                <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8 pb-8 border-b border-border/50">
-                    <div className="max-w-2xl space-y-3">
-                        <div className="flex items-center gap-3 mb-2 animate-in slide-in-from-left duration-700">
-                            <div className="h-8 w-1 rounded-full bg-primary" />
-                            <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary/60">Sua Memória Digital</span>
-                        </div>
-                        <h1 className="text-4xl md:text-6xl font-heading font-extrabold tracking-tight text-foreground/90 line-height-[1.1]">
-                            Biblioteca de <span className="text-gradient">Inteligência</span>
-                        </h1>
-                        <p className="text-lg text-muted-foreground/80 leading-relaxed max-w-lg">
-                            Acesse todos os seus artefatos, pesquisas e descobertas estruturadas pelos nossos agentes odontológicos.
-                        </p>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row items-center gap-4 w-full lg:w-auto animate-in slide-in-from-right duration-700">
-                        <div className="relative w-full sm:w-80 group">
-                            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                            <Input
-                                type="search"
-                                placeholder="Buscar no seu conhecimento..."
-                                className="pl-11 h-12 bg-card/50 backdrop-blur-md border border-border/30 rounded-2xl focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-all text-sm"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
+            <div className="container mx-auto px-4 py-6 md:px-8 space-y-6 relative z-10 max-w-[1600px]">
+                {/* Compact Mobile-First Header */}
+                <div className="flex flex-col gap-4 border-b border-border/40 pb-4">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                        <div>
+                            <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight text-foreground/90">
+                                Biblioteca
+                            </h1>
+                            <p className="text-sm text-muted-foreground/80 mt-1 hidden md:block">
+                                Gerencie todo o seu conhecimento e artefatos.
+                            </p>
                         </div>
 
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="h-12 px-5 rounded-2xl bg-card/50 border border-border/30 hover:border-primary/40 text-muted-foreground hover:text-primary transition-all gap-2">
-                                    <SortAsc className="h-4 w-4" />
-                                    <span className="text-xs font-semibold">Ordenar</span>
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="glass-card w-56 p-2">
-                                <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground px-2 py-1.5">Critérios</DropdownMenuLabel>
-                                <DropdownMenuItem className="rounded-lg gap-2" onClick={() => setSortBy('createdAt')}>
-                                    <Clock className="h-4 w-4" /> Data de Criação {sortBy === 'createdAt' && "✓"}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-lg gap-2" onClick={() => setSortBy('title')}>
-                                    <SortAsc className="h-4 w-4" /> Título (A-Z) {sortBy === 'title' && "✓"}
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator className="bg-border/10" />
-                                <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground px-2 py-1.5">Ordem</DropdownMenuLabel>
-                                <DropdownMenuItem className="rounded-lg justify-between" onClick={() => setSortOrder('asc')}>
-                                    Crescente {sortOrder === 'asc' && "✓"}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="rounded-lg justify-between" onClick={() => setSortOrder('desc')}>
-                                    Decrescente {sortOrder === 'desc' && "✓"}
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <div className="flex gap-2 w-full md:w-auto">
+                            <div className="relative flex-1 md:w-72 group">
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+                                <Input
+                                    type="search"
+                                    placeholder="Buscar..."
+                                    className="pl-9 h-10 bg-card/50 backdrop-blur-md border border-border/30 rounded-xl focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-all text-sm"
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </div>
+
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 rounded-xl bg-card/50 border border-border/30 hover:border-primary/40 text-muted-foreground hover:text-primary transition-all">
+                                        <SortAsc className="h-4 w-4" />
+                                    </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="glass-card w-48 p-2">
+                                    <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground px-2 py-1.5">Ordenar por</DropdownMenuLabel>
+                                    <DropdownMenuItem className="rounded-lg gap-2 text-xs" onClick={() => setSortBy('createdAt')}>
+                                        <Clock className="h-3.5 w-3.5" /> Recentes {sortBy === 'createdAt' && "✓"}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem className="rounded-lg gap-2 text-xs" onClick={() => setSortBy('title')}>
+                                        <SortAsc className="h-3.5 w-3.5" /> Nome {sortBy === 'title' && "✓"}
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator className="bg-border/10" />
+                                    <DropdownMenuItem className="rounded-lg justify-between text-xs" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
+                                        {sortOrder === 'asc' ? 'Crescente' : 'Decrescente'}
+                                        {sortOrder === 'asc' ? <ArrowUpRight className="h-3.5 w-3.5 rotate-45" /> : <ArrowUpRight className="h-3.5 w-3.5 rotate-[225deg]" />}
+                                    </DropdownMenuItem>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        </div>
                     </div>
                 </div>
 
                 <Tabs value={selectedType} onValueChange={(v) => setSelectedType(v as any)} className="w-full space-y-8">
-                    <div className="sticky top-0 z-20 py-2 bg-background/50 backdrop-blur-sm -mx-6 px-6">
-                        <TabsList className="w-full justify-start overflow-x-auto h-auto p-1 bg-muted/20 backdrop-blur-xl border border-border/10 rounded-2xl gap-1 custom-scrollbar scrollbar-hidden">
+                    <div className="sticky top-0 z-20 py-2 bg-background/80 backdrop-blur-md -mx-4 px-4">
+                        <TabsList className="w-full justify-start overflow-x-scroll h-auto p-1 bg-muted/20 border border-border/10 rounded-xl gap-2 no-scrollbar">
                             {[
                                 { value: "all", label: "Todos", icon: LayoutDashboard },
                                 { value: "chat", label: "Conversas", icon: MessageSquare },
@@ -365,12 +361,12 @@ export default function BibliotecaPage() {
                                     key={tab.value}
                                     value={tab.value}
                                     className={cn(
-                                        "rounded-xl px-5 py-2.5 h-10 text-xs font-semibold gap-2 border border-transparent transition-all capitalize whitespace-nowrap",
-                                        "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-lg data-[state=active]:shadow-primary/20",
+                                        "rounded-lg px-4 py-2 h-9 text-xs font-medium gap-2 border border-transparent transition-all capitalize whitespace-nowrap",
+                                        "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm",
                                         "hover:bg-muted/50"
                                     )}
                                 >
-                                    <tab.icon className="h-4 w-4" />
+                                    <tab.icon className="h-3.5 w-3.5" />
                                     {tab.label}
                                 </TabsTrigger>
                             ))}

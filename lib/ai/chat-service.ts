@@ -104,6 +104,13 @@ export class ChatService {
             .single()
 
         if (error) throw error
+
+        // Update session updated_at
+        await this.supabase
+            .from('agent_sessions')
+            .update({ updated_at: new Date().toISOString() })
+            .eq('id', sessionId)
+
         return data
     }
 

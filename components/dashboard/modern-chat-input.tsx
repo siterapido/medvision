@@ -76,6 +76,7 @@ export function ModernChatInput({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault()
+        console.log("[ModernChatInput] handleSubmit triggered")
         onSend()
     }
 

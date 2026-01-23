@@ -120,7 +120,7 @@ export function Sidebar({ user }: SidebarProps) {
                 className={cn(
                   'group flex items-center rounded-xl text-sm font-medium transition-all duration-200',
                   active
-                    ? 'bg-primary/10 text-primary shadow-glow-primary'
+                    ? 'bg-sidebar-accent text-sidebar-foreground font-semibold'
                     : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50',
                   isCollapsed
                     ? 'flex-col justify-center gap-1 p-2 h-auto min-h-[64px]'
@@ -138,7 +138,7 @@ export function Sidebar({ user }: SidebarProps) {
                     isCollapsed ? "h-6 w-6" : "h-5 w-5",
                     active ? "text-primary stroke-[2.5px]" : "group-hover:text-sidebar-foreground stroke-[1.5px]"
                   )} />
-                  {active && <div className="absolute inset-0 blur-lg bg-primary/20 rounded-full" />}
+                  {/* Active Indicator handled purely by color/font now */}
                 </div>
 
                 {isCollapsed ? (
@@ -151,7 +151,7 @@ export function Sidebar({ user }: SidebarProps) {
 
                 {/* Active Indicator (Dot) - Only in expanded or refined for collapsed */}
                 {active && !isCollapsed && (
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary shadow shadow-primary/50 animate-pulse-soft" />
+                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
                 )}
               </Link>
             )

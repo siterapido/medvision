@@ -31,7 +31,9 @@ function extractTextFromMessage(message: any): string {
 
 export async function POST(req: Request) {
   try {
-    const { messages, agentId, userId, chatId: incomingChatId } = await req.json()
+    const body = await req.json()
+    console.log("[API/newchat] Received Body:", JSON.stringify(body, null, 2))
+    const { messages, agentId, userId, chatId: incomingChatId } = body
 
     if (!messages || !Array.isArray(messages)) {
       return new Response(JSON.stringify({ error: 'Messages are required' }), {
@@ -95,6 +97,7 @@ IMPORTANTE:
     // Log
     console.log(`[Chat] Sessão: ${chatId}, Agente: ${selectedAgentId}, User: ${userId}`)
 
+    console.log("[API/newchat] Starting streamText for ChatId:", chatId)
     const result = streamText({
       model,
       system: systemContext,
@@ -107,7 +110,11 @@ IMPORTANTE:
       // Callback executado ao finalizar a stream (Server Side)
       // Nota: Isso roda em background após a resposta começar a ir para o cliente
       onFinish: async ({ response }) => {
-        if (!userId) return;
+        console.log("[API/newchat] Stream onFinish triggered")
+        if (!userId) {
+          console.log("[API/newchat] No userId, skipping persistence")
+          return;
+        }
 
         try {
           // 1. Garantir que a sessão existe no Banco
@@ -177,8 +184,9 @@ IMPORTANTE:
             })
           }
 
+          console.log("[API/newchat] Message saved successfully for Session:", chatId)
         } catch (err) {
-          console.error('[Chat Persistence Error]', err)
+          console.error('[Chat Persistence Error] in onFinish:', err)
         }
       }
     })

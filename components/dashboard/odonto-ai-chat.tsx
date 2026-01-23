@@ -56,9 +56,13 @@ export function OdontoAIChat({
       parts: m.parts || [{ type: 'text', text: m.content || "" }]
     })) as any || [],
     onError: (error: any) => {
+      console.error("[OdontoAIChat] useChat error:", error)
       toast.error("Erro no chat", {
         description: error.message,
       })
+    },
+    onFinish: (message) => {
+      console.log("[OdontoAIChat] useChat onFinish:", message)
     }
   })
 
@@ -69,6 +73,11 @@ export function OdontoAIChat({
   // Refs for scrolling and auto-resize
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Monitor Messages and Status
+  useEffect(() => {
+    console.log(`[OdontoAIChat] Status changed: ${status}, Messages count: ${messages.length}`)
+  }, [status, messages.length])
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -125,6 +134,7 @@ export function OdontoAIChat({
         })
       ) : undefined
 
+      console.log("[OdontoAIChat] Sending message:", { input, attachments: experimental_attachments })
       sendMessage({
         role: 'user',
         parts: [{ type: 'text', text: input }],
@@ -158,7 +168,7 @@ export function OdontoAIChat({
     "Preparo cavitário classe I",
     "Protocolo de anestesia",
     "Tratamento endodôntico",
-  ]
+  ].sort((a, b) => b.length - a.length) // Sort by length for funnel effect
 
   return (
     <div className="flex h-[calc(100vh-3.5rem)] md:h-screen flex-col bg-background relative font-sans text-foreground overflow-hidden">
@@ -210,7 +220,7 @@ export function OdontoAIChat({
                   animate={{ y: 0, opacity: 1 }}
                   className="text-lg md:text-2xl font-heading font-semibold text-foreground"
                 >
-                  {selectedAgent.id === 'odonto-gpt' ? `Olá, ${userName?.split(' ')[0] || 'Doutor(a)'}` : selectedAgent.greetingTitle}
+                  {selectedAgent.id === 'odonto-gpt' ? `Olá, ${userName || 'Doutor(a)'}` : selectedAgent.greetingTitle}
                 </motion.h2>
                 <motion.p
                   key={`desc-${selectedAgent.id}`}
@@ -223,7 +233,7 @@ export function OdontoAIChat({
                 </motion.p>
               </div>
 
-              <div className="flex flex-row overflow-x-auto w-full max-w-[90vw] gap-2 pb-2 md:grid md:grid-cols-1 md:max-w-xs md:pb-0 scrollbar-hide snap-x">
+              <div className="flex flex-row overflow-x-auto w-full max-w-[90vw] gap-2 pb-2 md:flex-col md:items-center md:w-full md:pb-0 scrollbar-hide snap-x">
                 {suggestions.map((s, index) => (
                   <motion.button
                     initial={{ opacity: 0, y: 10 }}
@@ -231,7 +241,7 @@ export function OdontoAIChat({
                     transition={{ delay: 0.2 + index * 0.05 }}
                     key={s}
                     onClick={() => setInput(s)}
-                    className="flex-shrink-0 snap-center px-3 py-2 md:px-4 md:py-3 text-xs md:text-sm text-center rounded-xl bg-card border border-border/50 hover:bg-muted/50 hover:border-primary/20 transition-all text-muted-foreground hover:text-foreground shadow-sm hover:shadow-md hover:-translate-y-0.5 whitespace-nowrap md:whitespace-normal"
+                    className="flex-shrink-0 snap-center px-4 py-2 md:px-6 md:py-2.5 text-xs md:text-sm text-center rounded-2xl bg-card border border-border/50 hover:bg-muted/50 hover:border-primary/20 transition-all text-muted-foreground hover:text-foreground shadow-sm hover:shadow-md hover:-translate-y-0.5 whitespace-nowrap w-auto min-w-[200px]"
                   >
                     {s}
                   </motion.button>

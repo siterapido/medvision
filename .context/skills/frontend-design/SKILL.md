@@ -1,42 +1,136 @@
 ---
 name: frontend-design
-description: Create distinctive, production-grade frontend interfaces with high design quality. Use this skill when the user asks to build web components, pages, or applications. Generates creative, polished code that avoids generic AI aesthetics.
-license: Complete terms in LICENSE.txt
+description: Standardized UI/UX, branding, and design system for Odonto GPT. Contains rules for colors, typography, components, and animations.
+phases: [P, R, E, V, C]
 ---
 
-This skill guides creation of distinctive, production-grade frontend interfaces that avoid generic "AI slop" aesthetics. Implement real working code with exceptional attention to aesthetic details and creative choices.
+# Odonto GPT Design System Skill
 
-The user provides frontend requirements: a component, page, application, or interface to build. They may include context about the purpose, audience, or technical constraints.
+This skill defines the visual language and user experience patterns for Odonto GPT.
+All frontend implementation MUST follow these rules to ensure consistency with the brand identity.
 
-## Design Thinking
+## 1. Core Identity & Branding
 
-Before coding, understand the context and commit to a BOLD aesthetic direction:
-- **Purpose**: What problem does this interface solve? Who uses it?
-- **Tone**: Pick an extreme: brutally minimal, maximalist chaos, retro-futuristic, organic/natural, luxury/refined, playful/toy-like, editorial/magazine, brutalist/raw, art deco/geometric, soft/pastel, industrial/utilitarian, etc. There are so many flavors to choose from. Use these for inspiration but design one that is true to the aesthetic direction.
-- **Constraints**: Technical requirements (framework, performance, accessibility).
-- **Differentiation**: What makes this UNFORGETTABLE? What's the one thing someone will remember?
+**Odonto GPT** follows a "medical professional" aesthetic with a modern, tech-forward feel.
+-   **Theme**: Predominantly **Dark Theme** (`#0F192F`) for premium feel.
+-   **Accents**: Teal/Cyan (`#0891b2` -> `#06b6d4`) representing technology and trust.
+-   **Vibe**: Reliable, Scientific, Innovative, Modern.
 
-**CRITICAL**: Choose a clear conceptual direction and execute it with precision. Bold maximalism and refined minimalism both work - the key is intentionality, not intensity.
+## 2. Color Palette (Tailwind & CSS Variables)
 
-Then implement working code (HTML/CSS/JS, React, Vue, etc.) that is:
-- Production-grade and functional
-- Visually striking and memorable
-- Cohesive with a clear aesthetic point-of-view
-- Meticulously refined in every detail
+### Primary Colors
+-   **Primary**: `#0891b2` (Buttons, Links, Active States)
+-   **Primary Hover**: `#0e7490`
+-   **Accent**: `#06b6d4` (Highlights, Badges)
+-   **Glow/Tech**: `#2399B4` (AI Effects)
 
-## Frontend Aesthetics Guidelines
+### Backgrounds (Dark Mode)
+-   **Dark Base**: `#0F192F` (Main background)
+-   **Dark Mid**: `#131D37` (Secondary sections)
+-   **Dark Card**: `#16243F` (Cards, Panels)
+-   **Dark Accent**: `#1A2847`
 
-Focus on:
-- **Typography**: Choose fonts that are beautiful, unique, and interesting. Avoid generic fonts like Arial and Inter; opt instead for distinctive choices that elevate the frontend's aesthetics; unexpected, characterful font choices. Pair a distinctive display font with a refined body font.
-- **Color & Theme**: Commit to a cohesive aesthetic. Use CSS variables for consistency. Dominant colors with sharp accents outperform timid, evenly-distributed palettes.
-- **Motion**: Use animations for effects and micro-interactions. Prioritize CSS-only solutions for HTML. Use Motion library for React when available. Focus on high-impact moments: one well-orchestrated page load with staggered reveals (animation-delay) creates more delight than scattered micro-interactions. Use scroll-triggering and hover states that surprise.
-- **Spatial Composition**: Unexpected layouts. Asymmetry. Overlap. Diagonal flow. Grid-breaking elements. Generous negative space OR controlled density.
-- **Backgrounds & Visual Details**: Create atmosphere and depth rather than defaulting to solid colors. Add contextual effects and textures that match the overall aesthetic. Apply creative forms like gradient meshes, noise textures, geometric patterns, layered transparencies, dramatic shadows, decorative borders, custom cursors, and grain overlays.
+### Text Colors
+-   **Headings**: `#ffffff` (White)
+-   **Body**: `#e2e8f0` (Slate 200)
+-   **Muted**: `#cbd5e1` (Slate 300)
 
-NEVER use generic AI-generated aesthetics like overused font families (Inter, Roboto, Arial, system fonts), cliched color schemes (particularly purple gradients on white backgrounds), predictable layouts and component patterns, and cookie-cutter design that lacks context-specific character.
+### Status
+-   **Success**: `#10b981`
+-   **Error/Destructive**: `#ef4444`
+-   **Warning**: `#f59e0b`
 
-Interpret creatively and make unexpected choices that feel genuinely designed for the context. No design should be the same. Vary between light and dark themes, different fonts, different aesthetics. NEVER converge on common choices (Space Grotesk, for example) across generations.
+## 3. Typography
 
-**IMPORTANT**: Match implementation complexity to the aesthetic vision. Maximalist designs need elaborate code with extensive animations and effects. Minimalist or refined designs need restraint, precision, and careful attention to spacing, typography, and subtle details. Elegance comes from executing the vision well.
+**Fonts**:
+-   Sans: `"Inter", sans-serif`
+-   Mono: `"Geist Mono", monospace`
+-   Serif: `"Source Serif 4", serif`
 
-Remember: Claude is capable of extraordinary creative work. Don't hold back, show what can truly be created when thinking outside the box and committing fully to a distinctive vision.
+**Hierarchy (Desktop/Mobile)**:
+-   `h1`: `text-7xl` / `text-4xl`
+-   `h2`: `text-4xl` / `text-2xl`
+-   `h3`: `text-2xl`
+-   `body`: `text-base` (16px)
+
+**Weights**:
+-   Regular: 400
+-   Medium: 500
+-   SemiBold: 600
+-   Bold: 700
+
+## 4. Components & UI Patterns
+
+### Buttons
+**Primary CTA**:
+-   Background: `bg-gradient-to-br from-[#0891b2] to-[#06b6d4]`
+-   Hover: `from-[#0e7490] to-[#0891b2]`
+-   Shadow: `shadow-lg shadow-cyan-500/20`
+-   Rounded: `rounded-lg` (or `rounded-full` for specialized CTAs)
+-   Text: `font-semibold text-white`
+
+**Outline**:
+-   Border: `border-2 border-[#0891b2]/50`
+-   Text: `text-white`
+-   Hover: `bg-[#0891b2]/10 border-[#0891b2]`
+
+### Cards
+-   **Default**: `bg-[#16243F] border border-[#24324F] rounded-xl`
+-   **Interactive**: Add `hover:-translate-y-1 hover:shadow-cyan-500/10 transition-all duration-300`
+-   **Glass/Blur**: `backdrop-blur-md bg-[#0F192F]/80` (for sticky headers/overlays)
+
+### Inputs & Forms
+-   Background: `#131D37`
+-   Border: `#24324F`
+-   Text: `white`
+-   Focus: `ring-2 ring-[#0891b2] border-transparent`
+-   Placeholder: `text-slate-400`
+
+### Badges
+-   **Default**: `bg-[#0891b2]/10 text-[#2399B4] border border-[#0891b2]/40 rounded-full px-3 py-1 text-xs font-semibold uppercase`
+
+## 5. Gradients & Effects
+
+### Background Gradients
+-   **Hero**: `radial-gradient(ellipse at top, #1A2847 0%, transparent 60%), linear-gradient(135deg, #0F192F 0%, #131D37 35%, #1A2847 65%, #131D37 100%)`
+-   **Blue Panel**: `linear-gradient(135deg, #0f3a63 0%, #124a78 100%)`
+
+### Glow Effects
+-   Use `::before` pseudo-elements with `radial-gradient` for ambient glows.
+-   Color: `rgba(8, 145, 178, 0.15)`
+-   Blur: `blur-3xl`
+
+### AI Textures
+-   Use `::after` with `mask-image` for subtle grid/data patterns.
+-   Opacity: `0.3` to `0.5`
+-   Never interfere with text legibility.
+
+## 6. Layout & Spacing (Tailwind)
+
+-   **Container**: `max-w-7xl mx-auto px-4 sm:px-6 lg:px-8`
+-   **Section Padding**: `py-16` (Mobile) / `py-32` (Desktop)
+-   **Gaps**: `gap-4` (Mobile) / `gap-8` (Desktop)
+-   **Border Radius**: `rounded-lg` (Small components) / `rounded-xl` (Cards) / `rounded-2xl` (Large containers)
+
+## 7. Animations
+
+-   **Float**: `animate-float` (6s ease-in-out infinite)
+-   **Pulse**: `animate-pulse-scale` (soft scale up/down)
+-   **Transitions**: Always use `duration-300 ease-in-out` for hover states.
+-   **Reduced Motion**: Respect `prefers-reduced-motion` by disabling complex background animations.
+
+## 8. Dashboard Specifics
+
+-   **Sidebar**: Dark (`#0F192F`) with border-r (`#24324F`). Active item uses clear accent color or subtle background highlight.
+-   **Top Bar**: `backdrop-blur-md` sticky.
+-   **Charts**: Use brand colors (`#0891b2`, `#06b6d4`) for data series. Grid lines should be subtle (`#24324F`).
+-   **Live Events**: Use green (`#10b981`) for "Live Now" indicators with pulsing effect.
+
+## 9. Implementation Checklist
+
+When creating a new component:
+1.  [ ] Check standard padding/margins (multiples of 4).
+2.  [ ] Ensure text contrast meets WCAG AAA.
+3.  [ ] Add hover/focus states (`focus-visible:ring`).
+4.  [ ] Use semantic HTML (`<button>`, `<nav>`, `<h1>`).
+5.  [ ] Verify responsiveness (mobile-first approach).
