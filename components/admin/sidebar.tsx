@@ -19,6 +19,7 @@ import {
   Sparkles,
   Users,
   Workflow,
+  X,
   type LucideIcon,
 } from "lucide-react"
 import type { User } from "@supabase/supabase-js"
@@ -35,6 +36,7 @@ interface AdminSidebarProps {
   user: User
   profile: Profile | null
   isVisible?: boolean
+  onClose?: () => void
 }
 
 type NavItem = {
@@ -56,23 +58,22 @@ const allNavigationItems: NavItem[] = [
   { name: "Usuários", href: "/admin/usuarios", icon: Users },
 ]
 
-// Itens de navegação permitidos para vendedores
 const vendedorNavigationItems: NavItem[] = [
   { name: "Visão geral", href: "/admin", icon: LayoutDashboard },
   { name: "Pipeline", href: "/admin/pipeline", icon: Workflow },
 ]
 
-export function AdminSidebar({ user, profile, isVisible = true }: AdminSidebarProps) {
+export function AdminSidebar({ user, profile, isVisible = true, onClose }: AdminSidebarProps) {
   const pathname = usePathname()
   const router = useRouter()
   const supabase = createClient()
   const [isLoggingOut, setIsLoggingOut] = useState(false)
+
   const userEmail = profile?.email || user.email || ""
   const userName = profile?.name || user.email?.split("@")[0] || "Usuário"
   const resolvedRole = resolveUserRole(profile?.role, user)
   const userRoleLabel = resolvedRole === "admin" ? "Administrador" : resolvedRole === "vendedor" ? "Vendedor" : "Cliente"
 
-  // Filtrar navegação baseado no role
   const navigation = resolvedRole === "vendedor" ? vendedorNavigationItems : allNavigationItems
 
   const handleLogout = async () => {
@@ -88,81 +89,96 @@ export function AdminSidebar({ user, profile, isVisible = true }: AdminSidebarPr
   }
 
   return (
-    <aside
-      id="admin-sidebar"
-      aria-hidden={!isVisible}
-      style={{ width: isVisible ? '288px' : '0' }}
-      className={cn(
-        "hidden flex-col border-r border-[#24324F] bg-[#0F192F] transition-all duration-300 ease-in-out md:flex md:sticky md:top-0 md:h-screen md:overflow-y-auto",
-        isVisible
-          ? "md:opacity-100 md:translate-x-0 md:pointer-events-auto"
-          : "md:opacity-0 md:-translate-x-full md:pointer-events-none"
-      )}
-    >
-      <div className="flex flex-col gap-3 px-6 pb-6 pt-10">
-        <Link href="/admin" aria-label="Admin Dashboard" className="flex items-center gap-2">
-          <Logo width={140} height={36} variant="white" />
-        </Link>
-        <p className="text-xs text-slate-500 font-medium">PAINEL ADMINISTRATIVO</p>
-      </div>
+    <>
+      {/* Mobile Overlay */}
+      <div
+        className={cn(
+          "fixed inset-0 z-50 bg-background/80 backdrop-blur-sm transition-all duration-300 md:hidden",
+          isVisible ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
+        )}
+        onClick={onClose}
+      />
 
-      <nav className="flex-1 space-y-1.5 px-4">
-        {navigation.map((item) => {
-          const Icon = item.icon
-          // Garante que apenas um item seja selecionado por vez
-          // Encontra o item mais específico que corresponde ao pathname atual
-          const matchingItem = navigation
-            .filter((navItem) => {
-              if (navItem.href === "/admin") {
-                return pathname === "/admin"
-              }
-              return pathname === navItem.href || pathname.startsWith(navItem.href + "/")
-            })
-            .sort((a, b) => b.href.length - a.href.length)[0] // Ordena por maior comprimento (mais específico)
-
-          const isActive = matchingItem?.href === item.href
-
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all duration-200",
-                isActive
-                  ? "bg-gradient-to-r from-[#0891b2]/20 to-[#06b6d4]/10 text-white border border-[#0891b2]/30 shadow-lg shadow-[#06b6d4]/10"
-                  : "text-slate-400 hover:bg-[#131D37] hover:text-slate-200 border border-transparent",
-              )}
-            >
-              <Icon className={cn("h-5 w-5", isActive && "text-primary")} />
-              {item.name}
-            </Link>
-          )
-        })}
-      </nav>
-
-      <div className="space-y-3 px-4 pb-8">
-        <div className="rounded-xl border border-[#24324F] bg-[#131D37] px-4 py-3 shadow-lg">
-          <p className="text-sm font-semibold text-white truncate mb-1" title={userName}>
-            {userName}
-          </p>
-          <p className="text-xs text-slate-400 truncate mb-2" title={userEmail}>
-            {userEmail}
-          </p>
-          <div className="text-xs text-slate-400 pt-2 border-t border-[#24324F]">
-            Função: <span className="font-semibold text-white">{userRoleLabel}</span>
-          </div>
+      <aside
+        id="admin-sidebar"
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r bg-sidebar transition-transform duration-300 ease-in-out md:sticky md:top-0 md:h-screen",
+          isVisible ? "translate-x-0" : "-translate-x-full md:translate-x-0 md:w-0 md:overflow-hidden md:border-r-0"
+        )}
+      >
+        <div className="flex items-center justify-between px-6 pb-6 pt-10">
+          <Link href="/admin" onClick={onClose} className="flex items-center gap-2">
+            <Logo width={140} height={36} variant="auto" />
+          </Link>
+          <button
+            onClick={onClose}
+            className="rounded-md p-1 text-muted-foreground hover:bg-accent md:hidden"
+          >
+            <X className="h-5 w-5" />
+          </button>
         </div>
 
-        <button
-          type="button"
-          onClick={handleLogout}
-          disabled={isLoggingOut}
-          className="flex w-full items-center justify-center gap-2 rounded-xl border border-[#24324F] bg-[#131D37] hover:bg-[#1A2847] px-4 py-3 text-sm font-medium text-slate-300 transition-all hover:text-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
-        >
-          <LogOut className="h-4 w-4" />
-          {isLoggingOut ? "Saindo..." : "Sair"}
-        </button>
-      </div>
-    </aside>
+        <div className="px-6 mb-6">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">
+            Painel Administrativo
+          </p>
+        </div>
+
+        <nav className="flex-1 space-y-1 px-3">
+          {navigation.map((item) => {
+            const Icon = item.icon
+            const matchingItem = navigation
+              .filter((navItem) => {
+                if (navItem.href === "/admin") return pathname === "/admin"
+                return pathname === navItem.href || pathname.startsWith(navItem.href + "/")
+              })
+              .sort((a, b) => b.href.length - a.href.length)[0]
+
+            const isActive = matchingItem?.href === item.href
+
+            return (
+              <Link
+                key={item.name}
+                href={item.href}
+                onClick={() => { if (window.innerWidth < 768) onClose?.() }}
+                className={cn(
+                  "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                  isActive
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0" />
+                {item.name}
+              </Link>
+            )
+          })}
+        </nav>
+
+        <div className="border-t p-4 space-y-3">
+          <div className="rounded-lg border bg-card p-3 shadow-sm">
+            <p className="text-xs font-semibold text-foreground truncate" title={userName}>
+              {userName}
+            </p>
+            <p className="text-[10px] text-muted-foreground truncate mb-2" title={userEmail}>
+              {userEmail}
+            </p>
+            <div className="text-[10px] text-muted-foreground pt-2 border-t border-border/50">
+              Role: <span className="font-semibold text-foreground">{userRoleLabel}</span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleLogout}
+            disabled={isLoggingOut}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border bg-background px-3 py-2 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
+          >
+            <LogOut className="h-3.5 w-3.5" />
+            {isLoggingOut ? "Saindo..." : "Sair"}
+          </button>
+        </div>
+      </aside>
+    </>
   )
 }

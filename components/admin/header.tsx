@@ -2,6 +2,7 @@
 
 import { Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { ThemeToggle } from "@/components/dashboard/theme-toggle"
 
 interface AdminHeaderProps {
   isSidebarVisible?: boolean
@@ -15,7 +16,7 @@ export function AdminHeader({
   const toggleLabel = isSidebarVisible ? "Ocultar menu lateral" : "Mostrar menu lateral"
 
   return (
-    <header className="border-b border-[#24324F] bg-[#0F192F]/80 backdrop-blur-md sticky top-0 z-40 px-4 py-2 transition-colors duration-200 md:px-6">
+    <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 px-4 py-3 transition-colors duration-200 md:px-6">
       <div className="flex w-full items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           {onToggleSidebar && (
@@ -26,19 +27,24 @@ export function AdminHeader({
               aria-controls="admin-sidebar"
               aria-expanded={isSidebarVisible}
               title="Alternar menu lateral"
-              className="group flex h-8 w-8 items-center justify-center rounded-lg border border-[#24324F] bg-[#131D37] text-slate-400 transition-all duration-200 hover:border-[#0891b2]/50 hover:bg-[#1A2847] hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0891b2]"
+              className="group flex h-9 w-9 items-center justify-center rounded-lg border bg-secondary/50 text-muted-foreground transition-all duration-200 hover:border-primary/50 hover:bg-secondary hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:hidden"
             >
-              <Menu className="h-4 w-4 transition-transform group-hover:scale-110" />
+              <Menu className="h-5 w-5" />
             </button>
           )}
-          <p className="text-sm font-medium text-slate-300">
+          <h2 className="text-sm font-semibold tracking-tight text-foreground sm:text-base">
             Painel Administrativo
-          </p>
+          </h2>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <ThemeToggle collapsed={true} />
         </div>
       </div>
     </header>
   )
 }
+
 
 
 

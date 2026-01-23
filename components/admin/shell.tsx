@@ -44,21 +44,33 @@ export function AdminLayoutShell({ user, profile, children }: AdminLayoutShellPr
     setIsSidebarVisible((prev) => !prev)
   }
 
+  const handleCloseSidebar = () => {
+    setIsSidebarVisible(false)
+  }
+
   return (
-    <div className="flex min-h-screen bg-[#0F192F]">
-      <AdminSidebar user={user} profile={profile} isVisible={isSidebarVisible} />
+    <div className="flex min-h-screen bg-background transition-colors duration-300">
+      <AdminSidebar
+        user={user}
+        profile={profile}
+        isVisible={isSidebarVisible}
+        onClose={handleCloseSidebar}
+      />
       <div className="flex flex-1 flex-col overflow-hidden">
         <AdminHeader
           isSidebarVisible={isSidebarVisible}
           onToggleSidebar={handleToggleSidebar}
         />
-        <main className="flex flex-1 flex-col overflow-y-auto bg-[#0F192F]">
-          {children}
+        <main className="flex flex-1 flex-col overflow-y-auto bg-muted/30 p-0">
+          <div className="mx-auto w-full max-w-7xl h-full">
+            {children}
+          </div>
         </main>
       </div>
     </div>
   )
 }
+
 
 
 
