@@ -27,7 +27,7 @@ export const MODELS = {
   research: 'perplexity/sonar',
 
   // Visão - para análise de imagens radiográficas
-  vision: 'openai/gpt-4o',
+  vision: 'anthropic/claude-3.5-sonnet',
 
   // Escrita - para geração de conteúdo
   writer: 'anthropic/claude-3-haiku',

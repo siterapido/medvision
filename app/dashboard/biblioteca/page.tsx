@@ -181,8 +181,9 @@ export default function BibliotecaPage() {
                 onClick={() => openPreview(item)}
                 className={cn(
                     "h-full relative overflow-hidden transition-all duration-300 cursor-pointer",
-                    "bg-card/40 backdrop-blur-md border border-border/50",
-                    "hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1"
+                    "h-full relative overflow-hidden transition-all duration-500 cursor-pointer",
+                    "glass-card border-white/10 dark:border-white/5",
+                    "hover:border-primary/50 hover:shadow-premium hover:-translate-y-1.5 group-hover:bg-accent/5"
                 )}
             >
                 {/* Visual Accent Layer */}
@@ -233,7 +234,7 @@ export default function BibliotecaPage() {
 
                 <CardContent className="space-y-3">
                     <div>
-                        <CardTitle className="text-base font-semibold leading-tight group-hover:text-primary transition-colors line-clamp-2">
+                        <CardTitle className="text-lg font-heading font-semibold leading-tight group-hover:text-primary transition-colors line-clamp-2">
                             {item.title}
                         </CardTitle>
                         <CardDescription className="text-sm mt-1.5 line-clamp-2 leading-relaxed opacity-80">
@@ -298,7 +299,7 @@ export default function BibliotecaPage() {
                             <div className="h-8 w-1 rounded-full bg-primary" />
                             <span className="text-xs font-bold uppercase tracking-[0.2em] text-primary/60">Sua Memória Digital</span>
                         </div>
-                        <h1 className="text-4xl md:text-5xl font-extrabold tracking-tight text-foreground line-height-[1.1]">
+                        <h1 className="text-4xl md:text-6xl font-heading font-extrabold tracking-tight text-foreground/90 line-height-[1.1]">
                             Biblioteca de <span className="text-gradient">Inteligência</span>
                         </h1>
                         <p className="text-lg text-muted-foreground/80 leading-relaxed max-w-lg">
@@ -325,7 +326,7 @@ export default function BibliotecaPage() {
                                     <span className="text-xs font-semibold">Ordenar</span>
                                 </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="glass w-56 p-2">
+                            <DropdownMenuContent align="end" className="glass-card w-56 p-2">
                                 <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground px-2 py-1.5">Critérios</DropdownMenuLabel>
                                 <DropdownMenuItem className="rounded-lg gap-2" onClick={() => setSortBy('createdAt')}>
                                     <Clock className="h-4 w-4" /> Data de Criação {sortBy === 'createdAt' && "✓"}
@@ -395,7 +396,7 @@ export default function BibliotecaPage() {
                                 </Button>
                             </div>
                         ) : data.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-24 text-center glass-card rounded-3xl p-10 max-w-xl mx-auto border-dashed border-border/60">
+                            <div className="flex flex-col items-center justify-center py-24 text-center glass-card rounded-[2rem] p-12 max-w-xl mx-auto border-dashed border-white/10">
                                 <div className="p-5 rounded-full bg-muted/30 border border-border/20 mb-6 shrink-0">
                                     {searchTerm ? <SearchX className="h-10 w-10 text-muted-foreground/60" /> : <Sparkles className="h-10 w-10 text-primary/40" />}
                                 </div>
@@ -431,7 +432,7 @@ export default function BibliotecaPage() {
 
             {/* Preview Dialog */}
             <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-card border-border/40 p-0 rounded-3xl overflow-hidden custom-scrollbar bg-background/80 backdrop-blur-2xl">
+                <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto glass-card border-white/10 p-0 rounded-[2rem] overflow-hidden custom-scrollbar bg-background/95 backdrop-blur-3xl shadow-2xl">
                     {selectedArtifact && (
                         <div className="flex flex-col h-full">
                             <div className="p-8 border-b border-border/20 bg-muted/10 backdrop-blur-md">
@@ -444,7 +445,7 @@ export default function BibliotecaPage() {
                                             <Badge variant="outline" className="mb-1 text-[10px] uppercase tracking-widest font-bold">
                                                 {getLabelForType(selectedArtifact.type)}
                                             </Badge>
-                                            <DialogTitle className="text-2xl md:text-3xl font-extrabold tracking-tight">
+                                            <DialogTitle className="text-3xl md:text-4xl font-heading font-bold tracking-tight">
                                                 {selectedArtifact.title}
                                             </DialogTitle>
                                         </div>

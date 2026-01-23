@@ -139,7 +139,7 @@ export function Sidebar({ user }: SidebarProps) {
                 className={cn(
                   'group flex items-center rounded-xl text-sm font-medium transition-all duration-200',
                   active
-                    ? 'bg-primary/10 text-primary shadow-sm shadow-primary/5'
+                    ? 'bg-primary/10 text-primary shadow-glow-primary'
                     : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50',
                   isCollapsed
                     ? 'flex-col justify-center gap-1 p-2 h-auto min-h-[64px]'
