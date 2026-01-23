@@ -89,11 +89,28 @@ export function OdontoAIChat({
       const experimental_attachments = attachments ? await Promise.all(
         Array.from(attachments).map(async (file) => {
           const contentType = file.type
-          const url = await new Promise<string>((resolve) => {
-            const reader = new FileReader()
-            reader.onloadend = () => resolve(reader.result as string)
-            reader.readAsDataURL(file)
-          })
+          let url = ''
+
+          // Attempt upload first
+          try {
+            const formData = new FormData()
+            formData.append('file', file)
+            const res = await fetch('/api/upload', { method: 'POST', body: formData })
+            if (res.ok) {
+              const data = await res.json()
+              url = data.url
+            }
+          } catch (e) {
+            console.error("Upload failed", e)
+          }
+
+          if (!url) {
+            url = await new Promise<string>((resolve) => {
+              const reader = new FileReader()
+              reader.onloadend = () => resolve(reader.result as string)
+              reader.readAsDataURL(file)
+            })
+          }
           return { contentType, url, name: file.name }
         })
       ) : undefined
