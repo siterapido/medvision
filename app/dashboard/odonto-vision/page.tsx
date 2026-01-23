@@ -37,15 +37,60 @@ export default function OdontoVisionPage() {
     const [progress, setProgress] = useState(0)
     const [analysisResult, setAnalysisResult] = useState<VisionAnalysisResult | null>(null)
 
-    const onDrop = useCallback((acceptedFiles: File[]) => {
+
+    // Utility to resize image
+    const resizeImage = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.readAsDataURL(file)
+            reader.onload = (event) => {
+                const img = new Image()
+                img.src = event.target?.result as string
+                img.onload = () => {
+                    const canvas = document.createElement('canvas')
+                    let width = img.width
+                    let height = img.height
+                    const maxDim = 1500 // Limit max dimension to 1500px for AI processing
+
+                    if (width > height) {
+                        if (width > maxDim) {
+                            height *= maxDim / width
+                            width = maxDim
+                        }
+                    } else {
+                        if (height > maxDim) {
+                            width *= maxDim / height
+                            height = maxDim
+                        }
+                    }
+
+                    canvas.width = width
+                    canvas.height = height
+                    const ctx = canvas.getContext('2d')
+                    ctx?.drawImage(img, 0, 0, width, height)
+
+                    // Compress to JPEG 0.8
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
+                    resolve(dataUrl)
+                }
+                img.onerror = (err) => reject(err)
+            }
+            reader.onerror = (err) => reject(err)
+        })
+    }
+
+    const onDrop = useCallback(async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0]
         if (file) {
-            const reader = new FileReader()
-            reader.onload = () => {
-                setImage(reader.result as string)
-                startAnalysis(reader.result as string)
+            try {
+                // Resize/Compress image before setting state or sending to API
+                const compressedImage = await resizeImage(file)
+                setImage(compressedImage)
+                startAnalysis(compressedImage)
+            } catch (error) {
+                console.error("Error processing image:", error)
+                toast.error("Erro ao processar imagem. Tente outro arquivo.")
             }
-            reader.readAsDataURL(file)
         }
     }, [])
 

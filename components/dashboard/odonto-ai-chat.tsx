@@ -19,13 +19,15 @@ interface OdontoAIChatProps {
   agentId?: string
   initialMessages?: any[]
   initialChatId?: string
+  userName?: string
 }
 
 export function OdontoAIChat({
   userId,
   agentId = 'odonto-gpt',
   initialMessages = [],
-  initialChatId
+  initialChatId,
+  userName
 }: OdontoAIChatProps) {
   const [input, setInput] = useState("")
   const [selectedAgent, setSelectedAgent] = useState<AgentConfig>(getAgentConfig(agentId))
@@ -208,7 +210,7 @@ export function OdontoAIChat({
                   animate={{ y: 0, opacity: 1 }}
                   className="text-2xl font-heading font-medium text-foreground"
                 >
-                  {selectedAgent.greetingTitle || "Olá, Doutor(a)"}
+                  {selectedAgent.id === 'odonto-gpt' ? `Olá, ${userName || 'Doutor(a)'}` : selectedAgent.greetingTitle}
                 </motion.h2>
                 <motion.p
                   key={`desc-${selectedAgent.id}`}

@@ -25,6 +25,7 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
         id: m.id,
         role: m.role as any,
         content: m.content || "",
+        parts: [{ type: 'text', text: m.content || "" }] as any,
         // If we stored tool calls/results in metadata or specialized columns, we'd map them here.
         // For now simplest text restoration.
       }))
@@ -38,6 +39,7 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
       initialMessages={initialMessages}
       initialChatId={id}
       userId={user?.id}
+      userName={user?.user_metadata?.full_name || user?.user_metadata?.name}
     />
   )
 }
