@@ -16,7 +16,8 @@ import {
     Loader2,
     ChevronRight,
     Sparkles,
-    Info
+    Info,
+    AlertTriangle
 } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { GlassCard } from '@/components/ui/glass-card'
@@ -24,18 +25,17 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
+import { VisionAnalysisResult } from '@/lib/types/vision'
+import { ImageOverlay } from '@/components/vision/image-overlay'
+import { toast } from 'sonner'
 
-type VisionState = 'UPLOAD' | 'ANALYZING' | 'RESULT'
+type VisionState = 'UPLOAD' | 'ANALYZING' | 'RESULT' | 'ERROR'
 
 export default function OdontoVisionPage() {
     const [state, setState] = useState<VisionState>('UPLOAD')
-    const [image, setImage] = useState<string | null>(null)
+    const [image, setImage] = useState<string | null>(null) // Base64
     const [progress, setProgress] = useState(0)
-
-    const startAnalysis = () => {
-        setState('ANALYZING')
-        setProgress(0)
-    }
+    const [analysisResult, setAnalysisResult] = useState<VisionAnalysisResult | null>(null)
 
     const onDrop = useCallback((acceptedFiles: File[]) => {
         const file = acceptedFiles[0]
@@ -43,11 +43,47 @@ export default function OdontoVisionPage() {
             const reader = new FileReader()
             reader.onload = () => {
                 setImage(reader.result as string)
-                startAnalysis()
+                startAnalysis(reader.result as string)
             }
             reader.readAsDataURL(file)
         }
     }, [])
+
+    const startAnalysis = async (imageData: string) => {
+        setState('ANALYZING')
+        setProgress(0)
+        setAnalysisResult(null)
+
+        // Simula progresso visual enquanto processa
+        const interval = setInterval(() => {
+            setProgress((prev) => (prev < 90 ? prev + 5 : prev))
+        }, 300)
+
+        try {
+            const response = await fetch('/api/vision/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageData })
+            })
+
+            if (!response.ok) throw new Error('Falha na análise')
+
+            const data = await response.json() as VisionAnalysisResult
+
+            clearInterval(interval)
+            setProgress(100)
+            setAnalysisResult(data)
+
+            // Pequeno delay para mostrar 100%
+            setTimeout(() => setState('RESULT'), 500)
+
+        } catch (error) {
+            clearInterval(interval)
+            console.error(error)
+            toast.error("Erro ao analisar imagem. Tente novamente.")
+            setState('ERROR')
+        }
+    }
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -55,26 +91,11 @@ export default function OdontoVisionPage() {
         multiple: false
     })
 
-    useEffect(() => {
-        if (state === 'ANALYZING') {
-            const interval = setInterval(() => {
-                setProgress((prev) => {
-                    if (prev >= 100) {
-                        clearInterval(interval)
-                        setTimeout(() => setState('RESULT'), 500)
-                        return 100
-                    }
-                    return prev + 2
-                })
-            }, 50)
-            return () => clearInterval(interval)
-        }
-    }, [state])
-
     const reset = () => {
         setState('UPLOAD')
         setImage(null)
         setProgress(0)
+        setAnalysisResult(null)
     }
 
     return (
@@ -96,7 +117,7 @@ export default function OdontoVisionPage() {
 
             <div className="grid grid-cols-1 gap-8">
                 <AnimatePresence mode="wait">
-                    {state === 'UPLOAD' && (
+                    {(state === 'UPLOAD' || state === 'ERROR') && (
                         <motion.div
                             key="upload"
                             initial={{ opacity: 0, y: 20 }}
@@ -104,6 +125,13 @@ export default function OdontoVisionPage() {
                             exit={{ opacity: 0, y: -20 }}
                             className="w-full"
                         >
+                            {state === 'ERROR' && (
+                                <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center gap-3 text-destructive">
+                                    <AlertTriangle className="w-5 h-5" />
+                                    <p className="text-sm font-medium">Ocorreu um erro ao processar a imagem. Por favor, tente uma imagem mais nítida ou menor.</p>
+                                </div>
+                            )}
+
                             <GlassCard className="p-12 border-dashed border-2 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-primary/40 transition-all duration-500 min-h-[400px]"
                                 {...getRootProps()}
                             >
@@ -179,19 +207,16 @@ export default function OdontoVisionPage() {
                                 <div className="flex justify-between text-sm font-medium">
                                     <span className="text-primary flex items-center gap-2">
                                         <Sparkles className="w-4 h-4" />
-                                        Detectando estruturas...
+                                        Analisando estruturas...
                                     </span>
                                     <span>{progress}%</span>
                                 </div>
                                 <Progress value={progress} className="h-2" />
-                                <p className="text-xs text-center text-muted-foreground italic">
-                                    Isso pode levar alguns segundos dependendo da complexidade da imagem.
-                                </p>
                             </div>
                         </motion.div>
                     )}
 
-                    {state === 'RESULT' && (
+                    {state === 'RESULT' && analysisResult && (
                         <motion.div
                             key="result"
                             initial={{ opacity: 0 }}
@@ -201,20 +226,19 @@ export default function OdontoVisionPage() {
                             {/* Left Column - Image with Detections */}
                             <div className="lg:col-span-12 xl:col-span-7 space-y-6">
                                 <GlassCard className="p-1 overflow-hidden group">
-                                    <div className="relative aspect-video rounded-lg overflow-hidden border border-border/50">
-                                        <img src={image || ''} className="w-full h-full object-cover" alt="Result" />
-
-                                        {/* Mock Detections Overlays */}
-                                        <div className="absolute top-[30%] left-[45%] w-12 h-12 border-2 border-red-500 rounded-lg shadow-[0_0_10px_rgba(239,68,68,0.5)] bg-red-500/10 flex items-center justify-center animate-pulse">
-                                            <div className="absolute -top-6 left-0 bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold uppercase">Cárie</div>
+                                    <div className="relative aspect-video rounded-lg overflow-hidden border border-border/50 bg-black/5">
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                            {/* Implementação do Overlay Real */}
+                                            {image && (
+                                                <ImageOverlay
+                                                    src={image}
+                                                    detections={analysisResult.detections}
+                                                />
+                                            )}
                                         </div>
 
-                                        <div className="absolute top-[60%] left-[20%] w-16 h-10 border-2 border-amber-500 rounded-lg shadow-[0_0_10px_rgba(245,158,11,0.5)] bg-amber-500/10 flex items-center justify-center">
-                                            <div className="absolute -top-6 left-0 bg-amber-500 text-white text-[10px] px-1.5 py-0.5 rounded font-bold uppercase">Perda Óssea</div>
-                                        </div>
-
-                                        <div className="absolute bottom-4 right-4 flex gap-2">
-                                            <Button size="icon" variant="secondary" className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full">
+                                        <div className="absolute bottom-4 right-4 flex gap-2 pointer-events-none">
+                                            <Button size="icon" variant="secondary" className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full pointer-events-auto">
                                                 <Maximize2 className="w-4 h-4" />
                                             </Button>
                                         </div>
@@ -237,26 +261,29 @@ export default function OdontoVisionPage() {
                                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/30">
                                         <div>
                                             <h2 className="text-xl font-heading font-bold">Laudo AI</h2>
-                                            <p className="text-xs text-muted-foreground">ID: #VIS-99421-2026</p>
+                                            <p className="text-xs text-muted-foreground">ID: #{Math.random().toString(36).slice(2, 8).toUpperCase()}</p>
                                         </div>
-                                        <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
-                                            Análise Concluída
-                                        </Badge>
+                                        <div className="flex gap-2">
+                                            {analysisResult.meta && (
+                                                <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                                                    {analysisResult.meta.imageType}
+                                                </Badge>
+                                            )}
+                                            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+                                                Concluído
+                                            </Badge>
+                                        </div>
                                     </div>
 
                                     <div className="flex-1 space-y-6 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
-                                        {/* Findings */}
+                                        {/* Findings List - Quick View */}
                                         <section className="space-y-3">
                                             <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                                                 <AlertCircle className="w-3 h-3" /> Principais Achados
                                             </h4>
                                             <div className="space-y-2">
-                                                {[
-                                                    { type: 'Cárie', zone: 'Região Interproximal (16-17)', level: 'Crítico', color: 'text-red-500' },
-                                                    { type: 'Reabsorção', zone: 'Crista Óssea Alveolar', level: 'Moderado', color: 'text-amber-500' },
-                                                    { type: 'Restauração', zone: 'Oclusal (46)', level: 'Normal', color: 'text-blue-400' },
-                                                ].map((finding, i) => (
-                                                    <div key={i} className="p-3 rounded-lg bg-muted/30 border border-border/30 flex items-center justify-between">
+                                                {analysisResult.findings.map((finding, i) => (
+                                                    <div key={i} className="p-3 rounded-lg bg-muted/30 border border-border/30 flex items-center justify-between hover:bg-muted/50 transition-colors">
                                                         <div className="space-y-0.5">
                                                             <p className="text-sm font-medium">{finding.type}</p>
                                                             <p className="text-[10px] text-muted-foreground">{finding.zone}</p>
@@ -266,50 +293,109 @@ export default function OdontoVisionPage() {
                                                         </span>
                                                     </div>
                                                 ))}
+                                                {analysisResult.findings.length === 0 && (
+                                                    <p className="text-sm text-muted-foreground italic pl-2">Nenhum achado crítico detectado.</p>
+                                                )}
                                             </div>
                                         </section>
 
-                                        {/* AI Assessment */}
-                                        <section className="space-y-3">
-                                            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                                                <FileText className="w-3 h-3" /> Avaliação Clínica
-                                            </h4>
-                                            <div className="text-sm text-foreground/80 leading-relaxed bg-muted/20 p-4 rounded-xl border border-border/20">
-                                                <p className="mb-3">
-                                                    A análise automatizada detectou uma área radiolúcida sugestiva de lesão cariosa profunda na face distal do dente 16, com possível proximidade cameral.
-                                                </p>
-                                                <p>
-                                                    Observa-se também evidência de perda óssea horizontal generalizada leve, com focos de perda vertical na região de molares inferiores. Recomenda-se correlação clínica e sondagem periodontal.
-                                                </p>
-                                            </div>
-                                        </section>
+                                        {/* Detailed Report Sections */}
+                                        {analysisResult.report && (
+                                            <>
+                                                <section className="space-y-2">
+                                                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                                        <Scan className="w-3 h-3" /> Análise Técnica
+                                                    </h4>
+                                                    <div className="text-sm text-foreground/80 leading-relaxed bg-muted/10 p-3 rounded-lg border border-border/10">
+                                                        {analysisResult.report.technicalAnalysis}
+                                                    </div>
+                                                </section>
 
-                                        {/* Recommendations */}
-                                        <section className="space-y-3">
-                                            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                                                <CheckCircle2 className="w-3 h-3" /> Sugestão de Conduta
-                                            </h4>
-                                            <ul className="space-y-2">
-                                                {[
-                                                    'Remoção de cárie e restauração (16)',
-                                                    'Acompanhamento radiográfico em 6 meses',
-                                                    'Avaliação periodontal completa'
-                                                ].map((rec, i) => (
-                                                    <li key={i} className="flex gap-2 text-sm items-start">
-                                                        <ChevronRight className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                                                        <span>{rec}</span>
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </section>
+                                                <section className="space-y-2">
+                                                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                                        <Search className="w-3 h-3" /> Achados Detalhados
+                                                    </h4>
+                                                    <div className="text-sm text-foreground/80 leading-relaxed bg-muted/10 p-3 rounded-lg border border-border/10 whitespace-pre-line">
+                                                        {analysisResult.report.detailedFindings}
+                                                    </div>
+                                                </section>
+
+                                                <section className="space-y-2">
+                                                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                                        <FileText className="w-3 h-3" /> Hipótese Diagnóstica
+                                                    </h4>
+                                                    <div className="text-sm font-medium text-primary/80 leading-relaxed bg-primary/5 p-3 rounded-lg border border-primary/10">
+                                                        {analysisResult.report.diagnosticHypothesis}
+                                                    </div>
+                                                </section>
+
+                                                <section className="space-y-3">
+                                                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                                        <CheckCircle2 className="w-3 h-3" /> Conduta Recomendada
+                                                    </h4>
+                                                    <ul className="space-y-2">
+                                                        {analysisResult.report.recommendations.map((rec, i) => (
+                                                            <li key={i} className="flex gap-2 text-sm items-start">
+                                                                <ChevronRight className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                                                                <span>{rec}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                </section>
+                                            </>
+                                        )}
+
+                                        {/* Legacy/Fallback Display if Report is missing */}
+                                        {!analysisResult.report && analysisResult.clinicalAssessment && (
+                                            <section className="space-y-3">
+                                                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                                    <FileText className="w-3 h-3" /> Avaliação Clínica
+                                                </h4>
+                                                <div className="text-sm text-foreground/80 leading-relaxed bg-muted/20 p-4 rounded-xl border border-border/20">
+                                                    {analysisResult.clinicalAssessment}
+                                                </div>
+                                            </section>
+                                        )}
                                     </div>
 
-                                    <div className="mt-6 pt-4 border-t border-border/30 flex items-center gap-3">
-                                        <img src="https://ui-avatars.com/api/?name=IA&background=0284c7&color=fff" className="w-10 h-10 rounded-full border border-primary/20" alt="IA signature" />
-                                        <div>
-                                            <p className="text-sm font-bold">OdontoVision Specialist AI</p>
-                                            <p className="text-[10px] text-muted-foreground">Certified Medical Imaging Suite</p>
+                                    <div className="mt-6 pt-4 border-t border-border/30 flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3">
+                                            <img src="https://ui-avatars.com/api/?name=IA&background=0284c7&color=fff" className="w-10 h-10 rounded-full border border-primary/20" alt="IA signature" />
+                                            <div>
+                                                <p className="text-sm font-bold">OdontoVision AI</p>
+                                                <p className="text-[10px] text-muted-foreground">CRM Virtual: 0001-AI</p>
+                                            </div>
                                         </div>
+                                        <Button
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-8 text-xs gap-1"
+                                            onClick={() => {
+                                                if (!analysisResult) return;
+                                                const promise = fetch('/api/artifacts', {
+                                                    method: 'POST',
+                                                    headers: { 'Content-Type': 'application/json' },
+                                                    body: JSON.stringify({
+                                                        title: `Laudo Vision: ${analysisResult.meta?.imageType || 'Imagem'}`,
+                                                        description: analysisResult.report?.diagnosticHypothesis || 'Análise automática de imagem.',
+                                                        type: 'image', // Mapping to artifact type
+                                                        content: {
+                                                            imageUrl: image, // Careful with size here, might need URL if uploaded
+                                                            analysis: JSON.stringify(analysisResult.report),
+                                                            findings: analysisResult.findings.map(f => f.type),
+                                                            recommendations: analysisResult.report?.recommendations || []
+                                                        }
+                                                    })
+                                                });
+                                                toast.promise(promise, {
+                                                    loading: 'Salvando na biblioteca...',
+                                                    success: 'Salvo com sucesso!',
+                                                    error: 'Erro ao salvar.'
+                                                })
+                                            }}
+                                        >
+                                            <FileText className="w-3 h-3" /> Salvar Laudo
+                                        </Button>
                                     </div>
                                 </GlassCard>
                             </div>

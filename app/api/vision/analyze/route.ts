@@ -1,0 +1,98 @@
+
+import { openrouter, MODELS } from '@/lib/ai/openrouter'
+import { generateObject } from 'ai'
+import { z } from 'zod'
+
+export const maxDuration = 60 // 60 seconds
+
+const VisionSchema = z.object({
+    meta: z.object({
+        imageType: z.enum(['Periapical', 'Panorâmica', 'Interproximal (Bitewing)', 'Oclusal', 'Foto Intraoral', 'Tomografia', 'Desconhecido']).describe("Tipo da imagem odontológica."),
+        quality: z.enum(['Excelente', 'Boa', 'Aceitável', 'Ruim', 'Inadequada']).describe("Qualidade técnica da imagem para fins diagnósticos."),
+        notes: z.string().optional().describe("Notas sobre a qualidade técnica (ex: 'Sobreposição', 'Distorção', 'Baixo contraste').")
+    }),
+    detections: z.array(z.object({
+        label: z.string().describe("Nome curto da patologia ou estrutura identificada (ex: 'Cárie', 'Perda Óssea')."),
+        box: z.array(z.number()).length(4).describe("Coordenadas [ymin, xmin, ymax, xmax] normalizadas de 0 a 100."),
+        severity: z.enum(['critical', 'moderate', 'normal']).describe("Nível de severidade do achado."),
+        description: z.string().optional().describe("Breve descrição técnica do achado.")
+    })),
+    report: z.object({
+        technicalAnalysis: z.string().describe("Texto detalhando a qualidade técnica e estruturas visíveis."),
+        detailedFindings: z.string().describe("Descrição minuciosa de todos os achados, dividido por região ou dente quando aplicável."),
+        diagnosticHypothesis: z.string().describe("Hipóteses diagnósticas principais baseadas nos achados de imagem."),
+        recommendations: z.array(z.string()).describe("Lista numerada de sugestões de conduta clínica e exames complementares.")
+    })
+})
+
+export async function POST(req: Request) {
+    try {
+        const { image } = await req.json()
+
+        if (!image) {
+            return new Response('Image data is required', { status: 400 })
+        }
+
+        const result = await generateObject({
+            model: openrouter(MODELS.vision), // Claude 3.5 Sonnet ou similar
+            schema: VisionSchema,
+            messages: [
+                {
+                    role: 'system',
+                    content: `Você é o OdontoAI Vision, um radiologista e estomatologista renomado.
+          Sua tarefa é analisar imagens odontológicas e gerar um LAUDO TÉCNICO PROFISSIONAL COMPLETO.
+          
+          DIRETRIZES DE ANÁLISE:
+          1. Classifique o tipo da imagem e sua qualidade técnica.
+          2. Identifique anomalias como: Cáries (classe/profundidade), Doença Periodontal (nível ósseo), Lesões Periapicais, Anomalias Dentárias, Restaurações (adaptação), Endodontia.
+          3. Use terminologia técnica correta (ex: "imagem radiolúcida", "reabsorção óssea horizontal", "lesão sugestiva de...").
+          
+          SOBRE AS COORDENADAS (BOX):
+          - Identifique visualmente as lesões principais para desenhar os "boxes".
+          - Coordenadas normalizadas [ymin, xmin, ymax, xmax] de 0 a 100.
+          
+          IDIOMA: Português do Brasil (pt-BR) formal.`
+                },
+                {
+                    role: 'user',
+                    content: [
+                        { type: 'text', text: 'GERE UM LAUDO RADIOGRÁFICO DETALHADO E ANALISE ESTA IMAGEM.' },
+                        { type: 'image', image: image }
+                    ]
+                }
+            ]
+        })
+
+        const analysis = result.object
+
+        // Processar para o formato do frontend
+        const responseData = {
+            meta: analysis.meta,
+            detections: analysis.detections.map((d, i) => ({
+                id: `det-${i}`,
+                label: d.label,
+                confidence: 0.95,
+                box: {
+                    ymin: d.box[0],
+                    xmin: d.box[1],
+                    ymax: d.box[2],
+                    xmax: d.box[3]
+                },
+                severity: d.severity,
+                description: d.description
+            })),
+            report: analysis.report,
+            findings: analysis.detections.map(d => ({
+                type: d.label,
+                zone: d.description ? d.description.slice(0, 30) + '...' : 'Região Identificada',
+                level: d.severity === 'critical' ? 'Crítico' : d.severity === 'moderate' ? 'Moderado' : 'Normal',
+                color: d.severity === 'critical' ? 'text-red-500' : d.severity === 'moderate' ? 'text-amber-500' : 'text-blue-500'
+            }))
+        }
+
+        return Response.json(responseData)
+    } catch (error) {
+        console.error('Vision analysis error:', error)
+        return new Response(JSON.stringify({ error: 'Failed to analyze image' }), { status: 500 })
+    }
+}
