@@ -179,14 +179,14 @@ export function OdontoAIChat({
                     exit={{ scale: 0.8, opacity: 0, rotate: 10 }}
                     transition={{ type: "spring", damping: 15, stiffness: 200 }}
                     className={cn(
-                      "h-16 w-16 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-border/50 shadow-xl",
+                      "h-24 w-24 rounded-3xl flex items-center justify-center backdrop-blur-sm border border-border/50 shadow-xl", // Increased size
                       `bg-gradient-to-br transition-all duration-500`,
                       getAgentUI(selectedAgent.id).gradient
                     )}
                   >
                     {(() => {
                       const Icon = getAgentUI(selectedAgent.id).icon
-                      return <Icon className="h-8 w-8 text-white" />
+                      return <Icon className="h-10 w-10 text-white" /> // Increased icon size
                     })()}
                   </motion.div>
                 </AnimatePresence>
@@ -197,7 +197,7 @@ export function OdontoAIChat({
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 0.5 }}
                   className={cn(
-                    "absolute -inset-4 blur-2xl -z-10 rounded-full",
+                    "absolute -inset-4 blur-3xl -z-10 rounded-full",
                     `bg-gradient-to-br ${getAgentUI(selectedAgent.id).gradient.replace('from-', 'to-')}`
                   )}
                 />
@@ -208,30 +208,33 @@ export function OdontoAIChat({
                   key={`title-${selectedAgent.id}`}
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
-                  className="text-2xl font-heading font-medium text-foreground"
+                  className="text-3xl font-heading font-semibold text-foreground"
                 >
-                  {selectedAgent.id === 'odonto-gpt' ? `Olá, ${userName || 'Doutor(a)'}` : selectedAgent.greetingTitle}
+                  {selectedAgent.id === 'odonto-gpt' ? `Olá, ${userName?.split(' ')[0] || 'Doutor(a)'}` : selectedAgent.greetingTitle}
                 </motion.h2>
                 <motion.p
                   key={`desc-${selectedAgent.id}`}
                   initial={{ y: 10, opacity: 0 }}
                   animate={{ y: 0, opacity: 1 }}
                   transition={{ delay: 0.1 }}
-                  className="text-muted-foreground"
+                  className="text-lg text-muted-foreground"
                 >
                   {selectedAgent.greetingDescription || "Como posso ajudar você hoje?"}
                 </motion.p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
-                {suggestions.map(s => (
-                  <button
+              <div className="grid grid-cols-1 gap-3 w-full max-w-sm">
+                {suggestions.map((s, index) => (
+                  <motion.button
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + index * 0.05 }}
                     key={s}
                     onClick={() => setInput(s)}
-                    className="px-4 py-3 text-sm text-left rounded-xl bg-card border border-border/50 hover:bg-muted/50 hover:border-primary/20 transition-all text-muted-foreground hover:text-foreground truncate shadow-sm"
+                    className="px-6 py-4 text-base text-center rounded-2xl bg-card border border-border/50 hover:bg-muted/50 hover:border-primary/20 transition-all text-muted-foreground hover:text-foreground shadow-sm hover:shadow-md hover:-translate-y-0.5"
                   >
                     {s}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
