@@ -49,6 +49,12 @@ export default function OdontoVisionPage() {
         }
     }, [])
 
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        accept: { 'image/*': [] },
+        multiple: false
+    })
+
     useEffect(() => {
         if (state === 'ANALYZING') {
             const interval = setInterval(() => {

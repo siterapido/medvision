@@ -111,84 +111,84 @@ export default function NotificacoesPage() {
                 ) : (
                     <motion.div
                         variants={containerVariants}
-                        initial={hidden"}
-                animate="show"
-                className="space-y-3"
-          >
-                {notifications.map((notification) => {
-                    const Icon = getIcon(notification.type)
-                    return (
-                        <motion.div
-                            key={notification.id}
-                            variants={itemVariants}
-                            className={cn(
-                                "group relative overflow-hidden rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-300",
-                                "hover:bg-card hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5",
-                                !notification.read && "border-primary/30 bg-primary/5"
-                            )}
-                        >
-                            <div className="flex items-start gap-4 p-5">
-                                {/* Icon */}
-                                <div
+                        initial="hidden"
+                        animate="show"
+                        className="space-y-3"
+                    >
+                        {notifications.map((notification) => {
+                            const Icon = getIcon(notification.type)
+                            return (
+                                <motion.div
+                                    key={notification.id}
+                                    variants={itemVariants}
                                     className={cn(
-                                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
-                                        notification.type === "success" &&
-                                        "bg-green-500/10 text-green-600 dark:text-green-400",
-                                        notification.type === "warning" &&
-                                        "bg-orange-500/10 text-orange-600 dark:text-orange-400",
-                                        notification.type === "info" &&
-                                        "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                        "group relative overflow-hidden rounded-2xl border border-border/50 bg-card/50 backdrop-blur-sm transition-all duration-300",
+                                        "hover:bg-card hover:border-primary/20 hover:shadow-lg hover:shadow-primary/5",
+                                        !notification.read && "border-primary/30 bg-primary/5"
                                     )}
                                 >
-                                    <Icon className="h-5 w-5" />
-                                </div>
-
-                                {/* Content */}
-                                <div className="flex-1 space-y-1 min-w-0">
-                                    <div className="flex items-center gap-2">
-                                        <h3 className="font-medium text-foreground truncate">
-                                            {notification.title}
-                                        </h3>
-                                        {!notification.read && (
-                                            <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
-                                        )}
-                                    </div>
-                                    <p className="text-sm text-muted-foreground leading-relaxed">
-                                        {notification.message}
-                                    </p>
-                                    <p className="text-xs text-muted-foreground/60">
-                                        {formatTimestamp(notification.timestamp)}
-                                    </p>
-                                </div>
-
-                                {/* Actions */}
-                                <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {!notification.read && (
-                                        <button
-                                            onClick={() => markAsRead(notification.id)}
-                                            className="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
-                                            title="Marcar como lida"
+                                    <div className="flex items-start gap-4 p-5">
+                                        {/* Icon */}
+                                        <div
+                                            className={cn(
+                                                "flex h-10 w-10 shrink-0 items-center justify-center rounded-xl",
+                                                notification.type === "success" &&
+                                                "bg-green-500/10 text-green-600 dark:text-green-400",
+                                                notification.type === "warning" &&
+                                                "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+                                                notification.type === "info" &&
+                                                "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+                                            )}
                                         >
-                                            <CheckCircle2 className="h-4 w-4" />
-                                        </button>
-                                    )}
-                                    <button
-                                        onClick={() => deleteNotification(notification.id)}
-                                        className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
-                                        title="Excluir"
-                                    >
-                                        <X className="h-4 w-4" />
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )
-                })}
-            </motion.div>
-        )}
-        </div>
-    </div >
-  )
+                                            <Icon className="h-5 w-5" />
+                                        </div>
+
+                                        {/* Content */}
+                                        <div className="flex-1 space-y-1 min-w-0">
+                                            <div className="flex items-center gap-2">
+                                                <h3 className="font-medium text-foreground truncate">
+                                                    {notification.title}
+                                                </h3>
+                                                {!notification.read && (
+                                                    <span className="h-2 w-2 rounded-full bg-primary shrink-0" />
+                                                )}
+                                            </div>
+                                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                                {notification.message}
+                                            </p>
+                                            <p className="text-xs text-muted-foreground/60">
+                                                {formatTimestamp(notification.timestamp)}
+                                            </p>
+                                        </div>
+
+                                        {/* Actions */}
+                                        <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            {!notification.read && (
+                                                <button
+                                                    onClick={() => markAsRead(notification.id)}
+                                                    className="p-2 rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
+                                                    title="Marcar como lida"
+                                                >
+                                                    <CheckCircle2 className="h-4 w-4" />
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => deleteNotification(notification.id)}
+                                                className="p-2 rounded-lg hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-all"
+                                                title="Excluir"
+                                            >
+                                                <X className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )
+                        })}
+                    </motion.div>
+                )}
+            </div>
+        </div >
+    )
 }
 
 function formatTimestamp(date: Date): string {

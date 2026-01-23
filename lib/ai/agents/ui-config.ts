@@ -1,45 +1,28 @@
-import { ElementType } from "react"
-import { Bot, FlaskConical, GraduationCap, FileText, ScanEye, Sparkles } from "lucide-react"
+import { Sparkles, FlaskConical, GraduationCap, FileText, ScanEye, Bot } from "lucide-react"
 
-export interface AgentUIConfig {
-    icon: ElementType
-    gradient: string
-    color: string
-}
-
-export const AGENT_UI_CONFIG: Record<string, AgentUIConfig> = {
+export const AGENT_UI_CONFIG: Record<string, { icon: any, gradient: string }> = {
     'odonto-gpt': {
         icon: Sparkles,
-        gradient: 'from-[#00D4FF] via-[#00A3FF] to-[#0066FF]',
-        color: '#00D4FF'
+        gradient: 'from-[#00D4FF] via-[#00A3FF] to-[#0066FF]'
     },
     'odonto-research': {
         icon: FlaskConical,
-        gradient: 'from-[#BF5AF2] via-[#9D4EDD] to-[#7B2CBF]',
-        color: '#BF5AF2'
+        gradient: 'from-[#BF5AF2] via-[#9D4EDD] to-[#7B2CBF]'
     },
     'odonto-practice': {
         icon: GraduationCap,
-        gradient: 'from-[#FF9F0A] via-[#FF6B35] to-[#FF453A]',
-        color: '#FF9F0A'
+        gradient: 'from-[#FF9F0A] via-[#FF6B35] to-[#FF453A]'
     },
     'odonto-summary': {
         icon: FileText,
-        gradient: 'from-[#30D158] via-[#00C7BE] to-[#00B4D8]',
-        color: '#30D158'
+        gradient: 'from-[#30D158] via-[#00C7BE] to-[#00B4D8]'
     },
     'odonto-vision': {
         icon: ScanEye,
-        gradient: 'from-[#FF6B6B] via-[#EE5A70] to-[#DA4167]',
-        color: '#FF6B6B'
+        gradient: 'from-[#FF6B6B] via-[#EE5A70] to-[#DA4167]'
     },
-    'default': {
-        icon: Bot,
-        gradient: 'from-slate-500 to-slate-600',
-        color: '#64748b'
-    }
 }
 
-export function getAgentUI(agentId: string): AgentUIConfig {
-    return AGENT_UI_CONFIG[agentId] || AGENT_UI_CONFIG['default']
+export function getAgentUI(agentId: string) {
+    return AGENT_UI_CONFIG[agentId] || { icon: Bot, gradient: 'from-slate-500 to-slate-600' }
 }

@@ -24,16 +24,7 @@ interface AgentSelectorProps {
     className?: string
 }
 
-// Configuração visual dos agentes - Gradientes estilo Apple (cores vibrantes, transições suaves)
-const agentConfig: Record<string, { icon: React.ElementType, gradient: string, isAuto?: boolean }> = {
-    // Odonto GPT agora é o agente unificado (antigo Flow)
-    'odonto-gpt': { icon: Sparkles, gradient: 'from-[#00D4FF] via-[#00A3FF] to-[#0066FF]', isAuto: true },
-    'odonto-research': { icon: FlaskConical, gradient: 'from-[#BF5AF2] via-[#9D4EDD] to-[#7B2CBF]' },
-    'odonto-practice': { icon: GraduationCap, gradient: 'from-[#FF9F0A] via-[#FF6B35] to-[#FF453A]' },
-    'odonto-summary': { icon: FileText, gradient: 'from-[#30D158] via-[#00C7BE] to-[#00B4D8]' },
-    'odonto-write': { icon: FileText, gradient: 'from-[#30D158] via-[#00C7BE] to-[#00B4D8]' }, // Legacy
-    'odonto-vision': { icon: ScanEye, gradient: 'from-[#FF6B6B] via-[#EE5A70] to-[#DA4167]' },
-}
+import { AGENT_UI_CONFIG } from "@/lib/ai/agents/ui-config"
 
 export function AgentSelector({
     agents,
@@ -77,7 +68,7 @@ export function AgentSelector({
     const flowAgent = agents.find(a => a.id === 'odonto-gpt')
     const specializedAgents = agents.filter(a => a.id !== 'odonto-gpt')
 
-    const selectedConfig = selectedAgent ? agentConfig[selectedAgent.id] : agentConfig['odonto-gpt']
+    const selectedConfig = selectedAgent ? AGENT_UI_CONFIG[selectedAgent.id] : AGENT_UI_CONFIG['odonto-gpt']
     const SelectedIcon = selectedConfig?.icon || Bot
 
     return (
@@ -148,7 +139,7 @@ export function AgentSelector({
                             🎯 Especialistas Dedicados
                         </SelectLabel>
                         {specializedAgents.map((agent) => {
-                            const config = agentConfig[agent.id] || { icon: Bot, gradient: 'from-slate-500 to-slate-600' }
+                            const config = AGENT_UI_CONFIG[agent.id] || { icon: Bot, gradient: 'from-slate-500 to-slate-600' }
                             const AgentIcon = config.icon
                             return (
                                 <SelectItem

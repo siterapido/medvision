@@ -57,6 +57,8 @@ interface SidebarProps {
     name?: string | null
     email?: string | null
     avatar_url?: string | null
+    plan_type?: string | null
+    subscription_status?: string | null
   }
 }
 

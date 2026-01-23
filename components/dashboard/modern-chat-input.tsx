@@ -17,6 +17,7 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { type AgentConfig } from "@/lib/ai/agents/config"
+import { AGENT_UI_CONFIG } from "@/lib/ai/agents/ui-config"
 import {
     Tooltip,
     TooltipContent,
@@ -35,14 +36,6 @@ interface ModernChatInputProps {
     isReady: boolean
     handleKeyDown: (e: React.KeyboardEvent<HTMLTextAreaElement>) => void
     inputRef: React.RefObject<HTMLTextAreaElement | null>
-}
-
-const agentIcons: Record<string, any> = {
-    "odonto-gpt": Sparkles,
-    "odonto-research": FlaskConical,
-    "odonto-practice": GraduationCap,
-    "odonto-summary": FileText,
-    "odonto-vision": ScanEye,
 }
 
 export function ModernChatInput({
@@ -91,7 +84,7 @@ export function ModernChatInput({
                     <div className="flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800/50 p-1 rounded-2xl border border-zinc-100 dark:border-zinc-800/50">
                         <TooltipProvider>
                             {agents.map((agent) => {
-                                const Icon = agentIcons[agent.id] || Sparkles
+                                const Icon = AGENT_UI_CONFIG[agent.id]?.icon || Sparkles
                                 const isSelected = selectedAgent.id === agent.id
 
                                 return (

@@ -11,11 +11,16 @@ import {
   BookOpen,
   Clock,
   FileText,
-  PlayCircle
+  PlayCircle,
+  FileSearch,
+  HelpCircle,
+  Hash,
+  Brain
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { GlassCard } from '@/components/ui/glass-card'
-import { Progress } from '@/components/ui/progress' // Assumindo que existe ou vou usar div simples se não existir
+import { formatDistanceToNow } from 'date-fns'
+import { ptBR } from 'date-fns/locale'
 
 interface QuickActionCard {
   title: string
@@ -31,7 +36,6 @@ const quickActions: QuickActionCard[] = [
     description: 'Assistente Clínico IA',
     href: '/dashboard/chat',
     icon: Sparkles,
-    badge: 'Pro',
   },
   {
     title: 'Biblioteca',
@@ -53,20 +57,15 @@ const quickActions: QuickActionCard[] = [
   },
 ]
 
-// Mock data para "Últimos Artefatos" - Futuramente virá do DB
-const recentArtifacts = [
-  { id: 1, title: 'Protocolo de Clareamento', type: 'Protocolo', date: 'Há 2h' },
-  { id: 2, title: 'Resumo Endodontia Molar', type: 'Resumo', date: 'Ontem' },
-  { id: 3, title: 'Lista de Materiais Cirurgia', type: 'Checklist', date: '2 dias atrás' },
-]
-
-// Mock data para "Curso em Progresso"
-const currentCourse = {
-  title: 'Tomografia Computadorizada',
-  module: 'Análise de Molares Superiores',
-  progress: 65,
-  totalModules: 12,
-  completedModules: 7
+// Helper para tradução de tipos de artefatos
+const ARTIFACT_TYPE_LABELS: Record<string, { label: string, icon: any }> = {
+  summary: { label: 'Resumo', icon: FileText },
+  flashcards: { label: 'Flashcards', icon: Brain },
+  exam: { label: 'Simulado', icon: HelpCircle },
+  research: { label: 'Pesquisa', icon: FileSearch },
+  mindmap: { label: 'Mapa Mental', icon: Hash },
+  protocol: { label: 'Protocolo', icon: FileText },
+  checklist: { label: 'Checklist', icon: FileText },
 }
 
 export default async function NewDashboardPage() {
@@ -78,6 +77,34 @@ export default async function NewDashboardPage() {
 
   const hours = new Date().getHours()
   const greeting = hours < 12 ? 'Bom dia' : hours < 18 ? 'Boa tarde' : 'Boa noite'
+
+  // Busca artefatos reais do usuário
+  const { data: artifacts = [] } = await supabase
+    .from('artifacts')
+    .select('id, title, type, created_at')
+    .eq('user_id', user?.id)
+    .order('created_at', { ascending: false })
+    .limit(3)
+
+  // Busca progresso de curso real
+  const { data: progress } = await supabase
+    .from('course_progress')
+    .select(`
+      *,
+      course:courses(*)
+    `)
+    .eq('user_id', user?.id)
+    .order('updated_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  const currentCourse = progress ? {
+    title: progress.course?.title || 'Curso sem título',
+    module: 'Continuar onde parou',
+    progress: progress.progress_percentage || 0,
+    totalModules: progress.course?.lessons_count || 0,
+    completedModules: Math.floor(((progress.progress_percentage || 0) / 100) * (progress.course?.lessons_count || 0))
+  } : null
 
   return (
     <div className="min-h-screen pb-32 md:pb-10 pt-6 px-4 md:px-8 max-w-6xl mx-auto animate-in fade-in duration-500">
@@ -182,29 +209,39 @@ export default async function NewDashboardPage() {
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Em Progresso</h2>
               <Link href="/dashboard/odontoflix" className="text-xs text-primary hover:underline">Ver tudo</Link>
             </div>
-            <div className="rounded-2xl border border-border/40 bg-card p-4 space-y-4 hover:bg-muted/5 transition-colors">
-              <div className="flex items-start gap-4">
-                <div className="h-12 w-12 rounded-lg bg-cover bg-center shrink-0 border border-border/50 bg-muted flex items-center justify-center">
-                  <PlayCircle className="h-6 w-6 text-muted-foreground" />
+            {currentCourse ? (
+              <div className="rounded-2xl border border-border/40 bg-card p-4 space-y-4 hover:bg-muted/5 transition-colors">
+                <div className="flex items-start gap-4">
+                  <div className="h-12 w-12 rounded-lg bg-cover bg-center shrink-0 border border-border/50 bg-muted flex items-center justify-center">
+                    <PlayCircle className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                  <div className="flex-1 min-w-0 space-y-1">
+                    <h4 className="text-sm font-medium text-foreground truncate">{currentCourse.title}</h4>
+                    <p className="text-xs text-muted-foreground truncate">{currentCourse.module}</p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0 space-y-1">
-                  <h4 className="text-sm font-medium text-foreground truncate">{currentCourse.title}</h4>
-                  <p className="text-xs text-muted-foreground truncate">{currentCourse.module}</p>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>{currentCourse.progress}% concluído</span>
+                    {currentCourse.totalModules > 0 && (
+                      <span>{currentCourse.completedModules}/{currentCourse.totalModules} módulos</span>
+                    )}
+                  </div>
+                  <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                    <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${currentCourse.progress}%` }} />
+                  </div>
                 </div>
+                <button className="w-full py-2 text-xs font-medium text-center border border-border/50 rounded-lg hover:bg-muted transition-colors">
+                  Continuar Assistindo
+                </button>
               </div>
-              <div className="space-y-1.5">
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{currentCourse.progress}% concluído</span>
-                  <span>{currentCourse.completedModules}/{currentCourse.totalModules} módulos</span>
-                </div>
-                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-                  <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${currentCourse.progress}%` }} />
-                </div>
+            ) : (
+              <div className="rounded-2xl border border-dashed border-border/40 p-8 text-center space-y-2">
+                <PlayCircle className="h-8 w-8 text-muted-foreground/20 mx-auto" />
+                <p className="text-xs text-muted-foreground">Nenhum curso iniciado</p>
+                <Link href="/dashboard/odontoflix" className="text-xs text-primary block pt-2">Ver Cursos</Link>
               </div>
-              <button className="w-full py-2 text-xs font-medium text-center border border-border/50 rounded-lg hover:bg-muted transition-colors">
-                Continuar Assistindo
-              </button>
-            </div>
+            )}
           </section>
 
           {/* Recent Artifacts Widget */}
@@ -214,23 +251,37 @@ export default async function NewDashboardPage() {
               <Link href="/dashboard/biblioteca" className="text-xs text-primary hover:underline">Biblioteca</Link>
             </div>
             <div className="space-y-3">
-              {recentArtifacts.map((artifact) => (
-                <Link key={artifact.id} href={`/dashboard/biblioteca?id=${artifact.id}`} className="block group">
-                  <div className="flex items-center gap-3 p-3 rounded-xl border border-transparent hover:border-border/40 hover:bg-muted/10 transition-all">
-                    <div className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 border border-border/30 group-hover:border-primary/20 group-hover:text-primary transition-colors">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">{artifact.title}</h4>
-                      <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-                        <span>{artifact.type}</span>
-                        <span className="h-0.5 w-0.5 rounded-full bg-muted-foreground/50" />
-                        <span>{artifact.date}</span>
+              {artifacts.length > 0 ? (
+                artifacts.map((artifact) => {
+                  const typeInfo = ARTIFACT_TYPE_LABELS[artifact.type as string] || { label: artifact.type, icon: FileText }
+                  const ArtifactIcon = typeInfo.icon
+
+                  return (
+                    <Link key={artifact.id} href={`/dashboard/biblioteca?id=${artifact.id}`} className="block group">
+                      <div className="flex items-center gap-3 p-3 rounded-xl border border-transparent hover:border-border/40 hover:bg-muted/10 transition-all">
+                        <div className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 border border-border/30 group-hover:border-primary/20 group-hover:text-primary transition-colors">
+                          <ArtifactIcon className="h-4 w-4 text-muted-foreground" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">{artifact.title}</h4>
+                          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
+                            <span>{typeInfo.label}</span>
+                            <span className="h-0.5 w-0.5 rounded-full bg-muted-foreground/50" />
+                            <span>
+                              {formatDistanceToNow(new Date(artifact.created_at), { addSuffix: true, locale: ptBR })}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </Link>
-              ))}
+                    </Link>
+                  )
+                })
+              ) : (
+                <div className="p-8 text-center space-y-2 border border-dashed border-border/40 rounded-xl">
+                  <FileText className="h-8 w-8 text-muted-foreground/20 mx-auto" />
+                  <p className="text-xs text-muted-foreground">Nenhum artefato criado</p>
+                </div>
+              )}
               <Link href="/dashboard/biblioteca" className="block text-center py-2 text-xs text-muted-foreground hover:text-foreground border border-dashed border-border/40 rounded-xl hover:bg-muted/5 transition-colors">
                 Ver todos os arquivos
               </Link>

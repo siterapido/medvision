@@ -12,7 +12,7 @@ import { AgentSelector } from "@/components/agno-chat/agent-selector"
 import { ModernChatInput } from "@/components/dashboard/modern-chat-input"
 import { motion, AnimatePresence } from "framer-motion"
 import { listAgents, getAgentConfig, type AgentConfig } from "@/lib/ai/agents/config"
-import { getAgentUIConfig } from "@/lib/ai/agents/ui-config"
+import { getAgentUI } from "@/lib/ai/agents/ui-config"
 
 interface OdontoAIChatProps {
   userId?: string
@@ -131,11 +131,11 @@ export function OdontoAIChat({
                     className={cn(
                       "h-16 w-16 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-border/50 shadow-xl",
                       `bg-gradient-to-br transition-all duration-500`,
-                      getAgentUIConfig(selectedAgent.id).gradient
+                      getAgentUI(selectedAgent.id).gradient
                     )}
                   >
                     {(() => {
-                      const Icon = getAgentUIConfig(selectedAgent.id).icon
+                      const Icon = getAgentUI(selectedAgent.id).icon
                       return <Icon className="h-8 w-8 text-white" />
                     })()}
                   </motion.div>
@@ -148,7 +148,7 @@ export function OdontoAIChat({
                   animate={{ opacity: 0.5 }}
                   className={cn(
                     "absolute -inset-4 blur-2xl -z-10 rounded-full",
-                    `bg-gradient-to-br ${getAgentUIConfig(selectedAgent.id).gradient.replace('from-', 'to-')}`
+                    `bg-gradient-to-br ${getAgentUI(selectedAgent.id).gradient.replace('from-', 'to-')}`
                   )}
                 />
               </div>

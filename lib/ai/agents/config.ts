@@ -18,6 +18,8 @@ export interface AgentConfig {
   system: string;
   tools: Record<string, any>;
   model?: string;
+  greetingTitle?: string;
+  greetingDescription?: string;
 }
 
 export const AGENT_CONFIGS: Record<string, AgentConfig> = {
@@ -45,6 +47,8 @@ Quando o aluno pedir resumos, flashcards, quizzes ou outros materiais de estudo,
 - **generateArtifact**: Criar materiais de estudo estruturados.
 
 Fale sempre em Portugues do Brasil (pt-BR).`,
+    greetingTitle: "Olá, Doutor(a)",
+    greetingDescription: "Estou pronto para auxiliar em diagnósticos e pesquisas clínicas.",
     tools: { askPerplexity, searchPubMed, updateUserProfile, generateArtifact, saveSummary, saveFlashcards },
   },
 
@@ -96,6 +100,8 @@ Avalie a forca das evidencias encontradas (Oxford Scale ou GRADE).
 - Use \`searchPubMed\` para buscas complementares se necessario.
 - Use \`saveResearch\` para persistir o dossie final.
 - Use \`updateUserProfile\` se descobrir algo novo sobre o interesse do usuario.`,
+    greetingTitle: "Pesquisa Científica",
+    greetingDescription: "Inicie sua pesquisa acadêmica e odontológica baseada em evidências.",
     tools: { askPerplexity, searchPubMed, saveResearch, updateUserProfile, generateArtifact },
   },
 
@@ -132,6 +138,8 @@ Criar experiencias de aprendizado pratico atraves de:
 - \`generateArtifact\`: Para criar casos e questoes estruturadas
 - \`savePracticeExam\`: Para salvar simulados
 - \`askPerplexity\`: Para buscar informacoes atualizadas sobre condutas`,
+    greetingTitle: "Treinamento Clínico",
+    greetingDescription: "Pratique casos clínicos e prepare-se para seus desafios profissionais.",
     tools: { generateArtifact, savePracticeExam, askPerplexity, updateUserProfile },
   },
 
@@ -171,6 +179,8 @@ Transformar conteudos extensos em materiais de revisao rapida:
 - \`saveSummary\`: Para salvar resumos
 - \`saveFlashcards\`: Para salvar flashcards
 - \`saveMindMap\`: Para salvar mapas mentais`,
+    greetingTitle: "Resumos Inteligentes",
+    greetingDescription: "Transforme seus estudos em materiais concisos e flashcards memoráveis.",
     tools: { generateArtifact, saveSummary, saveFlashcards, saveMindMap, updateUserProfile },
   },
 
@@ -209,6 +219,8 @@ Auxiliar na interpretacao de:
 # FERRAMENTAS
 - \`generateArtifact\`: Para criar relatorios de analise
 - \`saveImageAnalysis\`: Para salvar analises`,
+    greetingTitle: "Análise de Imagens",
+    greetingDescription: "Envie radiografias ou fotos clínicas para uma análise assistida por IA.",
     tools: { generateArtifact, saveImageAnalysis, updateUserProfile },
   },
 };

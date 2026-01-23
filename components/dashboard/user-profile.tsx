@@ -17,12 +17,16 @@ interface UserProfileProps {
     name?: string | null
     email?: string | null
     avatar_url?: string | null
+    plan_type?: string | null
+    subscription_status?: string | null
   }
   collapsed?: boolean
 }
 
 export function UserProfile({ user, collapsed }: UserProfileProps) {
   const displayName = user?.name || user?.email?.split('@')[0] || 'Usuario'
+  const isPro = user?.plan_type?.toLowerCase() === 'pro' || user?.plan_type?.toLowerCase() === 'premium'
+
   const initials = displayName
     .split(' ')
     .map((n) => n[0])
@@ -64,10 +68,12 @@ export function UserProfile({ user, collapsed }: UserProfileProps) {
               <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-success border-2 border-sidebar" />
             </div>
 
-            {/* Pro Badge (Simulated) */}
-            <div className="mt-[-6px] z-10 bg-[#00A3A3] text-white text-[8px] font-bold px-1 rounded-sm border border-sidebar uppercase tracking-tight">
-              pro
-            </div>
+            {/* Pro Badge (Real data) */}
+            {isPro && (
+              <div className="mt-[-6px] z-10 bg-[#00A3A3] text-white text-[8px] font-bold px-1 rounded-sm border border-sidebar uppercase tracking-tight">
+                pro
+              </div>
+            )}
           </div>
 
           {/* User info */}
