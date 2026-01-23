@@ -10,24 +10,38 @@ import { Markdown } from "@/components/chat/markdown"
 import { ArtifactRenderer, Artifact } from "@/components/chat/artifact-renderer"
 import { AgentSelector } from "@/components/agno-chat/agent-selector"
 import { ModernChatInput } from "@/components/dashboard/modern-chat-input"
+import { motion, AnimatePresence } from "framer-motion"
 import { listAgents, getAgentConfig, type AgentConfig } from "@/lib/ai/agents/config"
+import { getAgentUIConfig } from "@/lib/ai/agents/ui-config"
 
 interface OdontoAIChatProps {
   userId?: string
   agentId?: string
+  initialMessages?: any[]
+  initialChatId?: string
 }
 
-export function OdontoAIChat({ userId, agentId = 'odonto-gpt' }: OdontoAIChatProps) {
+export function OdontoAIChat({
+  userId,
+  agentId = 'odonto-gpt',
+  initialMessages = [],
+  initialChatId
+}: OdontoAIChatProps) {
   const [input, setInput] = useState("")
   const [selectedAgent, setSelectedAgent] = useState<AgentConfig>(getAgentConfig(agentId))
   const agents = listAgents()
 
   const { messages, sendMessage, status, stop } = useChat<UIMessage>({
+    initialMessages: initialMessages.map(m => ({
+      ...m,
+      parts: m.parts || [{ type: 'text', text: m.content || "" }]
+    })) as UIMessage[],
     transport: new DefaultChatTransport({
       api: "/api/newchat",
       body: {
         agentId: selectedAgent.id,
-        userId
+        userId,
+        chatId: initialChatId
       },
     }),
     onError: (error) => {
@@ -106,12 +120,57 @@ export function OdontoAIChat({ userId, agentId = 'odonto-gpt' }: OdontoAIChatPro
 
           {messages.length === 0 ? (
             <div className="flex-1 flex flex-col items-center justify-center text-center p-8 space-y-8 animate-in fade-in zoom-in-95 duration-500">
-              <div className="h-16 w-16 rounded-2xl bg-muted/30 flex items-center justify-center backdrop-blur-sm border border-border/50">
-                <Sparkles className="h-8 w-8 text-muted-foreground/50" />
+              <div className="relative">
+                <AnimatePresence mode="wait">
+                  <motion.div
+                    key={selectedAgent.id}
+                    initial={{ scale: 0.8, opacity: 0, rotate: -10 }}
+                    animate={{ scale: 1, opacity: 1, rotate: 0 }}
+                    exit={{ scale: 0.8, opacity: 0, rotate: 10 }}
+                    transition={{ type: "spring", damping: 15, stiffness: 200 }}
+                    className={cn(
+                      "h-16 w-16 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-border/50 shadow-xl",
+                      `bg-gradient-to-br transition-all duration-500`,
+                      getAgentUIConfig(selectedAgent.id).gradient
+                    )}
+                  >
+                    {(() => {
+                      const Icon = getAgentUIConfig(selectedAgent.id).icon
+                      return <Icon className="h-8 w-8 text-white" />
+                    })()}
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Subtle outer glow that matches the agent theme */}
+                <motion.div
+                  key={`glow-${selectedAgent.id}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 0.5 }}
+                  className={cn(
+                    "absolute -inset-4 blur-2xl -z-10 rounded-full",
+                    `bg-gradient-to-br ${getAgentUIConfig(selectedAgent.id).gradient.replace('from-', 'to-')}`
+                  )}
+                />
               </div>
+
               <div className="space-y-2 max-w-md">
-                <h2 className="text-2xl font-heading font-medium text-foreground">Olá, Doutor(a)</h2>
-                <p className="text-muted-foreground">Estou pronto para auxiliar em diagnósticos e pesquisas clínicas.</p>
+                <motion.h2
+                  key={`title-${selectedAgent.id}`}
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  className="text-2xl font-heading font-medium text-foreground"
+                >
+                  {selectedAgent.greetingTitle || "Olá, Doutor(a)"}
+                </motion.h2>
+                <motion.p
+                  key={`desc-${selectedAgent.id}`}
+                  initial={{ y: 10, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ delay: 0.1 }}
+                  className="text-muted-foreground"
+                >
+                  {selectedAgent.greetingDescription || "Como posso ajudar você hoje?"}
+                </motion.p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full max-w-lg">
@@ -119,7 +178,7 @@ export function OdontoAIChat({ userId, agentId = 'odonto-gpt' }: OdontoAIChatPro
                   <button
                     key={s}
                     onClick={() => setInput(s)}
-                    className="px-4 py-3 text-sm text-left rounded-xl bg-card border border-border/50 hover:bg-muted/50 hover:border-primary/20 transition-all text-muted-foreground hover:text-foreground truncate"
+                    className="px-4 py-3 text-sm text-left rounded-xl bg-card border border-border/50 hover:bg-muted/50 hover:border-primary/20 transition-all text-muted-foreground hover:text-foreground truncate shadow-sm"
                   >
                     {s}
                   </button>
@@ -142,7 +201,7 @@ export function OdontoAIChat({ userId, agentId = 'odonto-gpt' }: OdontoAIChatPro
                       ? "px-5 py-3 rounded-[20px] bg-muted/40 text-foreground border border-border/10 rounded-br-sm" // User Bubble: Modern & Subtle
                       : "pl-0 pr-4 py-1 bg-transparent" // AI: Clean text, no bubble
                   )}>
-                    {message.parts.map((part: any, i: number) => {
+                    {(message.parts || [{ type: 'text', text: message.content || "" }]).map((part: any, i: number) => {
                       if (part.type === 'text') {
                         return <Markdown key={i}>{part.text}</Markdown>
                       }

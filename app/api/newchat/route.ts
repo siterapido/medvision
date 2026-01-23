@@ -16,6 +16,18 @@ import { ChatService } from '@/lib/ai/chat-service'
 export const runtime = 'edge'
 export const maxDuration = 60
 
+// Helper to extract text from UIMessage parts
+function extractTextFromMessage(message: any): string {
+  if (typeof message.content === 'string' && message.content) return message.content;
+  if (!message.parts) return '';
+  for (const part of message.parts) {
+    if ('text' in part && typeof part.text === 'string') {
+      return part.text;
+    }
+  }
+  return '';
+}
+
 export async function POST(req: Request) {
   try {
     const { messages, agentId, userId, chatId: incomingChatId } = await req.json()
@@ -42,7 +54,7 @@ export async function POST(req: Request) {
     // Pegar ultima mensagem do usuário para busca vetorial (futura) ou keyword
     // Tratamos apenas mensagens de texto simples por enquanto
     const lastUserMessageNode = messages.slice().reverse().find((m: any) => m.role === 'user')
-    const lastUserMessage = lastUserMessageNode?.content || ""
+    const lastUserMessage = lastUserMessageNode ? extractTextFromMessage(lastUserMessageNode) : ""
 
     let systemContext = agentConfig.system
 
@@ -70,13 +82,8 @@ IMPORTANTE:
       }
     }
 
-    // Converter mensagens
-    // Converter mensagens
-    // const modelMessages = await convertToModelMessages(messages)
-    const modelMessages = messages.map((m: any) => ({
-      role: m.role,
-      content: m.content
-    }))
+    // Converter mensagens usando o helper do AI SDK
+    const modelMessages = await convertToModelMessages(messages)
 
     // Identificar ID da sessão (novo ou existente)
     // Se o cliente nao mandou, vamos criar DEPOIS no onFinish para não criar lixo, 

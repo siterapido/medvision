@@ -1,6 +1,7 @@
 import { OdontoAIChat } from '@/components/dashboard/odonto-ai-chat'
 import { getSessionMessages } from '@/app/actions/chat'
-import { Message } from 'ai'
+import { UIMessage } from 'ai'
+import { createClient } from '@/lib/supabase/server'
 
 export const metadata = {
   title: 'Chat | Odonto GPT',
@@ -11,7 +12,10 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
   const resolvedSearchParams = await searchParams
   const id = resolvedSearchParams.id
 
-  let initialMessages: Message[] = []
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  let initialMessages: UIMessage[] = []
 
   if (id) {
     try {
@@ -29,5 +33,11 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
     }
   }
 
-  return <OdontoAIChat initialMessages={initialMessages} initialChatId={id} />
+  return (
+    <OdontoAIChat
+      initialMessages={initialMessages}
+      initialChatId={id}
+      userId={user?.id}
+    />
+  )
 }
