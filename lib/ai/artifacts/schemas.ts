@@ -158,6 +158,41 @@ export const MindMapArtifactSchema = BaseArtifactSchema.extend({
 export type MindMapArtifact = z.infer<typeof MindMapArtifactSchema>;
 
 // ========================================
+// CODE ARTIFACT
+// ========================================
+export const CodeArtifactSchema = BaseArtifactSchema.extend({
+  type: z.literal('code'),
+  language: z.string(),
+  code: z.string().default(''),
+  filename: z.string().optional(),
+});
+
+export type CodeArtifact = z.infer<typeof CodeArtifactSchema>;
+
+// ========================================
+// DIAGRAM ARTIFACT
+// ========================================
+export const DiagramArtifactSchema = BaseArtifactSchema.extend({
+  type: z.literal('diagram'),
+  diagramType: z.enum(['flowchart', 'sequence', 'mindmap', 'anatomy', 'mermaid']),
+  mermaidCode: z.string().optional(),
+  svgContent: z.string().optional(),
+});
+
+export type DiagramArtifact = z.infer<typeof DiagramArtifactSchema>;
+
+// ========================================
+// TEXT ARTIFACT
+// ========================================
+export const TextArtifactSchema = BaseArtifactSchema.extend({
+  type: z.literal('text'),
+  content: z.string().default(''),
+  format: z.enum(['plain', 'markdown', 'html']).default('markdown'),
+});
+
+export type TextArtifact = z.infer<typeof TextArtifactSchema>;
+
+// ========================================
 // UNION TYPE
 // ========================================
 export const ArtifactSchema = z.discriminatedUnion('type', [
@@ -167,6 +202,9 @@ export const ArtifactSchema = z.discriminatedUnion('type', [
   ResearchArtifactSchema,
   ReportArtifactSchema,
   MindMapArtifactSchema,
+  CodeArtifactSchema,
+  DiagramArtifactSchema,
+  TextArtifactSchema,
 ]);
 
 export type Artifact = z.infer<typeof ArtifactSchema>;
@@ -181,6 +219,9 @@ export const ArtifactTypes = {
   RESEARCH: 'research',
   REPORT: 'report',
   MINDMAP: 'mindmap',
+  CODE: 'code',
+  DIAGRAM: 'diagram',
+  TEXT: 'text',
 } as const;
 
 export type ArtifactType = (typeof ArtifactTypes)[keyof typeof ArtifactTypes];
@@ -280,6 +321,48 @@ export function createReportArtifact(
     content: '',
     findings: [],
     recommendations: [],
+    createdAt: new Date().toISOString(),
+    ...partial,
+  });
+}
+
+export function createCodeArtifact(
+  partial: Partial<CodeArtifact> & { title: string; language: string }
+): CodeArtifact {
+  return CodeArtifactSchema.parse({
+    id: createArtifactId(),
+    type: 'code',
+    stage: 'initializing',
+    progress: 0,
+    code: '',
+    createdAt: new Date().toISOString(),
+    ...partial,
+  });
+}
+
+export function createDiagramArtifact(
+  partial: Partial<DiagramArtifact> & { title: string; diagramType: string }
+): DiagramArtifact {
+  return DiagramArtifactSchema.parse({
+    id: createArtifactId(),
+    type: 'diagram',
+    stage: 'initializing',
+    progress: 0,
+    createdAt: new Date().toISOString(),
+    ...partial,
+  });
+}
+
+export function createTextArtifact(
+  partial: Partial<TextArtifact> & { title: string }
+): TextArtifact {
+  return TextArtifactSchema.parse({
+    id: createArtifactId(),
+    type: 'text',
+    stage: 'initializing',
+    progress: 0,
+    content: '',
+    format: 'markdown',
     createdAt: new Date().toISOString(),
     ...partial,
   });

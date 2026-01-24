@@ -9,6 +9,9 @@ import { FlashcardArtifact } from './flashcard-artifact'
 import { QuizArtifact } from './quiz-artifact'
 import { ResearchArtifact } from './research-artifact'
 import { ReportArtifact } from './report-artifact'
+import { MermaidDiagram } from './mermaid-diagram'
+import { CodeExecutor } from './code-executor'
+import { TextEditor } from './text-editor'
 import { cn } from '@/lib/utils'
 import { FileText, AlertCircle } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
@@ -21,7 +24,14 @@ interface ArtifactRendererProps {
 export function ArtifactRenderer({ artifact, className }: ArtifactRendererProps) {
   switch (artifact.kind) {
     case 'code':
-      return <CodeArtifact artifact={artifact} className={className} />
+      return (
+        <div className="space-y-4">
+          <CodeArtifact artifact={artifact} className={className} />
+          {(artifact.language === 'javascript' || artifact.language === 'js' || artifact.language === 'python' || artifact.language === 'py') && (
+            <CodeExecutor code={artifact.code} language={artifact.language} />
+          )}
+        </div>
+      )
 
     case 'image':
       return <ImageArtifact artifact={artifact} className={className} />
@@ -46,54 +56,24 @@ export function ArtifactRenderer({ artifact, className }: ArtifactRendererProps)
 
     case 'text':
       return (
-        <div
-          className={cn(
-            'rounded-lg border border-border bg-card p-4',
-            'shadow-sm',
-            className
-          )}
-        >
-          {artifact.title && (
-            <div className="flex items-center gap-2 mb-3 pb-2 border-b border-border">
-              <FileText className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">{artifact.title}</span>
-            </div>
-          )}
-          {artifact.format === 'markdown' ? (
-            <div className="prose prose-sm dark:prose-invert max-w-none">
-              <ReactMarkdown>{artifact.content}</ReactMarkdown>
-            </div>
-          ) : (
-            <p className="text-sm text-foreground whitespace-pre-wrap">{artifact.content}</p>
-          )}
-        </div>
+        <TextEditor 
+          id={artifact.id} 
+          initialContent={artifact.content} 
+          title={artifact.title} 
+          format={artifact.format} 
+          className={className} 
+        />
       )
 
     case 'document':
       return (
-        <div
-          className={cn(
-            'rounded-lg border border-border bg-card overflow-hidden',
-            'shadow-sm',
-            className
-          )}
-        >
-          {artifact.title && (
-            <div className="flex items-center gap-2 px-4 py-2 bg-muted/50 border-b border-border">
-              <FileText className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">{artifact.title}</span>
-            </div>
-          )}
-          <div className="p-4 prose prose-sm dark:prose-invert max-w-none">
-            <ReactMarkdown>{artifact.content}</ReactMarkdown>
-            {artifact.sections?.map((section, index) => (
-              <div key={index} className="mt-4">
-                <h3>{section.title}</h3>
-                <ReactMarkdown>{section.content}</ReactMarkdown>
-              </div>
-            ))}
-          </div>
-        </div>
+        <TextEditor 
+          id={artifact.id} 
+          initialContent={artifact.content} 
+          title={artifact.title} 
+          format="markdown" 
+          className={className} 
+        />
       )
 
     case 'chart':
@@ -122,34 +102,19 @@ export function ArtifactRenderer({ artifact, className }: ArtifactRendererProps)
 
     case 'diagram':
       return (
-        <div
-          className={cn(
-            'rounded-lg border border-border bg-card p-4',
-            'shadow-sm',
-            className
+        <div className="space-y-4">
+          {artifact.mermaidCode && (
+            <MermaidDiagram code={artifact.mermaidCode} title={artifact.title} />
           )}
-        >
-          <div className="flex items-center gap-2 mb-3">
-            <span className="text-sm font-medium">{artifact.title || 'Diagrama'}</span>
-            <span className="text-xs text-muted-foreground">
-              ({artifact.diagramType})
-            </span>
-          </div>
-          {artifact.svgContent ? (
+          {artifact.svgContent && (
             <div
-              className="w-full"
+              className={cn(
+                'rounded-lg border border-border bg-card p-4 overflow-auto',
+                'shadow-sm',
+                className
+              )}
               dangerouslySetInnerHTML={{ __html: artifact.svgContent }}
             />
-          ) : artifact.mermaidCode ? (
-            <pre className="p-3 bg-muted/30 rounded-md text-sm overflow-x-auto">
-              <code>{artifact.mermaidCode}</code>
-            </pre>
-          ) : (
-            <div className="h-48 flex items-center justify-center bg-muted/30 rounded-md">
-              <p className="text-sm text-muted-foreground">
-                Nenhum conteúdo de diagrama disponível
-              </p>
-            </div>
           )}
         </div>
       )

@@ -18,7 +18,7 @@ import {
 import { openrouter } from '@/lib/ai/openrouter'
 import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
 import { getAgentArtifactTools } from '@/lib/ai/tools/artifact-tools'
-import { getAgentToolPreset, toolNeedsApproval } from '@/lib/ai/tools/registry'
+import { getAgentToolPreset, toolNeedsApproval, TOOL_REGISTRY } from '@/lib/ai/tools/registry'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
 import { runWithContext, createContext, type OdontoContext } from '@/lib/ai/context'
@@ -220,15 +220,6 @@ export async function POST(req: Request) {
     const modelId = agentConfig.model || 'google/gemini-2.0-flash-001'
     const toolPreset = getAgentToolPreset(agentId)
 
-    // Get artifact tools for this agent
-    const artifactTools = getAgentArtifactTools(agentId)
-
-    // Combine base tools with artifact tools
-    const tools = {
-      ...agentConfig.tools,
-      ...artifactTools,
-    }
-
     // --- CONTEXT INJECTION WITH MEMORY SYSTEM ---
     let systemPrompt = agentConfig.system
     let userProfile: {
@@ -293,15 +284,13 @@ export async function POST(req: Request) {
     }
 
     // Add artifact generation instructions
-    systemPrompt += `\n\n# GERACAO DE ARTIFACTS
-Quando o aluno pedir materiais de estudo, voce DEVE usar as ferramentas de artifact disponiveis:
-- createSummary: Para criar resumos estruturados
-- createFlashcards: Para criar decks de flashcards
-- createQuiz: Para criar simulados e quizzes
-- createResearch: Para criar dossies de pesquisa
-- createReport: Para criar laudos de analise de imagem
+    systemPrompt += `\n\n# GERACAO DE ARTIFACTS (ODONTO GPT)
+Você é um tutor de Odontologia altamente qualificado. Quando o aluno pedir um resumo, síntese ou revisão sobre um tópico, você DEVE usar a ferramenta 'createDocument'.
 
-IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi criado e aparecera no chat.`
+Tipo de Artifact suportado no momento:
+- 'summary': Resumos de matérias, capítulos de livros ou revisões bibliográficas. Inclua pontos-chave claros e um texto bem estruturado em markdown.
+
+IMPORTANTE: Sempre que o conteúdo for um resumo ou explicação estruturada, use 'createDocument' com kind='summary'. Isso permite que o aluno visualize o material em uma janela dedicada ao lado do chat. Informe ao aluno que o resumo foi criado.`
 
     // Map agentId to allowed agent_type in DB
     let dbAgentType = 'qa'
@@ -367,14 +356,22 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
       metadata: {},
     })
 
+    // Legacy support (still available via tool merger)
+    const artifactTools = getAgentArtifactTools(agentId)
+    const unifiedTools = {
+      createDocument: TOOL_REGISTRY.createDocument.tool,
+      updateDocument: TOOL_REGISTRY.updateDocument.tool,
+    }
+
+    // Combine base tools with artifact tools
+    const tools = {
+      ...agentConfig.tools,
+      ...artifactTools,
+      ...unifiedTools,
+    }
+
     // Sanitizar mensagens antes de converter (AI SDK v6 fix)
     const sanitizedMessages = sanitizeUIMessages(messages)
-
-    if (sanitizedMessages.length !== messages.length) {
-      console.warn(
-        `[Chat] Sanitizacao removeu ${messages.length - sanitizedMessages.length} mensagens invalidas`
-      )
-    }
 
     // Convert UI messages to model messages
     const modelMessages = await convertToModelMessages(sanitizedMessages)
@@ -389,7 +386,7 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
         model: openrouter(modelId) as any,
         system: systemPrompt,
         messages: modelMessages,
-        tools,
+        tools: tools as any,
         maxSteps: toolPreset.maxSteps,
         temperature: 0.1,
         maxTokens: 4000,
@@ -407,14 +404,13 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
           }
 
           // Return undefined to continue, or return { skipToolExecution: true } to require approval
-          // For now, we allow execution but tools will be marked in the UI
           return undefined
         },
 
         // Called when each step finishes
-        onStepFinish: async ({ stepType, text, toolCalls, toolResults }) => {
-          if (stepType === 'tool-result' && toolResults && toolResults.length > 0) {
-            console.log(`[Chat] Tool results:`, toolResults.map(tr => tr.toolName).join(', '))
+        onStepFinish: (step) => {
+          if (step.stepType === 'tool-result' && step.toolResults && step.toolResults.length > 0) {
+            console.log(`[Chat] Tool results:`, step.toolResults.map((tr: any) => tr.toolName).join(', '))
           }
         },
       })
@@ -426,40 +422,36 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
       sendFinish: true,
       consumeSseStream: consumeStream, // Enables proper abort handling
 
-      onFinish: async ({ text, finishReason, usage, isAborted }) => {
-        if (isAborted) {
-          console.log('[Chat] Stream was aborted by client')
-          return
-        }
+      onFinish: async (response) => {
+        const { responseMessage } = response
+        if (responseMessage && responseMessage.parts) {
+          const textPart = responseMessage.parts.find(p => p.type === 'text')
+          const text = typeof textPart === 'object' && 'text' in textPart ? textPart.text : ''
+          
+          if (currentSessionId && text) {
+            try {
+              await adminSupabase.from('agent_messages').insert({
+                session_id: currentSessionId,
+                agent_id: agentId,
+                role: 'assistant',
+                content: text,
+              })
 
-        console.log(
-          `[Chat] Finished: ${finishReason}, Tokens: ${usage?.totalTokens || 'N/A'}`
-        )
+              // Extract and save facts from conversation (async)
+              const userMessageText = extractTextFromMessage(messages[messages.length - 1])
+              processConversation(
+                currentUserId!,
+                currentSessionId,
+                userMessageText,
+                text
+              ).catch(err => console.error('[Chat] Error extracting facts:', err))
 
-        // Persist assistant message
-        if (currentSessionId && text) {
-          try {
-            await adminSupabase.from('agent_messages').insert({
-              session_id: currentSessionId,
-              agent_id: agentId,
-              role: 'assistant',
-              content: text,
-            })
-
-            // Extract and save facts from conversation (async)
-            const userMessageText = extractTextFromMessage(messages[messages.length - 1])
-            processConversation(
-              currentUserId!,
-              currentSessionId,
-              userMessageText,
-              text
-            ).catch(err => console.error('[Chat] Error extracting facts:', err))
-
-            // Increment conversation count for progressive setup
-            memoryService.incrementConversationCount(currentUserId!)
-              .catch(err => console.error('[Chat] Error incrementing count:', err))
-          } catch (err) {
-            console.error('[Chat] Error persisting message:', err)
+              // Increment conversation count for progressive setup
+              memoryService.incrementConversationCount(currentUserId!)
+                .catch(err => console.error('[Chat] Error incrementing count:', err))
+            } catch (err) {
+              console.error('[Chat] Error persisting message:', err)
+            }
           }
         }
       },

@@ -52,9 +52,9 @@ export const updateDocumentTool = tool({
 - O historico de versoes e mantido automaticamente
 - Informe o 'id' e 'kind' do documento a atualizar`,
 
-  parameters: updateDocumentSchema,
+  inputSchema: updateDocumentSchema,
 
-  execute: async (params: UpdateDocumentParams): Promise<UpdateResult> => {
+  execute: async (params: UpdateDocumentParams) => {
     const ctx = getContextSafe()
     const { id, kind, title, description, content, metadata } = params
 

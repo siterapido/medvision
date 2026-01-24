@@ -12,6 +12,9 @@ import type {
   QuizArtifact,
   ResearchArtifact,
   ReportArtifact,
+  CodeArtifact,
+  DiagramArtifact,
+  TextArtifact,
 } from './schemas';
 
 // ========================================
@@ -160,6 +163,9 @@ import {
   createQuizArtifact,
   createResearchArtifact,
   createReportArtifact,
+  createCodeArtifact,
+  createDiagramArtifact,
+  createTextArtifact,
 } from './schemas';
 
 /**
@@ -214,6 +220,39 @@ export function streamReport(
   onComplete?: (artifact: ReportArtifact) => Promise<void>
 ): StreamingArtifact<ReportArtifact> {
   const initial = createReportArtifact(data);
+  return new StreamingArtifact(initial, onComplete);
+}
+
+/**
+ * Cria um StreamingArtifact para Code
+ */
+export function streamCode(
+  data: { title: string; language: string } & Partial<CodeArtifact>,
+  onComplete?: (artifact: CodeArtifact) => Promise<void>
+): StreamingArtifact<CodeArtifact> {
+  const initial = createCodeArtifact(data);
+  return new StreamingArtifact(initial, onComplete);
+}
+
+/**
+ * Cria um StreamingArtifact para Diagram
+ */
+export function streamDiagram(
+  data: { title: string; diagramType: string } & Partial<DiagramArtifact>,
+  onComplete?: (artifact: DiagramArtifact) => Promise<void>
+): StreamingArtifact<DiagramArtifact> {
+  const initial = createDiagramArtifact(data);
+  return new StreamingArtifact(initial, onComplete);
+}
+
+/**
+ * Cria um StreamingArtifact para Text
+ */
+export function streamText(
+  data: { title: string } & Partial<TextArtifact>,
+  onComplete?: (artifact: TextArtifact) => Promise<void>
+): StreamingArtifact<TextArtifact> {
+  const initial = createTextArtifact(data);
   return new StreamingArtifact(initial, onComplete);
 }
 

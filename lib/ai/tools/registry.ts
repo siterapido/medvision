@@ -7,8 +7,11 @@
  * - Tool categorization
  */
 
-import { tool, type CoreTool } from 'ai'
+import { tool } from 'ai'
 import { z } from 'zod'
+
+// Fallback type for CoreTool if not exported
+type CoreTool = any
 
 // Import existing tools
 import {
@@ -37,6 +40,8 @@ import {
   createQuizTool,
   createResearchTool,
   createReportTool,
+  createDocumentTool,
+  updateDocumentTool,
 } from './artifact-tools'
 
 // ========================================
@@ -69,6 +74,29 @@ export interface RegisteredTool {
 // ========================================
 
 export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
+  // ============ UNIFIED ARTIFACT TOOLS (PHASE 2) ============
+  createDocument: {
+    tool: createDocumentTool as any,
+    metadata: {
+      name: 'createDocument',
+      description: 'Cria um artifact (resumo, quiz, flashcards, codigo, diagramas, etc.)',
+      category: 'artifact',
+      needsApproval: false,
+      agents: ['odonto-gpt', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision'],
+    },
+  },
+
+  updateDocument: {
+    tool: updateDocumentTool as any,
+    metadata: {
+      name: 'updateDocument',
+      description: 'Atualiza um artifact existente',
+      category: 'artifact',
+      needsApproval: false,
+      agents: ['odonto-gpt', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision'],
+    },
+  },
+
   // ============ RESEARCH TOOLS ============
   askPerplexity: {
     tool: askPerplexity,

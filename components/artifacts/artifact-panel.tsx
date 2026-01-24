@@ -4,6 +4,7 @@ import { X, Maximize2, Minimize2, History, ChevronLeft, ChevronRight } from 'luc
 import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { ArtifactRenderer } from './artifact-renderer'
+import { VersionHistory } from './version-history'
 import { useArtifact } from '@/lib/contexts/artifact-context'
 import { cn } from '@/lib/utils'
 import { useState, useCallback, useMemo, type ReactNode } from 'react'
@@ -59,6 +60,7 @@ export function ArtifactPanel({
 }: ArtifactPanelProps) {
   const { currentArtifact, clearArtifact, artifacts, setArtifact } = useArtifact()
   const [isMaximized, setIsMaximized] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
 
   // Find current artifact index in the list
   const currentIndex = useMemo(() => {
@@ -77,6 +79,10 @@ export function ArtifactPanel({
 
   const handleToggleMaximize = useCallback(() => {
     setIsMaximized((prev) => !prev)
+  }, [])
+
+  const handleToggleHistory = useCallback(() => {
+    setShowHistory((prev) => !prev)
   }, [])
 
   const handleNavigatePrev = useCallback(() => {
@@ -169,11 +175,12 @@ export function ArtifactPanel({
           {/* Custom header actions */}
           {headerActions}
 
-          {/* History button (placeholder for versioning) */}
+          {/* History button */}
           <Button
-            variant="ghost"
+            variant={showHistory ? 'secondary' : 'ghost'}
             size="icon"
             className="h-7 w-7"
+            onClick={handleToggleHistory}
             title="Historico de versoes"
           >
             <History className="h-4 w-4" />
@@ -210,11 +217,20 @@ export function ArtifactPanel({
       </div>
 
       {/* Content */}
-      <ScrollArea className="flex-1">
-        <div className="p-4">
-          <ArtifactRenderer artifact={currentArtifact} />
-        </div>
-      </ScrollArea>
+      <div className="flex-1 overflow-hidden">
+        {showHistory ? (
+          <VersionHistory 
+            artifactId={currentArtifact.id} 
+            onClose={() => setShowHistory(false)} 
+          />
+        ) : (
+          <ScrollArea className="h-full">
+            <div className="p-4">
+              <ArtifactRenderer artifact={currentArtifact} />
+            </div>
+          </ScrollArea>
+        )}
+      </div>
     </div>
   )
 }

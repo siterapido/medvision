@@ -18,6 +18,9 @@ import {
   Sparkles,
   Brain,
   Zap,
+  Code,
+  Layout,
+  Type,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -225,6 +228,112 @@ export function ReportStreamingSkeleton({ title, className }: StreamingComponent
 }
 
 /**
+ * Loading skeleton for code
+ */
+export function CodeStreamingSkeleton({ title, className }: StreamingComponentProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        'rounded-lg border border-orange-500/20 bg-gradient-to-br from-card to-orange-500/5 p-4',
+        className
+      )}
+    >
+      <div className="flex items-center gap-3 mb-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-500/10">
+          <Code className="h-5 w-5 text-orange-500 animate-pulse" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h4 className="font-medium text-sm">{title || 'Escrevendo Código...'}</h4>
+            <Loader2 className="h-3 w-3 animate-spin text-orange-500" />
+          </div>
+          <p className="text-xs text-muted-foreground">Implementando lógica e algoritmos</p>
+        </div>
+      </div>
+      <div className="space-y-2 font-mono">
+        <div className="h-3 bg-muted/50 rounded animate-pulse w-full" />
+        <div className="h-3 bg-muted/50 rounded animate-pulse w-3/4 ml-4" />
+        <div className="h-3 bg-muted/50 rounded animate-pulse w-1/2 ml-4" />
+        <div className="h-3 bg-muted/50 rounded animate-pulse w-1/3" />
+      </div>
+    </motion.div>
+  )
+}
+
+/**
+ * Loading skeleton for diagrams
+ */
+export function DiagramStreamingSkeleton({ title, className }: StreamingComponentProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        'rounded-lg border border-cyan-500/20 bg-gradient-to-br from-card to-cyan-500/5 p-4',
+        className
+      )}
+    >
+      <div className="flex items-center gap-3 mb-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/10">
+          <Layout className="h-5 w-5 text-cyan-500 animate-pulse" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h4 className="font-medium text-sm">{title || 'Desenhando Diagrama...'}</h4>
+            <Loader2 className="h-3 w-3 animate-spin text-cyan-500" />
+          </div>
+          <p className="text-xs text-muted-foreground">Estruturando fluxo e conexões</p>
+        </div>
+      </div>
+      <div className="h-32 bg-muted/30 rounded-lg animate-pulse flex items-center justify-center border border-dashed">
+        <div className="flex gap-4">
+          <div className="w-8 h-8 rounded border-2 border-muted" />
+          <div className="w-12 h-px bg-muted self-center" />
+          <div className="w-8 h-8 rounded-full border-2 border-muted" />
+        </div>
+      </div>
+    </motion.div>
+  )
+}
+
+/**
+ * Loading skeleton for text
+ */
+export function TextStreamingSkeleton({ title, className }: StreamingComponentProps) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        'rounded-lg border border-slate-500/20 bg-gradient-to-br from-card to-slate-500/5 p-4',
+        className
+      )}
+    >
+      <div className="flex items-center gap-3 mb-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-500/10">
+          <Type className="h-5 w-5 text-slate-500 animate-pulse" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <h4 className="font-medium text-sm">{title || 'Escrevendo...'}</h4>
+            <Loader2 className="h-3 w-3 animate-spin text-slate-500" />
+          </div>
+          <p className="text-xs text-muted-foreground">Redigindo documento completo</p>
+        </div>
+      </div>
+      <div className="space-y-2">
+        <div className="h-2 bg-muted/50 rounded animate-pulse" />
+        <div className="h-2 bg-muted/50 rounded animate-pulse" />
+        <div className="h-2 bg-muted/50 rounded animate-pulse w-4/5" />
+        <div className="h-2 bg-muted/50 rounded animate-pulse w-5/6" />
+      </div>
+    </motion.div>
+  )
+}
+
+/**
  * Generic thinking indicator
  */
 export function ThinkingIndicator({ className }: { className?: string }) {
@@ -318,6 +427,9 @@ export const streamableComponents = {
   quiz: QuizStreamingSkeleton,
   research: ResearchStreamingSkeleton,
   report: ReportStreamingSkeleton,
+  code: CodeStreamingSkeleton,
+  diagram: DiagramStreamingSkeleton,
+  text: TextStreamingSkeleton,
 }
 
 /**
@@ -338,6 +450,18 @@ export function getStreamingComponent(toolName: string) {
   }
   if (toolName.includes('report') || toolName.includes('Report')) {
     return ReportStreamingSkeleton
+  }
+  if (toolName.includes('code') || toolName.includes('Code')) {
+    return CodeStreamingSkeleton
+  }
+  if (toolName.includes('diagram') || toolName.includes('Diagram')) {
+    return DiagramStreamingSkeleton
+  }
+  if (toolName.includes('text') || toolName.includes('Text')) {
+    return TextStreamingSkeleton
+  }
+  if (toolName === 'createDocument' || toolName === 'updateDocument') {
+    return ThinkingIndicator // Default for unified tool if kind not known yet
   }
   return null
 }

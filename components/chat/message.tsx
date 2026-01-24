@@ -15,6 +15,7 @@ import { SparklesIcon, LoaderIcon } from './icons'
 import { Markdown } from './markdown'
 import {
   ArtifactRenderer,
+  InteractiveArtifact,
   type Artifact,
   createCodeArtifact,
   createSummaryArtifact,
@@ -72,7 +73,13 @@ function renderToolPart(part: any, key: string) {
     // Try to render as artifact
     const artifact = parseToolOutputAsArtifact(toolName, output, input)
     if (artifact) {
-      return <ArtifactRenderer key={key} artifact={artifact} className="mt-2" />
+      return (
+        <InteractiveArtifact 
+          key={key} 
+          artifact={artifact} 
+          className="mt-2" 
+        />
+      )
     }
 
     // Fallback: render generic tool output
@@ -110,6 +117,32 @@ function parseToolOutputAsArtifact(
   input: any
 ): Artifact | null {
   if (!output) return null
+
+  // Unified Tool Handler (createDocument)
+  if (toolName === 'createDocument') {
+    const kind = output.kind || input?.kind
+    const base = {
+      id: output.id || input?.id || `art-${Date.now()}`,
+      title: output.title || input?.title || 'Documento',
+      createdAt: new Date(),
+    }
+
+    switch (kind) {
+      case 'summary':
+        return createSummaryArtifact({ 
+          id: base.id,
+          title: base.title,
+          content: output.content, 
+          keyPoints: output.keyPoints, 
+          topic: output.topic 
+        })
+      default:
+        // Se o tipo não for summary (por enquanto), não renderiza como artifact
+        // ou renderiza um fallback se necessário.
+        // Dado que restringimos a tool para apenas 'summary', isso deve ser suficiente.
+        return null
+    }
+  }
 
   switch (toolName) {
     case 'createCode':

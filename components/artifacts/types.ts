@@ -242,6 +242,24 @@ export function createReportArtifact(data: Omit<ReportArtifact, 'id' | 'createdA
   }
 }
 
+export function createTextArtifact(data: Omit<TextArtifact, 'id' | 'createdAt' | 'kind'> & { id?: string }): TextArtifact {
+  return {
+    ...data,
+    kind: 'text',
+    id: data.id || `artifact-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    createdAt: new Date(),
+  }
+}
+
+export function createDiagramArtifact(data: Omit<DiagramArtifact, 'id' | 'createdAt' | 'kind'> & { id?: string }): DiagramArtifact {
+  return {
+    ...data,
+    kind: 'diagram',
+    id: data.id || `artifact-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    createdAt: new Date(),
+  }
+}
+
 // Type guard functions
 export function isCodeArtifact(artifact: Artifact): artifact is CodeArtifact {
   return artifact.kind === 'code'

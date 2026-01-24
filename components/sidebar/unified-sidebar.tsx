@@ -31,7 +31,9 @@ interface UnifiedSidebarProps {
 
 export function UnifiedSidebar({ user }: UnifiedSidebarProps) {
   const pathname = usePathname()
-  const isOnChat = pathname?.startsWith('/dashboard/chat')
+  // Show search and history on all dashboard pages, not just chat
+  // This ensures the sidebar doesn't change drastic layout when navigating
+  const showChatFeatures = true; // Always show in UnifiedSidebar which is used in Dashboard
   const { state } = useSidebar()
   const isCollapsed = state === 'collapsed'
 
@@ -59,7 +61,7 @@ export function UnifiedSidebar({ user }: UnifiedSidebarProps) {
       </div>
 
       {/* Search (only visible when on chat routes and expanded) */}
-      {isOnChat && !isCollapsed && (
+      {showChatFeatures && !isCollapsed && (
         <div className="px-3 pb-2">
           <SidebarSearch />
         </div>
@@ -67,10 +69,10 @@ export function UnifiedSidebar({ user }: UnifiedSidebarProps) {
 
       <SidebarContent className="sidebar-scrollbar">
         {/* Navigation Section */}
-        <SidebarNav role={user?.role} />
+        <SidebarNav />
 
         {/* Chat History Section (visible on chat routes, only when expanded) */}
-        {isOnChat && !isCollapsed && (
+        {showChatFeatures && !isCollapsed && (
           <SidebarChats userId={user?.id} />
         )}
       </SidebarContent>

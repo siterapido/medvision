@@ -22,7 +22,7 @@ const adminSupabase = createClient(
 // Tool para criar resumos
 export const createSummaryTool = tool({
   description: 'Cria um resumo estruturado sobre um tópico odontológico. Use quando o aluno pedir um resumo, síntese ou explicação organizada.',
-  parameters: z.object({
+  inputSchema: z.object({
     title: z.string().describe('Título do resumo'),
     content: z.string().describe('Conteúdo completo em markdown'),
     keyPoints: z.array(z.string()).describe('Lista de pontos-chave (3-5 itens)'),
@@ -75,7 +75,7 @@ export const createSummaryTool = tool({
 // Tool para criar flashcards
 export const createFlashcardsTool = tool({
   description: 'Cria um deck de flashcards para memorização. Use quando o aluno quiser estudar com cards de pergunta/resposta.',
-  parameters: z.object({
+  inputSchema: z.object({
     title: z.string().describe('Título do deck'),
     cards: z.array(z.object({
       front: z.string().describe('Pergunta ou termo'),
@@ -133,7 +133,7 @@ export const createFlashcardsTool = tool({
 // Tool para criar quiz/simulado
 export const createQuizTool = tool({
   description: 'Cria um simulado/quiz com questões de múltipla escolha. Use quando o aluno quiser praticar com questões.',
-  parameters: z.object({
+  inputSchema: z.object({
     title: z.string().describe('Título do simulado'),
     topic: z.string().describe('Tópico principal'),
     specialty: z.string().optional().describe('Especialidade (ex: Endodontia, Periodontia)'),
@@ -203,7 +203,7 @@ export const createQuizTool = tool({
 // Tool para criar dossiê de pesquisa
 export const createResearchTool = tool({
   description: 'Cria um dossiê de pesquisa científica com fontes e análise. Use após realizar pesquisa com askPerplexity ou searchPubMed.',
-  parameters: z.object({
+  inputSchema: z.object({
     title: z.string().describe('Título da pesquisa'),
     query: z.string().describe('Pergunta de pesquisa original'),
     content: z.string().describe('Conteúdo completo em markdown com análise'),
@@ -262,7 +262,7 @@ export const createResearchTool = tool({
 // Tool para criar laudo radiográfico
 export const createReportTool = tool({
   description: 'Cria um laudo de análise de imagem odontológica. Use após analisar radiografias ou fotos clínicas.',
-  parameters: z.object({
+  inputSchema: z.object({
     title: z.string().describe('Título do laudo'),
     examType: z.string().describe('Tipo de exame (Panorâmica, Periapical, CBCT, etc.)'),
     content: z.string().describe('Laudo completo em markdown'),
