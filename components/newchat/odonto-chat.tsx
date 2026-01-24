@@ -30,7 +30,7 @@ export function OdontoChat({ chatId, initialMessages, className }: OdontoChatPro
     id: chatId,
     messages: initialMessages,
     transport: new DefaultChatTransport({
-      api: '/api/newchat',
+      api: '/api/chat',
       body: { chatId },
     }),
   })

@@ -163,13 +163,14 @@ const { data } = await adminSupabase.from("users").select("*")
 ### AI Chat Integration
 
 ```typescript
-// Client-side streaming chat
+// Client-side streaming chat (rota unificada com autenticação)
 import { useChat } from '@ai-sdk/react'
 
 const { messages, input, handleSubmit } = useChat({
-  api: '/api/newchat',
+  api: '/api/chat', // Rota unificada - requer autenticação
   body: {
     agentId: 'odonto-gpt'
+    // userId é obtido automaticamente da sessão autenticada
   }
 })
 ```
@@ -181,8 +182,7 @@ const { messages, input, handleSubmit } = useChat({
 - `lib/auth/roles.ts` - Role resolution and helpers
 - `lib/supabase/server.ts` - Supabase client for Server Components
 - `lib/supabase/admin.ts` - Admin client (bypasses RLS)
-- `app/api/newchat/route.ts` - Main chat API endpoint
-- `app/api/chat/route.ts` - Legacy chat endpoint with persistence
+- `app/api/chat/route.ts` - **Rota unificada de chat** com autenticação, contexto e persistência
 - `app/actions/` - Server actions for mutations
 
 ### AI Configuration

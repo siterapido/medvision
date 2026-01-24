@@ -157,7 +157,7 @@ test.describe('Error Handling', () => {
     await page.goto('/dashboard/chat')
     
     // Intercept API and return error
-    await page.route('**/api/newchat', route => {
+    await page.route('**/api/chat', route => {
       route.fulfill({
         status: 500,
         body: JSON.stringify({ error: 'Internal Server Error' })

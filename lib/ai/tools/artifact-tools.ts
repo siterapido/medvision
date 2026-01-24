@@ -1,6 +1,14 @@
 import { tool } from 'ai'
 import { z } from 'zod'
 import { nanoid } from 'nanoid'
+import { createClient } from '@supabase/supabase-js'
+import { getContextSafe } from '@/lib/ai/artifacts'
+
+// Admin client para persistência (bypassa RLS)
+const adminSupabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 // Tool para criar resumos
 export const createSummaryTool = tool({
@@ -13,9 +21,12 @@ export const createSummaryTool = tool({
     tags: z.array(z.string()).optional().describe('Tags para categorização'),
   }),
   execute: async ({ title, content, keyPoints, topic, tags }) => {
-    return {
+    const artifactId = nanoid()
+    const ctx = getContextSafe()
+
+    const artifact = {
       type: 'summary' as const,
-      id: nanoid(),
+      id: artifactId,
       title,
       content,
       keyPoints,
@@ -23,6 +34,32 @@ export const createSummaryTool = tool({
       tags: tags || [],
       createdAt: new Date().toISOString(),
     }
+
+    // Auto-persistir se tiver contexto de usuário
+    if (ctx?.userId) {
+      try {
+        await adminSupabase.from('artifacts').insert({
+          id: artifactId,
+          user_id: ctx.userId,
+          title,
+          type: 'summary',
+          content: {
+            markdownContent: content,
+            keyPoints,
+            topic,
+            tags: tags || [],
+          },
+          description: `Resumo sobre ${topic}`,
+          ai_context: { agent: ctx.agentId || 'odonto-gpt', sessionId: ctx.sessionId },
+          metadata: { tags: tags || [] },
+        })
+        console.log(`[Artifact] Summary "${title}" saved for user ${ctx.userId}`)
+      } catch (err) {
+        console.error('[Artifact] Failed to persist summary:', err)
+      }
+    }
+
+    return artifact
   }
 })
 
@@ -39,19 +76,48 @@ export const createFlashcardsTool = tool({
     topic: z.string().describe('Tópico principal'),
   }),
   execute: async ({ title, cards, topic }) => {
-    return {
+    const artifactId = nanoid()
+    const ctx = getContextSafe()
+
+    const processedCards = cards.map((card, index) => ({
+      id: `card-${index + 1}`,
+      front: card.front,
+      back: card.back,
+      category: card.category,
+    }))
+
+    const artifact = {
       type: 'flashcards' as const,
-      id: nanoid(),
+      id: artifactId,
       title,
-      cards: cards.map((card, index) => ({
-        id: `card-${index + 1}`,
-        front: card.front,
-        back: card.back,
-        category: card.category,
-      })),
+      cards: processedCards,
       topic,
       createdAt: new Date().toISOString(),
     }
+
+    // Auto-persistir se tiver contexto de usuário
+    if (ctx?.userId) {
+      try {
+        await adminSupabase.from('artifacts').insert({
+          id: artifactId,
+          user_id: ctx.userId,
+          title,
+          type: 'flashcards',
+          content: {
+            topic,
+            cards: processedCards,
+          },
+          description: `Flashcards sobre ${topic}`,
+          ai_context: { agent: ctx.agentId || 'odonto-gpt', sessionId: ctx.sessionId },
+          metadata: { count: processedCards.length },
+        })
+        console.log(`[Artifact] Flashcards "${title}" saved for user ${ctx.userId}`)
+      } catch (err) {
+        console.error('[Artifact] Failed to persist flashcards:', err)
+      }
+    }
+
+    return artifact
   }
 })
 
@@ -73,25 +139,55 @@ export const createQuizTool = tool({
     })).min(3).max(10).describe('Lista de questões (3-10)'),
   }),
   execute: async ({ title, topic, specialty, questions }) => {
-    return {
+    const artifactId = nanoid()
+    const ctx = getContextSafe()
+
+    const processedQuestions = questions.map((q, qIndex) => ({
+      id: `q-${qIndex + 1}`,
+      text: q.text,
+      options: q.options.map((opt, optIndex) => ({
+        id: String.fromCharCode(65 + optIndex), // A, B, C, D, E
+        text: opt.text,
+        isCorrect: opt.isCorrect,
+      })),
+      explanation: q.explanation,
+      difficulty: q.difficulty,
+    }))
+
+    const artifact = {
       type: 'quiz' as const,
-      id: nanoid(),
+      id: artifactId,
       title,
       topic,
       specialty,
-      questions: questions.map((q, qIndex) => ({
-        id: `q-${qIndex + 1}`,
-        text: q.text,
-        options: q.options.map((opt, optIndex) => ({
-          id: String.fromCharCode(65 + optIndex), // A, B, C, D, E
-          text: opt.text,
-          isCorrect: opt.isCorrect,
-        })),
-        explanation: q.explanation,
-        difficulty: q.difficulty,
-      })),
+      questions: processedQuestions,
       createdAt: new Date().toISOString(),
     }
+
+    // Auto-persistir se tiver contexto de usuário
+    if (ctx?.userId) {
+      try {
+        await adminSupabase.from('artifacts').insert({
+          id: artifactId,
+          user_id: ctx.userId,
+          title,
+          type: 'exam', // quiz usa tipo 'exam' no banco
+          content: {
+            topic,
+            specialty,
+            questions: processedQuestions,
+          },
+          description: `Simulado de ${topic}`,
+          ai_context: { agent: ctx.agentId || 'odonto-practice', sessionId: ctx.sessionId },
+          metadata: { specialty, questionCount: processedQuestions.length },
+        })
+        console.log(`[Artifact] Quiz "${title}" saved for user ${ctx.userId}`)
+      } catch (err) {
+        console.error('[Artifact] Failed to persist quiz:', err)
+      }
+    }
+
+    return artifact
   }
 })
 
@@ -112,9 +208,12 @@ export const createResearchTool = tool({
     methodology: z.string().optional().describe('Metodologia de busca utilizada'),
   }),
   execute: async ({ title, query, content, sources, methodology }) => {
-    return {
+    const artifactId = nanoid()
+    const ctx = getContextSafe()
+
+    const artifact = {
       type: 'research' as const,
-      id: nanoid(),
+      id: artifactId,
       title,
       query,
       content,
@@ -122,6 +221,32 @@ export const createResearchTool = tool({
       methodology,
       createdAt: new Date().toISOString(),
     }
+
+    // Auto-persistir se tiver contexto de usuário
+    if (ctx?.userId) {
+      try {
+        await adminSupabase.from('artifacts').insert({
+          id: artifactId,
+          user_id: ctx.userId,
+          title,
+          type: 'research',
+          content: {
+            query,
+            markdownContent: content,
+            sources,
+            methodology,
+          },
+          description: `Pesquisa sobre ${query || title}`,
+          ai_context: { agent: ctx.agentId || 'odonto-research', sessionId: ctx.sessionId },
+          metadata: { sourcesCount: sources.length, methodology },
+        })
+        console.log(`[Artifact] Research "${title}" saved for user ${ctx.userId}`)
+      } catch (err) {
+        console.error('[Artifact] Failed to persist research:', err)
+      }
+    }
+
+    return artifact
   }
 })
 
@@ -141,9 +266,12 @@ export const createReportTool = tool({
     }).optional().describe('Avaliação da qualidade técnica'),
   }),
   execute: async ({ title, examType, content, findings, recommendations, imageUrl, quality }) => {
-    return {
+    const artifactId = nanoid()
+    const ctx = getContextSafe()
+
+    const artifact = {
       type: 'report' as const,
-      id: nanoid(),
+      id: artifactId,
       title,
       examType,
       content,
@@ -153,6 +281,34 @@ export const createReportTool = tool({
       quality,
       createdAt: new Date().toISOString(),
     }
+
+    // Auto-persistir se tiver contexto de usuário
+    if (ctx?.userId) {
+      try {
+        await adminSupabase.from('artifacts').insert({
+          id: artifactId,
+          user_id: ctx.userId,
+          title,
+          type: 'report',
+          content: {
+            examType,
+            markdownContent: content,
+            findings,
+            recommendations,
+            imageUrl,
+            quality,
+          },
+          description: `Laudo de ${examType}`,
+          ai_context: { agent: ctx.agentId || 'odonto-vision', sessionId: ctx.sessionId },
+          metadata: { examType, findingsCount: findings.length },
+        })
+        console.log(`[Artifact] Report "${title}" saved for user ${ctx.userId}`)
+      } catch (err) {
+        console.error('[Artifact] Failed to persist report:', err)
+      }
+    }
+
+    return artifact
   }
 })
 

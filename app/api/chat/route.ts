@@ -3,17 +3,23 @@
  *
  * Usa AI SDK v6 com streamText e tool calling para gerar artifacts.
  * Endpoint: POST /api/chat
+ *
+ * ROTA UNIFICADA - Esta é a única rota de chat do sistema.
+ * Inclui: autenticação, contexto, persistência de artifacts, e streaming.
  */
 
 import { streamText, convertToModelMessages, UIMessage } from 'ai'
 import { openrouter } from '@/lib/ai/openrouter'
 import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
 import { getAgentArtifactTools } from '@/lib/ai/tools/artifact-tools'
+import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
+import { setContext, clearContext, type OdontoContext } from '@/lib/ai/artifacts'
 
 export const maxDuration = 60
 
-const supabase = createClient(
+// Admin client para operações de persistência (bypassa RLS)
+const adminSupabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
@@ -30,17 +36,31 @@ function extractTextFromMessage(message: UIMessage): string {
 }
 
 export async function POST(req: Request) {
+  let currentUserId: string | null = null
+
   try {
+    // 1. AUTENTICAÇÃO - Verificar sessão do usuário
+    const supabase = await createServerClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      console.warn('[Chat] Unauthorized request - no valid session')
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    currentUserId = user.id
+
     const {
       messages,
       agentId = 'odonto-gpt',
       sessionId,
-      userId,
     }: {
       messages: UIMessage[]
       agentId: string
       sessionId?: string
-      userId?: string
     } = await req.json()
 
     const agentConfig = AGENT_CONFIGS[agentId] || AGENT_CONFIGS['odonto-gpt']
@@ -57,31 +77,32 @@ export async function POST(req: Request) {
 
     // --- CONTEXT INJECTION & SETUP MODE ---
     let systemPrompt = agentConfig.system
+    let userProfile: { university?: string; semester?: string; specialty_interest?: string; level?: string } | null = null
 
-    if (userId) {
-      // Fetch user profile
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single()
+    // Fetch user profile usando admin client (bypassa RLS)
+    const { data: profile } = await adminSupabase
+      .from('profiles')
+      .select('*')
+      .eq('id', currentUserId)
+      .single()
 
-      if (profile) {
-        // 1. Inject Context
-        const contextParts = []
-        if (profile.university) contextParts.push(`Universidade: ${profile.university}`)
-        if (profile.semester) contextParts.push(`Semestre/Fase: ${profile.semester}`)
-        if (profile.level) contextParts.push(`Nível: ${profile.level}`)
-        if (profile.specialty_interest) contextParts.push(`Interesse: ${profile.specialty_interest}`)
+    if (profile) {
+      userProfile = profile
 
-        if (contextParts.length > 0) {
-          systemPrompt += `\n\n# CONTEXTO DO ALUNO (PRIORITÁRIO)\n${contextParts.join('\n')}\nAdapte sua linguagem e profundidade para este perfil.`
-        }
+      // 1. Inject Context
+      const contextParts = []
+      if (profile.university) contextParts.push(`Universidade: ${profile.university}`)
+      if (profile.semester) contextParts.push(`Semestre/Fase: ${profile.semester}`)
+      if (profile.level) contextParts.push(`Nível: ${profile.level}`)
+      if (profile.specialty_interest) contextParts.push(`Interesse: ${profile.specialty_interest}`)
 
-        // 2. Setup Mode Trigger
-        if (agentId === 'odonto-gpt' && (!profile.semester || !profile.university)) {
-          systemPrompt += `\n\n# MODO SETUP ATIVO (MISSING INFO)\nVocê percebeu que não sabe o semestre ou universidade do aluno.\nNo início da sua resposta, pergunte casualmente: "A propósito, em que semestre e faculdade você está? Assim posso calibrar melhor as explicações."\nUse a ferramenta \`updateUserProfile\` assim que ele responder.`
-        }
+      if (contextParts.length > 0) {
+        systemPrompt += `\n\n# CONTEXTO DO ALUNO (PRIORITÁRIO)\n${contextParts.join('\n')}\nAdapte sua linguagem e profundidade para este perfil.`
+      }
+
+      // 2. Setup Mode Trigger
+      if (agentId === 'odonto-gpt' && (!profile.semester || !profile.university)) {
+        systemPrompt += `\n\n# MODO SETUP ATIVO (MISSING INFO)\nVocê percebeu que não sabe o semestre ou universidade do aluno.\nNo início da sua resposta, pergunte casualmente: "A propósito, em que semestre e faculdade você está? Assim posso calibrar melhor as explicações."\nUse a ferramenta \`updateUserProfile\` assim que ele responder.`
       }
     }
 
@@ -105,14 +126,14 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
     let currentSessionId = sessionId
 
     // Create session if needed
-    if (!currentSessionId && userId) {
+    if (!currentSessionId) {
       const lastMsg = messages[messages.length - 1]
       const titleContent = extractTextFromMessage(lastMsg) || 'Nova Conversa'
 
-      const { data: session } = await supabase
+      const { data: session } = await adminSupabase
         .from('agent_sessions')
         .insert({
-          user_id: userId,
+          user_id: currentUserId,
           agent_type: dbAgentType,
           metadata: { title: titleContent.substring(0, 50) },
         })
@@ -130,7 +151,7 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
       if (lastMsg.role === 'user') {
         const contentStr = extractTextFromMessage(lastMsg)
 
-        await supabase.from('agent_messages').insert({
+        await adminSupabase.from('agent_messages').insert({
           session_id: currentSessionId,
           agent_id: agentId,
           role: 'user',
@@ -138,6 +159,22 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
         })
       }
     }
+
+    // 2. INICIALIZAR CONTEXTO para as tools
+    const odontoContext: OdontoContext = {
+      userId: currentUserId,
+      sessionId: currentSessionId || '',
+      userProfile: {
+        university: userProfile?.university,
+        semester: userProfile?.semester,
+        specialty: userProfile?.specialty_interest,
+        level: userProfile?.level,
+      },
+      permissions: ['read', 'write', 'create_artifacts'],
+      agentId,
+      metadata: {},
+    }
+    setContext(odontoContext)
 
     // Convert UI messages to model messages
     const modelMessages = await convertToModelMessages(messages)
@@ -155,8 +192,9 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
       temperature: 0.1,
       maxTokens: 4000,
       onFinish: async (event) => {
+        // Persistir mensagem do assistente
         if (currentSessionId) {
-          await supabase.from('agent_messages').insert({
+          await adminSupabase.from('agent_messages').insert({
             session_id: currentSessionId,
             agent_id: agentId,
             role: 'assistant',
@@ -164,6 +202,10 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
             tool_calls: event.toolCalls as any,
           })
         }
+
+        // Limpar contexto após conclusão
+        clearContext()
+
         console.log(
           `[Chat] Finished: ${event.finishReason}, Tokens: ${event.usage?.totalTokens || 'N/A'}`
         )

@@ -22,7 +22,7 @@ interface ChatProps {
 export function Chat({
   id,
   initialMessages = [],
-  apiEndpoint = '/api/newchat',
+  apiEndpoint = '/api/chat',
 }: ChatProps) {
   const [input, setInput] = useState('')
 

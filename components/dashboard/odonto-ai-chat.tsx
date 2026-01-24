@@ -66,7 +66,7 @@ export function OdontoAIChat({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Use AI SDK chat hook
+  // Use AI SDK chat hook - usa a rota unificada /api/chat com autenticação
   const {
     messages,
     input = "",
@@ -78,13 +78,12 @@ export function OdontoAIChat({
     stop,
     setMessages,
   } = useChat({
-    api: '/api/newchat',
+    api: '/api/chat',
     id: chatId,
     initialMessages,
     body: {
       agentId: selectedAgent.id,
-      userId,
-      chatId,
+      // userId é obtido via sessão autenticada no servidor
     },
     onError: (error) => {
       console.error("[OdontoAIChat] Error:", error)
@@ -138,8 +137,7 @@ export function OdontoAIChat({
       submitChat(e, {
         body: {
           agentId: selectedAgent.id,
-          userId,
-          chatId,
+          // userId é obtido via sessão autenticada no servidor
         },
       })
       setAttachments(null)

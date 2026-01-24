@@ -38,7 +38,7 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
     const [isSaved, setIsSaved] = useState(false)
 
     const { messages, input, handleInputChange, handleSubmit, isLoading, setInput } = useChat({
-        api: "/api/newchat",
+        api: "/api/chat",
         body: {
             agentId: "odonto-research"
         }
