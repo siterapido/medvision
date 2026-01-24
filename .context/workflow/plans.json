@@ -1,14 +1,14 @@
 {
   "active": [
     {
-      "slug": "investigar-chat-bloqueado",
-      "path": "plans/investigar-chat-bloqueado.md",
-      "title": "Investigação: Chat Bloqueado para Envio de Mensagens",
-      "summary": "Investigar e resolver o problema que impede o envio de mensagens no chat do Odonto GPT (odontogpt.com/dashboard/chat)",
-      "linkedAt": "2026-01-24T10:54:46.380Z",
+      "slug": "refactor-chat-vercel-ai-chatbot",
+      "path": "plans/refactor-chat-vercel-ai-chatbot.md",
+      "title": "Refatoracao Completa do Chat baseado no Vercel AI Chatbot",
+      "summary": "Refazer totalmente o chat (interface e backend) de /dashboard/chat com base no repositorio vercel/ai-chatbot, incluindo nova arquitetura de componentes, streaming otimizado, artifacts, e sidebar com historico.",
+      "linkedAt": "2026-01-24T15:04:24.111Z",
       "status": "active"
     }
   ],
   "completed": [],
-  "primary": "investigar-chat-bloqueado"
+  "primary": "refactor-chat-vercel-ai-chatbot"
 }

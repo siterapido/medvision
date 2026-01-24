@@ -1,54 +1,37 @@
 project:
-  name: "investigar-chat-bloqueado"
-  scale: MEDIUM
-  started: "2026-01-24T10:54:40.672Z"
+  name: "refactor-chat-vercel-ai-chatbot"
+  scale: LARGE
+  started: "2026-01-24T15:04:17.515Z"
   current_phase: V
 
 phases:
   P:
-    status: filled
-    started_at: "2026-01-24T10:54:40.672Z"
-    completed_at: "2026-01-24T11:07:19.486Z"
+    status: completed
+    started_at: "2026-01-24T15:04:17.515Z"
+    completed_at: "2026-01-24T15:04:48.363Z"
   R:
-    status: filled
-    started_at: "2026-01-24T11:07:19.489Z"
-    completed_at: "2026-01-24T11:07:56.823Z"
+    status: completed
+    started_at: "2026-01-24T15:04:48.364Z"
+    completed_at: "2026-01-24T15:04:53.110Z"
   E:
     status: filled
-    started_at: "2026-01-24T11:07:56.825Z"
-    completed_at: "2026-01-24T11:11:24.019Z"
+    started_at: "2026-01-24T15:04:53.110Z"
+    completed_at: "2026-01-24T15:10:33.070Z"
   V:
-    status: completed
-    started_at: "2026-01-24T11:11:24.024Z"
-    completed_at: "2026-01-24T11:15:59.929Z"
-    outputs:
-      - path: "Build verificado com sucesso"
-        status: filled
-      - path: "Lint executado"
-        status: filled
-      - path: "Dois componentes corrigidos: OdontoAIChat e Chat"
-        status: filled
+    status: in_progress
+    started_at: "2026-01-24T15:10:33.078Z"
   C:
-    status: skipped
-    reason: "Not required for scale MEDIUM"
+    status: pending
 
 execution:
   history:
-    - timestamp: "2026-01-24T11:15:59.929Z"
+    - timestamp: "2026-01-24T15:10:33.078Z"
       phase: V
-      action: completed
-  last_activity: "2026-01-24T11:15:59.929Z"
-  resume_context: "Fase V (Validação) concluída"
-
-settings:
-  autonomous_mode: true
-  require_plan: true
-  require_approval: true
+      action: started
+  last_activity: "2026-01-24T15:10:33.078Z"
+  resume_context: "Fase V (Validação) em progresso"
 
 approval:
   plan_created: true
-  plan_approved: true
-  approved_by: "developer"
-  approved_at: "2026-01-24T11:07:52.502Z"
-  approval_notes: "Plano aprovado - API do AI SDK v3.x identificada, correção necessária no componente OdontoAIChat"
+  plan_approved: false
 

@@ -27,10 +27,13 @@ import {
 } from '@/components/artifacts'
 import { Code, Image, Table, FileText, Layers, Search, Lightbulb, CheckCircle, FlaskConical, ClipboardList } from 'lucide-react'
 import { getStreamingComponent, ToolExecutionIndicator } from './stream-components'
+import { MessageActions } from './message-actions'
 
 interface MessageProps {
   message: UIMessage
   isLoading?: boolean
+  onEdit?: (messageId: string) => void
+  onRegenerate?: () => void
 }
 
 // Map tool names to artifact rendering
@@ -291,7 +294,13 @@ function getToolIcon(toolName: string) {
   return <Lightbulb className={iconClass} />
 }
 
-export function Message({ message, isLoading }: MessageProps) {
+export function Message({ message, isLoading, onEdit, onRegenerate }: MessageProps) {
+  // Extract text content for copy action
+  const textContent = message.parts
+    ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text' && 'text' in p)
+    .map((p) => p.text)
+    .join('\n') || ''
+
   return (
     <div
       className="group/message fade-in w-full animate-in duration-200"
@@ -352,6 +361,18 @@ export function Message({ message, isLoading }: MessageProps) {
 
             return null
           })}
+
+          {/* Message Actions */}
+          {!isLoading && textContent && (
+            <MessageActions
+              messageId={message.id}
+              content={textContent}
+              role={message.role as 'user' | 'assistant'}
+              onEdit={onEdit}
+              onRegenerate={onRegenerate}
+              className="mt-1"
+            />
+          )}
         </div>
       </div>
     </div>

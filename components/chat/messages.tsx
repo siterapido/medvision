@@ -15,9 +15,20 @@ import { Greeting } from './greeting'
 interface MessagesProps {
   messages: UIMessage[]
   status: 'ready' | 'submitted' | 'streaming' | 'error'
+  userName?: string
+  onSuggestionClick?: (suggestion: string) => void
+  onEditMessage?: (messageId: string) => void
+  onRegenerate?: () => void
 }
 
-export function Messages({ messages, status }: MessagesProps) {
+export function Messages({
+  messages,
+  status,
+  userName,
+  onSuggestionClick,
+  onEditMessage,
+  onRegenerate,
+}: MessagesProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const endRef = useRef<HTMLDivElement>(null)
   const [isAtBottom, setIsAtBottom] = useState(true)
@@ -57,13 +68,17 @@ export function Messages({ messages, status }: MessagesProps) {
         ref={containerRef}
       >
         <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-4 px-2 py-4 md:gap-6 md:px-4">
-          {messages.length === 0 && <Greeting />}
+          {messages.length === 0 && (
+            <Greeting userName={userName} onSuggestionClick={onSuggestionClick} />
+          )}
 
           {messages.map((message, index) => (
             <Message
               key={message.id}
               message={message}
               isLoading={status === 'streaming' && messages.length - 1 === index}
+              onEdit={onEditMessage}
+              onRegenerate={message.role === 'assistant' && index === messages.length - 1 ? onRegenerate : undefined}
             />
           ))}
 
