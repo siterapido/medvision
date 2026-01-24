@@ -33,18 +33,37 @@ export function Chat({
   const [chatId] = useState(() => id || crypto.randomUUID())
 
   // Memoize transport to avoid recreation on every render
+  // Following vercel/ai-chatbot pattern: send only last message for normal requests
   const transport = useMemo(
     () =>
       new DefaultChatTransport({
         api: apiEndpoint,
-        prepareSendMessagesRequest: ({ id: reqId, messages: msgs }) => ({
-          body: {
-            id: reqId,
-            messages: msgs,
-            agentId,
-            sessionId: chatId,
-          },
-        }),
+        prepareSendMessagesRequest: ({ id: reqId, messages: msgs }) => {
+          const lastMessage = msgs.at(-1)
+
+          // Check if this is a tool approval continuation
+          const isToolApprovalContinuation =
+            lastMessage?.role !== 'user' ||
+            msgs.some((msg) =>
+              msg.parts?.some((part: any) => {
+                const state = part.state
+                return state === 'approval-responded' || state === 'output-denied'
+              })
+            )
+
+          return {
+            body: {
+              id: reqId,
+              // For tool approvals: send all messages
+              // For normal messages: send only the last message
+              ...(isToolApprovalContinuation
+                ? { messages: msgs }
+                : { message: lastMessage }),
+              agentId,
+              sessionId: chatId,
+            },
+          }
+        },
       }),
     [apiEndpoint, agentId, chatId]
   )

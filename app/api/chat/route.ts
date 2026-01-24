@@ -54,15 +54,23 @@ export async function POST(req: Request) {
 
     currentUserId = user.id
 
+    // Support both 'message' (single) and 'messages' (array) formats
+    // Following vercel/ai-chatbot pattern: normal requests send only last message
+    const body = await req.json()
     const {
-      messages,
+      message,
+      messages: messagesArray,
       agentId = 'odonto-gpt',
       sessionId,
     }: {
-      messages: UIMessage[]
+      message?: UIMessage
+      messages?: UIMessage[]
       agentId: string
       sessionId?: string
-    } = await req.json()
+    } = body
+
+    // Normalize to messages array
+    const messages: UIMessage[] = messagesArray || (message ? [message] : [])
 
     const agentConfig = AGENT_CONFIGS[agentId] || AGENT_CONFIGS['odonto-gpt']
     const modelId = agentConfig.model || 'google/gemini-2.0-flash-001'
