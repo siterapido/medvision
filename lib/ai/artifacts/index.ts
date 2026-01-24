@@ -8,7 +8,7 @@
 // Schemas Zod e tipos
 export * from './schemas';
 
-// Context management
+// Context management (client-safe)
 export {
   type OdontoContext,
   type UserProfile,
@@ -16,7 +16,6 @@ export {
   getContext,
   getContextSafe,
   clearContext,
-  initializeContext,
   createMinimalContext,
   hasPermission,
   getProfileInfo,
@@ -24,6 +23,9 @@ export {
   withContext,
   requireContext,
 } from './context';
+
+// NOTE: initializeContext is server-only and must be imported directly:
+// import { initializeContext } from '@/lib/ai/artifacts/context.server';
 
 // Streaming
 export {

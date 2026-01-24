@@ -1,14 +1,14 @@
 {
   "active": [
     {
-      "slug": "refactor-chat-vercel-ai-chatbot",
-      "path": "plans/refactor-chat-vercel-ai-chatbot.md",
-      "title": "Refatoracao Completa do Chat baseado no Vercel AI Chatbot",
-      "summary": "Refazer totalmente o chat (interface e backend) de /dashboard/chat com base no repositorio vercel/ai-chatbot, incluindo nova arquitetura de componentes, streaming otimizado, artifacts, e sidebar com historico.",
-      "linkedAt": "2026-01-24T15:04:24.111Z",
+      "slug": "perplexity-multimodal-input",
+      "path": "plans/perplexity-multimodal-input.md",
+      "title": "Redesign Multimodal Input — Estilo Perplexity com Agent Switcher",
+      "summary": "Redesenhar o componente `multimodal-input.tsx` inspirado na UI da Perplexity, com seletor de agentes integrado, garantindo texto escuro no tema claro seguindo a paleta do projeto.",
+      "linkedAt": "2026-01-24T21:05:48.635Z",
       "status": "active"
     }
   ],
   "completed": [],
-  "primary": "refactor-chat-vercel-ai-chatbot"
+  "primary": "perplexity-multimodal-input"
 }

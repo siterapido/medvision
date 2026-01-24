@@ -307,26 +307,26 @@ export function Message({ message, isLoading, onEdit, onRegenerate }: MessagePro
       data-role={message.role}
     >
       <div
-        className={cn('flex w-full items-start gap-2 md:gap-3', {
+        className={cn('flex w-full items-start gap-2 sm:gap-3', {
           'justify-end': message.role === 'user',
           'justify-start': message.role === 'assistant',
         })}
       >
-        {/* Avatar do assistente */}
+        {/* Avatar do assistente - smaller on mobile */}
         {message.role === 'assistant' && (
-          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
+          <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border sm:size-8">
             <SparklesIcon size={14} />
           </div>
         )}
 
         {/* Conteudo da mensagem */}
         <div
-          className={cn('flex flex-col', {
-            'gap-2 md:gap-4': message.parts?.some(
+          className={cn('flex min-w-0 flex-col', {
+            'gap-2 sm:gap-3 md:gap-4': message.parts?.some(
               (p) => p.type === 'text' && 'text' in p && p.text?.trim()
             ),
-            'w-full max-w-[calc(100%-3rem)]': message.role === 'assistant',
-            'max-w-[calc(100%-2.5rem)] sm:max-w-[min(fit-content,80%)]':
+            'w-full max-w-[calc(100%-2.25rem)] sm:max-w-[calc(100%-3rem)]': message.role === 'assistant',
+            'max-w-[85%] xs:max-w-[80%] sm:max-w-[min(fit-content,75%)]':
               message.role === 'user',
           })}
         >
@@ -337,10 +337,10 @@ export function Message({ message, isLoading, onEdit, onRegenerate }: MessagePro
               return (
                 <div key={key}>
                   <div
-                    className={cn('wrap-break-word rounded-2xl px-3 py-2', {
-                      'w-fit text-right text-primary-foreground bg-primary':
+                    className={cn('break-words rounded-2xl', {
+                      'w-fit px-3 py-2 text-right text-primary-foreground bg-primary text-sm sm:text-base':
                         message.role === 'user',
-                      'bg-transparent px-0 py-0 text-left':
+                      'bg-transparent text-left text-sm sm:text-base':
                         message.role === 'assistant',
                     })}
                   >
@@ -385,15 +385,15 @@ export function ThinkingMessage() {
       className="group/message fade-in w-full animate-in duration-300"
       data-role="assistant"
     >
-      <div className="flex items-start justify-start gap-3">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
+      <div className="flex items-start justify-start gap-2 sm:gap-3">
+        <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border sm:size-8">
           <div className="animate-pulse">
             <SparklesIcon size={14} />
           </div>
         </div>
 
-        <div className="flex w-full flex-col gap-2 md:gap-4">
-          <div className="flex items-center gap-1 p-0 text-muted-foreground text-sm">
+        <div className="flex w-full flex-col gap-2 sm:gap-3 md:gap-4">
+          <div className="flex items-center gap-1 p-0 text-muted-foreground text-xs sm:text-sm">
             <span className="animate-pulse">Pensando</span>
             <span className="inline-flex">
               <span className="animate-bounce [animation-delay:0ms]">.</span>

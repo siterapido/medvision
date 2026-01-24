@@ -45,11 +45,16 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set("x-pathname", request.nextUrl.pathname)
 
-  // Use a new response object with the modified headers
+  // Preserve existing cookies when creating new response with pathname header
+  const existingCookies = response.cookies.getAll()
   response = NextResponse.next({
     request: {
       headers: requestHeaders,
     },
+  })
+  // Re-apply cookies that were set during auth refresh
+  existingCookies.forEach((cookie) => {
+    response.cookies.set(cookie.name, cookie.value)
   })
 
   // Protected routes that require authentication

@@ -61,12 +61,15 @@ export function MultimodalInput({
     adjustHeight()
   }, [input, adjustHeight])
 
-  // Auto-focus on mount
+  // Auto-focus on mount (skip on mobile to avoid keyboard popup)
   useEffect(() => {
-    const timer = setTimeout(() => {
-      textareaRef.current?.focus()
-    }, 100)
-    return () => clearTimeout(timer)
+    const isMobile = window.matchMedia('(max-width: 640px)').matches
+    if (!isMobile) {
+      const timer = setTimeout(() => {
+        textareaRef.current?.focus()
+      }, 100)
+      return () => clearTimeout(timer)
+    }
   }, [])
 
   const [isListening, setIsListening] = useState(false)

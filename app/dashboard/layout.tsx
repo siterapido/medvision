@@ -1,9 +1,9 @@
 import type React from "react"
 import { redirect } from "next/navigation"
+import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
-import { Sidebar } from "@/components/dashboard/sidebar"
-import { MobileNav } from "@/components/dashboard/mobile-nav"
-import { cn } from "@/lib/utils"
+import { UnifiedSidebar } from "@/components/sidebar"
+import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 
 export default async function NewDashboardLayout({
   children,
@@ -20,6 +20,11 @@ export default async function NewDashboardLayout({
     redirect("/login")
   }
 
+  // Read sidebar state from cookies
+  const cookieStore = await cookies()
+  const sidebarState = cookieStore.get('sidebar_state')?.value
+  const defaultOpen = sidebarState !== 'false'
+
   // Get user profile data
   const { data: profile } = await supabase
     .from('profiles')
@@ -28,6 +33,7 @@ export default async function NewDashboardLayout({
     .single()
 
   const userData = {
+    id: user.id,
     name: profile?.full_name || user.user_metadata?.full_name || null,
     email: user.email,
     avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url || null,
@@ -36,16 +42,13 @@ export default async function NewDashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Sidebar user={userData} />
-      <MobileNav user={userData} />
-      {/* Main content area - adjusts based on sidebar state via CSS */}
-      <main className={cn(
-        "min-h-screen transition-all duration-300 ease-in-out",
-        "lg:ml-[72px] xl:ml-72" // Desktop: Sidebar width alignment (collapsed/expanded) - adjusted to match Sidebar
-      )}>
-        {children}
-      </main>
-    </div>
+    <SidebarProvider defaultOpen={defaultOpen}>
+      <UnifiedSidebar user={userData} />
+      <SidebarInset>
+        <main className="flex min-h-0 flex-1 flex-col">
+          {children}
+        </main>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }

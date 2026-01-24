@@ -1,21 +1,30 @@
 'use client'
 
 /**
- * Chat - Block Response Pattern (Non-Streaming)
+ * Chat - Streaming Pattern with useChat Hook
  *
- * Componente principal de chat usando respostas em bloco.
- * Usa fetch direto para a API com resposta JSON completa.
+ * Componente principal de chat usando AI SDK v6 useChat hook.
+ * Suporta streaming, tool approval, e artifacts.
  */
 
-import { UIMessage } from 'ai'
-import { useState, useCallback } from 'react'
+import { useChat } from '@ai-sdk/react'
+import {
+  DefaultChatTransport,
+  lastAssistantMessageIsCompleteWithToolCalls,
+} from 'ai'
+import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
 import { Messages } from './messages'
 import { MultimodalInput } from './multimodal-input'
+import { ToolApprovalDialog } from './tool-approval-dialog'
 
 interface ChatProps {
   id?: string
-  initialMessages?: UIMessage[]
+  initialMessages?: Array<{
+    id: string
+    role: 'user' | 'assistant'
+    parts: Array<{ type: string; text?: string; [key: string]: any }>
+  }>
   apiEndpoint?: string
   agentId?: string
   userName?: string
@@ -28,70 +37,81 @@ export function Chat({
   agentId = 'odonto-gpt',
   userName,
 }: ChatProps) {
-  const [input, setInput] = useState('')
-  const [messages, setMessages] = useState<UIMessage[]>(initialMessages)
-  const [status, setStatus] = useState<'ready' | 'submitted' | 'streaming' | 'error'>('ready')
   const [chatId] = useState(() => id || crypto.randomUUID())
-  const [sessionId, setSessionId] = useState<string | undefined>(id)
+  const [input, setInput] = useState('')
 
-  // Send message to API and get response
-  const sendMessage = useCallback(
-    async (userMessage: { role: 'user'; parts: Array<{ type: 'text'; text: string }> }) => {
-      const newUserMessage: UIMessage = {
-        id: crypto.randomUUID(),
-        role: 'user',
-        parts: userMessage.parts,
-      }
-
-      // Add user message to state
-      setMessages((prev) => [...prev, newUserMessage])
-      setStatus('submitted')
-
-      try {
-        const response = await fetch(apiEndpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: newUserMessage,
-            agentId,
-            sessionId,
-          }),
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}))
-          throw new Error(errorData.error || `HTTP ${response.status}`)
-        }
-
-        const data = await response.json()
-
-        // Update session ID if returned
-        if (data.sessionId && !sessionId) {
-          setSessionId(data.sessionId)
-        }
-
-        // Add assistant message to state
-        if (data.message) {
-          setMessages((prev) => [...prev, data.message])
-        }
-
-        setStatus('ready')
-        console.log('[Chat] Message complete:', data.message?.id)
-      } catch (error) {
-        console.error('[Chat] Error:', error)
-        setStatus('error')
-        toast.error('Erro no chat', {
-          description: error instanceof Error ? error.message : 'Erro desconhecido',
-        })
-        // Reset to ready after error
-        setTimeout(() => setStatus('ready'), 1000)
-      }
-    },
-    [apiEndpoint, agentId, sessionId]
+  // Create transport with session management
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: apiEndpoint,
+        body: {
+          agentId,
+          sessionId: id,
+        },
+      }),
+    [apiEndpoint, agentId, id]
   )
 
+  // useChat hook with streaming support
+  const {
+    messages,
+    status,
+    sendMessage,
+    addToolApprovalResponse,
+    stop,
+    reload,
+    error,
+  } = useChat({
+    id: chatId,
+    transport,
+    initialMessages: initialMessages as any,
+
+    // Auto-send when tool calls are complete
+    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+
+    // Handle errors
+    onError: (err) => {
+      console.error('[Chat] Error:', err)
+      toast.error('Erro no chat', {
+        description: err.message || 'Erro desconhecido',
+      })
+    },
+
+    // Handle finish
+    onFinish: (message) => {
+      console.log('[Chat] Message complete:', message.id)
+    },
+  })
+
+  // Find pending tool approvals
+  const pendingApproval = useMemo(() => {
+    for (const message of messages.slice().reverse()) {
+      if (message.role !== 'assistant' || !message.parts) continue
+
+      for (const part of message.parts) {
+        if (
+          typeof part === 'object' &&
+          'type' in part &&
+          typeof part.type === 'string' &&
+          part.type.startsWith('tool-') &&
+          'state' in part &&
+          part.state === 'approval-requested' &&
+          'approval' in part &&
+          part.approval
+        ) {
+          return {
+            toolName: part.type.replace('tool-', ''),
+            input: 'input' in part ? part.input : undefined,
+            approvalId: part.approval.id,
+          }
+        }
+      }
+    }
+    return null
+  }, [messages])
+
+  // Handle submit
   const handleSubmit = useCallback(
     (attachments?: File[]) => {
       if ((!input.trim() && !attachments?.length) || status !== 'ready') return
@@ -102,29 +122,30 @@ export function Chat({
         toast.info('Upload de arquivos em desenvolvimento')
       }
 
-      // Send message with proper UIMessage format (role + parts)
+      // Send message with proper UIMessage format
       sendMessage({
         role: 'user',
         parts: [{ type: 'text', text: input }],
-      })
+      } as any)
       setInput('')
     },
     [input, status, sendMessage]
   )
 
+  // Handle suggestion click
   const handleSuggestionClick = useCallback(
     (suggestion: string) => {
       if (status !== 'ready') return
 
-      // Send message immediately with proper UIMessage format
       sendMessage({
         role: 'user',
         parts: [{ type: 'text', text: suggestion }],
-      })
+      } as any)
     },
     [status, sendMessage]
   )
 
+  // Handle edit message
   const handleEditMessage = useCallback(
     (messageId: string) => {
       const message = messages.find((m) => m.id === messageId)
@@ -132,18 +153,13 @@ export function Chat({
         const textContent = message.parts
           ?.filter(
             (p): p is { type: 'text'; text: string } =>
-              p.type === 'text' && 'text' in p
+              typeof p === 'object' && p.type === 'text' && 'text' in p
           )
           .map((p) => p.text)
           .join('\n')
 
         if (textContent) {
           setInput(textContent)
-          // Remove messages from edited one onwards
-          const messageIndex = messages.findIndex((m) => m.id === messageId)
-          if (messageIndex >= 0) {
-            setMessages(messages.slice(0, messageIndex))
-          }
           toast.info('Editando mensagem')
         }
       }
@@ -151,55 +167,80 @@ export function Chat({
     [messages]
   )
 
+  // Handle regenerate
   const handleRegenerate = useCallback(() => {
-    // Remove last assistant message and resend the last user message
-    const lastUserMessageIndex = messages.map(m => m.role).lastIndexOf('user')
-    if (lastUserMessageIndex >= 0) {
-      const lastUserMessage = messages[lastUserMessageIndex]
-      const textContent = lastUserMessage.parts
-        ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text' && 'text' in p)
-        .map((p) => p.text)
-        .join('\n')
+    reload()
+    toast.info('Regenerando resposta...')
+  }, [reload])
 
-      if (textContent) {
-        // Remove all messages after the last user message
-        setMessages(messages.slice(0, lastUserMessageIndex))
-        // Resend the message
-        setTimeout(() => {
-          sendMessage({
-            role: 'user',
-            parts: [{ type: 'text', text: textContent }],
-          })
-        }, 100)
-        toast.info('Regenerando resposta...')
-      }
+  // Handle tool approval
+  const handleApprove = useCallback(() => {
+    if (pendingApproval) {
+      addToolApprovalResponse({
+        id: pendingApproval.approvalId,
+        approved: true,
+      })
+      toast.success('Acao aprovada')
     }
-  }, [messages, sendMessage])
+  }, [pendingApproval, addToolApprovalResponse])
 
-  // Stop function (no-op for non-streaming)
-  const stop = useCallback(() => {
-    // No-op for non-streaming
-  }, [])
+  // Handle tool rejection
+  const handleReject = useCallback(() => {
+    if (pendingApproval) {
+      addToolApprovalResponse({
+        id: pendingApproval.approvalId,
+        approved: false,
+      })
+      toast.info('Acao cancelada')
+    }
+  }, [pendingApproval, addToolApprovalResponse])
+
+  // Map status to component status
+  const componentStatus = useMemo(() => {
+    switch (status) {
+      case 'submitted':
+        return 'submitted'
+      case 'streaming':
+        return 'streaming'
+      case 'ready':
+        return 'ready'
+      default:
+        return error ? 'error' : 'ready'
+    }
+  }, [status, error])
 
   return (
-    <div className="flex h-full min-w-0 flex-col bg-background">
+    <div className="flex h-full min-h-0 min-w-0 flex-col bg-background">
       <Messages
-        messages={messages}
-        status={status}
+        messages={messages as any}
+        status={componentStatus}
         userName={userName}
         onSuggestionClick={handleSuggestionClick}
         onEditMessage={handleEditMessage}
         onRegenerate={handleRegenerate}
       />
 
-      <div className="mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
-        <MultimodalInput
-          input={input}
-          setInput={setInput}
-          status={status}
-          stop={stop}
-          onSubmit={handleSubmit}
+      {/* Tool Approval Dialog */}
+      {pendingApproval && (
+        <ToolApprovalDialog
+          toolName={pendingApproval.toolName}
+          input={pendingApproval.input}
+          onApprove={handleApprove}
+          onReject={handleReject}
         />
+      )}
+
+      {/* Input container - mobile-first with safe area for iOS */}
+      <div className="shrink-0 border-t bg-background px-2 pb-[env(safe-area-inset-bottom,8px)] pt-2 sm:px-4 sm:pb-4 sm:pt-3">
+        <div className="mx-auto w-full max-w-4xl">
+          <MultimodalInput
+            input={input}
+            setInput={setInput}
+            status={componentStatus}
+            stop={stop}
+            onSubmit={handleSubmit}
+          />
+        </div>
       </div>
     </div>
   )

@@ -78,6 +78,9 @@
 }
 
 @theme inline {
+  /* Custom breakpoint for extra small screens (mobile-first) */
+  --breakpoint-xs: 480px;
+
   --font-sans: 'Geist', 'Geist Fallback';
   --font-mono: 'Geist Mono', 'Geist Mono Fallback';
   --color-background: var(--background);
@@ -126,4 +129,57 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* Unified Sidebar Design Tokens */
+:root {
+  /* Sidebar specific tokens - Light mode */
+  --sidebar-width: 280px;
+  --sidebar-width-collapsed: 72px;
+  --sidebar-bg: #ffffff;
+  --sidebar-hover: rgba(0, 0, 0, 0.04);
+  --sidebar-active: rgba(8, 145, 178, 0.08);
+  --sidebar-glow: rgba(8, 145, 178, 0.1);
+  --sidebar-text-primary: #18181b;
+  --sidebar-text-secondary: #52525b;
+  --sidebar-text-tertiary: #71717a;
+}
+
+.dark {
+  /* Sidebar specific tokens - Dark mode (Tech Premium) */
+  --sidebar-bg: #0a0a0f;
+  --sidebar-hover: rgba(255, 255, 255, 0.04);
+  --sidebar-active: rgba(6, 182, 212, 0.1);
+  --sidebar-glow: rgba(6, 182, 212, 0.15);
+  --sidebar-glow-intense: rgba(6, 182, 212, 0.3);
+  --sidebar-text-primary: #f4f4f5;
+  --sidebar-text-secondary: #a1a1aa;
+  --sidebar-text-tertiary: #71717a;
+}
+
+/* Sidebar utility classes */
+.sidebar-glow {
+  box-shadow: 0 0 20px var(--sidebar-glow);
+}
+
+.sidebar-glow-intense:hover {
+  box-shadow: 0 0 30px var(--sidebar-glow-intense, var(--sidebar-glow));
+}
+
+/* Custom scrollbar for sidebar */
+.sidebar-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--sidebar-border);
+  border-radius: 2px;
+}
+
+.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: var(--sidebar-text-tertiary);
 }

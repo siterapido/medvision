@@ -1,14 +1,18 @@
 /**
  * Typed Context para o sistema de artefatos
  * Gerencia estado global durante execução de tools
+ *
+ * NOTE: This file is client-safe. Server-only functions are in context.server.ts
  */
-
-import { createClient } from '@/lib/supabase/server';
 
 // ========================================
 // CONTEXT TYPES
 // ========================================
 export interface UserProfile {
+  name?: string;
+  email?: string;
+  profession?: string;
+  cro?: string;
   university?: string;
   semester?: string;
   specialty?: string;
@@ -61,45 +65,6 @@ export function getContextSafe(): OdontoContext | null {
  */
 export function clearContext(): void {
   currentContext = null;
-}
-
-// ========================================
-// CONTEXT INITIALIZATION
-// ========================================
-
-/**
- * Inicializa o contexto com dados do usuário
- */
-export async function initializeContext(
-  userId: string,
-  sessionId: string,
-  agentId?: string
-): Promise<OdontoContext> {
-  const supabase = await createClient();
-
-  // Buscar perfil do usuário
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('university, semester, specialty_interest, level')
-    .eq('id', userId)
-    .single();
-
-  const context: OdontoContext = {
-    userId,
-    sessionId,
-    userProfile: {
-      university: profile?.university || undefined,
-      semester: profile?.semester || undefined,
-      specialty: profile?.specialty_interest || undefined,
-      level: profile?.level || undefined,
-    },
-    permissions: ['read', 'write', 'create_artifacts'],
-    agentId,
-    metadata: {},
-  };
-
-  setContext(context);
-  return context;
 }
 
 /**

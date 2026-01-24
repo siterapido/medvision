@@ -62,12 +62,13 @@ export function Messages({
   }, [messages, isAtBottom, scrollToBottom])
 
   return (
-    <div className="relative flex-1">
+    <div className="relative min-h-0 flex-1">
       <div
-        className="absolute inset-0 touch-pan-y overflow-y-auto"
+        className="absolute inset-0 overflow-y-auto overscroll-contain"
         ref={containerRef}
+        style={{ WebkitOverflowScrolling: 'touch' }}
       >
-        <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-4 px-2 py-4 md:gap-6 md:px-4">
+        <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-3 px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 md:gap-6">
           {messages.length === 0 && (
             <Greeting userName={userName} onSuggestionClick={onSuggestionClick} />
           )}
@@ -84,14 +85,14 @@ export function Messages({
 
           {status === 'submitted' && <ThinkingMessage />}
 
-          <div className="min-h-[24px] min-w-[24px] shrink-0" ref={endRef} />
+          <div className="min-h-6 shrink-0" ref={endRef} />
         </div>
       </div>
 
-      {/* Scroll to bottom button */}
+      {/* Scroll to bottom button - positioned for mobile visibility */}
       <button
         aria-label="Scroll to bottom"
-        className={`absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full border bg-background p-2 shadow-lg transition-all hover:bg-muted ${
+        className={`absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full border bg-background/95 p-2 shadow-lg backdrop-blur-sm transition-all active:scale-95 sm:bottom-4 ${
           isAtBottom
             ? 'pointer-events-none scale-0 opacity-0'
             : 'pointer-events-auto scale-100 opacity-100'
