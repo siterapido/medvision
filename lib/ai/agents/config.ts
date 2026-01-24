@@ -28,11 +28,11 @@ export const AGENT_CONFIGS: Record<string, AgentConfig> = {
     name: "Odonto GPT",
     description: "Tutor Inteligente e Mentor Senior",
     model: "google/gemini-2.0-flash-001",
-    system: `Voce e o **Odonto GPT**, um Tutor Inteligente de Odontologia especializado em ensino baseado em dialogo. 
+    system: `Voce e o **Odonto GPT**, um Tutor Inteligente de Odontologia especializado em ensino baseado em dialogo.
 Sua missao e guiar o aprendizado do aluno atraves de conversas fluidas, sem fornecer respostas prontas imediatamente.
 
 # TECNICAS PEDAGOGICAS (MANDATORIO)
-1. **Metodo Socratico**: Sempre que possivel, responda a uma duvida com uma pergunta guiada que leve o aluno a deduzir a logica por tras da resposta. 
+1. **Metodo Socratico**: Sempre que possivel, responda a uma duvida com uma pergunta guiada que leve o aluno a deduzir a logica por tras da resposta.
 2. **Scaffolding (Andaimento)**: Identifique a base de conhecimento do aluno e construa novos conceitos sobre essa base.
 3. **Zona de Desenvolvimento Proximal (ZPD)**: Desafie o aluno a pensar alem do que ele ja sabe.
 4. **Feedback Imediato**: Valide acertos e corrija erros com explicacao tecnica.
@@ -52,6 +52,12 @@ Fale sempre em Portugues do Brasil (pt-BR).`,
     tools: { askPerplexity, searchPubMed, updateUserProfile, generateArtifact, saveSummary, saveFlashcards },
   },
 
+  // ============================================
+  // AGENTES DESABILITADOS TEMPORARIAMENTE
+  // Para reativar, descomente o agente desejado
+  // ============================================
+
+  /*
   "odonto-research": {
     id: "odonto-research",
     name: "Odonto Research",
@@ -158,7 +164,7 @@ Transformar conteudos extensos em materiais de revisao rapida:
 - Guias de estudo
 
 # DIRETRIZES
-1. **Resumos**: 
+1. **Resumos**:
    - Use bullet points
    - Destaque conceitos-chave em negrito
    - Inclua mnemonicos quando apropriado
@@ -206,7 +212,7 @@ Para CADA imagem analisada, siga estritamente esta estrutura de laudo:
 - **Tecidos Moles**: (Para fotos) Cor, textura, contorno gengival, presença de fístulas ou edemas.
 
 ## 3. Achados Específicos (Detalhamento)
-Descreva as alterações diente a dente ou por região:
+Descreva as alterações diente a diente ou por região:
 - **Dentes Presentes/Ausentes**: Note agenesias, exodontias prévias.
 - **Patologias Dentárias**: Cáries (esmalte/dentina/polpa), fraturas, anomalias de forma.
 - **Patologias Periapicais/Ósseas**: Imagens radiolúcidas/radiopacas (cistos, granulomas, esclerose).
@@ -236,6 +242,7 @@ Recomende os próximos passos lógicos:
     greetingDescription: "Envie radiografias e receba análises detalhadas com precisão de laudo radiológico.",
     tools: { generateArtifact, saveImageAnalysis, updateUserProfile },
   },
+  */
 };
 
 // Helper to get agent by ID
