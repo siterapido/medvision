@@ -59,6 +59,7 @@ export function OdontoAIChat({
   const [selectedAgent, setSelectedAgent] = useState<AgentConfig>(getAgentConfig(agentId))
   const [attachments, setAttachments] = useState<FileList | null>(null)
   const [isTransitioning, setIsTransitioning] = useState(false)
+  const [input, setInput] = useState('')
   const agents = listAgents()
 
   const [chatId] = useState(() => initialChatId || crypto.randomUUID())
@@ -66,13 +67,11 @@ export function OdontoAIChat({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Use AI SDK chat hook - usa a rota unificada /api/chat com autenticação
+  // Use AI SDK v3.x chat hook - usa a rota unificada /api/chat com autenticação
   const {
     messages,
-    input = "",
-    setInput: setInputFromHook,
-    handleSubmit: submitChat,
-    isLoading,
+    sendMessage,
+    status,
     error,
     reload,
     stop,
@@ -83,7 +82,6 @@ export function OdontoAIChat({
     initialMessages,
     body: {
       agentId: selectedAgent.id,
-      // userId é obtido via sessão autenticada no servidor
     },
     onError: (error) => {
       console.error("[OdontoAIChat] Error:", error)
@@ -94,17 +92,8 @@ export function OdontoAIChat({
     },
   })
 
-  // Safe wrapper for setInput to prevent undefined issues
-  const setInput = useCallback((value: string) => {
-    if (typeof setInputFromHook === 'function') {
-      setInputFromHook(value)
-    } else {
-      // Only log once per component lifecycle to avoid spam
-      if (process.env.NODE_ENV === 'development') {
-        console.warn("[OdontoAIChat] setInput unavailable - useChat hook may not have initialized")
-      }
-    }
-  }, [setInputFromHook])
+  // Derive isLoading from status for compatibility
+  const isLoading = status === 'submitted' || status === 'streaming'
 
   // Auto-scroll
   useEffect(() => {
@@ -134,12 +123,16 @@ export function OdontoAIChat({
     if (e) e.preventDefault()
     const trimmedInput = (input || "").trim()
     if (trimmedInput && !isLoading) {
-      submitChat(e, {
-        body: {
-          agentId: selectedAgent.id,
-          // userId é obtido via sessão autenticada no servidor
-        },
-      })
+      // AI SDK v3.x: use sendMessage with text object and options
+      sendMessage(
+        { text: trimmedInput },
+        {
+          body: {
+            agentId: selectedAgent.id,
+          },
+        }
+      )
+      setInput('')
       setAttachments(null)
     }
   }

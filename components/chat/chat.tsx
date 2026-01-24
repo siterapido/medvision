@@ -38,10 +38,8 @@ export function Chat({
   const handleSubmit = () => {
     if (!input.trim() || status !== 'ready') return
 
-    sendMessage({
-      role: 'user',
-      parts: [{ type: 'text', text: input }],
-    })
+    // AI SDK v3.x: sendMessage takes { text: string } as first argument
+    sendMessage({ text: input })
 
     setInput('')
   }
