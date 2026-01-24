@@ -5,6 +5,7 @@
  */
 
 export { Chat } from './chat'
+export { ChatWithArtifactPanel } from './chat-with-artifact-panel'
 export { Messages } from './messages'
 export { Message, ThinkingMessage } from './message'
 export { MessageActions } from './message-actions'

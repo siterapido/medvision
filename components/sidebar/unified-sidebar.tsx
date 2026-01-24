@@ -25,6 +25,7 @@ interface UnifiedSidebarProps {
     avatar_url?: string | null
     plan_type?: string | null
     subscription_status?: string | null
+    role?: string | null
   }
 }
 
@@ -66,7 +67,7 @@ export function UnifiedSidebar({ user }: UnifiedSidebarProps) {
 
       <SidebarContent className="sidebar-scrollbar">
         {/* Navigation Section */}
-        <SidebarNav />
+        <SidebarNav role={user?.role} />
 
         {/* Chat History Section (visible on chat routes, only when expanded) */}
         {isOnChat && !isCollapsed && (

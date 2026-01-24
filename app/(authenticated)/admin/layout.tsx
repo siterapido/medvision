@@ -1,5 +1,4 @@
 import type React from "react"
-import { AdminLayoutShell } from "@/components/admin/shell"
 import { redirect } from "next/navigation"
 import { createClient } from "@/lib/supabase/server"
 import { resolveUserRole } from "@/lib/auth/roles"
@@ -29,9 +28,9 @@ export default async function AdminLayout({
     }
 
     return (
-      <AdminLayoutShell user={user} profile={profile}>
+      <>
         {children}
-      </AdminLayoutShell>
+      </>
     )
   } catch {
     // Fallback: se houver erro ao criar cliente, redireciona para login

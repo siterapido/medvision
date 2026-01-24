@@ -4,11 +4,20 @@ import { nanoid } from 'nanoid'
 import { createClient } from '@supabase/supabase-js'
 import { getContextSafe } from '@/lib/ai/artifacts'
 
+// Unified tools (Phase 2)
+export { createDocumentTool } from './create-document'
+export { updateDocumentTool } from './update-document'
+
 // Admin client para persistência (bypassa RLS)
 const adminSupabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
+// =====================================
+// LEGACY TOOLS (deprecated, use createDocument instead)
+// Mantidos para backward compatibility
+// =====================================
 
 // Tool para criar resumos
 export const createSummaryTool = tool({
@@ -312,7 +321,7 @@ export const createReportTool = tool({
   }
 })
 
-// Mapeamento de tools por agente
+// Mapeamento de tools por agente (LEGACY - usar AGENT_UNIFIED_TOOLS para novos agentes)
 export const AGENT_ARTIFACT_TOOLS = {
   'odonto-gpt': {
     createSummary: createSummaryTool,
@@ -335,6 +344,35 @@ export const AGENT_ARTIFACT_TOOLS = {
 
 export type AgentToolsMap = typeof AGENT_ARTIFACT_TOOLS
 
+/**
+ * Get artifact tools for an agent (legacy)
+ * @deprecated Use getUnifiedArtifactTools instead
+ */
 export function getAgentArtifactTools(agentId: string) {
   return AGENT_ARTIFACT_TOOLS[agentId as keyof typeof AGENT_ARTIFACT_TOOLS] || {}
+}
+
+// =====================================
+// UNIFIED TOOLS (Phase 2+)
+// Single createDocument tool that handles all artifact types
+// =====================================
+
+import { createDocumentTool } from './create-document'
+import { updateDocumentTool } from './update-document'
+
+/**
+ * Unified artifact tools - all agents use the same tools
+ * The createDocument tool handles all artifact types via 'kind' parameter
+ */
+export const UNIFIED_ARTIFACT_TOOLS = {
+  createDocument: createDocumentTool,
+  updateDocument: updateDocumentTool,
+} as const
+
+/**
+ * Get unified artifact tools for any agent
+ * This replaces getAgentArtifactTools for new implementations
+ */
+export function getUnifiedArtifactTools() {
+  return UNIFIED_ARTIFACT_TOOLS
 }
