@@ -72,7 +72,11 @@ export function Chat({
         toast.info('Upload de arquivos em desenvolvimento')
       }
 
-      sendMessage({ text: input })
+      // Send message with proper UIMessage format (role + parts)
+      sendMessage({
+        role: 'user',
+        parts: [{ type: 'text', text: input }],
+      })
       setInput('')
     },
     [input, status, sendMessage]
@@ -80,14 +84,13 @@ export function Chat({
 
   const handleSuggestionClick = useCallback(
     (suggestion: string) => {
-      setInput(suggestion)
-      // Auto-submit after a short delay
-      setTimeout(() => {
-        if (status === 'ready') {
-          sendMessage({ text: suggestion })
-          setInput('')
-        }
-      }, 100)
+      if (status !== 'ready') return
+
+      // Send message immediately with proper UIMessage format
+      sendMessage({
+        role: 'user',
+        parts: [{ type: 'text', text: suggestion }],
+      })
     },
     [status, sendMessage]
   )
