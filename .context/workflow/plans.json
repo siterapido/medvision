@@ -1,13 +1,14 @@
 {
   "active": [
     {
-      "slug": "deploy-assistants-prod",
-      "path": "plans/deploy-assistants-prod.md",
-      "title": "Plano de Colocação em Produção: Assistentes Odonto GPT",
-      "linkedAt": "2026-01-22T23:28:27.482Z",
+      "slug": "chat-validation",
+      "path": "plans/chat-validation.md",
+      "title": "Plano de Validação do Sistema de Chat Refatorado",
+      "summary": "Validar autenticação, streaming, artifacts e persistência do sistema de chat unificado",
+      "linkedAt": "2026-01-24T10:35:35.965Z",
       "status": "active"
     }
   ],
   "completed": [],
-  "primary": "deploy-assistants-prod"
+  "primary": "chat-validation"
 }
