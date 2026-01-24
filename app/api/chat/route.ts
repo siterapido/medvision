@@ -8,7 +8,7 @@
  * Inclui: autenticação, contexto, persistência de artifacts, e streaming.
  */
 
-import { streamText, convertToModelMessages, UIMessage } from 'ai'
+import { streamText, convertToModelMessages, UIMessage, generateId } from 'ai'
 import { openrouter } from '@/lib/ai/openrouter'
 import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
 import { getAgentArtifactTools } from '@/lib/ai/tools/artifact-tools'
@@ -226,6 +226,17 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
       // IMPORTANTE: originalMessages é necessário para o DefaultChatTransport
       // manter a consistência das mensagens entre cliente e servidor
       originalMessages: sanitizedMessages,
+      // IMPORTANTE: generateMessageId é necessário para gerar IDs consistentes
+      // e evitar erros de validação no cliente
+      generateMessageId: () => generateId(),
+      // Handler de erro detalhado para debugging
+      onError: (error) => {
+        console.error('[Chat Stream Error]', error)
+        if (error == null) return 'Erro desconhecido'
+        if (typeof error === 'string') return error
+        if (error instanceof Error) return error.message
+        return JSON.stringify(error)
+      },
       headers: {
         'x-session-id': currentSessionId || '',
       },

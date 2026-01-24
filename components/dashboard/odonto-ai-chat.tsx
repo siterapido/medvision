@@ -175,8 +175,9 @@ export function OdontoAIChat({
       }
     })
 
-    // Fallback to content if no parts
-    const textContent = textParts.length > 0 ? textParts.join('\n') : message.content
+    // AI SDK v6: UIMessage usa apenas 'parts', não tem mais 'content'
+    // Se não houver parts de texto, usar string vazia
+    const textContent = textParts.length > 0 ? textParts.join('\n') : ''
 
     return (
       <>
@@ -348,7 +349,7 @@ export function OdontoAIChat({
                       ? "px-5 py-3 rounded-[20px] bg-muted/40 text-foreground border border-border/10 rounded-br-sm"
                       : "pl-0 pr-4 py-1 bg-transparent"
                   )}>
-                    {message.role === "assistant" && !message.content && isLoading && !message.parts?.length ? (
+                    {message.role === "assistant" && isLoading && !message.parts?.some(p => p.type === 'text' && 'text' in p && p.text) ? (
                       <div className="flex items-center gap-2 py-2 text-sm text-muted-foreground/70 animate-pulse">
                         <Sparkles className="h-4 w-4" />
                         <span>Pensando...</span>
