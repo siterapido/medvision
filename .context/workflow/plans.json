@@ -5,7 +5,7 @@
       "path": "plans/perplexity-multimodal-input.md",
       "title": "Redesign Multimodal Input — Estilo Perplexity com Agent Switcher",
       "summary": "Redesenhar o componente `multimodal-input.tsx` inspirado na UI da Perplexity, com seletor de agentes integrado, garantindo texto escuro no tema claro seguindo a paleta do projeto.",
-      "linkedAt": "2026-01-24T21:05:48.635Z",
+      "linkedAt": "2026-01-24T21:14:35.881Z",
       "status": "active"
     }
   ],

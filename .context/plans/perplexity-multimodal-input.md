@@ -1,5 +1,5 @@
 ---
-status: ready
+status: completed
 generated: 2026-01-24
 updated: 2026-01-24
 agents:

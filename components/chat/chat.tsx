@@ -34,11 +34,12 @@ export function Chat({
   id,
   initialMessages = [],
   apiEndpoint = '/api/chat',
-  agentId = 'odonto-gpt',
+  agentId: initialAgentId = 'odonto-gpt',
   userName,
 }: ChatProps) {
   const [chatId] = useState(() => id || crypto.randomUUID())
   const [input, setInput] = useState('')
+  const [selectedAgent, setSelectedAgent] = useState(initialAgentId)
 
   // Create transport with session management
   const transport = useMemo(
@@ -46,11 +47,11 @@ export function Chat({
       new DefaultChatTransport({
         api: apiEndpoint,
         body: {
-          agentId,
+          agentId: selectedAgent,
           sessionId: id,
         },
       }),
-    [apiEndpoint, agentId, id]
+    [apiEndpoint, selectedAgent, id]
   )
 
   // useChat hook with streaming support
@@ -239,6 +240,8 @@ export function Chat({
             status={componentStatus}
             stop={stop}
             onSubmit={handleSubmit}
+            selectedAgent={selectedAgent}
+            onAgentChange={setSelectedAgent}
           />
         </div>
       </div>

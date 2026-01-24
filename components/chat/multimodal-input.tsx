@@ -1,20 +1,24 @@
 'use client'
 
 /**
- * Multimodal Input - Vercel Chat SDK Pattern
+ * Multimodal Input - Perplexity-style Design
  *
- * Campo de input estilizado seguindo o padrao oficial.
- * - Borda arredondada com sombra sutil
- * - Botao de envio circular com fundo primary
- * - Suporte a Shift+Enter para nova linha
- * - Drag-drop de arquivos
- * - Paste de imagens do clipboard
+ * Campo de input inspirado na UI da Perplexity com:
+ * - Input centralizado e expansivo
+ * - Borda arredondada suave (radius ~16px)
+ * - Background claro com borda sutil
+ * - Agent Switcher integrado (esquerda)
+ * - Botoes de acao organizados (direita)
+ * - Texto escuro no tema claro (#0f172a)
+ * - Suporte a drag-drop e paste de imagens
+ * - Reconhecimento de voz
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { ArrowUpIcon, StopIcon, MicIcon, PaperclipIcon } from './icons'
+import { AgentSwitcher, getAgentPill, AGENT_PILLS } from './agent-switcher'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { X, ImageIcon, FileIcon } from 'lucide-react'
@@ -33,6 +37,9 @@ interface MultimodalInputProps {
   stop: () => void
   onSubmit: (attachments?: File[]) => void
   className?: string
+  // Agent switching
+  selectedAgent?: string
+  onAgentChange?: (agentId: string) => void
 }
 
 export function MultimodalInput({
@@ -42,16 +49,23 @@ export function MultimodalInput({
   stop,
   onSubmit,
   className,
+  selectedAgent = 'odonto-gpt',
+  onAgentChange,
 }: MultimodalInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [attachments, setAttachments] = useState<Attachment[]>([])
   const [isDragging, setIsDragging] = useState(false)
+  const [isListening, setIsListening] = useState(false)
+  const recognitionRef = useRef<any>(null)
+
+  const isLoading = status === 'submitted' || status === 'streaming'
+  const agentConfig = getAgentPill(selectedAgent)
 
   // Auto-resize textarea
   const adjustHeight = useCallback(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = '44px'
+      textareaRef.current.style.height = '56px'
       const scrollHeight = textareaRef.current.scrollHeight
       textareaRef.current.style.height = `${Math.min(scrollHeight, 200)}px`
     }
@@ -61,7 +75,7 @@ export function MultimodalInput({
     adjustHeight()
   }, [input, adjustHeight])
 
-  // Auto-focus on mount (skip on mobile to avoid keyboard popup)
+  // Auto-focus on mount (skip on mobile)
   useEffect(() => {
     const isMobile = window.matchMedia('(max-width: 640px)').matches
     if (!isMobile) {
@@ -71,9 +85,6 @@ export function MultimodalInput({
       return () => clearTimeout(timer)
     }
   }, [])
-
-  const [isListening, setIsListening] = useState(false)
-  const recognitionRef = useRef<any>(null)
 
   // Handle file selection
   const handleFiles = useCallback((files: FileList | File[]) => {
@@ -157,6 +168,7 @@ export function MultimodalInput({
     setAttachments((prev) => prev.filter((a) => a.id !== id))
   }
 
+  // Voice input
   const toggleVoiceInput = () => {
     if (isListening) {
       if (recognitionRef.current) {
@@ -225,10 +237,14 @@ export function MultimodalInput({
     setAttachments([])
   }
 
-  const isLoading = status === 'submitted' || status === 'streaming'
+  const handleAgentChange = (agentId: string) => {
+    if (onAgentChange) {
+      onAgentChange(agentId)
+    }
+  }
 
   return (
-    <div className={cn('relative flex w-full flex-col gap-4', className)}>
+    <div className={cn('relative flex w-full flex-col gap-3', className)}>
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -242,119 +258,147 @@ export function MultimodalInput({
         }}
       />
 
-      {/* Attachments preview */}
-      {attachments.length > 0 && (
-        <div className="flex flex-wrap gap-2 px-1">
-          {attachments.map((attachment) => (
-            <div
-              key={attachment.id}
-              className="group relative flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2"
-            >
-              {attachment.type === 'image' && attachment.preview ? (
-                <img
-                  src={attachment.preview}
-                  alt={attachment.file.name}
-                  className="h-8 w-8 rounded object-cover"
-                />
-              ) : attachment.type === 'image' ? (
-                <ImageIcon className="h-4 w-4 text-muted-foreground" />
-              ) : (
-                <FileIcon className="h-4 w-4 text-muted-foreground" />
-              )}
-              <span className="max-w-[120px] truncate text-xs">
-                {attachment.file.name}
-              </span>
-              <button
-                type="button"
-                onClick={() => removeAttachment(attachment.id)}
-                className="absolute -right-1 -top-1 rounded-full bg-destructive p-0.5 text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100"
-              >
-                <X className="h-3 w-3" />
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
-
+      {/* Main container - Perplexity style */}
       <form
         onSubmit={handleSubmit}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          'rounded-xl border border-border bg-background p-3 shadow-xs transition-all duration-200 focus-within:border-ring hover:border-muted-foreground/50',
+          'relative rounded-2xl border border-border bg-card p-4 shadow-sm',
+          'transition-all duration-200',
+          'focus-within:border-primary/50 focus-within:shadow-md',
+          'hover:border-muted-foreground/30',
           isDragging && 'border-primary border-dashed bg-primary/5'
         )}
       >
+        {/* Drag overlay */}
         {isDragging && (
-          <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-primary/5">
-            <p className="text-sm text-primary">Solte os arquivos aqui</p>
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-primary/5">
+            <p className="text-sm font-medium text-primary">
+              Solte os arquivos aqui
+            </p>
           </div>
         )}
 
-        <div className="flex flex-row items-start gap-1 sm:gap-2">
-          {/* Attach button */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={() => fileInputRef.current?.click()}
-            className="size-8 shrink-0 rounded-lg text-muted-foreground transition-all duration-200 hover:bg-muted/50 hover:text-foreground mt-1"
-            title="Anexar arquivo"
-          >
-            <PaperclipIcon size={16} />
-          </Button>
+        {/* Attachments preview */}
+        {attachments.length > 0 && (
+          <div className="mb-3 flex flex-wrap gap-2">
+            {attachments.map((attachment) => (
+              <div
+                key={attachment.id}
+                className="group relative flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2"
+              >
+                {attachment.type === 'image' && attachment.preview ? (
+                  <img
+                    src={attachment.preview}
+                    alt={attachment.file.name}
+                    className="h-8 w-8 rounded object-cover"
+                  />
+                ) : attachment.type === 'image' ? (
+                  <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <FileIcon className="h-4 w-4 text-muted-foreground" />
+                )}
+                <span className="max-w-[120px] truncate text-xs text-foreground">
+                  {attachment.file.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeAttachment(attachment.id)}
+                  className="absolute -right-1 -top-1 rounded-full bg-destructive p-0.5 text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
 
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            onClick={toggleVoiceInput}
-            className={cn(
-              'size-8 shrink-0 rounded-lg transition-all duration-200 mt-1',
-              isListening
-                ? 'bg-red-500/10 text-red-500 animate-pulse'
-                : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
-            )}
-            title={isListening ? 'Parar' : 'Voz'}
-          >
-            <MicIcon size={16} />
-          </Button>
+        {/* Textarea */}
+        <Textarea
+          ref={textareaRef}
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
+          placeholder={agentConfig.placeholder}
+          disabled={isLoading}
+          rows={1}
+          className={cn(
+            'min-h-[56px] max-h-[200px] resize-none border-0 bg-transparent p-0',
+            'text-base text-foreground placeholder:text-muted-foreground',
+            'focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0'
+          )}
+        />
 
-          <Textarea
-            ref={textareaRef}
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
-            placeholder="Envie uma mensagem..."
+        {/* Footer: Agent Switcher + Actions */}
+        <div className="mt-4 flex items-center justify-between gap-2">
+          {/* Left: Agent Switcher */}
+          <AgentSwitcher
+            agents={AGENT_PILLS}
+            selectedAgent={selectedAgent}
+            onAgentChange={handleAgentChange}
             disabled={isLoading}
-            rows={1}
-            className="grow resize-none border-0 border-none bg-transparent p-2 text-base outline-none ring-0 placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0 min-h-[44px] max-h-[200px]"
           />
-        </div>
 
-        <div className="flex justify-end pt-2">
-          {isLoading ? (
+          {/* Right: Actions */}
+          <div className="flex items-center gap-1">
+            {/* Attach button */}
             <Button
               type="button"
-              variant="outline"
+              variant="ghost"
               size="icon"
-              onClick={stop}
-              className="size-8 rounded-full bg-foreground text-background transition-colors duration-200 hover:bg-foreground/90"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isLoading}
+              className="size-9 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+              title="Anexar arquivo"
             >
-              <StopIcon size={14} />
+              <PaperclipIcon size={18} />
             </Button>
-          ) : (
+
+            {/* Voice button */}
             <Button
-              type="submit"
+              type="button"
+              variant="ghost"
               size="icon"
-              disabled={!input.trim() && attachments.length === 0}
-              className="size-8 rounded-full bg-primary text-primary-foreground transition-colors duration-200 hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground"
+              onClick={toggleVoiceInput}
+              disabled={isLoading}
+              className={cn(
+                'size-9 rounded-lg transition-all duration-200',
+                isListening
+                  ? 'bg-red-500/10 text-red-500 animate-pulse'
+                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+              )}
+              title={isListening ? 'Parar gravacao' : 'Entrada de voz'}
             >
-              <ArrowUpIcon size={14} />
+              <MicIcon size={18} />
             </Button>
-          )}
+
+            {/* Submit/Stop button */}
+            {isLoading ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="icon"
+                onClick={stop}
+                className="size-9 rounded-full border-muted-foreground/30 bg-muted text-foreground hover:bg-muted/80"
+                title="Parar geracao"
+              >
+                <StopIcon size={16} />
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                size="icon"
+                disabled={!input.trim() && attachments.length === 0}
+                className="size-9 rounded-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                title="Enviar mensagem"
+              >
+                <ArrowUpIcon size={16} />
+              </Button>
+            )}
+          </div>
         </div>
       </form>
     </div>
