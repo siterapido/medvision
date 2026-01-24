@@ -250,3 +250,59 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
     })
   }
 }
+
+/**
+ * DELETE /api/chat?id=xxx
+ * Deletes a specific chat session (soft delete)
+ */
+export async function DELETE(req: Request) {
+  try {
+    const supabase = await createServerClient()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    const { searchParams } = new URL(req.url)
+    const chatId = searchParams.get('id')
+
+    if (!chatId) {
+      return new Response(JSON.stringify({ error: 'Chat ID required' }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    // Soft delete - set status to 'deleted'
+    const { error } = await adminSupabase
+      .from('agent_sessions')
+      .update({ status: 'deleted' })
+      .eq('id', chatId)
+      .eq('user_id', user.id)
+
+    if (error) {
+      console.error('[Chat API] Delete error:', error)
+      return new Response(JSON.stringify({ error: 'Failed to delete chat' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  } catch (error) {
+    console.error('[Chat API] Delete error:', error)
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    })
+  }
+}

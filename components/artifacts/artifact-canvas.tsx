@@ -45,18 +45,78 @@ export function ArtifactCanvas({ artifact, agentId, onSave, onShare }: ArtifactC
   )
 }
 
-function renderArtifact(artifact: Artifact, onSave?: () => void, onShare?: () => void) {
+function renderArtifact(artifact: Artifact, _onSave?: () => void, _onShare?: () => void) {
+  // Convert from lib/artifacts/definitions.ts Artifact to components/artifacts/types.ts format
   switch (artifact.type) {
     case 'summary':
-      return <SummaryArtifact data={artifact} onSave={onSave} onShare={onShare} />
+      return (
+        <SummaryArtifact
+          artifact={{
+            id: artifact.id,
+            kind: 'summary',
+            title: artifact.title,
+            content: artifact.content,
+            keyPoints: artifact.keyPoints,
+            topic: artifact.topic,
+            tags: artifact.tags,
+          }}
+        />
+      )
     case 'flashcards':
-      return <FlashcardArtifact data={artifact} onSave={onSave} onShare={onShare} />
+      return (
+        <FlashcardArtifact
+          artifact={{
+            id: artifact.id,
+            kind: 'flashcard',
+            title: artifact.title,
+            cards: artifact.cards,
+            topic: artifact.topic,
+          }}
+        />
+      )
     case 'quiz':
-      return <QuizArtifact data={artifact} onSave={onSave} onShare={onShare} />
+      return (
+        <QuizArtifact
+          artifact={{
+            id: artifact.id,
+            kind: 'quiz',
+            title: artifact.title,
+            topic: artifact.topic,
+            specialty: artifact.specialty,
+            questions: artifact.questions,
+          }}
+        />
+      )
     case 'research':
-      return <ResearchArtifact data={artifact} onSave={onSave} onShare={onShare} />
+      return (
+        <ResearchArtifact
+          artifact={{
+            id: artifact.id,
+            kind: 'research',
+            title: artifact.title,
+            query: artifact.query,
+            content: artifact.content,
+            sources: artifact.sources,
+            methodology: artifact.methodology,
+          }}
+        />
+      )
     case 'report':
-      return <ReportArtifact data={artifact} onSave={onSave} onShare={onShare} />
+      return (
+        <ReportArtifact
+          artifact={{
+            id: artifact.id,
+            kind: 'report',
+            title: artifact.title,
+            examType: artifact.examType,
+            content: artifact.content,
+            findings: artifact.findings,
+            recommendations: artifact.recommendations,
+            imageUrl: artifact.imageUrl,
+            quality: artifact.quality,
+          }}
+        />
+      )
     default:
       return <div className="p-4 text-muted-foreground">Artifact não suportado</div>
   }

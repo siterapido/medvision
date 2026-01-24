@@ -13,16 +13,20 @@ import type { UIMessage } from 'ai'
 import { cn } from '@/lib/utils'
 import { SparklesIcon, LoaderIcon } from './icons'
 import { Markdown } from './markdown'
-import { 
-  ArtifactRenderer, 
-  type Artifact, 
+import {
+  ArtifactRenderer,
+  type Artifact,
   createCodeArtifact,
   createSummaryArtifact,
   createFlashcardArtifact,
   createTableArtifact,
-  createImageArtifact
+  createImageArtifact,
+  createQuizArtifact,
+  createResearchArtifact,
+  createReportArtifact
 } from '@/components/artifacts'
-import { Code, Image, Table, FileText, Layers, Search, Lightbulb } from 'lucide-react'
+import { Code, Image, Table, FileText, Layers, Search, Lightbulb, CheckCircle, FlaskConical, ClipboardList } from 'lucide-react'
+import { getStreamingComponent, ToolExecutionIndicator } from './stream-components'
 
 interface MessageProps {
   message: UIMessage
@@ -36,16 +40,27 @@ function renderToolPart(part: any, key: string) {
   const output = 'output' in part ? part.output : undefined
   const input = 'input' in part ? part.input : undefined
 
-  // Loading states
+  // Loading states - use streaming components for better UX
   if (state === 'streaming' || state === 'input-streaming' || state === 'input-available') {
+    const StreamingComponent = getStreamingComponent(toolName)
+
+    if (StreamingComponent) {
+      return (
+        <StreamingComponent
+          key={key}
+          title={input?.title || getToolDisplayName(toolName)}
+          className="mt-2"
+        />
+      )
+    }
+
+    // Fallback to generic indicator
     return (
-      <div
+      <ToolExecutionIndicator
         key={key}
-        className="flex items-center gap-2 text-muted-foreground text-sm p-3 rounded-lg border border-border bg-muted/30"
-      >
-        <LoaderIcon size={16} />
-        <span>Processando {getToolDisplayName(toolName)}...</span>
-      </div>
+        toolName={toolName}
+        className="mt-2"
+      />
     )
   }
 
@@ -161,6 +176,55 @@ function parseToolOutputAsArtifact(
       }
       return null
 
+    case 'createQuiz':
+    case 'generateQuiz':
+      const questions = output.questions || []
+      if (questions.length === 0) return null
+      return createQuizArtifact({
+        title: output.title || input?.title || 'Quiz',
+        topic: output.topic || input?.topic || '',
+        specialty: output.specialty,
+        questions: questions.map((q: any, i: number) => ({
+          id: q.id || `q-${i}`,
+          text: q.text || q.question || '',
+          options: (q.options || []).map((opt: any, j: number) => ({
+            id: opt.id || String.fromCharCode(65 + j),
+            text: opt.text || '',
+            isCorrect: opt.isCorrect || false,
+          })),
+          explanation: q.explanation || '',
+          difficulty: q.difficulty || 'medium',
+        })),
+      })
+
+    case 'createResearch':
+    case 'generateResearch':
+      return createResearchArtifact({
+        title: output.title || input?.title || 'Pesquisa',
+        query: output.query || input?.query || '',
+        content: output.content || '',
+        sources: (output.sources || []).map((s: any) => ({
+          title: s.title || '',
+          url: s.url || '',
+          summary: s.summary,
+          authors: s.authors,
+          pubdate: s.pubdate,
+        })),
+        methodology: output.methodology,
+      })
+
+    case 'createReport':
+    case 'generateReport':
+      return createReportArtifact({
+        title: output.title || input?.title || 'Laudo',
+        examType: output.examType || 'Exame',
+        content: output.content || '',
+        findings: output.findings || [],
+        recommendations: output.recommendations || [],
+        imageUrl: output.imageUrl,
+        quality: output.quality,
+      })
+
     default:
       return null
   }
@@ -182,6 +246,12 @@ function getToolDisplayName(toolName: string): string {
     searchArticles: 'Pesquisa de Artigos',
     generateImage: 'Imagem',
     createImage: 'Imagem',
+    createQuiz: 'Quiz',
+    generateQuiz: 'Quiz',
+    createResearch: 'Pesquisa',
+    generateResearch: 'Pesquisa',
+    createReport: 'Laudo',
+    generateReport: 'Laudo',
   }
   return names[toolName] || toolName
 }
@@ -189,7 +259,7 @@ function getToolDisplayName(toolName: string): string {
 // Get icon for tool
 function getToolIcon(toolName: string) {
   const iconClass = 'h-4 w-4 text-primary'
-  
+
   if (toolName.includes('code') || toolName.includes('Code')) {
     return <Code className={iconClass} />
   }
@@ -208,7 +278,16 @@ function getToolIcon(toolName: string) {
   if (toolName.includes('search') || toolName.includes('Search')) {
     return <Search className={iconClass} />
   }
-  
+  if (toolName.includes('quiz') || toolName.includes('Quiz')) {
+    return <CheckCircle className={iconClass} />
+  }
+  if (toolName.includes('research') || toolName.includes('Research')) {
+    return <FlaskConical className={iconClass} />
+  }
+  if (toolName.includes('report') || toolName.includes('Report')) {
+    return <ClipboardList className={iconClass} />
+  }
+
   return <Lightbulb className={iconClass} />
 }
 
