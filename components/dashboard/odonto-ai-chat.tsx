@@ -1,8 +1,8 @@
 "use client"
 
-import { useEffect, useRef, useState, useCallback } from "react"
+import { useEffect, useRef, useState, useCallback, useMemo } from "react"
 import { useChat } from "@ai-sdk/react"
-import type { Message as UIMessage } from "ai"
+import { DefaultChatTransport, type UIMessage } from "ai"
 import { Sparkles, Paperclip, X, Wrench } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
@@ -67,7 +67,19 @@ export function OdontoAIChat({
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Use AI SDK v3.x chat hook - usa a rota unificada /api/chat com autenticação
+  // Criar transport memoizado para evitar recriação a cada render
+  const chatTransport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: '/api/chat',
+        body: {
+          agentId: selectedAgent.id,
+        },
+      }),
+    [selectedAgent.id]
+  )
+
+  // Use AI SDK v5+ chat hook com DefaultChatTransport
   const {
     messages,
     sendMessage,
@@ -77,18 +89,15 @@ export function OdontoAIChat({
     stop,
     setMessages,
   } = useChat({
-    api: '/api/chat',
     id: chatId,
-    initialMessages,
-    body: {
-      agentId: selectedAgent.id,
-    },
+    messages: initialMessages, // v5+: renamed from initialMessages
+    transport: chatTransport,
     onError: (error) => {
       console.error("[OdontoAIChat] Error:", error)
       toast.error("Erro no chat", { description: error.message })
     },
     onFinish: (message) => {
-      console.log("[OdontoAIChat] Message complete:", message.id)
+      console.log("[OdontoAIChat] Message complete:", message?.id)
     },
   })
 
@@ -123,15 +132,9 @@ export function OdontoAIChat({
     if (e) e.preventDefault()
     const trimmedInput = (input || "").trim()
     if (trimmedInput && !isLoading) {
-      // AI SDK v3.x: use sendMessage with text object and options
-      sendMessage(
-        { text: trimmedInput },
-        {
-          body: {
-            agentId: selectedAgent.id,
-          },
-        }
-      )
+      // AI SDK v5+: sendMessage com formato simples
+      // O body já está configurado no DefaultChatTransport
+      sendMessage({ text: trimmedInput })
       setInput('')
       setAttachments(null)
     }
