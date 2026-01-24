@@ -15,6 +15,7 @@ import { getAgentArtifactTools } from '@/lib/ai/tools/artifact-tools'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
 import { setContext, clearContext, type OdontoContext } from '@/lib/ai/artifacts'
+import { sanitizeUIMessages } from '@/lib/ai/sanitize-messages'
 
 export const maxDuration = 60
 
@@ -176,8 +177,17 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
     }
     setContext(odontoContext)
 
+    // Sanitizar mensagens antes de converter (AI SDK v6 fix)
+    const sanitizedMessages = sanitizeUIMessages(messages)
+
+    if (sanitizedMessages.length !== messages.length) {
+      console.warn(
+        `[Chat] Sanitização removeu ${messages.length - sanitizedMessages.length} mensagens inválidas`
+      )
+    }
+
     // Convert UI messages to model messages
-    const modelMessages = await convertToModelMessages(messages)
+    const modelMessages = await convertToModelMessages(sanitizedMessages)
 
     console.log(
       `[Chat] Agent: ${agentId}, Model: ${modelId}, Messages: ${modelMessages.length}, Tools: ${Object.keys(tools).length}`
