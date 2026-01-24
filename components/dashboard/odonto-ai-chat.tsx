@@ -68,12 +68,40 @@ export function OdontoAIChat({
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
   // Criar transport memoizado para evitar recriação a cada render
+  // IMPORTANTE: Usar prepareSendMessagesRequest para normalizar o formato das mensagens
+  // O DefaultChatTransport valida as mensagens antes de enviar, e mensagens com 'parts'
+  // precisam ser convertidas para o formato que o servidor espera
   const chatTransport = useMemo(
     () =>
       new DefaultChatTransport({
         api: '/api/chat',
-        body: {
-          agentId: selectedAgent.id,
+        prepareSendMessagesRequest: ({ id, messages }) => {
+          // Normalizar mensagens para garantir formato consistente
+          const normalizedMessages = messages.map((msg) => {
+            // Extrair texto das parts se existirem
+            let textContent = ''
+            if (msg.parts && Array.isArray(msg.parts)) {
+              const textParts = msg.parts
+                .filter((p): p is { type: 'text'; text: string } => p.type === 'text' && 'text' in p)
+                .map((p) => p.text)
+              textContent = textParts.join('\n')
+            }
+
+            // Retornar mensagem no formato UIMessage correto
+            return {
+              id: msg.id,
+              role: msg.role,
+              parts: [{ type: 'text' as const, text: textContent }],
+            }
+          })
+
+          return {
+            body: {
+              id,
+              messages: normalizedMessages,
+              agentId: selectedAgent.id,
+            },
+          }
         },
       }),
     [selectedAgent.id]
