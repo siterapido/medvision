@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 import { Scan, FileText, CheckCircle2, AlertTriangle, AlertOctagon, Quote, Sparkles, ZoomIn } from "lucide-react"
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer"
 import remarkGfm from "remark-gfm"
-import { MarkdownComponents } from "@/components/agno-chat/markdown-components"
+import { MarkdownComponents } from "@/components/ui/markdown-components"
 import { Badge } from "@/components/ui/badge"
 
 interface ImageAnalysisContentProps {
