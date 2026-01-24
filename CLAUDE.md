@@ -14,7 +14,7 @@ For detailed information, see the modular documentation in `.docs/`:
 - **[`.docs/01_PROJECT_OVERVIEW.md`](.docs/01_PROJECT_OVERVIEW.md)** - Project identity, tech stack, setup
 - **[`.docs/02_ARCHITECTURE.md`](.docs/02_ARCHITECTURE.md)** - System architecture and patterns
 - **[`.docs/03_DATABASE_SCHEMA.md`](.docs/03_DATABASE_SCHEMA.md)** - Database tables and migrations
-- **[`.docs/04_AI_AGENTS.md`](.docs/04_AI_AGENTS.md)** - Agno AI service details
+- **[`.docs/04_AI_AGENTS.md`](.docs/04_AI_AGENTS.md)** - AI agents configuration
 - **[`.docs/05_AUTHORIZATION.md`](.docs/05_AUTHORIZATION.md)** - Auth and authorization
 - **[`.docs/06_API_ENDPOINTS.md`](.docs/06_API_ENDPOINTS.md)** - API routes and webhooks
 - **[`.docs/07_PATTERNS.md`](.docs/07_PATTERNS.md)** - Common code patterns (READ THIS!)
@@ -39,20 +39,12 @@ npm run db:status
 
 # 4. Start development
 npm run dev  # Frontend at http://localhost:3000
-
-# 5. Start AI service (optional)
-cd odonto-gpt-agno-service
-pip install -r requirements.txt
-cp .env.example .env
-# Edit .env with OPENROUTER_API_KEY
-python -m uvicorn app.main:app --reload
-# AI service at http://localhost:8000
 ```
 
 ## Project Overview
 
 **Odonto GPT UI** is a Next.js 16 SaaS platform for dental professionals featuring:
-- AI-powered dental Q&A with multi-agent system (Agno framework)
+- AI-powered dental Q&A with multi-agent system (via OpenRouter)
 - Dental image analysis (X-rays, intraoral photos)
 - Online courses with video delivery
 - Lead management and subscription system
@@ -61,8 +53,8 @@ python -m uvicorn app.main:app --reload
 
 **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS 4, shadcn/ui
 **Backend**: Supabase (PostgreSQL + Auth + Storage)
-**AI**: Agno (Python), FastAPI, OpenRouter
-**Hosting**: Vercel (frontend), Railway/Render (AI service)
+**AI**: Vercel AI SDK, OpenRouter (multi-provider LLM gateway)
+**Hosting**: Vercel
 **Integrations**: Cakto (payments), Bunny CDN (media), Z-API (WhatsApp)
 
 ## Key Commands
@@ -78,10 +70,6 @@ npm run db:push         # Apply migrations
 npm run db:status       # Check migration status
 npm run db:diff         # Generate migration diff
 
-# AI Service
-npm run agno:install    # Install Python dependencies
-npm run agno:dev        # Start Agno service
-
 # Testing & Validation
 npm run validate:env    # Validate environment variables
 npm run test:bunny      # Test Bunny CDN
@@ -96,11 +84,11 @@ npm run test            # Run test suite
 - **Middleware** for route protection and session refresh
 - **Mobile-first** responsive design
 
-### AI Service (Python/Agno)
-- **Multi-agent system**: QA Agent, Image Agent, Team Coordinator
-- **Streaming endpoints** for real-time responses
-- **Tool calling**: Web search, WhatsApp, database query, RAG
-- **Session persistence** in Supabase
+### AI Integration
+- **Multi-agent system**: Configured agents for different purposes (tutor, research, vision, etc.)
+- **Vercel AI SDK**: Streaming chat with useChat hook
+- **OpenRouter**: Access to multiple LLM providers (Gemini, Claude, etc.)
+- **Tool calling**: Web search via Perplexity, PubMed search, artifact generation
 
 ### Database (Supabase)
 - **Row Level Security (RLS)** on all tables
@@ -176,13 +164,12 @@ const { data } = await adminSupabase.from("users").select("*")
 
 ```typescript
 // Client-side streaming chat
-import { useChat } from 'ai/react'
+import { useChat } from '@ai-sdk/react'
 
 const { messages, input, handleSubmit } = useChat({
-  api: '/api/chat',
+  api: '/api/newchat',
   body: {
-    sessionId: 'session-123',
-    imageUrl: uploadedImage?.url
+    agentId: 'odonto-gpt'
   }
 })
 ```
@@ -194,14 +181,14 @@ const { messages, input, handleSubmit } = useChat({
 - `lib/auth/roles.ts` - Role resolution and helpers
 - `lib/supabase/server.ts` - Supabase client for Server Components
 - `lib/supabase/admin.ts` - Admin client (bypasses RLS)
-- `app/api/chat/route.ts` - Chat API endpoint
+- `app/api/newchat/route.ts` - Main chat API endpoint
+- `app/api/chat/route.ts` - Legacy chat endpoint with persistence
 - `app/actions/` - Server actions for mutations
 
-### AI Service (Python)
-- `odonto-gpt-agno-service/app/main.py` - FastAPI app entry
-- `odonto-gpt-agno-service/app/agents/` - Agent definitions
-- `odonto-gpt-agno-service/app/tools/` - Agent tools
-- `odonto-gpt-agno-service/app/api.py` - API routes
+### AI Configuration
+- `lib/ai/agents/config.ts` - Agent definitions and system prompts
+- `lib/ai/openrouter.ts` - OpenRouter configuration
+- `lib/ai/tools/definitions.ts` - Tool definitions for agents
 
 ### Database
 - `supabase/migrations/` - Database migrations
@@ -215,24 +202,17 @@ const { messages, input, handleSubmit } = useChat({
 
 ## Environment Variables
 
-### Required (Frontend)
+### Required
 ```bash
 NEXT_PUBLIC_SUPABASE_URL=your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJ...
 NEXT_PUBLIC_SITE_URL=http://localhost:3000
 
+OPENROUTER_API_KEY=sk-or-...
+
 BUNNY_STORAGE_ZONE=your-zone
 BUNNY_STORAGE_API_KEY=your-key
 BUNNY_CDN_BASE_URL=https://your-cdn.b-cdn.net
-```
-
-### Required (AI Service)
-```bash
-# odonto-gpt-agno-service/.env
-OPENROUTER_API_KEY=sk-or-...
-SUPABASE_DB_URL=postgresql://...
-ENVIRONMENT=development
-ALLOWED_ORIGINS=http://localhost:3000
 ```
 
 ### Optional
@@ -250,10 +230,10 @@ NEXT_PUBLIC_SENTRY_DSN=...  # Error tracking
 - **Build fails**: Check env vars, run `npm run build` locally first
 - **Auth not working**: Check middleware, verify Supabase URL/keys
 
-### AI Service Issues
-- **Service won't start**: Check Python 3.9+, install dependencies
-- **Agent errors**: Verify `OPENROUTER_API_KEY` in service `.env`
-- **Connection refused**: Ensure service running on port 8000
+### AI Chat Issues
+- **Chat not responding**: Verify `OPENROUTER_API_KEY` is set
+- **Streaming errors**: Check browser console for network errors
+- **Wrong model**: Verify agent config in `lib/ai/agents/config.ts`
 
 ### Database Issues
 - **RLS blocking**: Check policies in Supabase dashboard
@@ -268,12 +248,6 @@ This project uses an LLM-optimized modular documentation system. See [`.docs/IND
 - [`.docs/01_PROJECT_OVERVIEW.md`](.docs/01_PROJECT_OVERVIEW.md) - Start here for complete overview
 - [`.docs/07_PATTERNS.md`](.docs/07_PATTERNS.md) - Code patterns and examples
 - [`.docs/10_TROUBLESHOOTING.md`](.docs/10_TROUBLESHOOTING.md) - Common issues
-
-### Agno Service Documentation
-- `odonto-gpt-agno-service/README.md` - Service overview
-- `odonto-gpt-agno-service/QUICKSTART.md` - Setup guide
-- `odonto-gpt-agno-service/PLAYGROUND_GUIDE.md` - Testing guide
-- `odonto-gpt-agno-service/AGENTOS_GUIDE.md` - Monitoring dashboard
 
 ## Best Practices
 
@@ -314,22 +288,15 @@ This project uses an LLM-optimized modular documentation system. See [`.docs/IND
 
 ### OpenRouter (AI Models)
 - Multi-provider LLM gateway
-- Used by Agno service
+- Provides access to Gemini, Claude, and other models
 - Configure `OPENROUTER_API_KEY`
 
 ## Deployment
 
-### Frontend (Vercel)
+### Vercel
 ```bash
 npm run build
 npx vercel deploy --prod
-```
-
-### AI Service (Railway/Render)
-```bash
-cd odonto-gpt-agno-service
-# Deploy to Railway, Render, or Fly.io
-# Set environment variables in platform dashboard
 ```
 
 ## Related Docs
@@ -348,5 +315,5 @@ cd odonto-gpt-agno-service
 
 ---
 
-**Last Updated**: 2026-01-23
+**Last Updated**: 2026-01-24
 **Documentation System**: v1.0 (LLM-Optimized)
