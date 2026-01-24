@@ -223,6 +223,9 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
     })
 
     return result.toUIMessageStreamResponse({
+      // IMPORTANTE: originalMessages é necessário para o DefaultChatTransport
+      // manter a consistência das mensagens entre cliente e servidor
+      originalMessages: sanitizedMessages,
       headers: {
         'x-session-id': currentSessionId || '',
       },

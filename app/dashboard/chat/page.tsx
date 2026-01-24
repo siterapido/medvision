@@ -20,14 +20,12 @@ export default async function ChatPage({ searchParams }: { searchParams: Promise
   if (id) {
     try {
       const savedMessages = await getSessionMessages(id)
-      // Convert DB messages to AI SDK Message format
+      // Convert DB messages to AI SDK v5+ UIMessage format
+      // IMPORTANTE: Usar apenas 'parts', não 'content' (deprecated em v5+)
       initialMessages = savedMessages.map(m => ({
         id: m.id,
-        role: m.role as any,
-        content: m.content || "",
-        parts: [{ type: 'text', text: m.content || "" }] as any,
-        // If we stored tool calls/results in metadata or specialized columns, we'd map them here.
-        // For now simplest text restoration.
+        role: m.role as 'user' | 'assistant' | 'system',
+        parts: [{ type: 'text' as const, text: m.content || '' }],
       }))
     } catch (error) {
       console.error("Error fetching messages", error)
