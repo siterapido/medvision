@@ -378,3 +378,178 @@ export async function getMessagesBySessionId(sessionId: string): Promise<Message
     createdAt: new Date(msg.created_at),
   }))
 }
+
+/**
+ * Chat with preview - includes last few messages
+ */
+export interface ChatWithPreview extends Chat {
+  preview: Array<{
+    id: string
+    role: 'user' | 'assistant' | 'system'
+    content: string
+  }>
+  messageCount: number
+}
+
+/**
+ * Search options for filtering chats
+ */
+export interface SearchOptions {
+  query?: string
+  agentId?: string
+  from?: Date
+  to?: Date
+  limit?: number
+  offset?: number
+}
+
+/**
+ * Search chats with full-text search on messages
+ */
+export async function searchChats(
+  userId: string,
+  options: SearchOptions
+): Promise<{ chats: ChatWithPreview[]; total: number }> {
+  const supabase = await createClient()
+  const { query, agentId, from, to, limit = 20, offset = 0 } = options
+
+  // Build query for sessions with their messages
+  let sessionsQuery = supabase
+    .from('agent_sessions')
+    .select(`
+      id,
+      title,
+      agent_type,
+      created_at,
+      updated_at,
+      metadata,
+      status,
+      agent_messages(id, role, content, created_at)
+    `)
+    .eq('user_id', userId)
+    .eq('status', 'active')
+    .order('updated_at', { ascending: false })
+
+  if (agentId) {
+    sessionsQuery = sessionsQuery.eq('agent_type', agentId)
+  }
+  if (from) {
+    sessionsQuery = sessionsQuery.gte('created_at', from.toISOString())
+  }
+  if (to) {
+    sessionsQuery = sessionsQuery.lte('created_at', to.toISOString())
+  }
+
+  const { data: sessions, error } = await sessionsQuery
+
+  if (error) {
+    console.error('[searchChats] Error:', error)
+    return { chats: [], total: 0 }
+  }
+
+  // Filter by text search if query provided
+  let filteredSessions = sessions || []
+  if (query && query.length > 0) {
+    const lowerQuery = query.toLowerCase()
+    filteredSessions = filteredSessions.filter((session) => {
+      const title = (session.metadata?.title || session.title || '').toLowerCase()
+      if (title.includes(lowerQuery)) return true
+
+      const messages = session.agent_messages || []
+      return messages.some((msg: any) =>
+        msg.content?.toLowerCase().includes(lowerQuery)
+      )
+    })
+  }
+
+  const total = filteredSessions.length
+  const paginatedSessions = filteredSessions.slice(offset, offset + limit)
+
+  const chats: ChatWithPreview[] = paginatedSessions.map((session) => {
+    const messages = (session.agent_messages || [])
+      .sort((a: any, b: any) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      )
+      .slice(0, 3)
+      .reverse()
+
+    return {
+      id: session.id,
+      createdAt: new Date(session.created_at),
+      title: session.metadata?.title || session.title || 'Nova Conversa',
+      userId,
+      visibility: 'private' as const,
+      agentType: session.agent_type,
+      status: session.status,
+      metadata: session.metadata,
+      preview: messages.map((msg: any) => ({
+        id: msg.id,
+        role: msg.role,
+        content: msg.content?.slice(0, 150) || '',
+      })),
+      messageCount: (session.agent_messages || []).length,
+    }
+  })
+
+  return { chats, total }
+}
+
+/**
+ * Get a chat with preview messages
+ */
+export async function getChatWithPreview(
+  chatId: string,
+  userId: string
+): Promise<ChatWithPreview | null> {
+  const supabase = await createClient()
+
+  const { data: session, error } = await supabase
+    .from('agent_sessions')
+    .select(`
+      id,
+      title,
+      agent_type,
+      created_at,
+      updated_at,
+      metadata,
+      status,
+      user_id,
+      agent_messages(id, role, content, created_at)
+    `)
+    .eq('id', chatId)
+    .single()
+
+  if (error || !session) {
+    console.error('[getChatWithPreview] Error:', error)
+    return null
+  }
+
+  if (session.user_id !== userId) {
+    console.error('[getChatWithPreview] Unauthorized access attempt')
+    return null
+  }
+
+  const messages = (session.agent_messages || [])
+    .sort((a: any, b: any) =>
+      new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
+    .slice(0, 3)
+    .reverse()
+
+  return {
+    id: session.id,
+    createdAt: new Date(session.created_at),
+    title: session.metadata?.title || session.title || 'Nova Conversa',
+    userId: session.user_id,
+    visibility: 'private' as const,
+    agentType: session.agent_type,
+    status: session.status,
+    metadata: session.metadata,
+    preview: messages.map((msg: any) => ({
+      id: msg.id,
+      role: msg.role,
+      content: msg.content?.slice(0, 150) || '',
+    })),
+    messageCount: (session.agent_messages || []).length,
+  }
+}

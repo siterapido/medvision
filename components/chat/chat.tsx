@@ -5,6 +5,7 @@
  *
  * Componente principal de chat usando AI SDK v6 useChat hook.
  * Suporta streaming, tool approval, e artifacts.
+ * Mobile: Header flutuante estilo Perplexity
  */
 
 import { useChat } from '@ai-sdk/react'
@@ -17,6 +18,8 @@ import { toast } from 'sonner'
 import { Messages } from './messages'
 import { MultimodalInput } from './multimodal-input'
 import { ToolApprovalDialog } from './tool-approval-dialog'
+import { MobileFloatingHeader } from '@/components/mobile/mobile-floating-header'
+import { useIsMobile } from '@/lib/hooks/use-mobile'
 
 interface ChatProps {
   id?: string
@@ -28,6 +31,7 @@ interface ChatProps {
   apiEndpoint?: string
   agentId?: string
   userName?: string
+  userImage?: string
 }
 
 export function Chat({
@@ -36,10 +40,12 @@ export function Chat({
   apiEndpoint = '/api/chat',
   agentId: initialAgentId = 'odonto-gpt',
   userName,
+  userImage,
 }: ChatProps) {
   const [chatId] = useState(() => id || crypto.randomUUID())
   const [input, setInput] = useState('')
   const [selectedAgent, setSelectedAgent] = useState(initialAgentId)
+  const isMobile = useIsMobile()
 
   // Create transport with session management
   const transport = useMemo(
@@ -212,14 +218,25 @@ export function Chat({
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col bg-background">
-      <Messages
-        messages={messages as any}
-        status={componentStatus}
-        userName={userName}
-        onSuggestionClick={handleSuggestionClick}
-        onEditMessage={handleEditMessage}
-        onRegenerate={handleRegenerate}
-      />
+      {/* Mobile Floating Header */}
+      {isMobile && (
+        <MobileFloatingHeader
+          userName={userName}
+          userImage={userImage}
+        />
+      )}
+
+      {/* Messages area - add top padding on mobile for header */}
+      <div className={isMobile ? 'pt-[52px]' : ''}>
+        <Messages
+          messages={messages as any}
+          status={componentStatus}
+          userName={userName}
+          onSuggestionClick={handleSuggestionClick}
+          onEditMessage={handleEditMessage}
+          onRegenerate={handleRegenerate}
+        />
+      </div>
 
       {/* Tool Approval Dialog */}
       {pendingApproval && (

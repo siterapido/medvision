@@ -12,6 +12,7 @@
  * - Texto escuro no tema claro (#0f172a)
  * - Suporte a drag-drop e paste de imagens
  * - Reconhecimento de voz
+ * - Mobile: Bottom sheets para agentes e anexos
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react'
@@ -19,9 +20,13 @@ import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { ArrowUpIcon, StopIcon, MicIcon, PaperclipIcon } from './icons'
 import { AgentSwitcher, getAgentPill, AGENT_PILLS } from './agent-switcher'
+import { MobileAgentSelectorSheet } from '@/components/mobile/mobile-agent-selector-sheet'
+import { MobileSourcesSheet } from '@/components/mobile/mobile-sources-sheet'
+import { useIsMobile } from '@/lib/hooks/use-mobile'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { X, ImageIcon, FileIcon } from 'lucide-react'
+import { X, ImageIcon, FileIcon, Plus, ChevronDown } from 'lucide-react'
+import { getAgentUI } from '@/lib/constants/agents'
 
 interface Attachment {
   id: string
@@ -59,8 +64,14 @@ export function MultimodalInput({
   const [isListening, setIsListening] = useState(false)
   const recognitionRef = useRef<any>(null)
 
+  // Mobile state
+  const isMobile = useIsMobile()
+  const [agentSheetOpen, setAgentSheetOpen] = useState(false)
+  const [sourcesSheetOpen, setSourcesSheetOpen] = useState(false)
+
   const isLoading = status === 'submitted' || status === 'streaming'
   const agentConfig = getAgentPill(selectedAgent)
+  const agentUIConfig = getAgentUI(selectedAgent)
 
   // Auto-resize textarea
   const adjustHeight = useCallback(() => {
@@ -77,8 +88,8 @@ export function MultimodalInput({
 
   // Auto-focus on mount (skip on mobile)
   useEffect(() => {
-    const isMobile = window.matchMedia('(max-width: 640px)').matches
-    if (!isMobile) {
+    const checkMobile = window.matchMedia('(max-width: 640px)').matches
+    if (!checkMobile) {
       const timer = setTimeout(() => {
         textareaRef.current?.focus()
       }, 100)
@@ -258,6 +269,23 @@ export function MultimodalInput({
         }}
       />
 
+      {/* Mobile Sheets */}
+      {isMobile && (
+        <>
+          <MobileAgentSelectorSheet
+            open={agentSheetOpen}
+            onOpenChange={setAgentSheetOpen}
+            selectedAgent={selectedAgent}
+            onAgentChange={handleAgentChange}
+          />
+          <MobileSourcesSheet
+            open={sourcesSheetOpen}
+            onOpenChange={setSourcesSheetOpen}
+            onFilesSelected={handleFiles}
+          />
+        </>
+      )}
+
       {/* Main container - Perplexity style */}
       <form
         onSubmit={handleSubmit}
@@ -265,11 +293,13 @@ export function MultimodalInput({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          'relative rounded-2xl border border-border bg-card p-4 shadow-sm',
+          'relative rounded-2xl border border-border bg-card shadow-sm',
           'transition-all duration-200',
           'focus-within:border-primary/50 focus-within:shadow-md',
           'hover:border-muted-foreground/30',
-          isDragging && 'border-primary border-dashed bg-primary/5'
+          isDragging && 'border-primary border-dashed bg-primary/5',
+          // Mobile: more compact padding
+          isMobile ? 'p-3' : 'p-4'
         )}
       >
         {/* Drag overlay */}
@@ -333,29 +363,70 @@ export function MultimodalInput({
         />
 
         {/* Footer: Agent Switcher + Actions */}
-        <div className="mt-4 flex items-center justify-between gap-2">
-          {/* Left: Agent Switcher */}
-          <AgentSwitcher
-            agents={AGENT_PILLS}
-            selectedAgent={selectedAgent}
-            onAgentChange={handleAgentChange}
-            disabled={isLoading}
-          />
+        <div className="mt-3 flex items-center justify-between gap-2">
+          {/* Left side */}
+          {isMobile ? (
+            /* Mobile: Plus button + Agent pill button */
+            <div className="flex items-center gap-1.5">
+              {/* Plus button - opens sources sheet */}
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => setSourcesSheetOpen(true)}
+                disabled={isLoading}
+                className="size-9 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                aria-label="Anexar arquivo"
+              >
+                <Plus className="size-5" />
+              </Button>
+
+              {/* Agent pill - opens agent selector sheet */}
+              <button
+                type="button"
+                onClick={() => setAgentSheetOpen(true)}
+                disabled={isLoading}
+                className={cn(
+                  'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5',
+                  'border-2 transition-all',
+                  agentUIConfig.borderColor,
+                  agentUIConfig.bgColor,
+                  'active:scale-95'
+                )}
+              >
+                <span className="text-base">{agentUIConfig.icon}</span>
+                <span className="text-sm font-medium text-foreground">
+                  {agentUIConfig.shortName}
+                </span>
+                <ChevronDown className="size-3.5 text-muted-foreground" />
+              </button>
+            </div>
+          ) : (
+            /* Desktop: Full Agent Switcher */
+            <AgentSwitcher
+              agents={AGENT_PILLS}
+              selectedAgent={selectedAgent}
+              onAgentChange={handleAgentChange}
+              disabled={isLoading}
+            />
+          )}
 
           {/* Right: Actions */}
           <div className="flex items-center gap-1">
-            {/* Attach button */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={isLoading}
-              className="size-9 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-              title="Anexar arquivo"
-            >
-              <PaperclipIcon size={18} />
-            </Button>
+            {/* Attach button - desktop only (mobile uses sheet) */}
+            {!isMobile && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+                className="size-9 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                title="Anexar arquivo"
+              >
+                <PaperclipIcon size={18} />
+              </Button>
+            )}
 
             {/* Voice button */}
             <Button
@@ -375,7 +446,7 @@ export function MultimodalInput({
               <MicIcon size={18} />
             </Button>
 
-            {/* Submit/Stop button */}
+            {/* Submit/Stop button - Perplexity style circle */}
             {isLoading ? (
               <Button
                 type="button"
@@ -392,7 +463,13 @@ export function MultimodalInput({
                 type="submit"
                 size="icon"
                 disabled={!input.trim() && attachments.length === 0}
-                className="size-9 rounded-full bg-primary text-primary-foreground shadow-sm hover:bg-primary/90 disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none"
+                className={cn(
+                  'size-9 rounded-full shadow-sm',
+                  'bg-primary text-primary-foreground hover:bg-primary/90',
+                  'disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none',
+                  // Perplexity-style glow effect when active
+                  input.trim() && 'shadow-[0_2px_8px_rgba(6,182,212,0.3)]'
+                )}
                 title="Enviar mensagem"
               >
                 <ArrowUpIcon size={16} />
