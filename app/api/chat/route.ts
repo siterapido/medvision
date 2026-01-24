@@ -1,14 +1,14 @@
 /**
  * API Route: Chat with Artifacts Support
  *
- * Usa AI SDK v6 com streamText e tool calling para gerar artifacts.
+ * Usa AI SDK v6 com generateText (bloco) e tool calling para gerar artifacts.
  * Endpoint: POST /api/chat
  *
  * ROTA UNIFICADA - Esta é a única rota de chat do sistema.
- * Inclui: autenticação, contexto, persistência de artifacts, e streaming.
+ * Inclui: autenticação, contexto, persistência de artifacts.
  */
 
-import { streamText, convertToModelMessages, UIMessage, generateId } from 'ai'
+import { generateText, convertToModelMessages, UIMessage, generateId } from 'ai'
 import { openrouter } from '@/lib/ai/openrouter'
 import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
 import { getAgentArtifactTools } from '@/lib/ai/tools/artifact-tools'
@@ -201,7 +201,8 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
       `[Chat] Agent: ${agentId}, Model: ${modelId}, Messages: ${modelMessages.length}, Tools: ${Object.keys(tools).length}`
     )
 
-    const result = streamText({
+    // Usar generateText para resposta em bloco (não-streaming)
+    const result = await generateText({
       model: openrouter(modelId) as any,
       system: systemPrompt,
       messages: modelMessages,
@@ -209,43 +210,51 @@ IMPORTANTE: Sempre que gerar um artifact, informe o aluno que o material foi cri
       maxSteps: 5,
       temperature: 0.1,
       maxTokens: 4000,
-      onFinish: async (event) => {
-        // Persistir mensagem do assistente
-        if (currentSessionId) {
-          await adminSupabase.from('agent_messages').insert({
-            session_id: currentSessionId,
-            agent_id: agentId,
-            role: 'assistant',
-            content: event.text,
-            tool_calls: event.toolCalls as any,
-          })
-        }
-
-        // Limpar contexto após conclusão
-        clearContext()
-
-        console.log(
-          `[Chat] Finished: ${event.finishReason}, Tokens: ${event.usage?.totalTokens || 'N/A'}`
-        )
-      },
     })
 
-    return result.toUIMessageStreamResponse({
-      // IMPORTANTE: originalMessages é necessário para o DefaultChatTransport
-      // manter a consistência das mensagens entre cliente e servidor
-      originalMessages: sanitizedMessages,
-      // IMPORTANTE: generateMessageId é necessário para gerar IDs consistentes
-      // e evitar erros de validação no cliente
-      generateMessageId: () => generateId(),
-      // Handler de erro detalhado para debugging
-      onError: (error) => {
-        console.error('[Chat Stream Error]', error)
-        if (error == null) return 'Erro desconhecido'
-        if (typeof error === 'string') return error
-        if (error instanceof Error) return error.message
-        return JSON.stringify(error)
-      },
+    // Persistir mensagem do assistente
+    if (currentSessionId) {
+      await adminSupabase.from('agent_messages').insert({
+        session_id: currentSessionId,
+        agent_id: agentId,
+        role: 'assistant',
+        content: result.text,
+        tool_calls: result.toolCalls as any,
+      })
+    }
+
+    // Limpar contexto após conclusão
+    clearContext()
+
+    console.log(
+      `[Chat] Finished: ${result.finishReason}, Tokens: ${result.usage?.totalTokens || 'N/A'}`
+    )
+
+    // Criar mensagem de resposta no formato UIMessage
+    const assistantMessage: UIMessage = {
+      id: generateId(),
+      role: 'assistant',
+      parts: [{ type: 'text', text: result.text }],
+    }
+
+    // Adicionar tool results se houver
+    if (result.toolResults && result.toolResults.length > 0) {
+      for (const toolResult of result.toolResults) {
+        assistantMessage.parts.push({
+          type: `tool-${toolResult.toolName}` as any,
+          state: 'output-available',
+          output: toolResult.result,
+        } as any)
+      }
+    }
+
+    return new Response(JSON.stringify({
+      message: assistantMessage,
+      sessionId: currentSessionId,
+    }), {
+      status: 200,
       headers: {
+        'Content-Type': 'application/json',
         'x-session-id': currentSessionId || '',
       },
     })

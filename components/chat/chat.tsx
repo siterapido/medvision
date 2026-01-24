@@ -1,15 +1,14 @@
 'use client'
 
 /**
- * Chat - Vercel Chat SDK Pattern
+ * Chat - Block Response Pattern (Non-Streaming)
  *
- * Componente principal de chat seguindo o padrao oficial da Vercel.
- * Usa useChat do @ai-sdk/react com DefaultChatTransport.
+ * Componente principal de chat usando respostas em bloco.
+ * Usa fetch direto para a API com resposta JSON completa.
  */
 
-import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport, UIMessage } from 'ai'
-import { useState, useCallback, useMemo } from 'react'
+import { UIMessage } from 'ai'
+import { useState, useCallback } from 'react'
 import { toast } from 'sonner'
 import { Messages } from './messages'
 import { MultimodalInput } from './multimodal-input'
@@ -30,56 +29,68 @@ export function Chat({
   userName,
 }: ChatProps) {
   const [input, setInput] = useState('')
+  const [messages, setMessages] = useState<UIMessage[]>(initialMessages)
+  const [status, setStatus] = useState<'ready' | 'submitted' | 'streaming' | 'error'>('ready')
   const [chatId] = useState(() => id || crypto.randomUUID())
+  const [sessionId, setSessionId] = useState<string | undefined>(id)
 
-  // Memoize transport to avoid recreation on every render
-  // Following vercel/ai-chatbot pattern: send only last message for normal requests
-  const transport = useMemo(
-    () =>
-      new DefaultChatTransport({
-        api: apiEndpoint,
-        prepareSendMessagesRequest: ({ id: reqId, messages: msgs }) => {
-          const lastMessage = msgs.at(-1)
+  // Send message to API and get response
+  const sendMessage = useCallback(
+    async (userMessage: { role: 'user'; parts: Array<{ type: 'text'; text: string }> }) => {
+      const newUserMessage: UIMessage = {
+        id: crypto.randomUUID(),
+        role: 'user',
+        parts: userMessage.parts,
+      }
 
-          // Check if this is a tool approval continuation
-          const isToolApprovalContinuation =
-            lastMessage?.role !== 'user' ||
-            msgs.some((msg) =>
-              msg.parts?.some((part: any) => {
-                const state = part.state
-                return state === 'approval-responded' || state === 'output-denied'
-              })
-            )
+      // Add user message to state
+      setMessages((prev) => [...prev, newUserMessage])
+      setStatus('submitted')
 
-          return {
-            body: {
-              id: reqId,
-              // For tool approvals: send all messages
-              // For normal messages: send only the last message
-              ...(isToolApprovalContinuation
-                ? { messages: msgs }
-                : { message: lastMessage }),
-              agentId,
-              sessionId: chatId,
-            },
-          }
-        },
-      }),
-    [apiEndpoint, agentId, chatId]
+      try {
+        const response = await fetch(apiEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: newUserMessage,
+            agentId,
+            sessionId,
+          }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.error || `HTTP ${response.status}`)
+        }
+
+        const data = await response.json()
+
+        // Update session ID if returned
+        if (data.sessionId && !sessionId) {
+          setSessionId(data.sessionId)
+        }
+
+        // Add assistant message to state
+        if (data.message) {
+          setMessages((prev) => [...prev, data.message])
+        }
+
+        setStatus('ready')
+        console.log('[Chat] Message complete:', data.message?.id)
+      } catch (error) {
+        console.error('[Chat] Error:', error)
+        setStatus('error')
+        toast.error('Erro no chat', {
+          description: error instanceof Error ? error.message : 'Erro desconhecido',
+        })
+        // Reset to ready after error
+        setTimeout(() => setStatus('ready'), 1000)
+      }
+    },
+    [apiEndpoint, agentId, sessionId]
   )
-
-  const { messages, sendMessage, status, stop, reload, setMessages } = useChat({
-    id: chatId,
-    messages: initialMessages,
-    transport,
-    onError: (error) => {
-      console.error('[Chat] Error:', error)
-      toast.error('Erro no chat', { description: error.message })
-    },
-    onFinish: (message) => {
-      console.log('[Chat] Message complete:', message?.id)
-    },
-  })
 
   const handleSubmit = useCallback(
     (attachments?: File[]) => {
@@ -137,16 +148,41 @@ export function Chat({
         }
       }
     },
-    [messages, setMessages]
+    [messages]
   )
 
   const handleRegenerate = useCallback(() => {
-    reload()
-    toast.info('Regenerando resposta...')
-  }, [reload])
+    // Remove last assistant message and resend the last user message
+    const lastUserMessageIndex = messages.map(m => m.role).lastIndexOf('user')
+    if (lastUserMessageIndex >= 0) {
+      const lastUserMessage = messages[lastUserMessageIndex]
+      const textContent = lastUserMessage.parts
+        ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text' && 'text' in p)
+        .map((p) => p.text)
+        .join('\n')
+
+      if (textContent) {
+        // Remove all messages after the last user message
+        setMessages(messages.slice(0, lastUserMessageIndex))
+        // Resend the message
+        setTimeout(() => {
+          sendMessage({
+            role: 'user',
+            parts: [{ type: 'text', text: textContent }],
+          })
+        }, 100)
+        toast.info('Regenerando resposta...')
+      }
+    }
+  }, [messages, sendMessage])
+
+  // Stop function (no-op for non-streaming)
+  const stop = useCallback(() => {
+    // No-op for non-streaming
+  }, [])
 
   return (
-    <div className="overscroll-behavior-contain flex h-dvh min-w-0 touch-pan-y flex-col bg-background">
+    <div className="flex h-full min-w-0 flex-col bg-background">
       <Messages
         messages={messages}
         status={status}
@@ -156,7 +192,7 @@ export function Chat({
         onRegenerate={handleRegenerate}
       />
 
-      <div className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
+      <div className="mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
         <MultimodalInput
           input={input}
           setInput={setInput}

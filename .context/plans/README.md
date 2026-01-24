@@ -4,8 +4,10 @@ This directory contains plans for coordinating work across documentation and pla
 
 ## Plan Queue
 1. [Chat Validation](./chat-validation.md)
-2. [Investigar Chat Bloqueado](./investigar-chat-bloqueado.md)
-3. [Simplificacao Codigo](./simplificacao-codigo.md)
+2. [Fix Chat Message Validation](./fix-chat-message-validation.md)
+3. [Investigar Chat Bloqueado](./investigar-chat-bloqueado.md)
+4. [Refactor Chat Vercel Ai Chatbot](./refactor-chat-vercel-ai-chatbot.md)
+5. [Simplificacao Codigo](./simplificacao-codigo.md)
 
 ## How To Create Or Update Plans
 - Run "ai-context plan <name>" to scaffold a new plan template.
