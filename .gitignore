@@ -49,3 +49,9 @@ __pycache__/
 # development logs
 frontend.log
 backend.log
+
+# AI Context workflow archives
+.context/workflow/archive/
+
+# Archived code
+_archived/
