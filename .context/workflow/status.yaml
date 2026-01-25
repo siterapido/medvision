@@ -1,44 +1,37 @@
 project:
-  name: "history-system"
-  scale: MEDIUM
-  started: "2026-01-24T21:23:18.612Z"
+  name: "habilitar-summary-artifact"
+  scale: SMALL
+  started: "2026-01-25T02:22:32.210Z"
   current_phase: V
 
 phases:
   P:
     status: filled
-    started_at: "2026-01-24T21:23:18.612Z"
-    completed_at: "2026-01-24T21:25:22.792Z"
+    started_at: "2026-01-25T02:22:32.210Z"
+    completed_at: "2026-01-25T02:22:50.859Z"
   R:
-    status: filled
-    started_at: "2026-01-24T21:25:22.793Z"
-    completed_at: "2026-01-24T21:25:32.444Z"
+    status: skipped
+    reason: "Not required for scale SMALL"
   E:
     status: filled
-    started_at: "2026-01-24T21:25:32.445Z"
-    completed_at: "2026-01-24T21:31:15.397Z"
+    started_at: "2026-01-25T02:22:50.863Z"
+    completed_at: "2026-01-25T02:23:46.181Z"
   V:
-    status: filled
-    started_at: "2026-01-24T21:31:15.397Z"
-    completed_at: "2026-01-24T21:32:44.622Z"
+    status: in_progress
+    started_at: "2026-01-25T02:23:46.186Z"
   C:
     status: skipped
-    reason: "Not required for scale MEDIUM"
+    reason: "Not required for scale SMALL"
 
 execution:
   history:
-    - timestamp: "2026-01-24T21:32:50.493Z"
+    - timestamp: "2026-01-25T08:08:13.339Z"
       phase: V
       action: plan_phase_updated
-      plan: "history-system"
-      description: "Plan phase phase-4 updated to completed"
-  last_activity: "2026-01-24T21:32:50.493Z"
+      plan: "blocking-ui-migration"
+      description: "Plan phase phase-4 updated to in_progress"
+  last_activity: "2026-01-25T08:08:13.339Z"
   resume_context: "Fase do plano atualizada"
-
-settings:
-  autonomous_mode: true
-  require_plan: true
-  require_approval: true
 
 approval:
   plan_created: true

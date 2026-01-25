@@ -6,12 +6,13 @@ This directory contains plans for coordinating work across documentation and pla
 1. [Chat Validation](./chat-validation.md)
 2. [Fix Chat Message Validation](./fix-chat-message-validation.md)
 3. [Fix Memory System](./fix-memory-system.md)
-4. [History System](./history-system.md)
-5. [Investigar Chat Bloqueado](./investigar-chat-bloqueado.md)
-6. [Perplexity Multimodal Input](./perplexity-multimodal-input.md)
-7. [Refactor Chat Vercel Ai Chatbot](./refactor-chat-vercel-ai-chatbot.md)
-8. [Simplificacao Codigo](./simplificacao-codigo.md)
-9. [Unified Sidebar Redesign](./unified-sidebar-redesign.md)
+4. [Habilitar Summary Artifact](./habilitar-summary-artifact.md)
+5. [History System](./history-system.md)
+6. [Investigar Chat Bloqueado](./investigar-chat-bloqueado.md)
+7. [Perplexity Multimodal Input](./perplexity-multimodal-input.md)
+8. [Refactor Chat Vercel Ai Chatbot](./refactor-chat-vercel-ai-chatbot.md)
+9. [Simplificacao Codigo](./simplificacao-codigo.md)
+10. [Unified Sidebar Redesign](./unified-sidebar-redesign.md)
 
 ## How To Create Or Update Plans
 - Run "ai-context plan <name>" to scaffold a new plan template.
