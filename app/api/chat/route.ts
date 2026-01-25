@@ -15,7 +15,7 @@ import {
   generateId,
   stepCountIs,
 } from 'ai'
-import { openrouter } from '@/lib/ai/openrouter'
+import { openrouter, MODELS } from '@/lib/ai/openrouter'
 import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
 import { getAgentArtifactTools } from '@/lib/ai/tools/artifact-tools'
 import { getAgentToolPreset, toolNeedsApproval, TOOL_REGISTRY } from '@/lib/ai/tools/registry'
@@ -44,6 +44,18 @@ function extractTextFromMessage(message: UIMessage): string {
     }
   }
   return JSON.stringify(message.parts)
+}
+
+// Helper to detect if messages contain images
+function hasImageContent(messages: UIMessage[]): boolean {
+  return messages.some((m) =>
+    m.parts?.some(
+      (p) =>
+        p.type === 'file' &&
+        typeof (p as any).mediaType === 'string' &&
+        (p as any).mediaType.startsWith('image/')
+    )
+  )
 }
 
 /**
@@ -239,8 +251,17 @@ export async function POST(req: Request) {
     }
 
     const agentConfig = AGENT_CONFIGS[agentId] || AGENT_CONFIGS['odonto-gpt']
-    const modelId = agentConfig.model || 'google/gemini-2.0-flash-001'
     const toolPreset = getAgentToolPreset(agentId)
+
+    // Detect images in messages and route to vision model if needed
+    const hasImages = hasImageContent(messages)
+    const modelId = hasImages
+      ? MODELS.vision // Use vision model (Claude 3.5 Sonnet) for image analysis
+      : agentConfig.model || 'google/gemini-2.0-flash-001'
+
+    if (hasImages) {
+      console.log('[Chat] Detected images, using vision model:', MODELS.vision)
+    }
 
     // --- CONTEXT INJECTION WITH MEMORY SYSTEM ---
     let systemPrompt = agentConfig.system
@@ -313,6 +334,19 @@ Tipo de Artifact suportado no momento:
 - 'summary': Resumos de matérias, capítulos de livros ou revisões bibliográficas. Inclua pontos-chave claros e um texto bem estruturado em markdown.
 
 IMPORTANTE: Sempre que o conteúdo for um resumo ou explicação estruturada, use 'createDocument' com kind='summary'. Isso permite que o aluno visualize o material em uma janela dedicada ao lado do chat. Informe ao aluno que o resumo foi criado.`
+
+    // Add vision analysis instructions when images are detected
+    if (hasImages) {
+      systemPrompt += `\n\n# INSTRUÇÃO DE ANÁLISE DE IMAGEM
+Você está recebendo uma imagem para análise. Se for uma radiografia ou imagem odontológica:
+1. Descreva o que observa de forma técnica e estruturada
+2. Identifique possíveis achados relevantes (lesões, fraturas, reabsorções, etc.)
+3. Sugira hipóteses diagnósticas quando apropriado
+4. Recomende condutas clínicas se aplicável
+5. Mencione limitações da análise por imagem
+
+IMPORTANTE: Esta análise é assistida por IA e deve ser validada por um profissional habilitado. A IA não substitui o diagnóstico clínico.`
+    }
 
     // Map agentId to allowed agent_type in DB
     let dbAgentType = 'qa'
@@ -407,7 +441,7 @@ IMPORTANTE: Sempre que o conteúdo for um resumo ou explicação estruturada, us
     // Use generateText for blocking (non-streaming) response
     // Note: Temporarily simplified - tools disabled for debugging
     const result = await generateText({
-      model: openrouter(modelId) as any,
+      model: openrouter(modelId),
       system: systemPrompt,
       messages: modelMessages,
       temperature: 0.1,

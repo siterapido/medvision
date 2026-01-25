@@ -48,7 +48,17 @@ export interface ThinkingBlock {
   visible?: boolean
 }
 
-export type MessageBlock = TextBlock | ToolBlock | ArtifactBlock | ThinkingBlock
+/**
+ * File Block - Arquivo anexado (imagem, documento, etc)
+ */
+export interface FileBlock {
+  type: 'file'
+  url: string
+  mediaType: string
+  filename?: string
+}
+
+export type MessageBlock = TextBlock | ToolBlock | ArtifactBlock | ThinkingBlock | FileBlock
 
 /**
  * Estrutura melhorada de mensagem com blocos
@@ -67,6 +77,17 @@ export function uiMessageToBlocks(message: UIMessage): MessageBlock[] {
 
   for (const part of message.parts) {
     if (typeof part !== 'object') continue
+
+    // File block (images, documents attached)
+    if (part.type === 'file' && 'url' in part) {
+      blocks.push({
+        type: 'file',
+        url: (part as any).url,
+        mediaType: (part as any).mediaType || 'application/octet-stream',
+        filename: (part as any).filename,
+      })
+      continue
+    }
 
     // Text block
     if (part.type === 'text' && 'text' in part) {

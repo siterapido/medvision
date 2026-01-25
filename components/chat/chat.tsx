@@ -51,7 +51,7 @@ export function Chat({
     stop,
     reload,
     error,
-    append,
+    sendMessage,
     status,
     isLoading,
   } = useBlockingChat({
@@ -78,18 +78,15 @@ export function Chat({
 
   // Handle sending messages via useBlockingChat
   const handleManualSubmit = useCallback(
-    (textInput: string) => {
-      if (!textInput.trim() || isLoading) return
+    (textInput: string, attachments?: File[]) => {
+      if ((!textInput.trim() && !attachments?.length) || isLoading) return
 
       setInput('')
 
-      // Use append to send the message through the blocking chat hook
-      append({
-        role: 'user',
-        content: textInput,
-      })
+      // Use sendMessage to send the message with attachments through the blocking chat hook
+      sendMessage(textInput, attachments)
     },
-    [isLoading, append, setInput]
+    [isLoading, sendMessage, setInput]
   )
 
   // Find pending tool approvals
@@ -119,17 +116,11 @@ export function Chat({
     return null
   }, [messages])
 
-  // Handle submit
+  // Handle submit with optional attachments (images, files)
   const handleSubmit = useCallback(
     (attachments?: File[]) => {
-      // Pass manual handler
-      handleManualSubmit(input)
-      
-      // TODO: Handle file attachments upload
-      if (attachments?.length) {
-        console.log('[Chat] Attachments:', attachments)
-        toast.info('Upload de arquivos em desenvolvimento')
-      }
+      // Pass input and attachments to handleManualSubmit
+      handleManualSubmit(input, attachments)
     },
     [input, handleManualSubmit]
   )

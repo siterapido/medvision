@@ -39,10 +39,20 @@ interface UseBlockingChatReturn {
   isLoading: boolean
   status: ChatStatus
   error: Error | null
-  sendMessage: (content: string) => Promise<void>
-  append: (message: { role: 'user' | 'assistant'; content: string }) => Promise<void>
+  sendMessage: (content: string, attachments?: File[]) => Promise<void>
+  append: (message: { role: 'user' | 'assistant'; content: string }, attachments?: File[]) => Promise<void>
   reload: () => Promise<void>
   stop: () => void
+}
+
+// Helper to convert File to base64 data URL
+async function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = reject
+    reader.readAsDataURL(file)
+  })
 }
 
 // Helper to normalize message to UIMessage format
@@ -84,8 +94,8 @@ export function useBlockingChat({
   const status: ChatStatus = isLoading ? 'submitted' : error ? 'error' : 'ready'
 
   const sendMessage = useCallback(
-    async (content: string) => {
-      if (!content.trim() || isLoading) return
+    async (content: string, attachments?: File[]) => {
+      if ((!content.trim() && !attachments?.length) || isLoading) return
 
       setIsLoading(true)
       setError(null)
@@ -93,11 +103,34 @@ export function useBlockingChat({
       const controller = new AbortController()
       abortControllerRef.current = controller
 
-      // Create user message
+      // Build parts array
+      const parts: UIMessage['parts'] = []
+
+      // Add image attachments first (AI SDK pattern)
+      if (attachments?.length) {
+        for (const file of attachments) {
+          if (file.type.startsWith('image/')) {
+            const dataUrl = await fileToBase64(file)
+            parts.push({
+              type: 'file',
+              mediaType: file.type,
+              filename: file.name,
+              url: dataUrl,
+            } as any)
+          }
+        }
+      }
+
+      // Add text content
+      if (content.trim()) {
+        parts.push({ type: 'text', text: content })
+      }
+
+      // Create user message with parts
       const userMessage: UIMessage = {
         id: generateId(),
         role: 'user',
-        parts: [{ type: 'text', text: content }],
+        parts,
       }
 
       // Add user message immediately for instant feedback
@@ -155,9 +188,9 @@ export function useBlockingChat({
 
   // Append message (compatible with useChat API)
   const append = useCallback(
-    async (message: { role: 'user' | 'assistant'; content: string }) => {
+    async (message: { role: 'user' | 'assistant'; content: string }, attachments?: File[]) => {
       if (message.role === 'user') {
-        await sendMessage(message.content)
+        await sendMessage(message.content, attachments)
       } else {
         // For assistant messages, just add to state
         const assistantMessage: UIMessage = {
@@ -183,13 +216,15 @@ export function useBlockingChat({
       (p): p is { type: 'text'; text: string } => 'type' in p && p.type === 'text' && 'text' in p
     )
 
-    if (!textPart) return
+    // For reload, we can't regenerate file attachments (they were File objects)
+    // So we just reload the text portion
+    const textContent = textPart?.text || ''
 
     // Remove messages after the last user message (including any assistant response)
     setMessages((prev) => prev.slice(0, lastUserMessageIndex))
 
-    // Re-send the message
-    await sendMessage(textPart.text)
+    // Re-send the message (without attachments - they're not available anymore)
+    await sendMessage(textContent)
   }, [messages, sendMessage])
 
   // Stop/abort current request

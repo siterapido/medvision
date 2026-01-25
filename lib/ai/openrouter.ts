@@ -1,14 +1,17 @@
 /**
  * OpenRouter Provider Configuration
- * 
+ *
  * Utiliza o @ai-sdk/openai com baseURL customizado para OpenRouter.
  * Isso permite acesso a centenas de modelos via uma única API.
+ *
+ * IMPORTANTE: OpenRouter só suporta Chat Completions API, não Responses API.
+ * Por isso usamos .chat() explicitamente (AI SDK v5+ usa Responses API por padrão).
  */
 
 import { createOpenAI } from '@ai-sdk/openai'
 
 // Criar provider OpenRouter usando a compatibilidade OpenAI
-export const openrouter = createOpenAI({
+const openrouterProvider = createOpenAI({
   name: 'openrouter',
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -17,6 +20,12 @@ export const openrouter = createOpenAI({
     'X-Title': 'OdontoGPT',
   },
 })
+
+/**
+ * OpenRouter model factory - uses Chat Completions API (not Responses API)
+ * OpenRouter doesn't support the Responses API format.
+ */
+export const openrouter = (modelId: string) => openrouterProvider.chat(modelId)
 
 // Modelos disponíveis via OpenRouter (versões pagas - mais estáveis)
 export const MODELS = {

@@ -29,7 +29,8 @@ import {
 import { Code, Image, Table, FileText, Layers, Search, Lightbulb, CheckCircle, FlaskConical, ClipboardList } from 'lucide-react'
 import { getStreamingComponent, ToolExecutionIndicator } from './stream-components'
 import { MessageActions } from './message-actions'
-import { uiMessageToBlocks, groupTextBlocks, type MessageBlock, type TextBlock } from '@/lib/ai/message-blocks'
+import { uiMessageToBlocks, groupTextBlocks, type MessageBlock, type TextBlock, type FileBlock } from '@/lib/ai/message-blocks'
+import { FileBlockRenderer } from './blocks/file-block'
 
 interface MessageProps {
   message: UIMessage
@@ -39,9 +40,23 @@ interface MessageProps {
 }
 
 /**
- * Renderiza um bloco individual (text, tool, artifact, etc)
+ * Renderiza um bloco individual (text, tool, artifact, file, etc)
  */
 function MessageBlockRenderer({ block, blockKey }: { block: MessageBlock; blockKey: string }) {
+  // File block (images and attachments)
+  if (block.type === 'file') {
+    const fileBlock = block as FileBlock
+    return (
+      <FileBlockRenderer
+        key={blockKey}
+        url={fileBlock.url}
+        mediaType={fileBlock.mediaType}
+        filename={fileBlock.filename}
+        className="mb-2"
+      />
+    )
+  }
+
   if (block.type === 'text') {
     const textBlock = block as TextBlock
     return (
@@ -467,6 +482,19 @@ export function Message({ message, isLoading, onEdit, onRegenerate }: MessagePro
           {groupedBlocks.length === 0 &&
             message.parts?.map((part, index) => {
               const key = `message-${message.id}-part-${index}`
+
+              // File parts (images, documents)
+              if (part.type === 'file' && 'url' in part) {
+                return (
+                  <FileBlockRenderer
+                    key={key}
+                    url={(part as any).url}
+                    mediaType={(part as any).mediaType}
+                    filename={(part as any).filename}
+                    className="mb-2"
+                  />
+                )
+              }
 
               if (part.type === 'text') {
                 return (
