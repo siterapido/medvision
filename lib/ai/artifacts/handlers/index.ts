@@ -20,17 +20,17 @@ import { diagramHandler } from './diagram'
 
 /**
  * Registry of all document handlers
- * Currently restricted to summary only
+ * All handlers enabled for full artifact support
  */
 export const documentHandlers = {
   summary: summaryHandler,
-  // flashcards: flashcardsHandler,
-  // quiz: quizHandler,
-  // research: researchHandler,
-  // report: reportHandler,
-  // code: codeHandler,
-  // text: textHandler,
-  // diagram: diagramHandler,
+  flashcards: flashcardsHandler,
+  quiz: quizHandler,
+  research: researchHandler,
+  report: reportHandler,
+  code: codeHandler,
+  text: textHandler,
+  diagram: diagramHandler,
 } as const
 
 /**

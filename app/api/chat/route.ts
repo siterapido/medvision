@@ -25,6 +25,9 @@ import { runWithContext, createContext, type OdontoContext } from '@/lib/ai/cont
 import { sanitizeUIMessages } from '@/lib/ai/sanitize-messages'
 import { isCommand, parseCommand, executeCommand } from '@/lib/ai/commands'
 import { memoryService, processConversation } from '@/lib/ai/memory'
+import { trackAICompletion, trackStep, formatDuration } from '@/lib/ai/analytics'
+import { handleAIError } from '@/lib/ai/error-handler'
+import { detectIntent, getToolChoice } from '@/lib/ai/intent-detection'
 
 export const maxDuration = 120 // Increased for blocking (non-streaming) responses
 
@@ -438,18 +441,79 @@ IMPORTANTE: Esta análise é assistida por IA e deve ser validada por um profiss
     )
     console.log('[Chat] Model messages:', JSON.stringify(modelMessages.slice(-2), null, 2))
 
-    // Use generateText for blocking (non-streaming) response
-    // Note: Temporarily simplified - tools disabled for debugging
-    const result = await generateText({
-      model: openrouter(modelId),
-      system: systemPrompt,
-      messages: modelMessages,
-      temperature: 0.1,
-      maxOutputTokens: 4000,
-      abortSignal: req.signal,
+    // Detect user intent for tool choice control
+    const intent = detectIntent(lastMessageText)
+    const toolChoice = getToolChoice(intent)
+
+    if (intent) {
+      console.log('[Chat] Intent detected:', {
+        tool: intent.tool,
+        kind: intent.kind,
+        confidence: intent.confidence,
+        reason: intent.reason,
+        toolChoice: toolChoice.type,
+      })
+    }
+
+    // Track start time for analytics
+    const startTime = Date.now()
+
+    // Use generateText for blocking (non-streaming) response with tools enabled
+    const result = await runWithContext(odontoContext, async () => {
+      return await generateText({
+        model: openrouter(modelId),
+        system: systemPrompt,
+        messages: modelMessages,
+        tools, // ✅ Tools enabled
+        toolChoice, // ✅ Tool choice based on intent detection
+        maxSteps: toolPreset.maxSteps, // ✅ Multi-step execution
+        temperature: 0.1,
+        maxOutputTokens: 4000,
+        abortSignal: req.signal,
+
+        // ✅ Track step progress (server-side logging)
+        onStepFinish: async ({ stepType, toolCalls, toolResults, usage }) => {
+          trackStep({
+            stepType,
+            toolCalls,
+            toolResults,
+            usage,
+          })
+        },
+
+        // ✅ Enable telemetry for observability
+        experimental_telemetry: {
+          isEnabled: true,
+          functionId: 'odonto-chat',
+          metadata: {
+            agentId,
+            userId: currentUserId,
+            sessionId: currentSessionId,
+          },
+        },
+      })
     })
 
-    console.log('[Chat] Generation finished, saving to DB...')
+    const duration = Date.now() - startTime
+
+    // Track completion metrics
+    trackAICompletion({
+      agentId,
+      modelId,
+      tokens: {
+        prompt: result.usage.promptTokens,
+        completion: result.usage.completionTokens,
+        total: result.usage.totalTokens,
+      },
+      toolsUsed: result.toolResults?.map(tr => tr.toolName) || [],
+      duration,
+      success: true,
+      artifactType: result.toolResults?.[0]?.result?.kind,
+      sessionId: currentSessionId,
+      userId: currentUserId,
+    })
+
+    console.log(`[Chat] Generation finished in ${formatDuration(duration)}, saving to DB...`)
 
     // Build assistant response message
     const assistantMessage: UIMessage = {
@@ -489,25 +553,30 @@ IMPORTANTE: Esta análise é assistida por IA e deve ser validada por um profiss
       toolResults: result.toolResults,
     })
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Internal server error'
-    const errorStack = error instanceof Error ? error.stack : undefined
+    // Use typed error handler
+    const handled = handleAIError(error)
 
     console.error('[Chat API Error]', {
-      message: errorMessage,
-      stack: errorStack,
+      type: handled.type,
+      message: handled.message,
+      statusCode: handled.statusCode,
       userId: currentUserId,
       sessionId: currentSessionId,
-      type: error instanceof Error ? error.constructor.name : typeof error,
+      details: handled.details,
     })
 
-    // Send error details for debugging
-    return new Response(JSON.stringify({
-      error: errorMessage,
-      details: process.env.NODE_ENV === 'development' ? errorStack : undefined,
-    }), {
-      status: 500,
-      headers: { 'Content-Type': 'application/json' },
-    })
+    // Send structured error response
+    return new Response(
+      JSON.stringify({
+        error: handled.message,
+        type: handled.type,
+        details: process.env.NODE_ENV === 'development' ? handled.details : undefined,
+      }),
+      {
+        status: handled.statusCode || 500,
+        headers: { 'Content-Type': 'application/json' },
+      }
+    )
   }
 }
 
