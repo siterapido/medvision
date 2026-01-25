@@ -1,0 +1,212 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - region "Conteúdo principal do site" [ref=e4]:
+    - generic [ref=e5]:
+      - complementary [ref=e6]:
+        - link "Odonto Suite" [ref=e8] [cursor=pointer]:
+          - /url: /admin
+          - img "Odonto Suite" [ref=e9]
+        - paragraph [ref=e11]: Painel Administrativo
+        - navigation [ref=e12]:
+          - link "Visão geral" [ref=e13] [cursor=pointer]:
+            - /url: /admin
+            - img [ref=e14]
+            - text: Visão geral
+          - link "Gerenciar Cursos" [ref=e19] [cursor=pointer]:
+            - /url: /admin/cursos
+            - img [ref=e20]
+            - text: Gerenciar Cursos
+          - link "Materiais" [ref=e22] [cursor=pointer]:
+            - /url: /admin/materiais
+            - img [ref=e23]
+            - text: Materiais
+          - link "Cadastrar Lives" [ref=e26] [cursor=pointer]:
+            - /url: /admin/lives
+            - img [ref=e27]
+            - text: Cadastrar Lives
+          - link "Notificações" [ref=e29] [cursor=pointer]:
+            - /url: /admin/notifications
+            - img [ref=e30]
+            - text: Notificações
+          - link "Agentes IA" [ref=e32] [cursor=pointer]:
+            - /url: /admin/agentes
+            - img [ref=e33]
+            - text: Agentes IA
+          - link "Pipeline" [ref=e36] [cursor=pointer]:
+            - /url: /admin/pipeline
+            - img [ref=e37]
+            - text: Pipeline
+          - link "Trials" [ref=e41] [cursor=pointer]:
+            - /url: /admin/trials
+            - img [ref=e42]
+            - text: Trials
+          - link "Certificados" [ref=e44] [cursor=pointer]:
+            - /url: /admin/certificados
+            - img [ref=e45]
+            - text: Certificados
+          - link "Usuários" [ref=e48] [cursor=pointer]:
+            - /url: /admin/usuarios
+            - img [ref=e49]
+            - text: Usuários
+        - generic [ref=e54]:
+          - generic [ref=e55]:
+            - paragraph [ref=e56]: marckexpert1
+            - paragraph [ref=e57]: marckexpert1@gmail.com
+            - generic [ref=e58]: "Role: Administrador"
+          - button "Sair" [ref=e59]:
+            - img [ref=e60]
+            - text: Sair
+      - generic [ref=e63]:
+        - generic [ref=e65]:
+          - heading "Painel Administrativo" [level=2] [ref=e67]
+          - 'button "Tema: Escuro" [ref=e69]':
+            - img [ref=e71]
+        - main [ref=e73]:
+          - generic [ref=e75]:
+            - generic [ref=e76]:
+              - heading "Visão Geral" [level=1] [ref=e77]
+              - paragraph [ref=e78]: Acompanhe o desempenho e atividades da plataforma em tempo real.
+            - generic [ref=e79]:
+              - generic [ref=e81]:
+                - img [ref=e83]
+                - generic [ref=e85]:
+                  - paragraph [ref=e86]: Cursos
+                  - paragraph [ref=e87]: "1"
+                  - generic [ref=e89]: 1 publicados
+              - generic [ref=e91]:
+                - img [ref=e93]
+                - generic [ref=e96]:
+                  - paragraph [ref=e97]: Materiais
+                  - paragraph [ref=e98]: "0"
+                  - generic [ref=e100]: 0 disponíveis
+              - generic [ref=e102]:
+                - img [ref=e104]
+                - generic [ref=e107]:
+                  - paragraph [ref=e108]: Lives
+                  - paragraph [ref=e109]: "0"
+                  - generic [ref=e111]: 0 agendadas
+              - generic [ref=e113]:
+                - img [ref=e115]
+                - generic [ref=e118]:
+                  - paragraph [ref=e119]: Notificações
+                  - paragraph [ref=e120]: "10"
+                  - generic [ref=e121]:
+                    - generic [ref=e122]: 2 enviadas
+                    - generic [ref=e123]: • 8 falhas
+            - generic [ref=e124]:
+              - generic [ref=e126]:
+                - img [ref=e128]
+                - generic [ref=e133]:
+                  - paragraph [ref=e134]: Usuários
+                  - paragraph [ref=e135]: "11"
+              - generic [ref=e137]:
+                - img [ref=e139]
+                - generic [ref=e142]:
+                  - paragraph [ref=e143]: Aulas
+                  - paragraph [ref=e144]: "0"
+              - generic [ref=e146]:
+                - img [ref=e148]
+                - generic [ref=e150]:
+                  - paragraph [ref=e151]: Próximas Lives
+                  - paragraph [ref=e152]: "0"
+            - generic [ref=e153]:
+              - generic [ref=e154]:
+                - generic [ref=e155]:
+                  - generic [ref=e156]:
+                    - generic [ref=e157]: Usuários Recentes
+                    - generic [ref=e158]: Últimos cadastros realizados.
+                  - link [ref=e159] [cursor=pointer]:
+                    - /url: /admin/usuarios
+                    - img
+                - generic [ref=e161]:
+                  - generic [ref=e162]:
+                    - generic [ref=e163]:
+                      - img [ref=e165]
+                      - generic [ref=e168]:
+                        - paragraph [ref=e169]: Thierry cândido nascimento gaspar silva
+                        - paragraph [ref=e170]: gestorthierry@gmail.com
+                    - generic [ref=e171]: há 3 dias
+                  - generic [ref=e172]:
+                    - generic [ref=e173]:
+                      - img [ref=e175]
+                      - generic [ref=e178]:
+                        - paragraph [ref=e179]: crislobato51
+                        - paragraph [ref=e180]: crislobato51@gmail.com
+                    - generic [ref=e181]: há 3 dias
+                  - generic [ref=e182]:
+                    - generic [ref=e183]:
+                      - img [ref=e185]
+                      - generic [ref=e188]:
+                        - paragraph [ref=e189]: franciele_saitone
+                        - paragraph [ref=e190]: franciele_saitone@hotmail.com
+                    - generic [ref=e191]: há 3 dias
+                  - generic [ref=e192]:
+                    - generic [ref=e193]:
+                      - img [ref=e195]
+                      - generic [ref=e198]:
+                        - paragraph [ref=e199]: franciele_saitine
+                        - paragraph [ref=e200]: franciele_saitine@hotmail.com
+                    - generic [ref=e201]: há 3 dias
+                  - generic [ref=e202]:
+                    - generic [ref=e203]:
+                      - img [ref=e205]
+                      - generic [ref=e208]:
+                        - paragraph [ref=e209]: vivianerrosagomes
+                        - paragraph [ref=e210]: vivianerrosagomes@gmail.com
+                    - generic [ref=e211]: há 3 dias
+                  - generic [ref=e212]:
+                    - generic [ref=e213]:
+                      - img [ref=e215]
+                      - generic [ref=e218]:
+                        - paragraph [ref=e219]: jacksonbenites6
+                        - paragraph [ref=e220]: jacksonbenites6@gmail.com
+                    - generic [ref=e221]: há 3 dias
+                  - generic [ref=e222]:
+                    - generic [ref=e223]:
+                      - img [ref=e225]
+                      - generic [ref=e228]:
+                        - paragraph [ref=e229]: Sandro Kazuo Aoki
+                        - paragraph [ref=e230]: kzusan37@gmail.com
+                    - generic [ref=e231]: há 3 dias
+                  - generic [ref=e232]:
+                    - generic [ref=e233]:
+                      - img [ref=e235]
+                      - generic [ref=e238]:
+                        - paragraph [ref=e239]: RONIERY DE OLIVEIRA COSTA
+                        - paragraph [ref=e240]: ronierycosta07@gmail.com
+                    - generic [ref=e241]: há 8 dias
+                  - generic [ref=e242]:
+                    - generic [ref=e243]:
+                      - img [ref=e245]
+                      - generic [ref=e248]:
+                        - paragraph [ref=e249]: Jose Segundo
+                        - paragraph [ref=e250]: josesegundo01@gmail.com
+                    - generic [ref=e251]: há 13 dias
+                  - generic [ref=e252]:
+                    - generic [ref=e253]:
+                      - img [ref=e255]
+                      - generic [ref=e258]:
+                        - paragraph [ref=e259]: test-user@odontogpt.com
+                        - paragraph [ref=e260]: test-user@odontogpt.com
+                    - generic [ref=e261]: há 13 dias
+              - generic [ref=e262]:
+                - generic [ref=e263]:
+                  - generic [ref=e264]:
+                    - generic [ref=e265]: Cursos Recentes
+                    - link "Ver tudo" [ref=e266] [cursor=pointer]:
+                      - /url: /admin/cursos
+                  - generic [ref=e269]:
+                    - paragraph [ref=e270]: Curso de Farmacologia
+                    - generic [ref=e271]: Ativo
+                - generic [ref=e272]:
+                  - generic [ref=e273]:
+                    - generic [ref=e274]: Próximas Lives
+                    - link "Agenda" [ref=e275] [cursor=pointer]:
+                      - /url: /admin/lives
+                  - generic [ref=e278]: Agenda vazia
+  - button "Open Next.js Dev Tools" [ref=e284] [cursor=pointer]:
+    - img [ref=e285]
+  - alert [ref=e288]
+```

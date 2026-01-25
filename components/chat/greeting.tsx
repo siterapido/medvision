@@ -89,10 +89,13 @@ export function Greeting({ userName, onSuggestionClick }: GreetingProps) {
                 key={suggestion}
                 animate={{ opacity: 1, scale: 1 }}
                 className={cn(
-                  'rounded-full border border-border bg-card px-4 py-2',
+                  'rounded-full border bg-card px-4 py-2',
+                  // Use system.md border tokens
+                  'border-[var(--border)]',
                   'text-sm text-muted-foreground',
                   'transition-all active:scale-95',
-                  'hover:border-primary/50 hover:text-foreground'
+                  // Hover: use border-strong
+                  'hover:border-[var(--border-strong)] hover:text-foreground'
                 )}
                 initial={{ opacity: 0, scale: 0.9 }}
                 onClick={() => onSuggestionClick(suggestion)}
@@ -147,7 +150,15 @@ export function Greeting({ userName, onSuggestionClick }: GreetingProps) {
             <motion.button
               key={suggestion}
               animate={{ opacity: 1, y: 0 }}
-              className="group flex items-center gap-2 rounded-full border border-border/50 bg-background/50 px-4 py-2 text-sm text-muted-foreground transition-all hover:border-primary/30 hover:bg-background hover:text-foreground active:scale-95"
+              className={cn(
+                'group flex items-center gap-2 rounded-full border px-4 py-2',
+                // Use system.md border tokens
+                'border-[var(--border-subtle)] bg-card/50',
+                'text-sm text-muted-foreground',
+                'transition-all active:scale-95',
+                // Hover: use border-default and solid bg
+                'hover:border-[var(--border)] hover:bg-card hover:text-foreground'
+              )}
               initial={{ opacity: 0, y: 10 }}
               onClick={() => onSuggestionClick(suggestion)}
               transition={{ delay: 0.8 + index * 0.1 }}

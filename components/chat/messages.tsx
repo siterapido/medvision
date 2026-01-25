@@ -106,11 +106,16 @@ export function Messages({
       {/* Scroll to bottom button - positioned for mobile visibility */}
       <button
         aria-label="Scroll to bottom"
-        className={`absolute bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full border bg-background/95 p-2 shadow-lg backdrop-blur-sm transition-all active:scale-95 sm:bottom-4 ${
+        className={cn(
+          'absolute bottom-3 left-1/2 z-20 -translate-x-1/2',
+          'rounded-full border bg-card p-2 backdrop-blur-sm',
+          // Use system.md border tokens
+          'border-[var(--border)]',
+          'transition-all active:scale-95 sm:bottom-4',
           isAtBottom
             ? 'pointer-events-none scale-0 opacity-0'
             : 'pointer-events-auto scale-100 opacity-100'
-        }`}
+        )}
         onClick={() => scrollToBottom('smooth')}
         type="button"
       >

@@ -63,7 +63,8 @@ function MessageBlockRenderer({ block, blockKey }: { block: MessageBlock; blockK
       <div key={blockKey}>
         <div
           className={cn('break-words rounded-2xl', {
-            'w-fit px-3 py-2 text-right text-primary-foreground bg-primary text-sm sm:text-base':
+            // User messages: cyan-tinted background (system.md)
+            'w-fit px-3 py-2 text-right text-foreground bg-brand/10 border border-brand/20 text-sm sm:text-base':
               textBlock.role === 'user',
             'bg-transparent text-left text-sm sm:text-base': textBlock.role === 'assistant',
           })}
@@ -501,7 +502,8 @@ export function Message({ message, isLoading, onEdit, onRegenerate }: MessagePro
                   <div key={key}>
                     <div
                       className={cn('break-words rounded-2xl', {
-                        'w-fit px-3 py-2 text-right text-primary-foreground bg-primary text-sm sm:text-base':
+                        // User messages: cyan-tinted background (system.md)
+                        'w-fit px-3 py-2 text-right text-foreground bg-brand/10 border border-brand/20 text-sm sm:text-base':
                           message.role === 'user',
                         'bg-transparent text-left text-sm sm:text-base': message.role === 'assistant',
                       })}
