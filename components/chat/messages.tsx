@@ -11,6 +11,8 @@ import { useRef, useEffect, useState, useCallback } from 'react'
 import { ArrowDown } from 'lucide-react'
 import { Message, ThinkingMessage } from './message'
 import { Greeting } from './greeting'
+import { cn } from '@/lib/utils'
+import { useMessageBlocks } from '@/lib/hooks/use-message-blocks'
 
 interface MessagesProps {
   messages: UIMessage[]
@@ -32,6 +34,9 @@ export function Messages({
   const containerRef = useRef<HTMLDivElement>(null)
   const endRef = useRef<HTMLDivElement>(null)
   const [isAtBottom, setIsAtBottom] = useState(true)
+
+  // Use message blocks for better organization
+  const { state: blockState } = useMessageBlocks(messages)
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
     endRef.current?.scrollIntoView({ behavior })
@@ -68,9 +73,18 @@ export function Messages({
         ref={containerRef}
         style={{ WebkitOverflowScrolling: 'touch' }}
       >
-        <div className="mx-auto flex min-w-0 max-w-4xl flex-col gap-3 px-3 py-3 sm:gap-4 sm:px-4 sm:py-4 md:gap-6">
+        <div className={cn("mx-auto flex min-w-0 max-w-3xl flex-col gap-6 px-4 py-8 md:px-8", messages.length === 0 && "h-full justify-center")}>
           {messages.length === 0 && (
             <Greeting userName={userName} onSuggestionClick={onSuggestionClick} />
+          )}
+
+          {/* Debug info - remove in production */}
+          {messages.length > 0 && process.env.NODE_ENV === 'development' && (
+            <div className="text-xs text-muted-foreground/50 px-2">
+              {blockState.hasArtifacts && '📄 '}
+              {blockState.hasPendingTools && '⏳ '}
+              Blocos: {blockState.blocksByMessageId.size}
+            </div>
           )}
 
           {messages.map((message, index) => (
@@ -85,7 +99,7 @@ export function Messages({
 
           {status === 'submitted' && <ThinkingMessage />}
 
-          <div className="min-h-6 shrink-0" ref={endRef} />
+          <div className="min-h-12 shrink-0" ref={endRef} />
         </div>
       </div>
 

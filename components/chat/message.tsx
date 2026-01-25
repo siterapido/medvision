@@ -29,6 +29,7 @@ import {
 import { Code, Image, Table, FileText, Layers, Search, Lightbulb, CheckCircle, FlaskConical, ClipboardList } from 'lucide-react'
 import { getStreamingComponent, ToolExecutionIndicator } from './stream-components'
 import { MessageActions } from './message-actions'
+import { uiMessageToBlocks, groupTextBlocks, type MessageBlock, type TextBlock } from '@/lib/ai/message-blocks'
 
 interface MessageProps {
   message: UIMessage
@@ -37,7 +38,95 @@ interface MessageProps {
   onRegenerate?: () => void
 }
 
-// Map tool names to artifact rendering
+/**
+ * Renderiza um bloco individual (text, tool, artifact, etc)
+ */
+function MessageBlockRenderer({ block, blockKey }: { block: MessageBlock; blockKey: string }) {
+  if (block.type === 'text') {
+    const textBlock = block as TextBlock
+    return (
+      <div key={blockKey}>
+        <div
+          className={cn('break-words rounded-2xl', {
+            'w-fit px-3 py-2 text-right text-primary-foreground bg-primary text-sm sm:text-base':
+              textBlock.role === 'user',
+            'bg-transparent text-left text-sm sm:text-base': textBlock.role === 'assistant',
+          })}
+        >
+          {textBlock.role === 'assistant' ? (
+            <Markdown>{textBlock.content}</Markdown>
+          ) : (
+            textBlock.content
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  if (block.type === 'tool') {
+    return renderToolBlock(block as any, blockKey)
+  }
+
+  // Artifacts and other types handled by existing logic
+  return null
+}
+
+/**
+ * Renderiza um bloco de tool
+ */
+function renderToolBlock(toolBlock: any, key: string) {
+  const { toolName, state, input, output } = toolBlock
+
+  // Loading states - use streaming components for better UX
+  if (state === 'streaming' || state === 'input-streaming' || state === 'input-available') {
+    const StreamingComponent = getStreamingComponent(toolName)
+
+    if (StreamingComponent) {
+      return (
+        <StreamingComponent
+          key={key}
+          title={input?.title || getToolDisplayName(toolName)}
+          className="mt-2"
+        />
+      )
+    }
+
+    // Fallback to generic indicator
+    return <ToolExecutionIndicator key={key} toolName={toolName} className="mt-2" />
+  }
+
+  // Output available - render artifact if applicable
+  if (state === 'output-available' || state === 'done') {
+    // Try to render as artifact
+    const artifact = parseToolOutputAsArtifact(toolName, output, input)
+    if (artifact) {
+      return <InteractiveArtifact key={key} artifact={artifact} className="mt-2" />
+    }
+
+    // Fallback: render generic tool output
+    return (
+      <div key={key} className="mt-2 rounded-lg border border-border bg-card overflow-hidden">
+        <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 border-b border-border">
+          {getToolIcon(toolName)}
+          <span className="text-sm font-medium">{getToolDisplayName(toolName)}</span>
+        </div>
+        {output && (
+          <div className="p-3 text-sm">
+            {typeof output === 'string' ? (
+              <p>{output}</p>
+            ) : (
+              <pre className="text-xs overflow-x-auto">{JSON.stringify(output, null, 2)}</pre>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return null
+}
+
+// Map tool names to artifact rendering (mantido para compatibilidade)
 function renderToolPart(part: any, key: string) {
   const toolName = part.type.replace('tool-', '')
   const state = 'state' in part ? part.state : undefined
@@ -328,6 +417,10 @@ function getToolIcon(toolName: string) {
 }
 
 export function Message({ message, isLoading, onEdit, onRegenerate }: MessageProps) {
+  // Convert message to blocks
+  const blocks = uiMessageToBlocks(message)
+  const groupedBlocks = groupTextBlocks(blocks)
+
   // Extract text content for copy action
   const textContent = message.parts
     ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text' && 'text' in p)
@@ -352,48 +445,55 @@ export function Message({ message, isLoading, onEdit, onRegenerate }: MessagePro
           </div>
         )}
 
-        {/* Conteudo da mensagem */}
+        {/* Conteudo da mensagem - renderizado em blocos */}
         <div
           className={cn('flex min-w-0 flex-col', {
-            'gap-2 sm:gap-3 md:gap-4': message.parts?.some(
-              (p) => p.type === 'text' && 'text' in p && p.text?.trim()
-            ),
-            'w-full max-w-[calc(100%-2.25rem)] sm:max-w-[calc(100%-3rem)]': message.role === 'assistant',
-            'max-w-[85%] xs:max-w-[80%] sm:max-w-[min(fit-content,75%)]':
-              message.role === 'user',
+            'gap-2 sm:gap-3 md:gap-4': groupedBlocks.length > 0,
+            'w-full max-w-[calc(100%-2.25rem)] sm:max-w-[calc(100%-3rem)]':
+              message.role === 'assistant',
+            'max-w-[85%] xs:max-w-[80%] sm:max-w-[min(fit-content,75%)]': message.role === 'user',
           })}
         >
-          {message.parts?.map((part, index) => {
-            const key = `message-${message.id}-part-${index}`
+          {/* Renderizar blocos */}
+          {groupedBlocks.map((block, index) => (
+            <MessageBlockRenderer
+              key={`message-${message.id}-block-${index}`}
+              block={block}
+              blockKey={`message-${message.id}-block-${index}`}
+            />
+          ))}
 
-            if (part.type === 'text') {
-              return (
-                <div key={key}>
-                  <div
-                    className={cn('break-words rounded-2xl', {
-                      'w-fit px-3 py-2 text-right text-primary-foreground bg-primary text-sm sm:text-base':
-                        message.role === 'user',
-                      'bg-transparent text-left text-sm sm:text-base':
-                        message.role === 'assistant',
-                    })}
-                  >
-                    {message.role === 'assistant' ? (
-                      <Markdown>{part.text}</Markdown>
-                    ) : (
-                      part.text
-                    )}
+          {/* Fallback para mensagens sem blocos (compatibilidade) */}
+          {groupedBlocks.length === 0 &&
+            message.parts?.map((part, index) => {
+              const key = `message-${message.id}-part-${index}`
+
+              if (part.type === 'text') {
+                return (
+                  <div key={key}>
+                    <div
+                      className={cn('break-words rounded-2xl', {
+                        'w-fit px-3 py-2 text-right text-primary-foreground bg-primary text-sm sm:text-base':
+                          message.role === 'user',
+                        'bg-transparent text-left text-sm sm:text-base': message.role === 'assistant',
+                      })}
+                    >
+                      {message.role === 'assistant' ? (
+                        <Markdown>{part.text}</Markdown>
+                      ) : (
+                        part.text
+                      )}
+                    </div>
                   </div>
-                </div>
-              )
-            }
+                )
+              }
 
-            // Tool invocations (pesquisa, artefatos)
-            if (part.type.startsWith('tool-')) {
-              return renderToolPart(part, key)
-            }
+              if (part.type.startsWith('tool-')) {
+                return renderToolPart(part, key)
+              }
 
-            return null
-          })}
+              return null
+            })}
 
           {/* Message Actions */}
           {!isLoading && textContent && (
