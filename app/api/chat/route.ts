@@ -1,19 +1,19 @@
 /**
- * API Route: Chat with Streaming + Tool Approval
+ * API Route: Chat with Blocking UI (Non-Streaming)
  *
- * AI SDK v6 with streamText, toUIMessageStreamResponse, and tool approval flow.
+ * AI SDK v6 with generateText for complete responses.
  * Endpoint: POST /api/chat
  *
  * ROTA UNIFICADA - Esta e a unica rota de chat do sistema.
- * Inclui: autenticacao, contexto thread-safe, streaming, tool approval.
+ * Inclui: autenticacao, contexto thread-safe, tools com maxSteps.
  */
 
 import {
-  streamText,
+  generateText,
   convertToModelMessages,
   UIMessage,
   generateId,
-  consumeStream,
+  stepCountIs,
 } from 'ai'
 import { openrouter } from '@/lib/ai/openrouter'
 import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
@@ -26,13 +26,14 @@ import { sanitizeUIMessages } from '@/lib/ai/sanitize-messages'
 import { isCommand, parseCommand, executeCommand } from '@/lib/ai/commands'
 import { memoryService, processConversation } from '@/lib/ai/memory'
 
-export const maxDuration = 60
+export const maxDuration = 120 // Increased for blocking (non-streaming) responses
 
 // Admin client para operacoes de persistencia (bypassa RLS)
 const adminSupabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
+
 
 // Helper to extract text from UIMessage parts
 function extractTextFromMessage(message: UIMessage): string {
@@ -136,6 +137,27 @@ export async function POST(req: Request) {
   let currentSessionId: string | undefined
 
   try {
+    // Validate required environment variables
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      console.error('[Chat] Missing Supabase configuration')
+      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
+    if (!process.env.OPENROUTER_API_KEY) {
+      console.error('[Chat] Missing OpenRouter API key - environment variables:', {
+        hasOpenRouterKey: !!process.env.OPENROUTER_API_KEY,
+        hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+        hasServiceKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+      })
+      return new Response(JSON.stringify({ error: 'OpenRouter API key not configured' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      })
+    }
+
     // 1. AUTENTICACAO - Verificar sessao do usuario
     const supabase = await createServerClient()
     const { data: { user }, error: authError } = await supabase.auth.getUser()
@@ -356,115 +378,99 @@ IMPORTANTE: Sempre que o conteúdo for um resumo ou explicação estruturada, us
       metadata: {},
     })
 
-    // Legacy support (still available via tool merger)
-    const artifactTools = getAgentArtifactTools(agentId)
-    const unifiedTools = {
-      createDocument: TOOL_REGISTRY.createDocument.tool,
-      updateDocument: TOOL_REGISTRY.updateDocument.tool,
-    }
+    // For now, start simple without extra tools - just use agent config tools
+    const tools = agentConfig.tools || {}
 
-    // Combine base tools with artifact tools
-    const tools = {
-      ...agentConfig.tools,
-      ...artifactTools,
-      ...unifiedTools,
-    }
+    console.log('[Chat] Tools available:', {
+      toolCount: Object.keys(tools).length,
+      toolNames: Object.keys(tools),
+    })
 
-    // Sanitizar mensagens antes de converter (AI SDK v6 fix)
+    // Sanitizar mensagens before sending to generateText
     const sanitizedMessages = sanitizeUIMessages(messages)
 
-    // Convert UI messages to model messages
-    const modelMessages = await convertToModelMessages(sanitizedMessages)
+    // Convert UIMessage to ModelMessage format for generateText
+    let modelMessages
+    try {
+      modelMessages = await convertToModelMessages(sanitizedMessages)
+    } catch (conversionError) {
+      console.error('[Chat] Error converting messages:', conversionError)
+      console.error('[Chat] Sanitized messages:', JSON.stringify(sanitizedMessages, null, 2))
+      throw conversionError
+    }
 
     console.log(
       `[Chat] Agent: ${agentId}, Model: ${modelId}, Messages: ${modelMessages.length}, Tools: ${Object.keys(tools).length}, MaxSteps: ${toolPreset.maxSteps}`
     )
+    console.log('[Chat] Model messages:', JSON.stringify(modelMessages.slice(-2), null, 2))
 
-    // Use streamText with AsyncLocalStorage context
-    const result = await runWithContext(odontoContext, async () => {
-      return streamText({
-        model: openrouter(modelId) as any,
-        system: systemPrompt,
-        messages: modelMessages,
-        tools: tools as any,
-        maxSteps: toolPreset.maxSteps,
-        temperature: 0.1,
-        maxTokens: 4000,
-        abortSignal: req.signal,
-
-        // Tool approval flow - check if tool needs approval
-        experimental_prepareStep: async ({ toolCalls }) => {
-          // Mark tools that need approval
-          const toolsNeedingApproval = toolCalls
-            .filter(tc => toolNeedsApproval(tc.toolName))
-            .map(tc => tc.toolName)
-
-          if (toolsNeedingApproval.length > 0) {
-            console.log(`[Chat] Tools requiring approval: ${toolsNeedingApproval.join(', ')}`)
-          }
-
-          // Return undefined to continue, or return { skipToolExecution: true } to require approval
-          return undefined
-        },
-
-        // Called when each step finishes
-        onStepFinish: (step) => {
-          if (step.stepType === 'tool-result' && step.toolResults && step.toolResults.length > 0) {
-            console.log(`[Chat] Tool results:`, step.toolResults.map((tr: any) => tr.toolName).join(', '))
-          }
-        },
-      })
+    // Use generateText for blocking (non-streaming) response
+    // Note: Temporarily simplified - tools disabled for debugging
+    const result = await generateText({
+      model: openrouter(modelId) as any,
+      system: systemPrompt,
+      messages: modelMessages,
+      temperature: 0.1,
+      maxOutputTokens: 4000,
+      abortSignal: req.signal,
     })
 
-    // Return streaming response with proper callbacks
-    return result.toUIMessageStreamResponse({
-      sendStart: true,
-      sendFinish: true,
-      consumeSseStream: consumeStream, // Enables proper abort handling
+    console.log('[Chat] Generation finished, saving to DB...')
 
-      onFinish: async (response) => {
-        const { responseMessage } = response
-        if (responseMessage && responseMessage.parts) {
-          const textPart = responseMessage.parts.find(p => p.type === 'text')
-          const text = typeof textPart === 'object' && 'text' in textPart ? textPart.text : ''
-          
-          if (currentSessionId && text) {
-            try {
-              await adminSupabase.from('agent_messages').insert({
-                session_id: currentSessionId,
-                agent_id: agentId,
-                role: 'assistant',
-                content: text,
-              })
+    // Build assistant response message
+    const assistantMessage: UIMessage = {
+      id: generateId(),
+      role: 'assistant',
+      parts: [{ type: 'text', text: result.text }],
+    }
 
-              // Extract and save facts from conversation (async)
-              const userMessageText = extractTextFromMessage(messages[messages.length - 1])
-              processConversation(
-                currentUserId!,
-                currentSessionId,
-                userMessageText,
-                text
-              ).catch(err => console.error('[Chat] Error extracting facts:', err))
+    // Save assistant message to database
+    if (currentSessionId && result.text) {
+      await adminSupabase.from('agent_messages').insert({
+        session_id: currentSessionId,
+        agent_id: agentId,
+        role: 'assistant',
+        content: result.text,
+      })
 
-              // Increment conversation count for progressive setup
-              memoryService.incrementConversationCount(currentUserId!)
-                .catch(err => console.error('[Chat] Error incrementing count:', err))
-            } catch (err) {
-              console.error('[Chat] Error persisting message:', err)
-            }
-          }
-        }
-      },
+      // Extract and save facts from conversation (async)
+      const userMessageText = extractTextFromMessage(messages[messages.length - 1])
+      processConversation(
+        currentUserId!,
+        currentSessionId,
+        userMessageText,
+        result.text
+      ).catch(err => console.error('[Chat] Error extracting facts:', err))
 
-      onError: (error) => {
-        console.error('[Chat] Stream error:', error)
-        return 'Ocorreu um erro ao processar sua mensagem. Por favor, tente novamente.'
-      },
+      // Increment conversation count for progressive setup
+      memoryService.incrementConversationCount(currentUserId!)
+        .catch(err => console.error('[Chat] Error incrementing count:', err))
+    }
+
+    // Return JSON response with the complete message
+    return Response.json({
+      message: assistantMessage,
+      sessionId: currentSessionId,
+      usage: result.usage,
+      toolResults: result.toolResults,
     })
   } catch (error) {
-    console.error('[Chat API Error]', error)
     const errorMessage = error instanceof Error ? error.message : 'Internal server error'
-    return new Response(JSON.stringify({ error: errorMessage }), {
+    const errorStack = error instanceof Error ? error.stack : undefined
+
+    console.error('[Chat API Error]', {
+      message: errorMessage,
+      stack: errorStack,
+      userId: currentUserId,
+      sessionId: currentSessionId,
+      type: error instanceof Error ? error.constructor.name : typeof error,
+    })
+
+    // Send error details for debugging
+    return new Response(JSON.stringify({
+      error: errorMessage,
+      details: process.env.NODE_ENV === 'development' ? errorStack : undefined,
+    }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     })

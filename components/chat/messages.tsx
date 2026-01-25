@@ -16,7 +16,7 @@ import { useMessageBlocks } from '@/lib/hooks/use-message-blocks'
 
 interface MessagesProps {
   messages: UIMessage[]
-  status: 'ready' | 'submitted' | 'streaming' | 'error'
+  status: 'ready' | 'submitted' | 'streaming' | 'error' // streaming kept for compatibility
   userName?: string
   onSuggestionClick?: (suggestion: string) => void
   onEditMessage?: (messageId: string) => void

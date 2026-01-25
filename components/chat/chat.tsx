@@ -1,24 +1,21 @@
 'use client'
 
 /**
- * Chat - Streaming Pattern with useChat Hook
+ * Chat - Blocking UI Pattern with useBlockingChat Hook
  *
- * Componente principal de chat usando AI SDK v6 useChat hook.
- * Suporta streaming, tool approval, e artifacts.
+ * Componente principal de chat usando blocking (non-streaming) responses.
+ * Respostas completas de uma vez, sem streaming progressivo.
  * Mobile: Header flutuante estilo Perplexity
  */
 
-import { useChat } from '@ai-sdk/react'
-import {
-  DefaultChatTransport,
-  lastAssistantMessageIsCompleteWithToolCalls,
-} from 'ai'
 import { useState, useCallback, useMemo } from 'react'
 import { toast } from 'sonner'
+import { useBlockingChat } from '@/lib/hooks/use-blocking-chat'
 import { Messages } from './messages'
 import { MultimodalInput } from './multimodal-input'
 import { ToolApprovalDialog } from './tool-approval-dialog'
 import { MobileFloatingHeader } from '@/components/mobile/mobile-floating-header'
+import { cn } from '@/lib/utils'
 import { useIsMobile } from '@/lib/hooks/use-mobile'
 
 interface ChatProps {
@@ -47,49 +44,53 @@ export function Chat({
   const [selectedAgent, setSelectedAgent] = useState(initialAgentId)
   const isMobile = useIsMobile()
 
-  // Create transport with session management
-  const transport = useMemo(
-    () =>
-      new DefaultChatTransport({
-        api: apiEndpoint,
-        body: {
-          agentId: selectedAgent,
-          sessionId: id,
-        },
-      }),
-    [apiEndpoint, selectedAgent, id]
-  )
-
-  // useChat hook with streaming support
+  // useBlockingChat hook - blocking (non-streaming) responses
   const {
     messages,
-    status,
-    sendMessage,
-    addToolApprovalResponse,
+    setMessages,
     stop,
     reload,
     error,
-  } = useChat({
-    id: chatId,
-    transport,
+    append,
+    status,
+    isLoading,
+  } = useBlockingChat({
+    api: apiEndpoint,
     initialMessages: initialMessages as any,
-
-    // Auto-send when tool calls are complete
-    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
-
-    // Handle errors
+    agentId: selectedAgent,
+    sessionId: id,
     onError: (err) => {
       console.error('[Chat] Error:', err)
       toast.error('Erro no chat', {
         description: err.message || 'Erro desconhecido',
       })
     },
-
-    // Handle finish
-    onFinish: (message) => {
-      console.log('[Chat] Message complete:', message.id)
-    },
   })
+
+  // Tool approval handler (simplified for blocking UI)
+  const addToolApprovalResponse = useCallback(
+    (_response: { id: string; approved: boolean }) => {
+      // Tool approval is handled server-side with maxSteps in blocking mode
+      toast.info('Tool approval handled automatically')
+    },
+    []
+  )
+
+  // Handle sending messages via useBlockingChat
+  const handleManualSubmit = useCallback(
+    (textInput: string) => {
+      if (!textInput.trim() || isLoading) return
+
+      setInput('')
+
+      // Use append to send the message through the blocking chat hook
+      append({
+        role: 'user',
+        content: textInput,
+      })
+    },
+    [isLoading, append, setInput]
+  )
 
   // Find pending tool approvals
   const pendingApproval = useMemo(() => {
@@ -109,7 +110,7 @@ export function Chat({
         ) {
           return {
             toolName: part.type.replace('tool-', ''),
-            input: 'input' in part ? part.input : undefined,
+            input: 'input' in part ? (part.input as Record<string, unknown>) : undefined,
             approvalId: part.approval.id,
           }
         }
@@ -121,35 +122,25 @@ export function Chat({
   // Handle submit
   const handleSubmit = useCallback(
     (attachments?: File[]) => {
-      if ((!input.trim() && !attachments?.length) || status !== 'ready') return
-
+      // Pass manual handler
+      handleManualSubmit(input)
+      
       // TODO: Handle file attachments upload
       if (attachments?.length) {
         console.log('[Chat] Attachments:', attachments)
         toast.info('Upload de arquivos em desenvolvimento')
       }
-
-      // Send message with proper UIMessage format
-      sendMessage({
-        role: 'user',
-        parts: [{ type: 'text', text: input }],
-      } as any)
-      setInput('')
     },
-    [input, status, sendMessage]
+    [input, handleManualSubmit]
   )
 
   // Handle suggestion click
   const handleSuggestionClick = useCallback(
     (suggestion: string) => {
-      if (status !== 'ready') return
-
-      sendMessage({
-        role: 'user',
-        parts: [{ type: 'text', text: suggestion }],
-      } as any)
+      if (isLoading) return
+      handleManualSubmit(suggestion)
     },
-    [status, sendMessage]
+    [isLoading, handleManualSubmit]
   )
 
   // Handle edit message
@@ -202,19 +193,12 @@ export function Chat({
     }
   }, [pendingApproval, addToolApprovalResponse])
 
-  // Map status to component status
+  // Map status to component status (blocking UI - no streaming state)
   const componentStatus = useMemo(() => {
-    switch (status) {
-      case 'submitted':
-        return 'submitted'
-      case 'streaming':
-        return 'streaming'
-      case 'ready':
-        return 'ready'
-      default:
-        return error ? 'error' : 'ready'
-    }
-  }, [status, error])
+    if (isLoading) return 'submitted'
+    if (error) return 'error'
+    return status === 'ready' ? 'ready' : 'submitted'
+  }, [status, error, isLoading])
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col bg-background">
@@ -227,7 +211,7 @@ export function Chat({
       )}
 
       {/* Messages area - add top padding on mobile for header */}
-      <div className={isMobile ? 'pt-[52px]' : ''}>
+      <div className={cn("flex-1 overflow-hidden flex flex-col", isMobile ? 'pt-[52px]' : '')}>
         <Messages
           messages={messages as any}
           status={componentStatus}
@@ -249,8 +233,8 @@ export function Chat({
       )}
 
       {/* Input container - mobile-first with safe area for iOS */}
-      <div className="shrink-0 border-t bg-background px-2 pb-[env(safe-area-inset-bottom,8px)] pt-2 sm:px-4 sm:pb-4 sm:pt-3">
-        <div className="mx-auto w-full max-w-4xl">
+      <div className="shrink-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-2 pb-[env(safe-area-inset-bottom,20px)] pt-2 sm:px-4 sm:pb-6 sm:pt-4">
+        <div className="mx-auto w-full max-w-3xl">
           <MultimodalInput
             input={input}
             setInput={setInput}

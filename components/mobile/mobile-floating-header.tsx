@@ -11,7 +11,7 @@
  * Visivel apenas em mobile (<768px)
  */
 
-import { Menu, Settings } from 'lucide-react'
+import { Menu, Settings, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useSidebar } from '@/components/ui/sidebar'
@@ -66,7 +66,7 @@ export function MobileFloatingHeader({
         href="/dashboard"
         className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5"
       >
-        <span className="text-lg">🦷</span>
+        <Sparkles className="size-5 text-primary" />
         <span className="text-sm font-semibold text-foreground">
           Odonto<span className="text-primary">GPT</span>
         </span>

@@ -7,11 +7,15 @@
  * Visual inspirado nos "modes" da Perplexity (Search, Pro, Focus).
  */
 
+import {
+  Brain, Shield, FlaskConical,
+  FileText, Eye, Sparkles, GraduationCap
+} from "lucide-react"
 import { cn } from '@/lib/utils'
 
 export interface AgentPill {
   id: string
-  icon: string
+  icon: React.ReactNode
   shortName: string
   fullName: string
   placeholder: string
@@ -20,35 +24,35 @@ export interface AgentPill {
 export const AGENT_PILLS: AgentPill[] = [
   {
     id: 'odonto-gpt',
-    icon: '🦷',
+    icon: <Sparkles className="w-4 h-4" />,
     shortName: 'GPT',
     fullName: 'Odonto GPT',
     placeholder: 'Pergunte sobre odontologia...',
   },
   {
     id: 'odonto-research',
-    icon: '🔬',
+    icon: <FlaskConical className="w-4 h-4" />,
     shortName: 'Research',
     fullName: 'Pesquisa Cientifica',
     placeholder: 'Busque evidencias cientificas...',
   },
   {
     id: 'odonto-practice',
-    icon: '📋',
+    icon: <Shield className="w-4 h-4" />,
     shortName: 'Practice',
     fullName: 'Casos Clinicos',
     placeholder: 'Pratique com casos clinicos...',
   },
   {
     id: 'odonto-summary',
-    icon: '📝',
+    icon: <GraduationCap className="w-4 h-4" />,
     shortName: 'Summary',
     fullName: 'Resumos',
     placeholder: 'Crie resumos e flashcards...',
   },
   {
     id: 'odonto-vision',
-    icon: '👁️',
+    icon: <Eye className="w-4 h-4" />,
     shortName: 'Vision',
     fullName: 'Analise de Imagens',
     placeholder: 'Envie radiografias para analise...',

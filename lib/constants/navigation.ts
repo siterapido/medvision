@@ -39,3 +39,11 @@ export const BOTTOM_NAV_ITEMS: NavItem[] = [
     { href: '/dashboard/notificacoes', label: 'Notificações', icon: Bell },
 ]
 
+export const ADMIN_NAV_ITEMS: NavItem[] = [
+    { href: '/admin', label: 'Visão Geral', icon: LayoutDashboard },
+    { href: '/admin/usuarios', label: 'Usuários', icon: Users },
+    { href: '/admin/cursos', label: 'Cursos', icon: Award },
+    { href: '/admin/materiais', label: 'Materiais', icon: FileText },
+    { href: '/admin/agentes', label: 'Agentes IA', icon: Bot },
+]
+

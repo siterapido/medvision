@@ -293,10 +293,10 @@ export function MultimodalInput({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          'relative rounded-2xl border border-border bg-card shadow-sm',
-          'transition-all duration-200',
-          'focus-within:border-primary/50 focus-within:shadow-md',
-          'hover:border-muted-foreground/30',
+          'relative flex flex-col rounded-[32px] border border-border/40 bg-card shadow-[0_6px_16px_rgba(0,0,0,0.05)]',
+          'transition-all duration-200 ease-in-out',
+          'focus-within:border-primary/20 focus-within:shadow-[0_6px_20px_rgba(0,0,0,0.08)]',
+          'hover:border-border/60',
           isDragging && 'border-primary border-dashed bg-primary/5',
           // Mobile: more compact padding
           isMobile ? 'p-3' : 'p-4'

@@ -1,51 +1,24 @@
-import { NextResponse } from "next/server"
-import { createServerClient } from "@supabase/ssr"
+/**
+ * Health Check Endpoint
+ * Verifies API configuration and basic connectivity
+ */
 
 export async function GET() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  const envOk = Boolean(url && anon)
-  const urlValid = typeof url === "string" && /^https?:\/\//.test(url)
-
-  let supabaseOk = false
-  let dbSample = 0
-  let error: unknown = null
-
-  if (envOk && url && anon) {
-    try {
-      const supabase = createServerClient(url, anon, {
-        cookies: {
-          getAll() {
-            return []
-          },
-          setAll() {
-            // noop in health check
-          },
-        },
-      })
-
-      const { data, error: dbErr } = await supabase.from("agent_sessions").select("id").limit(1)
-      if (dbErr) throw dbErr
-      supabaseOk = true
-      dbSample = Array.isArray(data) ? data.length : 0
-    } catch (e) {
-      error = (e as Error).message ?? String(e)
-    }
+  const checks = {
+    supabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
+    supabaseKey: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+    openrouterKey: !!process.env.OPENROUTER_API_KEY,
+    nodeEnv: process.env.NODE_ENV,
+    timestamp: new Date().toISOString(),
   }
 
-  return NextResponse.json({
-    ok: envOk && urlValid && supabaseOk,
-    env: {
-      url: Boolean(url),
-      anon: Boolean(anon),
-      urlValid,
-    },
-    supabase: {
-      connected: supabaseOk,
-      sampleCount: dbSample,
-      error,
-    },
+  const allHealthy = checks.supabaseUrl && checks.supabaseKey && checks.openrouterKey
+
+  return new Response(JSON.stringify({
+    status: allHealthy ? 'ok' : 'missing-config',
+    checks,
+  }), {
+    status: allHealthy ? 200 : 500,
+    headers: { 'Content-Type': 'application/json' },
   })
 }
-

@@ -6,6 +6,7 @@ import { Settings, LogOut, Moon, Sun, Bell, ChevronUp } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import { useEffect, useState } from 'react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,6 +38,12 @@ export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
   const supabase = createClient()
+  const [isMounted, setIsMounted] = useState(false)
+
+  // Only render theme-dependent content after hydration
+  useEffect(() => {
+    setIsMounted(true)
+  }, [])
 
   const handleLogout = async () => {
     try {
@@ -69,13 +76,21 @@ export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
           onClick={toggleTheme}
           className="w-full flex flex-col items-center justify-center h-auto py-2 px-1 gap-1 text-[var(--sidebar-text-secondary)] hover:text-[var(--sidebar-text-primary)] hover:bg-sidebar-accent"
         >
-          {theme === 'dark' ? (
-            <Sun className="h-5 w-5" />
+          {isMounted ? (
+            theme === 'dark' ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )
           ) : (
             <Moon className="h-5 w-5" />
           )}
           <span className="text-[10px] leading-tight">
-            {theme === 'dark' ? 'Claro' : 'Escuro'}
+            {isMounted ? (
+              theme === 'dark' ? 'Claro' : 'Escuro'
+            ) : (
+              'Tema'
+            )}
           </span>
         </Button>
 
@@ -144,13 +159,21 @@ export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
           onClick={toggleTheme}
           className="hover:bg-[var(--sidebar-hover)]"
         >
-          {theme === 'dark' ? (
-            <Sun className="h-4 w-4 text-[var(--sidebar-text-secondary)]" />
+          {isMounted ? (
+            theme === 'dark' ? (
+              <Sun className="h-4 w-4 text-[var(--sidebar-text-secondary)]" />
+            ) : (
+              <Moon className="h-4 w-4 text-[var(--sidebar-text-secondary)]" />
+            )
           ) : (
             <Moon className="h-4 w-4 text-[var(--sidebar-text-secondary)]" />
           )}
           <span className="text-[var(--sidebar-text-secondary)]">
-            {theme === 'dark' ? 'Modo claro' : 'Modo escuro'}
+            {isMounted ? (
+              theme === 'dark' ? 'Modo claro' : 'Modo escuro'
+            ) : (
+              'Tema'
+            )}
           </span>
         </SidebarMenuButton>
       </SidebarMenuItem>

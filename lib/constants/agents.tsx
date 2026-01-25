@@ -1,13 +1,12 @@
-/**
- * Agent UI Configuration
- *
- * Extended agent configuration for mobile interface.
- * Colors match the landing page agent cards.
- */
+import {
+  Brain, Shield, FlaskConical,
+  FileText, Eye, Sparkles, GraduationCap
+} from "lucide-react"
+import React from "react"
 
 export interface AgentUIConfig {
   id: string
-  icon: string
+  icon: React.ReactNode
   name: string
   shortName: string
   description: string
@@ -28,7 +27,7 @@ export interface AgentUIConfig {
 export const AGENTS_UI: AgentUIConfig[] = [
   {
     id: 'odonto-gpt',
-    icon: '🦷',
+    icon: <Sparkles className="w-4 h-4" />,
     name: 'Odonto GPT',
     shortName: 'GPT',
     description: 'Assistente geral de odontologia para duvidas e estudo',
@@ -42,7 +41,7 @@ export const AGENTS_UI: AgentUIConfig[] = [
   },
   {
     id: 'odonto-research',
-    icon: '🔬',
+    icon: <FlaskConical className="w-4 h-4" />,
     name: 'Pesquisa Cientifica',
     shortName: 'Research',
     description: 'Busca em bases cientificas com citacoes e evidencias',
@@ -57,7 +56,7 @@ export const AGENTS_UI: AgentUIConfig[] = [
   },
   {
     id: 'odonto-practice',
-    icon: '📋',
+    icon: <Shield className="w-4 h-4" />,
     name: 'Casos Clinicos',
     shortName: 'Practice',
     description: 'Pratique com casos clinicos interativos e feedback',
@@ -72,7 +71,7 @@ export const AGENTS_UI: AgentUIConfig[] = [
   },
   {
     id: 'odonto-summary',
-    icon: '📝',
+    icon: <GraduationCap className="w-4 h-4" />,
     name: 'Resumos',
     shortName: 'Summary',
     description: 'Crie resumos, flashcards e materiais de estudo',
@@ -86,7 +85,7 @@ export const AGENTS_UI: AgentUIConfig[] = [
   },
   {
     id: 'odonto-vision',
-    icon: '👁️',
+    icon: <Eye className="w-4 h-4" />,
     name: 'Analise de Imagens',
     shortName: 'Vision',
     description: 'Analise radiografias e imagens odontologicas',

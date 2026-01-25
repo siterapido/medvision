@@ -14,6 +14,7 @@ import { motion } from 'motion/react'
 import { SparklesIcon } from './icons'
 import { useIsMobile } from '@/lib/hooks/use-mobile'
 import { cn } from '@/lib/utils'
+import { Logo } from '@/components/logo'
 
 interface GreetingProps {
   userName?: string
@@ -48,11 +49,11 @@ export function Greeting({ userName, onSuggestionClick }: GreetingProps) {
         {/* Large centered logo */}
         <motion.div
           animate={{ opacity: 1, scale: 1 }}
-          className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/10"
+          className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/5"
           initial={{ opacity: 0, scale: 0.8 }}
           transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
         >
-          <span className="text-5xl">🦷</span>
+          <SparklesIcon className="size-10 text-primary/80" />
         </motion.div>
 
         {/* Title */}
@@ -110,46 +111,35 @@ export function Greeting({ userName, onSuggestionClick }: GreetingProps) {
   // Desktop variant - original layout
   return (
     <div
-      className="mx-auto mt-2 flex size-full max-w-3xl flex-col justify-center px-1 xs:mt-4 xs:px-4 md:mt-16 md:px-8"
+      className="mx-auto flex size-full max-w-3xl flex-col items-center justify-center px-1 xs:px-4 md:px-8"
       key="overview"
     >
-      {/* Icon */}
+      {/* Title / Logo area */}
       <motion.div
         animate={{ opacity: 1, scale: 1 }}
-        className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 xs:mb-4 xs:h-12 xs:w-12 xs:rounded-2xl"
+        className="mb-4 flex items-center justify-center gap-3"
         initial={{ opacity: 0, scale: 0.8 }}
         transition={{ delay: 0.3, type: 'spring' }}
       >
-        <SparklesIcon size={20} className="text-primary" />
-      </motion.div>
-
-      {/* Title */}
-      <motion.div
-        animate={{ opacity: 1, y: 0 }}
-        className="font-semibold text-lg xs:text-xl md:text-2xl"
-        exit={{ opacity: 0, y: 10 }}
-        initial={{ opacity: 0, y: 10 }}
-        transition={{ delay: 0.5 }}
-      >
-        Ola{displayName}! Sou o Odonto GPT
+        <Logo width={200} height={60} />
       </motion.div>
 
       {/* Subtitle */}
       <motion.div
         animate={{ opacity: 1, y: 0 }}
-        className="text-base text-muted-foreground xs:text-lg md:text-2xl"
+        className="text-center text-lg text-muted-foreground/60 max-w-md"
         exit={{ opacity: 0, y: 10 }}
         initial={{ opacity: 0, y: 10 }}
-        transition={{ delay: 0.6 }}
+        transition={{ delay: 0.5 }}
       >
-        Como posso te ajudar nos estudos hoje?
+        Como posso ajudar você hoje?
       </motion.div>
 
-      {/* Suggestions */}
+      {/* Suggestions - Minimalist Pills */}
       {onSuggestionClick && (
         <motion.div
           animate={{ opacity: 1, y: 0 }}
-          className="mt-4 grid gap-2 xs:mt-6 sm:mt-8 sm:grid-cols-2"
+          className="mt-12 flex flex-wrap justify-center gap-3"
           initial={{ opacity: 0, y: 10 }}
           transition={{ delay: 0.7 }}
         >
@@ -157,12 +147,13 @@ export function Greeting({ userName, onSuggestionClick }: GreetingProps) {
             <motion.button
               key={suggestion}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-lg border border-border bg-card px-3 py-2.5 text-left text-xs text-muted-foreground transition-all active:scale-[0.98] xs:rounded-xl xs:px-4 xs:py-3 xs:text-sm hover:border-primary/50 hover:bg-muted/50 hover:text-foreground"
+              className="group flex items-center gap-2 rounded-full border border-border/50 bg-background/50 px-4 py-2 text-sm text-muted-foreground transition-all hover:border-primary/30 hover:bg-background hover:text-foreground active:scale-95"
               initial={{ opacity: 0, y: 10 }}
               onClick={() => onSuggestionClick(suggestion)}
               transition={{ delay: 0.8 + index * 0.1 }}
               whileTap={{ scale: 0.98 }}
             >
+              <SparklesIcon size={14} className="opacity-0 transition-opacity group-hover:opacity-100 text-primary" />
               {suggestion}
             </motion.button>
           ))}
