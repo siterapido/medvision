@@ -108,7 +108,22 @@ export const createDocumentTool = tool({
       return document
     } catch (error) {
       console.error(`[createDocument] ✗ Failed to generate ${kind}:`, error)
-      throw error
+
+      // Retornar documento de fallback em vez de throw para evitar travamento
+      const isTimeout = error instanceof Error && error.name === 'TimeoutError'
+      const errorMessage = isTimeout
+        ? 'A geracao demorou muito tempo. Por favor, tente novamente com um topico mais especifico.'
+        : 'Nao foi possivel gerar o documento. Por favor, tente novamente.'
+
+      return {
+        id,
+        kind,
+        title: `${kind.charAt(0).toUpperCase() + kind.slice(1)} - ${topic}`,
+        content: errorMessage,
+        error: true,
+        errorType: isTimeout ? 'timeout' : 'generation_failed',
+        createdAt: new Date().toISOString(),
+      } as any
     }
   },
 })

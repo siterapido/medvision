@@ -41,7 +41,15 @@ export function Messages({
   const { state: blockState } = useMessageBlocks(messages)
 
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
-    endRef.current?.scrollIntoView({ behavior })
+    try {
+      endRef.current?.scrollIntoView({ behavior })
+    } catch (e) {
+      // Ignorar erros de DOM que ocorrem durante atualizacoes de estado
+      // Ex: "Node cannot be found in the current page"
+      if (process.env.NODE_ENV === 'development') {
+        console.warn('[Messages] Scroll error (ignorado):', e)
+      }
+    }
   }, [])
 
   // Check if user is at bottom

@@ -1,22 +1,14 @@
 {
   "active": [
     {
-      "slug": "habilitar-summary-artifact",
-      "path": "plans/habilitar-summary-artifact.md",
-      "title": "Plano: Habilitar Artefato de Resumo (Summary)",
-      "summary": "Garantir que o `createDocument` funcione corretamente para gerar resumos estruturados no odonto-gpt",
-      "linkedAt": "2026-01-25T02:22:47.108Z",
-      "status": "active"
-    },
-    {
-      "slug": "blocking-ui-migration",
-      "path": "plans/blocking-ui-migration.md",
-      "title": "Plano: Migrar de Streaming UI para Blocking UI",
-      "summary": "Migrar o chat de `/dashboard/chat` de Streaming UI (streamText + useChat) para Blocking UI (generateText + fetch manual) usando AI SDK v6.",
-      "linkedAt": "2026-01-25T07:59:00.904Z",
+      "slug": "fix-chat-freeze-resumo",
+      "path": "plans/fix-chat-freeze-resumo.md",
+      "title": "Corrigir travamento do chat ao solicitar resumo",
+      "summary": "Bug: O chat do Odonto GPT trava (loading infinito) quando o usuario pede um resumo. O console mostra erro \"Node cannot be found in the current page\" e multiplos logs \"[useBlockingChat] Sending messages:\".",
+      "linkedAt": "2026-01-26T16:06:33.965Z",
       "status": "active"
     }
   ],
   "completed": [],
-  "primary": "habilitar-summary-artifact"
+  "primary": "fix-chat-freeze-resumo"
 }

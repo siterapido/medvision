@@ -51,6 +51,8 @@ export async function generateStructuredArtifact<K extends GenerationKind>(
       prompt,
       temperature,
       maxTokens,
+      // Timeout de 45s para evitar travamento em geracoes longas
+      abortSignal: AbortSignal.timeout(45000),
     })
 
     console.log(`[Structured Generation] ✓ ${kind} artifact generated successfully`)

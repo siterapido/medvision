@@ -95,11 +95,22 @@ export function useBlockingChat({
   const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(initialSessionId)
   const abortControllerRef = useRef<AbortController | null>(null)
 
+  // Refs para evitar dependencias circulares no useCallback
+  const isLoadingRef = useRef(false)
+  const messagesRef = useRef<UIMessage[]>(initialMessages.map(normalizeMessage))
+  const currentSessionIdRef = useRef<string | undefined>(initialSessionId)
+
+  // Manter refs sincronizadas com estado
+  isLoadingRef.current = isLoading
+  messagesRef.current = messages
+  currentSessionIdRef.current = currentSessionId
+
   const status: ChatStatus = isLoading ? 'submitted' : error ? 'error' : 'ready'
 
   const sendMessage = useCallback(
     async (content: string, attachments?: File[]) => {
-      if ((!content.trim() && !attachments?.length) || isLoading) return
+      // Usar ref para verificar isLoading para evitar re-renders
+      if ((!content.trim() && !attachments?.length) || isLoadingRef.current) return
 
       setIsLoading(true)
       setError(null)
@@ -141,9 +152,9 @@ export function useBlockingChat({
       setMessages((prev) => [...prev, userMessage])
 
       try {
-        // Convert messages to format expected by API
-        // API expects UIMessage with parts array
-        const apiMessages = [...messages, userMessage].map(normalizeMessage).map(msg => ({
+        // Usar ref para acessar mensagens atuais sem dependencia
+        const currentMessages = messagesRef.current
+        const apiMessages = [...currentMessages, userMessage].map(normalizeMessage).map(msg => ({
           id: msg.id,
           role: msg.role,
           parts: msg.parts,
@@ -157,7 +168,7 @@ export function useBlockingChat({
           body: JSON.stringify({
             messages: apiMessages,
             agentId,
-            sessionId: currentSessionId,
+            sessionId: currentSessionIdRef.current,
           }),
           signal: controller.signal,
         })
@@ -170,7 +181,7 @@ export function useBlockingChat({
         const data: BlockingChatResponse = await response.json()
 
         // Update sessionId if server created a new one
-        if (data.sessionId && data.sessionId !== currentSessionId) {
+        if (data.sessionId && data.sessionId !== currentSessionIdRef.current) {
           console.log('[useBlockingChat] New session created:', data.sessionId)
           setCurrentSessionId(data.sessionId)
           onSessionCreated?.(data.sessionId)
@@ -194,7 +205,7 @@ export function useBlockingChat({
         abortControllerRef.current = null
       }
     },
-    [api, agentId, currentSessionId, messages, isLoading, onError, onFinish, onSessionCreated]
+    [api, agentId, onError, onFinish, onSessionCreated]
   )
 
   // Append message (compatible with useChat API)
@@ -217,12 +228,15 @@ export function useBlockingChat({
 
   // Reload last message (regenerate)
   const reload = useCallback(async () => {
+    // Usar ref para acessar mensagens atuais
+    const currentMessages = messagesRef.current
+
     // Find last user message
-    const lastUserMessageIndex = messages.findLastIndex((m) => m.role === 'user')
+    const lastUserMessageIndex = currentMessages.findLastIndex((m) => m.role === 'user')
     if (lastUserMessageIndex === -1) return
 
     // Get the text from last user message
-    const lastUserMessage = messages[lastUserMessageIndex]
+    const lastUserMessage = currentMessages[lastUserMessageIndex]
     const textPart = lastUserMessage.parts?.find(
       (p): p is { type: 'text'; text: string } => 'type' in p && p.type === 'text' && 'text' in p
     )
@@ -236,7 +250,7 @@ export function useBlockingChat({
 
     // Re-send the message (without attachments - they're not available anymore)
     await sendMessage(textContent)
-  }, [messages, sendMessage])
+  }, [sendMessage])
 
   // Stop/abort current request
   const stop = useCallback(() => {
