@@ -35,8 +35,8 @@ export const MODELS = {
   // Pesquisa - Perplexity Sonar
   research: 'perplexity/sonar',
 
-  // Visão - para análise de imagens radiográficas (Claude 3.5 Sonnet com visão)
-  vision: 'anthropic/claude-3-5-sonnet-20241022',
+  // Visão - para análise de imagens radiográficas (Gemini 2.5 Pro com visão)
+  vision: 'google/gemini-2.5-pro-preview-05-06',
 
   // Escrita - para geração de conteúdo
   writer: 'anthropic/claude-3-haiku',

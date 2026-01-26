@@ -38,43 +38,12 @@ export default function OdontoVisionPage() {
     const [analysisResult, setAnalysisResult] = useState<VisionAnalysisResult | null>(null)
 
 
-    // Utility to resize image
-    const resizeImage = (file: File): Promise<string> => {
+    // Read image file as base64 without compression
+    const readImageAsBase64 = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader()
             reader.readAsDataURL(file)
-            reader.onload = (event) => {
-                const img = new Image()
-                img.src = event.target?.result as string
-                img.onload = () => {
-                    const canvas = document.createElement('canvas')
-                    let width = img.width
-                    let height = img.height
-                    const maxDim = 1500 // Limit max dimension to 1500px for AI processing
-
-                    if (width > height) {
-                        if (width > maxDim) {
-                            height *= maxDim / width
-                            width = maxDim
-                        }
-                    } else {
-                        if (height > maxDim) {
-                            width *= maxDim / height
-                            height = maxDim
-                        }
-                    }
-
-                    canvas.width = width
-                    canvas.height = height
-                    const ctx = canvas.getContext('2d')
-                    ctx?.drawImage(img, 0, 0, width, height)
-
-                    // Compress to JPEG 0.8
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8)
-                    resolve(dataUrl)
-                }
-                img.onerror = (err) => reject(err)
-            }
+            reader.onload = () => resolve(reader.result as string)
             reader.onerror = (err) => reject(err)
         })
     }
@@ -83,10 +52,10 @@ export default function OdontoVisionPage() {
         const file = acceptedFiles[0]
         if (file) {
             try {
-                // Resize/Compress image before setting state or sending to API
-                const compressedImage = await resizeImage(file)
-                setImage(compressedImage)
-                startAnalysis(compressedImage)
+                // Read image without compression for maximum quality
+                const imageBase64 = await readImageAsBase64(file)
+                setImage(imageBase64)
+                startAnalysis(imageBase64)
             } catch (error) {
                 console.error("Error processing image:", error)
                 toast.error("Erro ao processar imagem. Tente outro arquivo.")
