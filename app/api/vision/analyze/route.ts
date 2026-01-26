@@ -111,14 +111,16 @@ IDIOMA: Português do Brasil (pt-BR) formal.`
         }
 
         return Response.json(responseData)
-    } catch (error) {
+    } catch (error: unknown) {
         console.error('Vision analysis error:', error)
 
         // Provide more detailed error message
         let errorMessage = 'Failed to analyze image'
         let statusCode = 500
+        let errorDetails = ''
 
         if (error instanceof Error) {
+            errorDetails = error.message
             // Check for common error types
             if (error.message.includes('API key')) {
                 errorMessage = 'API key configuration error'
@@ -131,12 +133,17 @@ IDIOMA: Português do Brasil (pt-BR) formal.`
                 errorMessage = 'Invalid image format. Please try a different image.'
                 statusCode = 400
             }
-            console.error('Error details:', error.message)
+        }
+
+        // Log full error for debugging
+        if (error && typeof error === 'object' && 'cause' in error) {
+            console.error('Error cause:', error.cause)
+            errorDetails += ` | Cause: ${JSON.stringify(error.cause)}`
         }
 
         return new Response(JSON.stringify({
             error: errorMessage,
-            details: process.env.NODE_ENV === 'development' && error instanceof Error ? error.message : undefined
+            details: process.env.NODE_ENV === 'development' ? errorDetails : undefined
         }), {
             status: statusCode,
             headers: { 'Content-Type': 'application/json' }

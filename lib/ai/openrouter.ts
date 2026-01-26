@@ -35,8 +35,8 @@ export const MODELS = {
   // Pesquisa - Perplexity Sonar
   research: 'perplexity/sonar',
 
-  // Visão - para análise de imagens radiográficas (Gemini 2.5 Pro com visão)
-  vision: 'google/gemini-2.5-pro-preview-05-06',
+  // Visão - para análise de imagens radiográficas (Gemini 3 Pro Image)
+  vision: 'google/gemini-3-pro-image-preview',
 
   // Escrita - para geração de conteúdo
   writer: 'anthropic/claude-3-haiku',
