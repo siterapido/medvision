@@ -286,25 +286,26 @@ export function MultimodalInput({
         </>
       )}
 
-      {/* Main container - Perplexity style with system.md tokens */}
+      {/* Main container - Restored Perplexity style with more rounded corners */}
       <form
         onSubmit={handleSubmit}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          'relative flex flex-col rounded-xl border bg-card',
-          // Border system - use explicit tokens
-          'border-[var(--border)]',
-          'transition-all duration-200 ease-in-out',
-          // Focus state - use border-strong token
-          'focus-within:border-[var(--border-strong)]',
-          // Hover state
-          'hover:border-[var(--border-strong)]',
+          'relative flex flex-col gap-1 p-2',
+          // More rounded corners like commit 3816e13
+          'rounded-[28px]',
+          'bg-white dark:bg-zinc-900',
+          // Subtle shadow and ring
+          'shadow-[0_8px_30px_rgb(0,0,0,0.04)]',
+          'ring-1 ring-zinc-200 dark:ring-zinc-800',
+          'transition-all duration-500',
+          // Focus state
+          'focus-within:ring-zinc-300 dark:focus-within:ring-zinc-700',
+          'focus-within:shadow-[0_20px_50px_rgba(0,0,0,0.1)]',
           // Drag state
-          isDragging && 'border-primary border-dashed bg-primary/5',
-          // Mobile: more compact padding
-          isMobile ? 'p-3' : 'p-4'
+          isDragging && 'ring-primary ring-dashed bg-primary/5'
         )}
       >
         {/* Drag overlay */}
@@ -350,25 +351,29 @@ export function MultimodalInput({
           </div>
         )}
 
-        {/* Textarea */}
-        <Textarea
-          ref={textareaRef}
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          placeholder={agentConfig.placeholder}
-          disabled={isLoading}
-          rows={1}
-          className={cn(
-            'min-h-[56px] max-h-[200px] resize-none border-0 bg-transparent p-0',
-            'text-base text-foreground placeholder:text-muted-foreground',
-            'focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0'
-          )}
-        />
+        {/* Textarea - Restored style from 3816e13 */}
+        <div className="px-4 pt-2">
+          <Textarea
+            ref={textareaRef}
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            placeholder="Perguntar ao Odonto GPT..."
+            disabled={isLoading}
+            rows={1}
+            className={cn(
+              'w-full resize-none bg-transparent py-2 border-0',
+              'text-sm text-zinc-900 dark:text-zinc-100',
+              'outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500',
+              'max-h-[200px] overflow-y-auto custom-scrollbar leading-relaxed font-sans',
+              'focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0'
+            )}
+          />
+        </div>
 
-        {/* Footer: Agent Switcher + Actions */}
-        <div className="mt-3 flex items-center justify-between gap-2">
+        {/* Footer: Agent Switcher + Actions - Restored style from 3816e13 */}
+        <div className="flex items-center justify-between px-2 pb-1 pt-2">
           {/* Left side */}
           {isMobile ? (
             /* Mobile: Plus button + Agent pill button */
@@ -451,34 +456,34 @@ export function MultimodalInput({
               <MicIcon size={18} />
             </Button>
 
-            {/* Submit/Stop button - Perplexity style circle */}
+            {/* Submit/Stop button - Restored style from 3816e13 */}
             {isLoading ? (
-              <Button
+              <button
                 type="button"
-                variant="outline"
-                size="icon"
                 onClick={stop}
-                className="size-9 rounded-full border-muted-foreground/30 bg-muted text-foreground hover:bg-muted/80"
+                className={cn(
+                  'flex items-center justify-center shrink-0 h-8 w-8 rounded-xl',
+                  'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400',
+                  'transition-all duration-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                )}
                 title="Parar geracao"
               >
-                <StopIcon size={16} />
-              </Button>
+                <div className="h-4 w-4 border-2 border-zinc-400/30 border-t-zinc-600 dark:border-t-zinc-300 rounded-full animate-spin" />
+              </button>
             ) : (
-              <Button
+              <button
                 type="submit"
-                size="icon"
                 disabled={!input.trim() && attachments.length === 0}
                 className={cn(
-                  'size-9 rounded-full shadow-sm',
-                  'bg-primary text-primary-foreground hover:bg-primary/90',
-                  'disabled:bg-muted disabled:text-muted-foreground disabled:shadow-none',
-                  // Perplexity-style glow effect when active
-                  input.trim() && 'shadow-[0_2px_8px_rgba(6,182,212,0.3)]'
+                  'flex items-center justify-center shrink-0 h-8 w-8 rounded-xl transition-all duration-300',
+                  (input.trim() || attachments.length > 0)
+                    ? 'bg-[#00A3FF] text-white hover:opacity-90 active:scale-95 shadow-md shadow-[#00A3FF]/20'
+                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed'
                 )}
                 title="Enviar mensagem"
               >
-                <ArrowUpIcon size={16} />
-              </Button>
+                <ArrowUpIcon size={16} className="stroke-[2.5]" />
+              </button>
             )}
           </div>
         </div>

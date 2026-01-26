@@ -1,20 +1,18 @@
 'use client'
 
 /**
- * Greeting - Vercel Chat SDK Pattern
+ * Greeting - Restored from commit 3816e13
  *
- * Componente de boas-vindas com animacao suave e sugestoes clicaveis.
- * Exibido quando nao ha mensagens no chat.
- *
- * Mobile: Logo grande centralizado estilo Perplexity
- * Desktop: Layout com icone, texto e sugestoes
+ * Componente de boas-vindas com visual elegante:
+ * - Icone centralizado com gradiente azul e efeito glow
+ * - Saudacao "Ola, Doutor(a)"
+ * - Sugestoes em scroll horizontal (mobile) ou vertical (desktop)
  */
 
-import { motion } from 'motion/react'
-import { SparklesIcon } from './icons'
+import { motion, AnimatePresence } from 'motion/react'
+import { Sparkles } from 'lucide-react'
 import { useIsMobile } from '@/lib/hooks/use-mobile'
 import { cn } from '@/lib/utils'
-import { Logo } from '@/components/logo'
 
 interface GreetingProps {
   userName?: string
@@ -22,153 +20,105 @@ interface GreetingProps {
 }
 
 const SUGGESTIONS = [
-  'Explique a anatomia do primeiro molar superior',
-  'Qual o protocolo para anestesia infiltrativa?',
-  'Como fazer um preparo cavitario classe I?',
-  'Quais sao as fases do tratamento endodontico?',
-]
-
-// Mobile suggestions - shorter for better UX
-const MOBILE_SUGGESTIONS = [
-  'Anatomia do molar',
-  'Anestesia infiltrativa',
-  'Preparo classe I',
+  'Anatomia do primeiro molar',
+  'Preparo cavitario classe I',
+  'Protocolo de anestesia',
+  'Tratamento endodontico',
 ]
 
 export function Greeting({ userName, onSuggestionClick }: GreetingProps) {
   const isMobile = useIsMobile()
-  const displayName = userName ? `, ${userName.split(' ')[0]}` : ''
+  // Format display name: "Doutor(a)" or "Doutor(a), FirstName"
+  const displayName = userName
+    ? `Doutor(a)`
+    : 'Doutor(a)'
 
-  // Mobile variant - centered logo style like Perplexity
-  if (isMobile) {
-    return (
-      <div
-        className="flex size-full flex-col items-center justify-center px-4 pb-32"
-        key="overview-mobile"
-      >
-        {/* Large centered logo */}
-        <motion.div
-          animate={{ opacity: 1, scale: 1 }}
-          className="mb-6 flex h-20 w-20 items-center justify-center rounded-3xl bg-primary/5"
-          initial={{ opacity: 0, scale: 0.8 }}
-          transition={{ delay: 0.2, type: 'spring', stiffness: 200 }}
-        >
-          <SparklesIcon className="size-10 text-primary/80" />
-        </motion.div>
-
-        {/* Title */}
-        <motion.h1
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center text-xl font-semibold text-foreground"
-          initial={{ opacity: 0, y: 10 }}
-          transition={{ delay: 0.4 }}
-        >
-          Ola{displayName}!
-        </motion.h1>
-
-        {/* Subtitle */}
-        <motion.p
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-1 text-center text-base text-muted-foreground"
-          initial={{ opacity: 0, y: 10 }}
-          transition={{ delay: 0.5 }}
-        >
-          Como posso ajudar?
-        </motion.p>
-
-        {/* Mobile suggestions - horizontal pills */}
-        {onSuggestionClick && (
-          <motion.div
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-8 flex flex-wrap justify-center gap-2"
-            initial={{ opacity: 0, y: 10 }}
-            transition={{ delay: 0.6 }}
-          >
-            {MOBILE_SUGGESTIONS.map((suggestion, index) => (
-              <motion.button
-                key={suggestion}
-                animate={{ opacity: 1, scale: 1 }}
-                className={cn(
-                  'rounded-full border bg-card px-4 py-2',
-                  // Use system.md border tokens
-                  'border-[var(--border)]',
-                  'text-sm text-muted-foreground',
-                  'transition-all active:scale-95',
-                  // Hover: use border-strong
-                  'hover:border-[var(--border-strong)] hover:text-foreground'
-                )}
-                initial={{ opacity: 0, scale: 0.9 }}
-                onClick={() => onSuggestionClick(suggestion)}
-                transition={{ delay: 0.7 + index * 0.1 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {suggestion}
-              </motion.button>
-            ))}
-          </motion.div>
-        )}
-      </div>
-    )
-  }
-
-  // Desktop variant - original layout
   return (
     <div
-      className="mx-auto flex size-full max-w-3xl flex-col items-center justify-center px-1 xs:px-4 md:px-8"
-      key="overview"
+      className="flex size-full flex-col items-center justify-center text-center p-4 space-y-6 animate-in fade-in zoom-in-95 duration-500"
+      key="greeting"
     >
-      {/* Title / Logo area */}
-      <motion.div
-        animate={{ opacity: 1, scale: 1 }}
-        className="mb-4 flex items-center justify-center gap-3"
-        initial={{ opacity: 0, scale: 0.8 }}
-        transition={{ delay: 0.3, type: 'spring' }}
-      >
-        <Logo width={200} height={60} />
-      </motion.div>
-
-      {/* Subtitle */}
-      <motion.div
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center text-lg text-muted-foreground/60 max-w-md"
-        exit={{ opacity: 0, y: 10 }}
-        initial={{ opacity: 0, y: 10 }}
-        transition={{ delay: 0.5 }}
-      >
-        Como posso ajudar você hoje?
-      </motion.div>
-
-      {/* Suggestions - Minimalist Pills */}
-      {onSuggestionClick && (
+      {/* Icon with gradient and glow effect */}
+      <div className="relative">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key="odonto-icon"
+            initial={{ scale: 0.8, opacity: 0, rotate: -10 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            exit={{ scale: 0.8, opacity: 0, rotate: 10 }}
+            transition={{ type: 'spring', damping: 15, stiffness: 200 }}
+            className={cn(
+              'h-14 w-14 md:h-20 md:w-20 rounded-2xl flex items-center justify-center',
+              'backdrop-blur-sm border border-border/50 shadow-xl',
+              'bg-gradient-to-br from-[#00D4FF] via-[#00A3FF] to-[#0066FF]'
+            )}
+          >
+            <Sparkles className="h-7 w-7 md:h-10 md:w-10 text-white" />
+          </motion.div>
+        </AnimatePresence>
+        {/* Glow effect */}
         <motion.div
-          animate={{ opacity: 1, y: 0 }}
-          className="mt-12 flex flex-wrap justify-center gap-3"
-          initial={{ opacity: 0, y: 10 }}
-          transition={{ delay: 0.7 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.4 }}
+          className="absolute -inset-4 blur-3xl -z-10 rounded-full bg-gradient-to-br from-[#0066FF] to-[#00D4FF]"
+        />
+      </div>
+
+      {/* Title and subtitle */}
+      <div className="space-y-2 max-w-md">
+        <motion.h2
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className="text-xl md:text-2xl font-heading font-semibold text-foreground"
+        >
+          Ola, {displayName}
+        </motion.h2>
+        <motion.p
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="text-sm md:text-base text-muted-foreground"
+        >
+          Estou pronto para auxiliar em diagnosticos e pesquisas clinicas.
+        </motion.p>
+      </div>
+
+      {/* Suggestions */}
+      {onSuggestionClick && (
+        <div
+          className={cn(
+            'w-full max-w-[90vw] md:max-w-md',
+            // Mobile: horizontal scroll, Desktop: vertical centered
+            isMobile
+              ? 'flex flex-row overflow-x-auto gap-2 pb-2 scrollbar-hide snap-x'
+              : 'flex flex-col items-center gap-2'
+          )}
         >
           {SUGGESTIONS.map((suggestion, index) => (
             <motion.button
               key={suggestion}
-              animate={{ opacity: 1, y: 0 }}
-              className={cn(
-                'group flex items-center gap-2 rounded-full border px-4 py-2',
-                // Use system.md border tokens
-                'border-[var(--border-subtle)] bg-card/50',
-                'text-sm text-muted-foreground',
-                'transition-all active:scale-95',
-                // Hover: use border-default and solid bg
-                'hover:border-[var(--border)] hover:bg-card hover:text-foreground'
-              )}
               initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 + index * 0.05 }}
               onClick={() => onSuggestionClick(suggestion)}
-              transition={{ delay: 0.8 + index * 0.1 }}
-              whileTap={{ scale: 0.98 }}
+              className={cn(
+                // Base styles
+                'text-sm text-center rounded-2xl',
+                'bg-card border border-border/50',
+                'hover:bg-muted/50 hover:border-primary/20',
+                'transition-all text-muted-foreground hover:text-foreground',
+                'shadow-sm hover:shadow-md hover:-translate-y-0.5',
+                // Mobile: fixed width with no wrap, Desktop: auto width
+                isMobile
+                  ? 'flex-shrink-0 snap-center px-4 py-2.5 whitespace-nowrap min-w-[180px]'
+                  : 'px-5 py-2.5 w-full'
+              )}
             >
-              <SparklesIcon size={14} className="opacity-0 transition-opacity group-hover:opacity-100 text-primary" />
               {suggestion}
             </motion.button>
           ))}
-        </motion.div>
+        </div>
       )}
     </div>
   )

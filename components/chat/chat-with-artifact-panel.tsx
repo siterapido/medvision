@@ -104,12 +104,14 @@ function ChatWithArtifactPanelInner({
   // Desktop: Split-screen with resizable panels
   return (
     <ResizablePanelGroup
+      id="chat-artifact-panel-group"
       direction="horizontal"
       className="h-full min-h-0"
       onLayout={handlePanelResize}
     >
       {/* Chat Panel (Left) */}
       <ResizablePanel
+        id="chat-panel"
         defaultSize={isPanelOpen ? chatPanelSize : 100}
         minSize={MIN_CHAT_SIZE}
         order={1}
@@ -129,6 +131,7 @@ function ChatWithArtifactPanelInner({
         <>
           <ResizableHandle withHandle />
           <ResizablePanel
+            id="artifact-panel"
             defaultSize={100 - chatPanelSize}
             minSize={MIN_ARTIFACT_SIZE}
             order={2}

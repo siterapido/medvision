@@ -68,6 +68,21 @@ export function Messages({
 
   return (
     <div className="relative min-h-0 flex-1">
+      {/* Decorative gradient background - only shown when empty */}
+      {messages.length === 0 && (
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-[40%] overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#00A3FF]/5 via-[#00D4FF]/3 to-transparent" />
+          {/* Wave decoration */}
+          <svg
+            className="absolute bottom-0 left-0 w-full h-auto text-background"
+            viewBox="0 0 1440 120"
+            fill="currentColor"
+            preserveAspectRatio="none"
+          >
+            <path d="M0,64L48,69.3C96,75,192,85,288,80C384,75,480,53,576,48C672,43,768,53,864,69.3C960,85,1056,107,1152,101.3C1248,96,1344,64,1392,48L1440,32L1440,120L1392,120C1344,120,1248,120,1152,120C1056,120,960,120,864,120C768,120,672,120,576,120C480,120,384,120,288,120C192,120,96,120,48,120L0,120Z" />
+          </svg>
+        </div>
+      )}
       <div
         className="absolute inset-0 overflow-y-auto overscroll-contain"
         ref={containerRef}

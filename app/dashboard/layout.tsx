@@ -4,6 +4,7 @@ import { cookies } from "next/headers"
 import { createClient } from "@/lib/supabase/server"
 import { UnifiedSidebar } from "@/components/sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
+import { DashboardShell } from "@/components/layout/dashboard-shell"
 
 export default async function NewDashboardLayout({
   children,
@@ -45,9 +46,9 @@ export default async function NewDashboardLayout({
     <SidebarProvider defaultOpen={defaultOpen}>
       <UnifiedSidebar user={userData} />
       <SidebarInset>
-        <main className="flex min-h-0 flex-1 flex-col">
+        <DashboardShell>
           {children}
-        </main>
+        </DashboardShell>
       </SidebarInset>
     </SidebarProvider>
   )

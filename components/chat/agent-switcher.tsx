@@ -77,7 +77,8 @@ export function AgentSwitcher({
   return (
     <div
       className={cn(
-        'flex items-center gap-0.5 rounded-lg bg-muted/50 p-0.5',
+        'flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800/50 p-1 rounded-2xl',
+        'border border-zinc-100 dark:border-zinc-800/50',
         className
       )}
     >
@@ -91,20 +92,24 @@ export function AgentSwitcher({
             onClick={() => onAgentChange(agent.id)}
             disabled={disabled}
             className={cn(
-              'flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm font-medium',
-              'transition-all duration-150 ease-out',
-              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1',
+              'relative flex items-center justify-center h-7 w-7 rounded-xl',
+              'transition-all duration-300',
+              'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               'disabled:pointer-events-none disabled:opacity-50',
               isSelected
-                ? 'bg-primary text-primary-foreground shadow-sm'
-                : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                ? 'bg-white dark:bg-zinc-700 text-[#00A3FF] shadow-sm ring-1 ring-zinc-200 dark:ring-zinc-600'
+                : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100/50 dark:hover:bg-zinc-800'
             )}
             title={agent.fullName}
             aria-pressed={isSelected}
             aria-label={`Selecionar ${agent.fullName}`}
           >
-            <span className="text-base leading-none">{agent.icon}</span>
-            <span className="hidden sm:inline">{agent.shortName}</span>
+            <span className={cn(
+              'transition-transform duration-300',
+              isSelected ? 'scale-100' : 'scale-90'
+            )}>
+              {agent.icon}
+            </span>
           </button>
         )
       })}

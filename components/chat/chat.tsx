@@ -14,9 +14,6 @@ import { useBlockingChat } from '@/lib/hooks/use-blocking-chat'
 import { Messages } from './messages'
 import { MultimodalInput } from './multimodal-input'
 import { ToolApprovalDialog } from './tool-approval-dialog'
-import { MobileFloatingHeader } from '@/components/mobile/mobile-floating-header'
-import { cn } from '@/lib/utils'
-import { useIsMobile } from '@/lib/hooks/use-mobile'
 
 interface ChatProps {
   id?: string
@@ -42,7 +39,6 @@ export function Chat({
   const [chatId] = useState(() => id || crypto.randomUUID())
   const [input, setInput] = useState('')
   const [selectedAgent, setSelectedAgent] = useState(initialAgentId)
-  const isMobile = useIsMobile()
 
   // useBlockingChat hook - blocking (non-streaming) responses
   const {
@@ -193,16 +189,8 @@ export function Chat({
 
   return (
     <div className="flex h-full min-h-0 min-w-0 flex-col bg-background">
-      {/* Mobile Floating Header */}
-      {isMobile && (
-        <MobileFloatingHeader
-          userName={userName}
-          userImage={userImage}
-        />
-      )}
-
-      {/* Messages area - add top padding on mobile for header */}
-      <div className={cn("flex-1 overflow-hidden flex flex-col", isMobile ? 'pt-[52px]' : '')}>
+      {/* Messages area */}
+      <div className="flex-1 overflow-hidden flex flex-col">
         <Messages
           messages={messages as any}
           status={componentStatus}
