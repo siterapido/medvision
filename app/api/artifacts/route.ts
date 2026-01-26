@@ -12,7 +12,7 @@ import { z } from 'zod'
 const createArtifactSchema = z.object({
     title: z.string().min(1).max(500),
     description: z.string().max(2000).optional().default(''),
-    type: z.enum(['chat', 'document', 'code', 'image', 'research', 'exam', 'summary', 'flashcards', 'mindmap', 'other']),
+    type: z.enum(['chat', 'document', 'code', 'image', 'vision', 'research', 'exam', 'summary', 'flashcards', 'mindmap', 'other']),
     content: z.any(),
     metadata: z.record(z.any()).optional(),
     aiContext: z.object({
@@ -22,7 +22,7 @@ const createArtifactSchema = z.object({
         maxTokens: z.number().optional(),
         systemPrompt: z.string().optional(),
         timestamp: z.string().optional(),
-    }),
+    }).optional().default({ model: 'gpt-4o', agent: 'OdontoVision AI' }),
 })
 
 /**
@@ -63,7 +63,6 @@ export async function GET(request: NextRequest) {
         console.error('[API /artifacts GET] Error listing artifacts:', {
             error: error instanceof Error ? error.message : String(error),
             stack: error instanceof Error ? error.stack : undefined,
-            userId: user?.id
         })
 
         const errorMessage = error instanceof Error ? error.message : 'Failed to list artifacts'

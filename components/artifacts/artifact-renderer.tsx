@@ -9,6 +9,7 @@ import { FlashcardArtifact } from './flashcard-artifact'
 import { QuizArtifact } from './quiz-artifact'
 import { ResearchArtifact } from './research-artifact'
 import { ReportArtifact } from './report-artifact'
+import { VisionArtifact } from './vision-artifact'
 import { MermaidDiagram } from './mermaid-diagram'
 import { CodeExecutor } from './code-executor'
 import { TextEditor } from './text-editor'
@@ -53,6 +54,9 @@ export function ArtifactRenderer({ artifact, className }: ArtifactRendererProps)
 
     case 'report':
       return <ReportArtifact artifact={artifact} className={className} />
+
+    case 'vision':
+      return <VisionArtifact artifact={artifact} className={className} />
 
     case 'text':
       return (

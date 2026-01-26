@@ -2,7 +2,7 @@
  * Tipos para o sistema de artefatos do Vercel Chat SDK
  */
 
-export type ArtifactType = 'chat' | 'document' | 'code' | 'image' | 'research' | 'exam' | 'summary' | 'flashcards' | 'mindmap' | 'other'
+export type ArtifactType = 'chat' | 'document' | 'code' | 'image' | 'vision' | 'research' | 'exam' | 'summary' | 'flashcards' | 'mindmap' | 'other'
 
 export interface AIContext {
     model: string

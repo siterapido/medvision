@@ -27,7 +27,8 @@ import {
     ArrowUpRight,
     SearchX,
     LayoutDashboard,
-    SortAsc
+    SortAsc,
+    Scan
 } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import {
@@ -71,6 +72,8 @@ const getIconForType = (type: string) => {
             return <Code className="h-5 w-5 text-emerald-400" />
         case "image":
             return <ImageIcon className="h-5 w-5 text-pink-400" />
+        case "vision":
+            return <Scan className="h-5 w-5 text-sky-400" />
         case "research":
             return <BookOpen className="h-5 w-5 text-cyan-400" />
         case "exam":
@@ -92,6 +95,7 @@ const getLabelForType = (type: string) => {
         case "document": return "Documento"
         case "code": return "Código"
         case "image": return "Imagem"
+        case "vision": return "Laudo Vision"
         case "research": return "Pesquisa"
         case "exam": return "Simulado"
         case "summary": return "Resumo"
@@ -121,6 +125,118 @@ const itemVariants = {
             stiffness: 260,
             damping: 20
         }
+    }
+}
+
+// Helper function to convert database artifact to renderer artifact format
+const convertToRenderArtifact = (artifact: Artifact): any => {
+    const baseArtifact = {
+        id: artifact.id,
+        title: artifact.title,
+        description: artifact.description,
+        createdAt: new Date(artifact.createdAt),
+    }
+
+    // Map types to kinds
+    const typeToKind: Record<string, string> = {
+        'chat': 'text',
+        'document': 'document',
+        'code': 'code',
+        'image': 'image',
+        'vision': 'vision',
+        'research': 'research',
+        'exam': 'quiz',
+        'summary': 'summary',
+        'flashcards': 'flashcard',
+        'mindmap': 'diagram',
+    }
+
+    const kind = typeToKind[artifact.type] || 'text'
+
+    // Special handling for vision artifacts (laudos)
+    if (artifact.type === 'vision') {
+        const content = artifact.content as any
+        return {
+            ...baseArtifact,
+            kind: 'vision',
+            thumbnailBase64: content?.thumbnailBase64 || '',
+            imageBase64: content?.imageBase64 || '',
+            analysis: content?.analysis || { detections: [], findings: [] },
+            annotations: content?.annotations || [],
+            analyzedAt: content?.analyzedAt || artifact.createdAt,
+        }
+    }
+
+    // Special handling for exam/quiz artifacts
+    if (artifact.type === 'exam') {
+        const content = artifact.content as any
+        return {
+            ...baseArtifact,
+            kind: 'quiz',
+            topic: content?.topic || artifact.title,
+            specialty: content?.specialty,
+            questions: (content?.questions || []).map((q: any, idx: number) => ({
+                id: q.id || `q-${idx}`,
+                text: q.question_text || q.text,
+                options: Array.isArray(q.options) ? q.options.map((opt: any, optIdx: number) =>
+                    typeof opt === 'string'
+                        ? { id: `opt-${optIdx}`, text: opt, isCorrect: opt === q.correct_answer }
+                        : opt
+                ) : [],
+                explanation: q.explanation || '',
+                difficulty: q.difficulty || 'medium',
+            })),
+        }
+    }
+
+    // Special handling for research artifacts
+    if (artifact.type === 'research') {
+        const content = artifact.content as any
+        return {
+            ...baseArtifact,
+            kind: 'research',
+            query: content?.query || '',
+            content: content?.markdownContent || '',
+            sources: content?.sources || [],
+            methodology: content?.researchType,
+        }
+    }
+
+    // Special handling for summary artifacts
+    if (artifact.type === 'summary') {
+        const content = artifact.content as any
+        return {
+            ...baseArtifact,
+            kind: 'summary',
+            content: content?.markdownContent || content || '',
+            topic: content?.topic,
+            tags: content?.tags || [],
+        }
+    }
+
+    // Special handling for flashcard artifacts
+    if (artifact.type === 'flashcards') {
+        const content = artifact.content as any
+        return {
+            ...baseArtifact,
+            kind: 'flashcard',
+            topic: content?.topic,
+            cards: (content?.cards || []).map((card: any, idx: number) => ({
+                id: `card-${idx}`,
+                front: card.front,
+                back: card.back,
+            })),
+        }
+    }
+
+    // Default: text artifact
+    return {
+        ...baseArtifact,
+        kind,
+        content: typeof artifact.content === 'string'
+            ? artifact.content
+            : artifact.content?.markdownContent || JSON.stringify(artifact.content, null, 2),
+        format: 'markdown',
     }
 }
 
@@ -277,7 +393,13 @@ export default function BibliotecaPage() {
                             Estrutura de conhecimento
                         </div>
                     )}
-                    {!['research', 'exam', 'mindmap'].includes(item.type) && (
+                    {item.type === 'vision' && (
+                        <div className="w-full text-[11px] font-medium text-sky-400 flex items-center gap-1.5 group-hover:text-sky-300 transition-colors">
+                            <div className="h-1 w-1 rounded-full bg-sky-500 animate-pulse" />
+                            {(item.content as any)?.analysis?.findings?.length || 0} achados detectados
+                        </div>
+                    )}
+                    {!['research', 'exam', 'mindmap', 'vision'].includes(item.type) && (
                         <div className="w-full text-[11px] font-medium text-muted-foreground/60 italic">
                             Ver detalhes do artefato
                         </div>
@@ -348,6 +470,7 @@ export default function BibliotecaPage() {
                         <TabsList className="w-full justify-start overflow-x-scroll h-auto p-1 bg-muted/20 border border-border/10 rounded-xl gap-2 no-scrollbar">
                             {[
                                 { value: "all", label: "Todos", icon: LayoutDashboard },
+                                { value: "vision", label: "Laudos", icon: Scan },
                                 { value: "chat", label: "Conversas", icon: MessageSquare },
                                 { value: "document", label: "Documentos", icon: FileText },
                                 { value: "research", label: "Pesquisas", icon: BookOpen },
@@ -454,10 +577,7 @@ export default function BibliotecaPage() {
 
                             <div className="p-8 pb-32">
                                 <ArtifactRenderer
-                                    artifact={{
-                                        ...selectedArtifact,
-                                        kind: selectedArtifact.type === 'chat' ? 'text' : selectedArtifact.type as any,
-                                    } as any}
+                                    artifact={convertToRenderArtifact(selectedArtifact)}
                                 />
                             </div>
 

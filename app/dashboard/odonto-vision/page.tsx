@@ -144,7 +144,7 @@ export default function OdontoVisionPage() {
                 body: JSON.stringify({
                     title: `Laudo Vision: ${imageType} - ${date}`,
                     description: analysisResult.report?.diagnosticHypothesis?.slice(0, 200) || 'Análise de imagem odontológica',
-                    type: 'image',
+                    type: 'vision',
                     content
                 })
             })
@@ -582,13 +582,13 @@ export default function OdontoVisionPage() {
                             key="result"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="grid grid-cols-1 lg:grid-cols-12 gap-8"
+                            className="flex flex-col gap-8 max-w-4xl mx-auto"
                         >
-                            {/* Left Column - Image with Detections */}
-                            <div className="lg:col-span-12 xl:col-span-7 space-y-6">
+                            {/* Image with Detections - Full Width, Larger */}
+                            <div className="space-y-4">
                                 <GlassCard className="p-1 overflow-hidden group">
                                     <div
-                                        className="relative aspect-video rounded-lg overflow-hidden border border-border/50 bg-black/5"
+                                        className="relative aspect-[4/3] rounded-lg overflow-hidden border border-border/50 bg-black/5"
                                         ref={(el) => {
                                             if (el && (el.offsetWidth !== imageSize.width || el.offsetHeight !== imageSize.height)) {
                                                 setImageSize({ width: el.offsetWidth, height: el.offsetHeight })
@@ -688,9 +688,9 @@ export default function OdontoVisionPage() {
                                 </div>
                             </div>
 
-                            {/* Right Column - Laudo / Findings */}
-                            <div className="lg:col-span-12 xl:col-span-5 space-y-6">
-                                <GlassCard className="p-6 h-full flex flex-col">
+                            {/* Laudo / Findings - Below Image */}
+                            <div className="space-y-6">
+                                <GlassCard className="p-6 flex flex-col">
                                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/30">
                                         <div>
                                             <h2 className="text-xl font-heading font-bold">Laudo AI</h2>
@@ -708,7 +708,7 @@ export default function OdontoVisionPage() {
                                         </div>
                                     </div>
 
-                                    <div className="flex-1 space-y-6 overflow-y-auto max-h-[600px] pr-2 custom-scrollbar">
+                                    <div className="flex-1 space-y-6">
                                         {/* Findings List - Quick View */}
                                         <section className="space-y-3">
                                             <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">

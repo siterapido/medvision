@@ -18,6 +18,7 @@ export type ArtifactKind =
   | 'quiz'
   | 'research'
   | 'report'
+  | 'vision'
 
 export interface ArtifactBase {
   id: string
@@ -155,6 +156,62 @@ export interface ReportArtifact extends ArtifactBase {
   }
 }
 
+// Vision Artifact (Laudo Odonto Vision)
+export interface VisionFinding {
+  type: string
+  zone: string
+  level: string
+  color: string
+}
+
+export interface VisionDetection {
+  id: string
+  label: string
+  confidence: number
+  box: { ymin: number; xmin: number; ymax: number; xmax: number }
+  severity: 'critical' | 'moderate' | 'normal'
+  description?: string
+}
+
+export interface VisionReport {
+  technicalAnalysis: string
+  detailedFindings: string
+  diagnosticHypothesis: string
+  recommendations: string[]
+}
+
+export interface VisionAnalysis {
+  meta?: {
+    imageType: string
+    quality: string
+    notes?: string
+  }
+  detections: VisionDetection[]
+  findings: VisionFinding[]
+  report?: VisionReport
+  clinicalAssessment?: string
+  recommendations?: string[]
+}
+
+export interface VisionAnnotation {
+  id: string
+  tool: 'pen' | 'circle' | 'arrow' | 'text'
+  color: 'red' | 'yellow' | 'blue' | 'white'
+  points?: { x: number; y: number }[]
+  start?: { x: number; y: number }
+  end?: { x: number; y: number }
+  text?: string
+}
+
+export interface VisionArtifact extends ArtifactBase {
+  kind: 'vision'
+  thumbnailBase64: string
+  imageBase64: string
+  analysis: VisionAnalysis
+  annotations?: VisionAnnotation[]
+  analyzedAt: string
+}
+
 export type Artifact =
   | CodeArtifact
   | ImageArtifact
@@ -168,6 +225,7 @@ export type Artifact =
   | QuizArtifact
   | ResearchArtifact
   | ReportArtifact
+  | VisionArtifact
 
 // Simple factory functions for each artifact type
 export function createCodeArtifact(data: Omit<CodeArtifact, 'id' | 'createdAt' | 'kind'> & { id?: string }): CodeArtifact {
@@ -242,6 +300,15 @@ export function createReportArtifact(data: Omit<ReportArtifact, 'id' | 'createdA
   }
 }
 
+export function createVisionArtifact(data: Omit<VisionArtifact, 'id' | 'createdAt' | 'kind'> & { id?: string }): VisionArtifact {
+  return {
+    ...data,
+    kind: 'vision',
+    id: data.id || `artifact-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+    createdAt: new Date(),
+  }
+}
+
 export function createTextArtifact(data: Omit<TextArtifact, 'id' | 'createdAt' | 'kind'> & { id?: string }): TextArtifact {
   return {
     ...data,
@@ -295,4 +362,8 @@ export function isResearchArtifact(artifact: Artifact): artifact is ResearchArti
 
 export function isReportArtifact(artifact: Artifact): artifact is ReportArtifact {
   return artifact.kind === 'report'
+}
+
+export function isVisionArtifact(artifact: Artifact): artifact is VisionArtifact {
+  return artifact.kind === 'vision'
 }
