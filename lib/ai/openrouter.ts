@@ -35,8 +35,8 @@ export const MODELS = {
   // Pesquisa - Perplexity Sonar
   research: 'perplexity/sonar',
 
-  // Visão - para análise de imagens radiográficas
-  vision: 'anthropic/claude-3.5-sonnet',
+  // Visão - para análise de imagens radiográficas (Claude 3.5 Sonnet com visão)
+  vision: 'anthropic/claude-3-5-sonnet-20241022',
 
   // Escrita - para geração de conteúdo
   writer: 'anthropic/claude-3-haiku',
