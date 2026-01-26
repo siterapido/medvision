@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import Cropper, { Area } from 'react-easy-crop'
 import {
     FileUp,
     Search,
@@ -17,7 +18,13 @@ import {
     ChevronRight,
     Sparkles,
     Info,
-    AlertTriangle
+    AlertTriangle,
+    Crop,
+    ZoomIn,
+    ZoomOut,
+    RotateCcw,
+    Check,
+    X
 } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { GlassCard } from '@/components/ui/glass-card'
@@ -26,20 +33,27 @@ import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
+import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
 import { VisionAnalysisResult } from '@/lib/types/vision'
 import { ImageOverlay } from '@/components/vision/image-overlay'
 import { toast } from 'sonner'
 import { generateVisionPDF } from '@/lib/utils/generate-vision-pdf'
 
-type VisionState = 'UPLOAD' | 'ANALYZING' | 'RESULT' | 'ERROR'
+type VisionState = 'UPLOAD' | 'CROP' | 'ANALYZING' | 'RESULT' | 'ERROR'
 
 export default function OdontoVisionPage() {
     const [state, setState] = useState<VisionState>('UPLOAD')
     const [image, setImage] = useState<string | null>(null) // Base64
+    const [originalImage, setOriginalImage] = useState<string | null>(null) // Original before crop
     const [progress, setProgress] = useState(0)
     const [analysisResult, setAnalysisResult] = useState<VisionAnalysisResult | null>(null)
     const [isFullscreen, setIsFullscreen] = useState(false)
+
+    // Crop states
+    const [crop, setCrop] = useState({ x: 0, y: 0 })
+    const [zoom, setZoom] = useState(1)
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
 
 
     // Read image file as base64 without compression
@@ -52,20 +66,89 @@ export default function OdontoVisionPage() {
         })
     }
 
+    // Crop callback
+    const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
+        setCroppedAreaPixels(croppedAreaPixels)
+    }, [])
+
+    // Create cropped image from canvas
+    const createCroppedImage = useCallback(async (imageSrc: string, pixelCrop: Area): Promise<string> => {
+        const image = new Image()
+        image.src = imageSrc
+
+        await new Promise((resolve) => {
+            image.onload = resolve
+        })
+
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+
+        if (!ctx) {
+            throw new Error('Could not get canvas context')
+        }
+
+        canvas.width = pixelCrop.width
+        canvas.height = pixelCrop.height
+
+        ctx.drawImage(
+            image,
+            pixelCrop.x,
+            pixelCrop.y,
+            pixelCrop.width,
+            pixelCrop.height,
+            0,
+            0,
+            pixelCrop.width,
+            pixelCrop.height
+        )
+
+        return canvas.toDataURL('image/jpeg', 0.95)
+    }, [])
+
+    // Handle crop confirmation
+    const handleCropConfirm = useCallback(async () => {
+        if (!originalImage || !croppedAreaPixels) return
+
+        try {
+            const croppedImage = await createCroppedImage(originalImage, croppedAreaPixels)
+            setImage(croppedImage)
+            startAnalysis(croppedImage)
+        } catch (error) {
+            console.error('Error cropping image:', error)
+            toast.error('Erro ao recortar imagem')
+        }
+    }, [originalImage, croppedAreaPixels, createCroppedImage])
+
+    // Skip crop and use original
+    const handleSkipCrop = useCallback(() => {
+        if (!originalImage) return
+        setImage(originalImage)
+        startAnalysis(originalImage)
+    }, [originalImage])
+
+    // Reset crop controls
+    const resetCrop = useCallback(() => {
+        setCrop({ x: 0, y: 0 })
+        setZoom(1)
+    }, [])
+
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0]
         if (file) {
             try {
                 // Read image without compression for maximum quality
                 const imageBase64 = await readImageAsBase64(file)
+                setOriginalImage(imageBase64)
                 setImage(imageBase64)
-                startAnalysis(imageBase64)
+                // Go to crop state instead of directly analyzing
+                setState('CROP')
+                resetCrop()
             } catch (error) {
                 console.error("Error processing image:", error)
                 toast.error("Erro ao processar imagem. Tente outro arquivo.")
             }
         }
-    }, [])
+    }, [resetCrop])
 
     const startAnalysis = async (imageData: string) => {
         setState('ANALYZING')
@@ -112,8 +195,10 @@ export default function OdontoVisionPage() {
     const reset = () => {
         setState('UPLOAD')
         setImage(null)
+        setOriginalImage(null)
         setProgress(0)
         setAnalysisResult(null)
+        resetCrop()
     }
 
     return (
@@ -188,6 +273,116 @@ export default function OdontoVisionPage() {
                                         </div>
                                     </GlassCard>
                                 ))}
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {state === 'CROP' && originalImage && (
+                        <motion.div
+                            key="crop"
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.05 }}
+                            className="w-full space-y-6"
+                        >
+                            <GlassCard className="p-6">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
+                                            <Crop className="w-5 h-5 text-primary" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-lg font-heading font-bold">Recortar Imagem</h3>
+                                            <p className="text-xs text-muted-foreground">Ajuste a área de interesse para melhor análise</p>
+                                        </div>
+                                    </div>
+                                    <Badge variant="outline" className="text-xs">Opcional</Badge>
+                                </div>
+
+                                {/* Crop Area */}
+                                <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black/90 border border-border/50">
+                                    <Cropper
+                                        image={originalImage}
+                                        crop={crop}
+                                        zoom={zoom}
+                                        aspect={undefined}
+                                        onCropChange={setCrop}
+                                        onCropComplete={onCropComplete}
+                                        onZoomChange={setZoom}
+                                        showGrid={true}
+                                        style={{
+                                            containerStyle: {
+                                                backgroundColor: 'rgb(0 0 0 / 0.9)'
+                                            }
+                                        }}
+                                    />
+                                </div>
+
+                                {/* Zoom Controls */}
+                                <div className="mt-6 space-y-4">
+                                    <div className="flex items-center gap-4">
+                                        <ZoomOut className="w-4 h-4 text-muted-foreground" />
+                                        <Slider
+                                            value={[zoom]}
+                                            min={1}
+                                            max={3}
+                                            step={0.1}
+                                            onValueChange={(value) => setZoom(value[0])}
+                                            className="flex-1"
+                                        />
+                                        <ZoomIn className="w-4 h-4 text-muted-foreground" />
+                                        <span className="text-xs text-muted-foreground w-12 text-right">{Math.round(zoom * 100)}%</span>
+                                    </div>
+
+                                    <div className="flex items-center justify-center">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={resetCrop}
+                                            className="text-xs gap-2"
+                                        >
+                                            <RotateCcw className="w-3 h-3" />
+                                            Resetar
+                                        </Button>
+                                    </div>
+                                </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex gap-4 mt-6 pt-4 border-t border-border/30">
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1 h-12 rounded-xl gap-2"
+                                        onClick={handleSkipCrop}
+                                    >
+                                        <X className="w-4 h-4" />
+                                        Pular Recorte
+                                    </Button>
+                                    <Button
+                                        className="flex-1 h-12 rounded-xl gap-2 bg-primary hover:bg-primary/90"
+                                        onClick={handleCropConfirm}
+                                    >
+                                        <Check className="w-4 h-4" />
+                                        Confirmar e Analisar
+                                    </Button>
+                                </div>
+                            </GlassCard>
+
+                            {/* Tips */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <GlassCard className="p-4 flex gap-4 items-start bg-muted/20 border-border/30">
+                                    <Crop className="w-5 h-5 text-primary shrink-0" />
+                                    <div>
+                                        <h4 className="text-sm font-semibold">Área de Interesse</h4>
+                                        <p className="text-xs text-muted-foreground leading-relaxed">Recorte para focar em uma região específica da radiografia.</p>
+                                    </div>
+                                </GlassCard>
+                                <GlassCard className="p-4 flex gap-4 items-start bg-muted/20 border-border/30">
+                                    <ZoomIn className="w-5 h-5 text-primary shrink-0" />
+                                    <div>
+                                        <h4 className="text-sm font-semibold">Zoom Preciso</h4>
+                                        <p className="text-xs text-muted-foreground leading-relaxed">Use o zoom para ampliar e selecionar áreas menores com precisão.</p>
+                                    </div>
+                                </GlassCard>
                             </div>
                         </motion.div>
                     )}
