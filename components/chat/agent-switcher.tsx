@@ -8,10 +8,10 @@
  */
 
 import {
-  Brain, Shield, FlaskConical,
-  FileText, Eye, Sparkles, GraduationCap
+  Sparkles, Microscope, GraduationCap, BookOpen, Eye, PenTool, MessageCircle
 } from "lucide-react"
 import { cn } from '@/lib/utils'
+import { getAgentUI } from '@/lib/ai/agents/ui-config'
 
 export interface AgentPill {
   id: string
@@ -19,6 +19,7 @@ export interface AgentPill {
   shortName: string
   fullName: string
   placeholder: string
+  color: string
 }
 
 export const AGENT_PILLS: AgentPill[] = [
@@ -28,27 +29,31 @@ export const AGENT_PILLS: AgentPill[] = [
     shortName: 'GPT',
     fullName: 'Odonto GPT',
     placeholder: 'Pergunte sobre odontologia...',
+    color: '#00A3FF',
   },
   {
     id: 'odonto-research',
-    icon: <FlaskConical className="w-4 h-4" />,
+    icon: <Microscope className="w-4 h-4" />,
     shortName: 'Research',
     fullName: 'Pesquisa Cientifica',
     placeholder: 'Busque evidencias cientificas...',
+    color: '#00A3FF',
   },
   {
     id: 'odonto-practice',
-    icon: <Shield className="w-4 h-4" />,
+    icon: <GraduationCap className="w-4 h-4" />,
     shortName: 'Practice',
     fullName: 'Casos Clinicos',
     placeholder: 'Pratique com casos clinicos...',
+    color: '#A855F7',
   },
   {
     id: 'odonto-summary',
-    icon: <GraduationCap className="w-4 h-4" />,
+    icon: <BookOpen className="w-4 h-4" />,
     shortName: 'Summary',
     fullName: 'Resumos',
     placeholder: 'Crie resumos e flashcards...',
+    color: '#EC4899',
   },
   {
     id: 'odonto-vision',
@@ -56,6 +61,7 @@ export const AGENT_PILLS: AgentPill[] = [
     shortName: 'Vision',
     fullName: 'Analise de Imagens',
     placeholder: 'Envie radiografias para analise...',
+    color: '#06B6D4',
   },
 ]
 
@@ -85,6 +91,8 @@ export function AgentSwitcher({
       {agents.map((agent) => {
         const isSelected = selectedAgent === agent.id
 
+        const agentUIConfig = getAgentUI(agent.id)
+
         return (
           <button
             key={agent.id}
@@ -97,7 +105,7 @@ export function AgentSwitcher({
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               'disabled:pointer-events-none disabled:opacity-50',
               isSelected
-                ? 'bg-white dark:bg-zinc-700 text-[#00A3FF] shadow-sm ring-1 ring-zinc-200 dark:ring-zinc-600'
+                ? `bg-gradient-to-br ${agentUIConfig.gradient} shadow-md text-white`
                 : 'text-zinc-400 dark:text-zinc-500 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-100/50 dark:hover:bg-zinc-800'
             )}
             title={agent.fullName}

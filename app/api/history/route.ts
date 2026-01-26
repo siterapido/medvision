@@ -29,6 +29,13 @@ export async function GET(req: NextRequest) {
       endingBefore,
     })
 
+    console.log('[History API] Returning chats:', {
+      userId: user.id,
+      count: result.chats.length,
+      hasMore: result.hasMore,
+      firstChat: result.chats[0]?.title
+    })
+
     return NextResponse.json(result)
   } catch (error) {
     console.error('[History API] Error:', error)

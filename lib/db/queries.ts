@@ -37,7 +37,7 @@ export async function getChats(userId: string): Promise<Chat[]> {
     .from('agent_sessions')
     .select('*')
     .eq('user_id', userId)
-    .eq('status', 'active')
+    .neq('status', 'deleted')
     .order('updated_at', { ascending: false })
 
   if (error) {
@@ -48,7 +48,7 @@ export async function getChats(userId: string): Promise<Chat[]> {
   return (data || []).map((session) => ({
     id: session.id,
     createdAt: new Date(session.created_at),
-    title: session.metadata?.title || session.title || 'Nova Conversa',
+    title: session.title || session.metadata?.title || 'Nova Conversa',
     userId: session.user_id,
     visibility: 'private' as const,
     agentType: session.agent_type,
@@ -71,7 +71,7 @@ export async function getChatsPaginated(
     .from('agent_sessions')
     .select('*')
     .eq('user_id', userId)
-    .eq('status', 'active')
+    .neq('status', 'deleted')
     .order('created_at', { ascending: false })
     .limit(limit + 1)
 
@@ -98,7 +98,7 @@ export async function getChatsPaginated(
   const chats = (data || []).slice(0, limit).map((session) => ({
     id: session.id,
     createdAt: new Date(session.created_at),
-    title: session.metadata?.title || session.title || 'Nova Conversa',
+    title: session.title || session.metadata?.title || 'Nova Conversa',
     userId: session.user_id,
     visibility: 'private' as const,
     agentType: session.agent_type,
@@ -129,7 +129,7 @@ export async function getChatById(chatId: string): Promise<Chat | null> {
   return {
     id: data.id,
     createdAt: new Date(data.created_at),
-    title: data.metadata?.title || data.title || 'Nova Conversa',
+    title: data.title || data.metadata?.title || 'Nova Conversa',
     userId: data.user_id,
     visibility: 'private',
     agentType: data.agent_type,
@@ -161,7 +161,7 @@ export async function getChatWithMessages(chatId: string): Promise<{
   const chat: Chat = {
     id: session.id,
     createdAt: new Date(session.created_at),
-    title: session.metadata?.title || session.title || 'Nova Conversa',
+    title: session.title || session.metadata?.title || 'Nova Conversa',
     userId: session.user_id,
     visibility: 'private',
     agentType: session.agent_type,
@@ -247,6 +247,7 @@ export async function updateChatTitle(
   const { error } = await supabase
     .from('agent_sessions')
     .update({
+      title,
       metadata: { ...(current?.metadata || {}), title },
       updated_at: new Date().toISOString(),
     })
@@ -274,14 +275,17 @@ export async function createChat(
 ): Promise<Chat | null> {
   const supabase = await createClient()
 
+  const sessionTitle = options.title || 'Nova Conversa'
+
   const { data, error } = await supabase
     .from('agent_sessions')
     .insert({
       user_id: userId,
       agent_type: options.agentType || 'qa',
       status: 'active',
+      title: sessionTitle,
       metadata: {
-        title: options.title || 'Nova Conversa',
+        title: sessionTitle,
         ...options.metadata,
       },
     })
@@ -296,7 +300,7 @@ export async function createChat(
   return {
     id: data.id,
     createdAt: new Date(data.created_at),
-    title: data.metadata?.title || 'Nova Conversa',
+    title: data.title || data.metadata?.title || 'Nova Conversa',
     userId: data.user_id,
     visibility: 'private',
     agentType: data.agent_type,
@@ -427,7 +431,7 @@ export async function searchChats(
       agent_messages(id, role, content, created_at)
     `)
     .eq('user_id', userId)
-    .eq('status', 'active')
+    .neq('status', 'deleted')
     .order('updated_at', { ascending: false })
 
   if (agentId) {
@@ -452,7 +456,7 @@ export async function searchChats(
   if (query && query.length > 0) {
     const lowerQuery = query.toLowerCase()
     filteredSessions = filteredSessions.filter((session) => {
-      const title = (session.metadata?.title || session.title || '').toLowerCase()
+      const title = (session.title || session.metadata?.title || '').toLowerCase()
       if (title.includes(lowerQuery)) return true
 
       const messages = session.agent_messages || []
@@ -476,7 +480,7 @@ export async function searchChats(
     return {
       id: session.id,
       createdAt: new Date(session.created_at),
-      title: session.metadata?.title || session.title || 'Nova Conversa',
+      title: session.title || session.metadata?.title || 'Nova Conversa',
       userId,
       visibility: 'private' as const,
       agentType: session.agent_type,
@@ -539,7 +543,7 @@ export async function getChatWithPreview(
   return {
     id: session.id,
     createdAt: new Date(session.created_at),
-    title: session.metadata?.title || session.title || 'Nova Conversa',
+    title: session.title || session.metadata?.title || 'Nova Conversa',
     userId: session.user_id,
     visibility: 'private' as const,
     agentType: session.agent_type,

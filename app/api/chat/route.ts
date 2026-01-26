@@ -306,49 +306,28 @@ export async function POST(req: Request) {
       if (profile.response_preference) contextParts.push(`Preferencia de Resposta: ${profile.response_preference}`)
 
       if (contextParts.length > 0) {
-        const greeting = profile.name ? `O nome do aluno e ${profile.name}. ` : ''
-        systemPrompt += `\n\n# CONTEXTO DO ALUNO (PRIORITARIO)\n${greeting}${contextParts.join('\n')}\nAdapte sua linguagem e profundidade para este perfil. Use o nome do aluno para personalizar as respostas.`
+        systemPrompt += `\n\nALUNO: ${contextParts.join(', ')}.`
       }
 
-      // 2. Inject Memory Context (from hybrid search)
+      // 2. Inject Memory Context (minimal)
       if (memoryContext.longTerm.length > 0) {
-        const memoryItems = memoryContext.longTerm
-          .slice(0, 5)
-          .map(m => `- ${m.content}${m.topic ? ` (${m.topic})` : ''}`)
-          .join('\n')
-        systemPrompt += `\n\n# MEMORIAS RELEVANTES DO ALUNO\n${memoryItems}`
+        const memoryItems = memoryContext.longTerm.slice(0, 3).map(m => m.content).join('; ')
+        systemPrompt += `\nMEMORIAS: ${memoryItems}`
       }
 
-      // 3. Inject Episodic Context (recent conversation summaries)
+      // 3. Inject Episodic Context (minimal)
       if (memoryContext.episodic.length > 0) {
-        const episodicItems = memoryContext.episodic
-          .slice(0, 2)
-          .map(m => `- ${m.content}`)
-          .join('\n')
-        systemPrompt += `\n\n# CONVERSAS ANTERIORES\n${episodicItems}`
+        const episodicItems = memoryContext.episodic.slice(0, 1).map(m => m.content).join('; ')
+        systemPrompt += `\nCONTEXTO ANTERIOR: ${episodicItems}`
       }
     }
 
-    // Add artifact generation instructions
-    systemPrompt += `\n\n# GERACAO DE ARTIFACTS (ODONTO GPT)
-Você é um tutor de Odontologia altamente qualificado. Quando o aluno pedir um resumo, síntese ou revisão sobre um tópico, você DEVE usar a ferramenta 'createDocument'.
+    // Add artifact generation instructions (minimal)
+    systemPrompt += `\n\nARTIFACTS: Use createDocument(kind='summary') quando pedirem resumo/material de estudo. O conteudo aparece em painel separado.`
 
-Tipo de Artifact suportado no momento:
-- 'summary': Resumos de matérias, capítulos de livros ou revisões bibliográficas. Inclua pontos-chave claros e um texto bem estruturado em markdown.
-
-IMPORTANTE: Sempre que o conteúdo for um resumo ou explicação estruturada, use 'createDocument' com kind='summary'. Isso permite que o aluno visualize o material em uma janela dedicada ao lado do chat. Informe ao aluno que o resumo foi criado.`
-
-    // Add vision analysis instructions when images are detected
+    // Add vision analysis instructions when images are detected (minimal)
     if (hasImages) {
-      systemPrompt += `\n\n# INSTRUÇÃO DE ANÁLISE DE IMAGEM
-Você está recebendo uma imagem para análise. Se for uma radiografia ou imagem odontológica:
-1. Descreva o que observa de forma técnica e estruturada
-2. Identifique possíveis achados relevantes (lesões, fraturas, reabsorções, etc.)
-3. Sugira hipóteses diagnósticas quando apropriado
-4. Recomende condutas clínicas se aplicável
-5. Mencione limitações da análise por imagem
-
-IMPORTANTE: Esta análise é assistida por IA e deve ser validada por um profissional habilitado. A IA não substitui o diagnóstico clínico.`
+      systemPrompt += `\n\nIMAGEM DETECTADA: Analise em 2-3 linhas com achado principal. Ofereca laudo completo via artifact se quiser detalhes. Sempre inclua aviso de validacao clinica.`
     }
 
     // Map agentId to allowed agent_type in DB
@@ -361,19 +340,26 @@ IMPORTANTE: Esta análise é assistida por IA e deve ser validada por um profiss
     if (!currentSessionId) {
       const lastMsg = messages[messages.length - 1]
       const titleContent = extractTextFromMessage(lastMsg) || 'Nova Conversa'
+      const sessionTitle = titleContent.substring(0, 100) || 'Nova Conversa'
 
       const { data: session } = await adminSupabase
         .from('agent_sessions')
         .insert({
           user_id: currentUserId,
           agent_type: dbAgentType,
-          metadata: { title: titleContent.substring(0, 50) },
+          title: sessionTitle,
+          metadata: { title: sessionTitle }, // backward compat
         })
         .select()
         .single()
 
       if (session) {
         currentSessionId = session.id
+        console.log('[Chat] Session created:', {
+          sessionId: session.id,
+          userId: currentUserId,
+          title: session.title,
+        })
       }
     }
 
@@ -467,8 +453,8 @@ IMPORTANTE: Esta análise é assistida por IA e deve ser validada por um profiss
         tools, // ✅ Tools enabled
         toolChoice, // ✅ Tool choice based on intent detection
         maxSteps: toolPreset.maxSteps, // ✅ Multi-step execution
-        temperature: 0.1,
-        maxOutputTokens: 4000,
+        temperature: 0.4,
+        maxOutputTokens: 1500,
         abortSignal: req.signal,
 
         // ✅ Track step progress (server-side logging)

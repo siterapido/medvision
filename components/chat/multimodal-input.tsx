@@ -26,7 +26,7 @@ import { useIsMobile } from '@/lib/hooks/use-mobile'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { X, ImageIcon, FileIcon, Plus, ChevronDown } from 'lucide-react'
-import { getAgentUI } from '@/lib/constants/agents'
+import { getAgentUI } from '@/lib/ai/agents/ui-config'
 
 interface Attachment {
   id: string
@@ -398,17 +398,18 @@ export function MultimodalInput({
                 disabled={isLoading}
                 className={cn(
                   'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5',
-                  'border-2 transition-all',
-                  agentUIConfig.borderColor,
-                  agentUIConfig.bgColor,
-                  'active:scale-95'
+                  'transition-all shadow-sm active:scale-95',
+                  `bg-gradient-to-br ${agentUIConfig.gradient}`
                 )}
               >
-                <span className="text-base">{agentUIConfig.icon}</span>
-                <span className="text-sm font-medium text-foreground">
+                {(() => {
+                  const IconComponent = agentUIConfig.icon
+                  return <IconComponent className="size-4 text-white" />
+                })()}
+                <span className="text-sm font-medium text-white">
                   {agentUIConfig.shortName}
                 </span>
-                <ChevronDown className="size-3.5 text-muted-foreground" />
+                <ChevronDown className="size-3.5 text-white/80" />
               </button>
             </div>
           ) : (

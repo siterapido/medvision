@@ -47,10 +47,10 @@ export async function GET(req: NextRequest) {
         created_at,
         updated_at,
         metadata,
-        agent_messages!inner(id, content, role)
+        agent_messages(id, content, role)
       `)
       .eq('user_id', user.id)
-      .eq('status', 'active')
+      .neq('status', 'deleted')
       .order('updated_at', { ascending: false })
       .range(offset, offset + limit - 1)
 
@@ -86,7 +86,7 @@ export async function GET(req: NextRequest) {
 
       if (query) {
         // Check if title matches
-        const titleMatch = (session.metadata?.title || session.title || '')
+        const titleMatch = (session.title || session.metadata?.title || '')
           .toLowerCase()
           .includes(query.toLowerCase())
 
@@ -118,7 +118,7 @@ export async function GET(req: NextRequest) {
 
       results.push({
         id: session.id,
-        title: session.metadata?.title || session.title || 'Nova Conversa',
+        title: session.title || session.metadata?.title || 'Nova Conversa',
         agentType: session.agent_type,
         createdAt: session.created_at,
         updatedAt: session.updated_at,
@@ -132,7 +132,7 @@ export async function GET(req: NextRequest) {
       .from('agent_sessions')
       .select('id', { count: 'exact', head: true })
       .eq('user_id', user.id)
-      .eq('status', 'active')
+      .neq('status', 'deleted')
 
     if (agentId) {
       countQuery = countQuery.eq('agent_type', agentId)

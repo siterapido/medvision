@@ -143,7 +143,20 @@ export function SidebarChats({ userId }: SidebarChatsProps) {
     const chatsFromHistory = paginatedChatHistories.flatMap(
       (paginatedChatHistory) => paginatedChatHistory.chats
     )
-    return groupChatsByDate(chatsFromHistory)
+    const grouped = groupChatsByDate(chatsFromHistory)
+
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[SidebarChats] Grouped chats:', {
+        total: chatsFromHistory.length,
+        today: grouped.today.length,
+        yesterday: grouped.yesterday.length,
+        lastWeek: grouped.lastWeek.length,
+        lastMonth: grouped.lastMonth.length,
+        older: grouped.older.length,
+      })
+    }
+
+    return grouped
   }, [paginatedChatHistories])
 
   const handleDelete = () => {

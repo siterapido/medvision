@@ -13,6 +13,7 @@ import type { UIMessage } from 'ai'
 import { cn } from '@/lib/utils'
 import { SparklesIcon, LoaderIcon } from './icons'
 import { Markdown } from './markdown'
+import { getAgentUI } from '@/lib/ai/agents/ui-config'
 import {
   ArtifactRenderer,
   InteractiveArtifact,
@@ -37,6 +38,7 @@ interface MessageProps {
   isLoading?: boolean
   onEdit?: (messageId: string) => void
   onRegenerate?: () => void
+  agentId?: string
 }
 
 /**
@@ -64,9 +66,9 @@ function MessageBlockRenderer({ block, blockKey }: { block: MessageBlock; blockK
         <div
           className={cn('break-words rounded-2xl', {
             // User messages: cyan-tinted background (system.md)
-            'w-fit px-3 py-2 text-right text-foreground bg-brand/10 border border-brand/20 text-sm sm:text-base':
+            'w-fit px-3 py-2 text-right text-black dark:text-white bg-brand/10 border border-brand/20 text-sm sm:text-base':
               textBlock.role === 'user',
-            'bg-transparent text-left text-sm sm:text-base': textBlock.role === 'assistant',
+            'bg-transparent text-left text-black dark:text-white text-sm sm:text-base': textBlock.role === 'assistant',
           })}
         >
           {textBlock.role === 'assistant' ? (
@@ -432,7 +434,7 @@ function getToolIcon(toolName: string) {
   return <Lightbulb className={iconClass} />
 }
 
-export function Message({ message, isLoading, onEdit, onRegenerate }: MessageProps) {
+export function Message({ message, isLoading, onEdit, onRegenerate, agentId = 'odonto-gpt' }: MessageProps) {
   // Convert message to blocks
   const blocks = uiMessageToBlocks(message)
   const groupedBlocks = groupTextBlocks(blocks)
@@ -442,6 +444,9 @@ export function Message({ message, isLoading, onEdit, onRegenerate }: MessagePro
     ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text' && 'text' in p)
     .map((p) => p.text)
     .join('\n') || ''
+
+  // Get agent config for avatar
+  const agentConfig = getAgentUI(agentId)
 
   return (
     <div
@@ -454,10 +459,19 @@ export function Message({ message, isLoading, onEdit, onRegenerate }: MessagePro
           'justify-start': message.role === 'assistant',
         })}
       >
-        {/* Avatar do assistente - smaller on mobile */}
+        {/* Avatar do assistente - Apple/iOS style gradient */}
         {message.role === 'assistant' && (
-          <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border sm:size-8">
-            <SparklesIcon size={14} />
+          <div
+            className={cn(
+              'flex size-7 shrink-0 items-center justify-center rounded-xl sm:size-8 sm:rounded-xl',
+              'bg-gradient-to-br shadow-md transition-all duration-300 hover:shadow-lg',
+              `bg-gradient-to-br ${agentConfig.gradient}`
+            )}
+          >
+            {(() => {
+              const IconComponent = agentConfig.icon
+              return <IconComponent className="size-4 text-white" />
+            })()}
           </div>
         )}
 
@@ -503,9 +517,9 @@ export function Message({ message, isLoading, onEdit, onRegenerate }: MessagePro
                     <div
                       className={cn('break-words rounded-2xl', {
                         // User messages: cyan-tinted background (system.md)
-                        'w-fit px-3 py-2 text-right text-foreground bg-brand/10 border border-brand/20 text-sm sm:text-base':
+                        'w-fit px-3 py-2 text-right text-black dark:text-white bg-brand/10 border border-brand/20 text-sm sm:text-base':
                           message.role === 'user',
-                        'bg-transparent text-left text-sm sm:text-base': message.role === 'assistant',
+                        'bg-transparent text-left text-black dark:text-white text-sm sm:text-base': message.role === 'assistant',
                       })}
                     >
                       {message.role === 'assistant' ? (
@@ -542,17 +556,26 @@ export function Message({ message, isLoading, onEdit, onRegenerate }: MessagePro
   )
 }
 
-export function ThinkingMessage() {
+export function ThinkingMessage({ agentId = 'odonto-gpt' }: { agentId?: string }) {
+  const agentConfig = getAgentUI(agentId)
+
   return (
     <div
       className="group/message fade-in w-full animate-in duration-300"
       data-role="assistant"
     >
       <div className="flex items-start justify-start gap-2 sm:gap-3">
-        <div className="flex size-7 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border sm:size-8">
-          <div className="animate-pulse">
-            <SparklesIcon size={14} />
-          </div>
+        <div
+          className={cn(
+            'flex size-7 shrink-0 items-center justify-center rounded-xl sm:size-8 sm:rounded-xl',
+            'bg-gradient-to-br shadow-md transition-all duration-300',
+            `bg-gradient-to-br ${agentConfig.gradient}`
+          )}
+        >
+          {(() => {
+            const IconComponent = agentConfig.icon
+            return <IconComponent className="size-4 text-white animate-pulse" />
+          })()}
         </div>
 
         <div className="flex w-full flex-col gap-2 sm:gap-3 md:gap-4">

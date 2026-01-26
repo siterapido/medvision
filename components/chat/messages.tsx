@@ -21,6 +21,7 @@ interface MessagesProps {
   onSuggestionClick?: (suggestion: string) => void
   onEditMessage?: (messageId: string) => void
   onRegenerate?: () => void
+  agentId?: string
 }
 
 export function Messages({
@@ -30,6 +31,7 @@ export function Messages({
   onSuggestionClick,
   onEditMessage,
   onRegenerate,
+  agentId = 'odonto-gpt',
 }: MessagesProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const endRef = useRef<HTMLDivElement>(null)
@@ -109,10 +111,11 @@ export function Messages({
               isLoading={status === 'streaming' && messages.length - 1 === index}
               onEdit={onEditMessage}
               onRegenerate={message.role === 'assistant' && index === messages.length - 1 ? onRegenerate : undefined}
+              agentId={agentId}
             />
           ))}
 
-          {status === 'submitted' && <ThinkingMessage />}
+          {status === 'submitted' && <ThinkingMessage agentId={agentId} />}
 
           <div className="min-h-12 shrink-0" ref={endRef} />
         </div>

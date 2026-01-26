@@ -19,7 +19,7 @@ import {
 } from '@/components/ui/drawer'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { AGENTS_UI, getAgentUI, type AgentUIConfig } from '@/lib/constants/agents'
+import { AGENTS_UI_LIST, getAgentUI, type AgentUIConfig } from '@/lib/ai/agents/ui-config'
 
 interface MobileAgentSelectorSheetProps {
   open: boolean
@@ -58,7 +58,7 @@ export function MobileAgentSelectorSheet({
 
         {/* Agent List */}
         <div className="flex flex-col gap-2 px-4 pb-4">
-          {AGENTS_UI.map((agent) => (
+          {AGENTS_UI_LIST.map((agent) => (
             <AgentItem
               key={agent.id}
               agent={agent}
@@ -92,14 +92,17 @@ function AgentItem({ agent, isSelected, onSelect }: AgentItemProps) {
           : 'border-transparent bg-muted/50 hover:bg-muted'
       )}
     >
-      {/* Icon */}
+      {/* Icon - Apple/iOS style gradient */}
       <div
         className={cn(
-          'flex size-10 shrink-0 items-center justify-center rounded-lg',
-          agent.bgColor
+          'flex size-10 shrink-0 items-center justify-center rounded-lg shadow-md',
+          `bg-gradient-to-br ${getAgentUI(agent.id).gradient}`
         )}
       >
-        <span className="text-xl">{agent.icon}</span>
+        {(() => {
+          const IconComponent = agent.icon
+          return <IconComponent className="size-5 text-white" />
+        })()}
       </div>
 
       {/* Content */}

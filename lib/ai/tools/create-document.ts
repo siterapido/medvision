@@ -7,7 +7,7 @@
 
 import { tool } from 'ai'
 import { z } from 'zod'
-import { createClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getContextSafe } from '@/lib/ai/artifacts'
 import {
   documentHandlers,
@@ -17,12 +17,6 @@ import {
   type DocumentHandler,
 } from '@/lib/ai/artifacts/handlers'
 import { generateArtifact } from '@/lib/ai/structured-generation'
-
-// Admin client for persistence (bypasses RLS)
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
 
 /**
  * Unified schema for all document kinds
@@ -94,6 +88,7 @@ export const createDocumentTool = tool({
             agentId: ctx.agentId,
           })
 
+          const adminSupabase = createAdminClient()
           await adminSupabase.from('artifacts').insert({
             id,
             ...record,

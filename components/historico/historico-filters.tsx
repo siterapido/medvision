@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/select'
 import { format } from 'date-fns'
 import { cn } from '@/lib/utils'
-import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
+import { AGENT_UI_CONFIG } from '@/lib/ai/agents/ui-config'
 
 interface HistoricoFiltersProps {
   searchQuery: string
@@ -101,7 +101,7 @@ export function HistoricoFilters({
           <SelectItem value="all">Todos os agentes</SelectItem>
           {availableAgents.map((agent) => (
             <SelectItem key={agent} value={agent}>
-              {AGENT_CONFIGS[agent]?.name || agent}
+              {AGENT_UI_CONFIG[agent]?.name || agent}
             </SelectItem>
           ))}
         </SelectContent>

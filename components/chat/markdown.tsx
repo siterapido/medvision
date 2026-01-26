@@ -23,7 +23,10 @@ export function Markdown({ children }: MarkdownProps) {
         'prose-headings:font-semibold',
         'prose-a:text-primary prose-a:underline',
         'prose-code:bg-muted prose-code:rounded prose-code:px-1 prose-code:py-0.5',
-        'prose-pre:bg-muted prose-pre:rounded-lg'
+        'prose-pre:bg-muted prose-pre:rounded-lg',
+        // Force black text in light mode
+        'prose-p:text-black prose-headings:text-black prose-li:text-black prose-strong:text-black',
+        'dark:prose-p:text-white dark:prose-headings:text-white dark:prose-li:text-white dark:prose-strong:text-white'
       )}
     >
       <ReactMarkdown

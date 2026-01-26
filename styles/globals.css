@@ -5,19 +5,19 @@
 
 :root {
   --background: #f5f7fb;
-  --foreground: #0f172a;
+  --foreground: #000000;
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #000000;
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --popover-foreground: #000000;
   --primary: #0891b2;
   --primary-foreground: #f0f9ff;
   --secondary: #e2e8f0;
-  --secondary-foreground: #0f172a;
+  --secondary-foreground: #000000;
   --muted: #f1f5f9;
   --muted-foreground: #475569;
   --accent: #e0f2fe;
-  --accent-foreground: #0f172a;
+  --accent-foreground: #000000;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   --border: #e2e8f0;
@@ -37,6 +37,15 @@
   --sidebar-accent-foreground: #f8fafc;
   --sidebar-border: #16243f;
   --sidebar-ring: #0ea5e9;
+
+  /* Agent colors - matching Landing Page */
+  --agent-gpt: #00A3FF;
+  --agent-research: #00A3FF;
+  --agent-practice: #A855F7;
+  --agent-summary: #EC4899;
+  --agent-vision: #06B6D4;
+  --agent-write: #10B981;
+  --agent-chat: #6366F1;
 }
 
 .dark {
@@ -75,6 +84,15 @@
   --sidebar-accent-foreground: #f1f5f9;
   --sidebar-border: #1e293b;
   --sidebar-ring: #22d3ee;
+
+  /* Agent colors - matching Landing Page (same in dark mode) */
+  --agent-gpt: #00A3FF;
+  --agent-research: #00A3FF;
+  --agent-practice: #A855F7;
+  --agent-summary: #EC4899;
+  --agent-vision: #06B6D4;
+  --agent-write: #10B981;
+  --agent-chat: #6366F1;
 }
 
 @theme inline {
@@ -140,7 +158,7 @@
   --sidebar-hover: rgba(0, 0, 0, 0.04);
   --sidebar-active: rgba(8, 145, 178, 0.08);
   --sidebar-glow: rgba(8, 145, 178, 0.1);
-  --sidebar-text-primary: #18181b;
+  --sidebar-text-primary: #000000;
   --sidebar-text-secondary: #52525b;
   --sidebar-text-tertiary: #71717a;
 }
