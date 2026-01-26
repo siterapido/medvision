@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'motion/react'
 import Cropper, { Area } from 'react-easy-crop'
 import {
@@ -24,7 +25,10 @@ import {
     ZoomOut,
     RotateCcw,
     Check,
-    X
+    X,
+    Save,
+    ExternalLink,
+    Pencil
 } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { GlassCard } from '@/components/ui/glass-card'
@@ -35,25 +39,132 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
-import { VisionAnalysisResult } from '@/lib/types/vision'
+import { VisionAnalysisResult, VisionArtifactContent } from '@/lib/types/vision'
 import { ImageOverlay } from '@/components/vision/image-overlay'
+import { QualityFeedback } from '@/components/vision/quality-feedback'
+import { AnnotationToolbar } from '@/components/vision/annotation-toolbar'
+import { AnnotationCanvas } from '@/components/vision/annotation-canvas'
+import { validateImageQuality, ImageQualityResult } from '@/lib/utils/image-quality-validator'
+import { useAnnotations } from '@/lib/hooks/use-annotations'
 import { toast } from 'sonner'
 import { generateVisionPDF } from '@/lib/utils/generate-vision-pdf'
 
-type VisionState = 'UPLOAD' | 'CROP' | 'ANALYZING' | 'RESULT' | 'ERROR'
+type VisionState = 'UPLOAD' | 'VALIDATING' | 'CROP' | 'ANALYZING' | 'RESULT' | 'ERROR'
 
 export default function OdontoVisionPage() {
+    const router = useRouter()
     const [state, setState] = useState<VisionState>('UPLOAD')
     const [image, setImage] = useState<string | null>(null) // Base64
     const [originalImage, setOriginalImage] = useState<string | null>(null) // Original before crop
     const [progress, setProgress] = useState(0)
     const [analysisResult, setAnalysisResult] = useState<VisionAnalysisResult | null>(null)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [isSaved, setIsSaved] = useState(false)
+    const [isSaving, setIsSaving] = useState(false)
 
     // Crop states
     const [crop, setCrop] = useState({ x: 0, y: 0 })
     const [zoom, setZoom] = useState(1)
     const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+
+    // Quality validation state
+    const [qualityResult, setQualityResult] = useState<ImageQualityResult | null>(null)
+
+    // Annotation state
+    const [isAnnotating, setIsAnnotating] = useState(false)
+    const [imageSize, setImageSize] = useState({ width: 0, height: 0 })
+    const {
+        annotations,
+        currentAnnotation,
+        activeTool,
+        activeColor,
+        canUndo,
+        canRedo,
+        setActiveTool,
+        setActiveColor,
+        startAnnotation,
+        updateAnnotation,
+        finishAnnotation,
+        cancelAnnotation,
+        undo,
+        redo,
+        clear: clearAnnotations,
+        setAnnotations
+    } = useAnnotations()
+
+    // Generate thumbnail from image
+    const generateThumbnail = useCallback(async (imageSrc: string, size: number = 200): Promise<string> => {
+        const img = new Image()
+        img.src = imageSrc
+        await new Promise((resolve) => { img.onload = resolve })
+
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (!ctx) throw new Error('Could not get canvas context')
+
+        // Calculate aspect ratio
+        const aspectRatio = img.width / img.height
+        let width = size
+        let height = size
+
+        if (aspectRatio > 1) {
+            height = size / aspectRatio
+        } else {
+            width = size * aspectRatio
+        }
+
+        canvas.width = width
+        canvas.height = height
+        ctx.drawImage(img, 0, 0, width, height)
+
+        return canvas.toDataURL('image/jpeg', 0.7)
+    }, [])
+
+    // Save analysis to biblioteca
+    const saveToLibrary = useCallback(async () => {
+        if (!analysisResult || !image || isSaving) return
+
+        setIsSaving(true)
+        try {
+            const thumbnail = await generateThumbnail(image)
+            const imageType = analysisResult.meta?.imageType || 'Imagem'
+            const date = new Date().toLocaleDateString('pt-BR')
+
+            const content: VisionArtifactContent = {
+                thumbnailBase64: thumbnail,
+                imageBase64: image,
+                analysis: analysisResult,
+                annotations: annotations,
+                analyzedAt: new Date().toISOString()
+            }
+
+            const response = await fetch('/api/artifacts', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title: `Laudo Vision: ${imageType} - ${date}`,
+                    description: analysisResult.report?.diagnosticHypothesis?.slice(0, 200) || 'Análise de imagem odontológica',
+                    type: 'image',
+                    content
+                })
+            })
+
+            if (!response.ok) throw new Error('Falha ao salvar')
+
+            setIsSaved(true)
+            toast.success('Salvo na biblioteca!', {
+                action: {
+                    label: 'Ver na Biblioteca',
+                    onClick: () => router.push('/dashboard/biblioteca')
+                }
+            })
+        } catch (error) {
+            console.error('Error saving:', error)
+            toast.error('Erro ao salvar na biblioteca')
+        } finally {
+            setIsSaving(false)
+        }
+    }, [analysisResult, image, isSaving, generateThumbnail, router])
 
 
     // Read image file as base64 without compression
@@ -140,15 +251,38 @@ export default function OdontoVisionPage() {
                 const imageBase64 = await readImageAsBase64(file)
                 setOriginalImage(imageBase64)
                 setImage(imageBase64)
-                // Go to crop state instead of directly analyzing
-                setState('CROP')
-                resetCrop()
+
+                // Validate image quality
+                setState('VALIDATING')
+                const result = await validateImageQuality(imageBase64)
+                setQualityResult(result)
+
+                // If perfect quality, skip validation screen
+                if (result.isValid) {
+                    setState('CROP')
+                    resetCrop()
+                }
             } catch (error) {
                 console.error("Error processing image:", error)
                 toast.error("Erro ao processar imagem. Tente outro arquivo.")
+                setState('UPLOAD')
             }
         }
     }, [resetCrop])
+
+    // Handle proceeding after validation
+    const handleValidationProceed = useCallback(() => {
+        setState('CROP')
+        resetCrop()
+    }, [resetCrop])
+
+    // Handle canceling validation (go back to upload)
+    const handleValidationCancel = useCallback(() => {
+        setOriginalImage(null)
+        setImage(null)
+        setQualityResult(null)
+        setState('UPLOAD')
+    }, [])
 
     const startAnalysis = async (imageData: string) => {
         setState('ANALYZING')
@@ -198,6 +332,11 @@ export default function OdontoVisionPage() {
         setOriginalImage(null)
         setProgress(0)
         setAnalysisResult(null)
+        setIsSaved(false)
+        setIsSaving(false)
+        setQualityResult(null)
+        setIsAnnotating(false)
+        clearAnnotations()
         resetCrop()
     }
 
@@ -275,6 +414,15 @@ export default function OdontoVisionPage() {
                                 ))}
                             </div>
                         </motion.div>
+                    )}
+
+                    {state === 'VALIDATING' && originalImage && qualityResult && (
+                        <QualityFeedback
+                            result={qualityResult}
+                            imagePreview={originalImage}
+                            onProceed={handleValidationProceed}
+                            onCancel={handleValidationCancel}
+                        />
                     )}
 
                     {state === 'CROP' && originalImage && (
@@ -439,27 +587,80 @@ export default function OdontoVisionPage() {
                             {/* Left Column - Image with Detections */}
                             <div className="lg:col-span-12 xl:col-span-7 space-y-6">
                                 <GlassCard className="p-1 overflow-hidden group">
-                                    <div className="relative aspect-video rounded-lg overflow-hidden border border-border/50 bg-black/5">
+                                    <div
+                                        className="relative aspect-video rounded-lg overflow-hidden border border-border/50 bg-black/5"
+                                        ref={(el) => {
+                                            if (el && (el.offsetWidth !== imageSize.width || el.offsetHeight !== imageSize.height)) {
+                                                setImageSize({ width: el.offsetWidth, height: el.offsetHeight })
+                                            }
+                                        }}
+                                    >
                                         <div className="absolute inset-0 flex items-center justify-center">
                                             {/* Implementação do Overlay Real */}
                                             {image && (
                                                 <ImageOverlay
                                                     src={image}
                                                     detections={analysisResult.detections}
+                                                    annotations={annotations}
                                                 />
                                             )}
                                         </div>
 
-                                        <div className="absolute bottom-4 right-4 flex gap-2 pointer-events-none">
-                                            <Button
-                                                size="icon"
-                                                variant="secondary"
-                                                className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full pointer-events-auto"
-                                                onClick={() => setIsFullscreen(true)}
-                                            >
-                                                <Maximize2 className="w-4 h-4" />
-                                            </Button>
-                                        </div>
+                                        {/* Annotation Canvas Overlay */}
+                                        {isAnnotating && imageSize.width > 0 && (
+                                            <>
+                                                <div className="absolute inset-0">
+                                                    <AnnotationCanvas
+                                                        width={imageSize.width}
+                                                        height={imageSize.height}
+                                                        annotations={annotations}
+                                                        currentAnnotation={currentAnnotation}
+                                                        activeTool={activeTool}
+                                                        activeColor={activeColor}
+                                                        isDrawing={!!currentAnnotation}
+                                                        onStartDrawing={startAnnotation}
+                                                        onDraw={updateAnnotation}
+                                                        onEndDrawing={finishAnnotation}
+                                                        onCancelDrawing={cancelAnnotation}
+                                                    />
+                                                </div>
+
+                                                <AnnotationToolbar
+                                                    activeTool={activeTool}
+                                                    activeColor={activeColor}
+                                                    canUndo={canUndo}
+                                                    canRedo={canRedo}
+                                                    onToolChange={setActiveTool}
+                                                    onColorChange={setActiveColor}
+                                                    onUndo={undo}
+                                                    onRedo={redo}
+                                                    onClear={clearAnnotations}
+                                                    onClose={() => setIsAnnotating(false)}
+                                                />
+                                            </>
+                                        )}
+
+                                        {/* Action buttons */}
+                                        {!isAnnotating && (
+                                            <div className="absolute bottom-4 right-4 flex gap-2 pointer-events-none">
+                                                <Button
+                                                    size="icon"
+                                                    variant="secondary"
+                                                    className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full pointer-events-auto"
+                                                    onClick={() => setIsAnnotating(true)}
+                                                >
+                                                    <Pencil className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="secondary"
+                                                    className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full pointer-events-auto"
+                                                    onClick={() => setIsFullscreen(true)}
+                                                >
+                                                    <Maximize2 className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        )}
                                     </div>
                                 </GlassCard>
 
@@ -598,36 +799,31 @@ export default function OdontoVisionPage() {
                                                 <p className="text-[10px] text-muted-foreground">CRM Virtual: 0001-AI</p>
                                             </div>
                                         </div>
-                                        <Button
-                                            size="sm"
-                                            variant="ghost"
-                                            className="h-8 text-xs gap-1"
-                                            onClick={() => {
-                                                if (!analysisResult) return;
-                                                const promise = fetch('/api/artifacts', {
-                                                    method: 'POST',
-                                                    headers: { 'Content-Type': 'application/json' },
-                                                    body: JSON.stringify({
-                                                        title: `Laudo Vision: ${analysisResult.meta?.imageType || 'Imagem'}`,
-                                                        description: analysisResult.report?.diagnosticHypothesis || 'Análise automática de imagem.',
-                                                        type: 'image', // Mapping to artifact type
-                                                        content: {
-                                                            imageUrl: image, // Careful with size here, might need URL if uploaded
-                                                            analysis: JSON.stringify(analysisResult.report),
-                                                            findings: analysisResult.findings.map(f => f.type),
-                                                            recommendations: analysisResult.report?.recommendations || []
-                                                        }
-                                                    })
-                                                });
-                                                toast.promise(promise, {
-                                                    loading: 'Salvando na biblioteca...',
-                                                    success: 'Salvo com sucesso!',
-                                                    error: 'Erro ao salvar.'
-                                                })
-                                            }}
-                                        >
-                                            <FileText className="w-3 h-3" /> Salvar Laudo
-                                        </Button>
+                                        {isSaved ? (
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-8 text-xs gap-1 text-green-600 border-green-600/30 hover:bg-green-500/10"
+                                                onClick={() => router.push('/dashboard/biblioteca')}
+                                            >
+                                                <ExternalLink className="w-3 h-3" /> Ver na Biblioteca
+                                            </Button>
+                                        ) : (
+                                            <Button
+                                                size="sm"
+                                                variant="ghost"
+                                                className="h-8 text-xs gap-1"
+                                                onClick={saveToLibrary}
+                                                disabled={isSaving}
+                                            >
+                                                {isSaving ? (
+                                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                                ) : (
+                                                    <Save className="w-3 h-3" />
+                                                )}
+                                                {isSaving ? 'Salvando...' : 'Salvar na Biblioteca'}
+                                            </Button>
+                                        )}
                                     </div>
                                 </GlassCard>
                             </div>

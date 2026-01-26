@@ -1,18 +1,29 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { VisionDetection } from '@/lib/types/vision'
+import { VisionDetection, VisionAnnotation, AnnotationColor } from '@/lib/types/vision'
 import { cn } from '@/lib/utils'
 
 interface ImageOverlayProps {
     src: string
     detections: VisionDetection[]
+    annotations?: VisionAnnotation[]
     className?: string
 }
 
-export function ImageOverlay({ src, detections, className }: ImageOverlayProps) {
+const colorMap: Record<AnnotationColor, string> = {
+    red: '#ef4444',
+    yellow: '#eab308',
+    blue: '#3b82f6',
+    white: '#ffffff'
+}
+
+export function ImageOverlay({ src, detections, annotations = [], className }: ImageOverlayProps) {
     const [hoveredId, setHoveredId] = useState<string | null>(null)
+    const containerRef = useRef<HTMLDivElement>(null)
+    const canvasRef = useRef<HTMLCanvasElement>(null)
+    const [size, setSize] = useState({ width: 0, height: 0 })
 
     const getColor = (severity: string) => {
         switch (severity) {
@@ -23,15 +34,116 @@ export function ImageOverlay({ src, detections, className }: ImageOverlayProps) 
         }
     }
 
+    // Update size when container changes
+    useEffect(() => {
+        const updateSize = () => {
+            if (containerRef.current) {
+                setSize({
+                    width: containerRef.current.offsetWidth,
+                    height: containerRef.current.offsetHeight
+                })
+            }
+        }
+        updateSize()
+        window.addEventListener('resize', updateSize)
+        return () => window.removeEventListener('resize', updateSize)
+    }, [])
+
+    // Draw annotations on canvas
+    useEffect(() => {
+        const canvas = canvasRef.current
+        if (!canvas || size.width === 0 || annotations.length === 0) return
+
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+
+        ctx.clearRect(0, 0, size.width, size.height)
+
+        for (const annotation of annotations) {
+            const color = colorMap[annotation.color]
+            ctx.strokeStyle = color
+            ctx.fillStyle = color
+            ctx.lineWidth = 3
+            ctx.lineCap = 'round'
+            ctx.lineJoin = 'round'
+
+            switch (annotation.tool) {
+                case 'pen':
+                    if (annotation.points && annotation.points.length > 0) {
+                        ctx.beginPath()
+                        ctx.moveTo(annotation.points[0].x, annotation.points[0].y)
+                        for (let i = 1; i < annotation.points.length; i++) {
+                            ctx.lineTo(annotation.points[i].x, annotation.points[i].y)
+                        }
+                        ctx.stroke()
+                    }
+                    break
+
+                case 'circle':
+                    if (annotation.start && annotation.end) {
+                        const radiusX = Math.abs(annotation.end.x - annotation.start.x) / 2
+                        const radiusY = Math.abs(annotation.end.y - annotation.start.y) / 2
+                        const centerX = (annotation.start.x + annotation.end.x) / 2
+                        const centerY = (annotation.start.y + annotation.end.y) / 2
+                        ctx.beginPath()
+                        ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI)
+                        ctx.stroke()
+                    }
+                    break
+
+                case 'arrow':
+                    if (annotation.start && annotation.end) {
+                        const { start, end } = annotation
+                        ctx.beginPath()
+                        ctx.moveTo(start.x, start.y)
+                        ctx.lineTo(end.x, end.y)
+                        ctx.stroke()
+
+                        const angle = Math.atan2(end.y - start.y, end.x - start.x)
+                        const headLength = 15
+                        ctx.beginPath()
+                        ctx.moveTo(end.x, end.y)
+                        ctx.lineTo(end.x - headLength * Math.cos(angle - Math.PI / 6), end.y - headLength * Math.sin(angle - Math.PI / 6))
+                        ctx.moveTo(end.x, end.y)
+                        ctx.lineTo(end.x - headLength * Math.cos(angle + Math.PI / 6), end.y - headLength * Math.sin(angle + Math.PI / 6))
+                        ctx.stroke()
+                    }
+                    break
+
+                case 'text':
+                    if (annotation.start && annotation.text) {
+                        ctx.font = 'bold 16px system-ui'
+                        const metrics = ctx.measureText(annotation.text)
+                        const padding = 4
+                        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
+                        ctx.fillRect(annotation.start.x - padding, annotation.start.y - 16 - padding, metrics.width + padding * 2, 20 + padding * 2)
+                        ctx.fillStyle = color
+                        ctx.fillText(annotation.text, annotation.start.x, annotation.start.y)
+                    }
+                    break
+            }
+        }
+    }, [annotations, size])
+
     return (
-        <div className={cn("relative w-full h-full group select-none", className)}>
+        <div ref={containerRef} className={cn("relative w-full h-full group select-none", className)}>
             <img
                 src={src}
                 alt="Analyzed"
                 className="w-full h-full object-contain pointer-events-none"
             />
 
-            {/* SVG Overlay layer for cleaner lines if needed, but using Absolute divs for easy interaction */}
+            {/* Annotations canvas */}
+            {annotations.length > 0 && size.width > 0 && (
+                <canvas
+                    ref={canvasRef}
+                    width={size.width}
+                    height={size.height}
+                    className="absolute inset-0 pointer-events-none"
+                />
+            )}
+
+            {/* Detection boxes layer */}
             <div className="absolute inset-0">
                 <AnimatePresence>
                     {detections.map((det) => {

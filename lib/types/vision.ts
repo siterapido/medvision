@@ -45,3 +45,26 @@ export interface VisionAnalysisResult {
     clinicalAssessment?: string;
     recommendations?: string[];
 }
+
+// Annotation types for user markup
+export type AnnotationTool = 'pen' | 'circle' | 'arrow' | 'text';
+export type AnnotationColor = 'red' | 'yellow' | 'blue' | 'white';
+
+export interface VisionAnnotation {
+    id: string;
+    tool: AnnotationTool;
+    color: AnnotationColor;
+    points?: { x: number; y: number }[];  // for pen tool
+    start?: { x: number; y: number };     // for shapes
+    end?: { x: number; y: number };
+    text?: string;                        // for text tool
+}
+
+// Artifact content structure for saving to biblioteca
+export interface VisionArtifactContent {
+    thumbnailBase64: string;              // 200x200 preview
+    imageBase64: string;                  // Full image
+    analysis: VisionAnalysisResult;
+    annotations?: VisionAnnotation[];
+    analyzedAt: string;
+}
