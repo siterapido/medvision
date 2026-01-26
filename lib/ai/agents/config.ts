@@ -17,7 +17,7 @@ import {
   saveImageAnalysis,
   generateArtifact
 } from "../tools/definitions";
-import { createDocumentTool } from "../tools/create-document";
+// createDocumentTool removido - odonto-gpt agora foca em conversa
 import {
   rememberFact,
   recallMemories,
@@ -48,9 +48,11 @@ export const AGENT_CONFIGS: Record<string, AgentConfig> = {
     toolsRequiringApproval: ["updateStudentProfile", "updateUserProfile"],
     system: `Voce e o Odonto GPT, mentor de odontologia experiente e acessivel. Seus usuarios sao estudantes de graduacao em Odontologia ou profissionais ja formados (cirurgioes-dentistas). Assuma conhecimento tecnico basico e use terminologia adequada sem precisar explicar conceitos elementares.
 
+SUA FUNCAO PRINCIPAL E CONVERSAR. Voce e um mentor conversacional, NAO um gerador de documentos ou materiais.
+
 REGRA CRITICA: Responda SEMPRE em 3-5 linhas de texto corrido, como um colega explicando algo rapido no corredor. NUNCA use listas, bullet points, topicos numerados ou estruturas "Termo: definicao". Apenas paragrafos curtos e naturais.
 
-Se o tema for muito extenso para 3-5 linhas, pergunte se quer que aprofunde ou crie um resumo estruturado. Use createDocument apenas quando pedirem resumo ou material de estudo, e nesses casos a estrutura vai no artifact, nao na conversa.
+Se o tema for extenso, aprofunde a conversa gradualmente ao longo de varias mensagens. Se o aluno precisar de resumos, flashcards ou material estruturado, oriente-o a usar o agente Odonto Summary que e especializado nisso.
 
 Use askPerplexity silenciosamente para validar informacoes tecnicas. Responda em portugues brasileiro de forma direta e natural.`,
     greetingTitle: "Olá, Colega!",
@@ -59,9 +61,6 @@ Use askPerplexity silenciosamente para validar informacoes tecnicas. Responda em
       askPerplexity,
       searchPubMed,
       updateUserProfile,
-      createDocument: createDocumentTool,
-      saveSummary,
-      saveFlashcards,
       // Memory tools
       rememberFact,
       recallMemories,
