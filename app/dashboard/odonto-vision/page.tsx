@@ -28,6 +28,7 @@ import { cn } from '@/lib/utils'
 import { VisionAnalysisResult } from '@/lib/types/vision'
 import { ImageOverlay } from '@/components/vision/image-overlay'
 import { toast } from 'sonner'
+import { generateVisionPDF } from '@/lib/utils/generate-vision-pdf'
 
 type VisionState = 'UPLOAD' | 'ANALYZING' | 'RESULT' | 'ERROR'
 
@@ -263,7 +264,21 @@ export default function OdontoVisionPage() {
                                     <Button variant="outline" className="flex-1 rounded-xl h-12 gap-2" onClick={reset}>
                                         <RefreshCcw className="w-4 h-4" /> Analisar Outra
                                     </Button>
-                                    <Button className="flex-1 rounded-xl h-12 gap-2 bg-primary hover:bg-primary/90">
+                                    <Button
+                                        className="flex-1 rounded-xl h-12 gap-2 bg-primary hover:bg-primary/90"
+                                        onClick={() => {
+                                            if (analysisResult && image) {
+                                                toast.promise(
+                                                    generateVisionPDF({ analysisResult, imageBase64: image }),
+                                                    {
+                                                        loading: 'Gerando PDF...',
+                                                        success: 'PDF gerado com sucesso!',
+                                                        error: 'Erro ao gerar PDF'
+                                                    }
+                                                )
+                                            }
+                                        }}
+                                    >
                                         <Download className="w-4 h-4" /> Exportar Laudo (PDF)
                                     </Button>
                                 </div>
@@ -351,7 +366,7 @@ export default function OdontoVisionPage() {
                                                         {analysisResult.report.recommendations.map((rec, i) => (
                                                             <li key={i} className="flex gap-2 text-sm items-start">
                                                                 <ChevronRight className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                                                                <span>{rec}</span>
+                                                                <span className="text-foreground">{rec}</span>
                                                             </li>
                                                         ))}
                                                     </ul>
