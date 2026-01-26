@@ -18,6 +18,7 @@ interface UseBlockingChatOptions {
   sessionId?: string
   onError?: (error: Error) => void
   onFinish?: (message: UIMessage, response: BlockingChatResponse) => void
+  onSessionCreated?: (sessionId: string) => void
 }
 
 interface BlockingChatResponse {
@@ -39,6 +40,7 @@ interface UseBlockingChatReturn {
   isLoading: boolean
   status: ChatStatus
   error: Error | null
+  sessionId: string | undefined
   sendMessage: (content: string, attachments?: File[]) => Promise<void>
   append: (message: { role: 'user' | 'assistant'; content: string }, attachments?: File[]) => Promise<void>
   reload: () => Promise<void>
@@ -79,9 +81,10 @@ export function useBlockingChat({
   api = '/api/chat',
   initialMessages = [],
   agentId = 'odonto-gpt',
-  sessionId,
+  sessionId: initialSessionId,
   onError,
   onFinish,
+  onSessionCreated,
 }: UseBlockingChatOptions = {}): UseBlockingChatReturn {
   // Normalize initial messages on first render
   const [messages, setMessages] = useState<UIMessage[]>(() =>
@@ -89,6 +92,7 @@ export function useBlockingChat({
   )
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<Error | null>(null)
+  const [currentSessionId, setCurrentSessionId] = useState<string | undefined>(initialSessionId)
   const abortControllerRef = useRef<AbortController | null>(null)
 
   const status: ChatStatus = isLoading ? 'submitted' : error ? 'error' : 'ready'
@@ -153,7 +157,7 @@ export function useBlockingChat({
           body: JSON.stringify({
             messages: apiMessages,
             agentId,
-            sessionId,
+            sessionId: currentSessionId,
           }),
           signal: controller.signal,
         })
@@ -164,6 +168,13 @@ export function useBlockingChat({
         }
 
         const data: BlockingChatResponse = await response.json()
+
+        // Update sessionId if server created a new one
+        if (data.sessionId && data.sessionId !== currentSessionId) {
+          console.log('[useBlockingChat] New session created:', data.sessionId)
+          setCurrentSessionId(data.sessionId)
+          onSessionCreated?.(data.sessionId)
+        }
 
         // Add assistant response
         setMessages((prev) => [...prev, data.message])
@@ -183,7 +194,7 @@ export function useBlockingChat({
         abortControllerRef.current = null
       }
     },
-    [api, agentId, sessionId, messages, isLoading, onError, onFinish]
+    [api, agentId, currentSessionId, messages, isLoading, onError, onFinish, onSessionCreated]
   )
 
   // Append message (compatible with useChat API)
@@ -242,6 +253,7 @@ export function useBlockingChat({
     isLoading,
     status,
     error,
+    sessionId: currentSessionId,
     sendMessage,
     append,
     reload,

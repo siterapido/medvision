@@ -9,8 +9,10 @@
  */
 
 import { useState, useCallback, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useBlockingChat } from '@/lib/hooks/use-blocking-chat'
+import { useChatHistory } from '@/lib/hooks/use-chat-history'
 import { Messages } from './messages'
 import { MultimodalInput } from './multimodal-input'
 import { ToolApprovalDialog } from './tool-approval-dialog'
@@ -36,9 +38,22 @@ export function Chat({
   userName,
   userImage,
 }: ChatProps) {
+  const router = useRouter()
   const [chatId] = useState(() => id || crypto.randomUUID())
   const [input, setInput] = useState('')
   const [selectedAgent, setSelectedAgent] = useState(initialAgentId)
+  const { revalidateHistory } = useChatHistory()
+
+  // Callback when a new session is created
+  const handleSessionCreated = useCallback((newSessionId: string) => {
+    console.log('[Chat] New session created:', newSessionId)
+    // Revalidate sidebar to show the new chat
+    revalidateHistory()
+    // Update URL to include the new session ID (without full page reload)
+    if (!id) {
+      router.replace(`/dashboard/chat?id=${newSessionId}`, { scroll: false })
+    }
+  }, [id, revalidateHistory, router])
 
   // useBlockingChat hook - blocking (non-streaming) responses
   const {
@@ -50,6 +65,7 @@ export function Chat({
     sendMessage,
     status,
     isLoading,
+    sessionId,
   } = useBlockingChat({
     api: apiEndpoint,
     initialMessages: initialMessages as any,
@@ -61,6 +77,7 @@ export function Chat({
         description: err.message || 'Erro desconhecido',
       })
     },
+    onSessionCreated: handleSessionCreated,
   })
 
   // Tool approval handler (simplified for blocking UI)
@@ -198,6 +215,7 @@ export function Chat({
           onSuggestionClick={handleSuggestionClick}
           onEditMessage={handleEditMessage}
           onRegenerate={handleRegenerate}
+          agentId={selectedAgent}
         />
       </div>
 
