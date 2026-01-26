@@ -23,11 +23,26 @@ import {
 } from './types'
 import { generateEmbedding, formatEmbeddingForPostgres } from './embeddings'
 
-// Admin client for bypassing RLS
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Lazy-initialized admin client for bypassing RLS
+let adminSupabase: ReturnType<typeof createClient> | null = null
+
+function getAdminSupabase() {
+  if (adminSupabase) {
+    return adminSupabase
+  }
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+
+  if (!url || !key) {
+    throw new Error(
+      'Missing Supabase credentials: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY'
+    )
+  }
+
+  adminSupabase = createClient(url, key)
+  return adminSupabase
+}
 
 /**
  * Default TTL for short-term memories (24 hours)
@@ -127,7 +142,7 @@ export class MemoryService {
       }
 
       // Use the search_memories function
-      const { data, error } = await adminSupabase.rpc('search_memories', {
+      const { data, error } = await getAdminSupabase().rpc('search_memories', {
         p_user_id: userId,
         p_query_embedding: formatEmbeddingForPostgres(queryEmbedding),
         p_match_threshold: threshold,
@@ -194,7 +209,7 @@ export class MemoryService {
       }
 
       // Use the hybrid_search_memories function
-      const { data, error } = await adminSupabase.rpc('hybrid_search_memories', {
+      const { data, error } = await getAdminSupabase().rpc('hybrid_search_memories', {
         p_user_id: userId,
         p_query_embedding: formatEmbeddingForPostgres(queryEmbedding),
         p_query_text: query,
@@ -257,7 +272,7 @@ export class MemoryService {
     const { types = ['long_term', 'fact'], limit = DEFAULT_MEMORY_LIMIT } = options
 
     try {
-      const { data, error } = await adminSupabase.rpc('keyword_search_memories', {
+      const { data, error } = await getAdminSupabase().rpc('keyword_search_memories', {
         p_user_id: userId,
         p_query: query,
         p_memory_types: types,
@@ -296,7 +311,7 @@ export class MemoryService {
     limit: number = DEFAULT_MEMORY_LIMIT
   ): Promise<MemorySearchResult[]> {
     try {
-      const { data, error } = await adminSupabase.rpc('get_recent_memories', {
+      const { data, error } = await getAdminSupabase().rpc('get_recent_memories', {
         p_user_id: userId,
         p_memory_types: types,
         p_limit: limit,
@@ -422,7 +437,7 @@ export class MemoryService {
    */
   async cleanupExpiredMemories(): Promise<number> {
     try {
-      const { data, error } = await adminSupabase.rpc('cleanup_expired_memories')
+      const { data, error } = await getAdminSupabase().rpc('cleanup_expired_memories')
 
       if (error) {
         console.error('[MemoryService] Cleanup error:', error)
@@ -442,7 +457,7 @@ export class MemoryService {
    */
   async clearUserMemories(userId: string, types?: MemoryType[]): Promise<boolean> {
     try {
-      let query = adminSupabase.from('agent_memories').delete().eq('user_id', userId)
+      let query = getAdminSupabase().from('agent_memories').delete().eq('user_id', userId)
 
       if (types && types.length > 0) {
         query = query.in('type', types)

@@ -8,11 +8,19 @@ import { getContextSafe } from '@/lib/ai/artifacts'
 export { createDocumentTool } from './create-document'
 export { updateDocumentTool } from './update-document'
 
-// Admin client para persistência (bypassa RLS)
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Lazy-initialized admin client para persistência (bypassa RLS)
+let adminSupabase: ReturnType<typeof createClient> | null = null
+
+function getAdminSupabase() {
+  if (adminSupabase) return adminSupabase
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) {
+    throw new Error('Missing Supabase credentials')
+  }
+  adminSupabase = createClient(url, key)
+  return adminSupabase
+}
 
 // =====================================
 // LEGACY TOOLS (deprecated, use createDocument instead)
@@ -47,7 +55,7 @@ export const createSummaryTool = tool({
     // Auto-persistir se tiver contexto de usuário
     if (ctx?.userId) {
       try {
-        await adminSupabase.from('artifacts').insert({
+        await getAdminSupabase().from('artifacts').insert({
           id: artifactId,
           user_id: ctx.userId,
           title,
@@ -107,7 +115,7 @@ export const createFlashcardsTool = tool({
     // Auto-persistir se tiver contexto de usuário
     if (ctx?.userId) {
       try {
-        await adminSupabase.from('artifacts').insert({
+        await getAdminSupabase().from('artifacts').insert({
           id: artifactId,
           user_id: ctx.userId,
           title,
@@ -176,7 +184,7 @@ export const createQuizTool = tool({
     // Auto-persistir se tiver contexto de usuário
     if (ctx?.userId) {
       try {
-        await adminSupabase.from('artifacts').insert({
+        await getAdminSupabase().from('artifacts').insert({
           id: artifactId,
           user_id: ctx.userId,
           title,
@@ -234,7 +242,7 @@ export const createResearchTool = tool({
     // Auto-persistir se tiver contexto de usuário
     if (ctx?.userId) {
       try {
-        await adminSupabase.from('artifacts').insert({
+        await getAdminSupabase().from('artifacts').insert({
           id: artifactId,
           user_id: ctx.userId,
           title,
@@ -294,7 +302,7 @@ export const createReportTool = tool({
     // Auto-persistir se tiver contexto de usuário
     if (ctx?.userId) {
       try {
-        await adminSupabase.from('artifacts').insert({
+        await getAdminSupabase().from('artifacts').insert({
           id: artifactId,
           user_id: ctx.userId,
           title,

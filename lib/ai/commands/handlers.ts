@@ -8,11 +8,19 @@ import { CommandHandler, CommandResult, CommandRegistry, SETUP_QUESTIONS } from 
 import { memoryService } from '../memory'
 import { createClient } from '@supabase/supabase-js'
 
-// Admin client for database operations
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Lazy-initialized admin client for database operations
+let adminSupabase: ReturnType<typeof createClient> | null = null
+
+function getAdminSupabase() {
+  if (adminSupabase) return adminSupabase
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) {
+    throw new Error('Missing Supabase credentials')
+  }
+  adminSupabase = createClient(url, key)
+  return adminSupabase
+}
 
 /**
  * /help - Show available commands
@@ -52,7 +60,7 @@ const setupHandler: CommandHandler = {
   usage: '/setup',
   handler: async (args, userId): Promise<CommandResult> => {
     // Get current profile
-    const { data: profile } = await adminSupabase
+    const { data: profile } = await getAdminSupabase()
       .from('profiles')
       .select('*')
       .eq('id', userId)
@@ -118,7 +126,7 @@ const styleHandler: CommandHandler = {
 
     if (args.length === 0) {
       // Show current style
-      const { data: profile } = await adminSupabase
+      const { data: profile } = await getAdminSupabase()
         .from('profiles')
         .select('response_preference')
         .eq('id', userId)

@@ -11,11 +11,19 @@ import { createClient } from '@supabase/supabase-js'
 import { getContextSafe } from '@/lib/ai/artifacts'
 import { DocumentKinds, type DocumentKind } from '@/lib/ai/artifacts/handlers'
 
-// Admin client for persistence (bypasses RLS)
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Lazy-initialized admin client for persistence (bypasses RLS)
+let adminSupabase: ReturnType<typeof createClient> | null = null
+
+function getAdminSupabase() {
+  if (adminSupabase) return adminSupabase
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !key) {
+    throw new Error('Missing Supabase credentials')
+  }
+  adminSupabase = createClient(url, key)
+  return adminSupabase
+}
 
 /**
  * Schema for updating documents
@@ -69,7 +77,7 @@ export const updateDocumentTool = tool({
 
     try {
       // Fetch current document to verify ownership and get current state
-      const { data: existingDoc, error: fetchError } = await adminSupabase
+      const { data: existingDoc, error: fetchError } = await getAdminSupabase()
         .from('artifacts')
         .select('*')
         .eq('id', id)
@@ -122,7 +130,7 @@ export const updateDocumentTool = tool({
       }
 
       // Perform update
-      const { error: updateError } = await adminSupabase
+      const { error: updateError } = await getAdminSupabase()
         .from('artifacts')
         .update(updates)
         .eq('id', id)
