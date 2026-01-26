@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import {
     FileUp,
@@ -24,6 +24,8 @@ import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
+import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { cn } from '@/lib/utils'
 import { VisionAnalysisResult } from '@/lib/types/vision'
 import { ImageOverlay } from '@/components/vision/image-overlay'
@@ -37,6 +39,7 @@ export default function OdontoVisionPage() {
     const [image, setImage] = useState<string | null>(null) // Base64
     const [progress, setProgress] = useState(0)
     const [analysisResult, setAnalysisResult] = useState<VisionAnalysisResult | null>(null)
+    const [isFullscreen, setIsFullscreen] = useState(false)
 
 
     // Read image file as base64 without compression
@@ -253,7 +256,12 @@ export default function OdontoVisionPage() {
                                         </div>
 
                                         <div className="absolute bottom-4 right-4 flex gap-2 pointer-events-none">
-                                            <Button size="icon" variant="secondary" className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full pointer-events-auto">
+                                            <Button
+                                                size="icon"
+                                                variant="secondary"
+                                                className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full pointer-events-auto"
+                                                onClick={() => setIsFullscreen(true)}
+                                            >
                                                 <Maximize2 className="w-4 h-4" />
                                             </Button>
                                         </div>
@@ -432,6 +440,27 @@ export default function OdontoVisionPage() {
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* Fullscreen Image Modal */}
+            <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
+                <DialogContent
+                    className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 bg-black/95 border-white/10 overflow-hidden [&>button]:text-white [&>button]:hover:bg-white/20"
+                    showCloseButton={true}
+                >
+                    <VisuallyHidden>
+                        <DialogTitle>Imagem em tela cheia</DialogTitle>
+                    </VisuallyHidden>
+                    <div className="relative w-full h-full flex items-center justify-center p-6 pt-12">
+                        {image && analysisResult && (
+                            <ImageOverlay
+                                src={image}
+                                detections={analysisResult.detections}
+                                className="max-w-full max-h-[85vh]"
+                            />
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             <style jsx global>{`
         .custom-scrollbar::-webkit-scrollbar {

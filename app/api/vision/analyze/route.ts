@@ -67,9 +67,15 @@ DIRETRIZES DE ANÁLISE:
 2. Identifique anomalias como: Cáries (classe/profundidade), Doença Periodontal (nível ósseo), Lesões Periapicais, Anomalias Dentárias, Restaurações (adaptação), Endodontia.
 3. Use terminologia técnica correta (ex: "imagem radiolúcida", "reabsorção óssea horizontal", "lesão sugestiva de...").
 
-SOBRE AS COORDENADAS (BOX):
-- Identifique visualmente as lesões principais para desenhar os "boxes".
-- Coordenadas normalizadas [ymin, xmin, ymax, xmax] de 0 a 100.
+SOBRE AS COORDENADAS (BOX) - MUITO IMPORTANTE:
+- SEMPRE gere detections para cada achado identificado na imagem.
+- Para cada patologia ou achado encontrado, OBRIGATORIAMENTE crie uma entrada em detections.
+- Coordenadas normalizadas [ymin, xmin, ymax, xmax] de 0 a 100 representando a área aproximada do achado.
+- Se não conseguir coordenadas precisas, use valores aproximados da região geral (ex: quadrante superior esquerdo seria algo como [10, 10, 40, 40]).
+- É MELHOR ter coordenadas aproximadas do que não ter detections.
+- Para tomografias com múltiplos cortes, identifique achados em cada corte visível e agrupe por região anatômica.
+
+REGRA CRÍTICA: Se você descrever um achado no report, DEVE existir uma entrada correspondente em detections.
 
 IDIOMA: Português do Brasil (pt-BR) formal.`
                 },
@@ -86,28 +92,65 @@ IDIOMA: Português do Brasil (pt-BR) formal.`
         const analysis = result.object
 
         // Processar para o formato do frontend
+        const detections = analysis.detections.map((d, i) => ({
+            id: `det-${i}`,
+            label: d.label,
+            confidence: 0.95,
+            box: {
+                ymin: d.box[0],
+                xmin: d.box[1],
+                ymax: d.box[2],
+                xmax: d.box[3]
+            },
+            severity: d.severity,
+            description: d.description
+        }))
+
+        // Generate findings from detections
+        let findings = analysis.detections.map(d => ({
+            type: d.label,
+            zone: d.description ? d.description.slice(0, 50) : 'Região Identificada',
+            level: d.severity === 'critical' ? 'Crítico' : d.severity === 'moderate' ? 'Moderado' : 'Normal',
+            color: d.severity === 'critical' ? 'text-red-500' : d.severity === 'moderate' ? 'text-amber-500' : 'text-blue-500'
+        }))
+
+        // Fallback: extract findings from report if detections is empty
+        if (findings.length === 0 && analysis.report.detailedFindings) {
+            // Try to extract key findings from the detailed text
+            const findingsText = analysis.report.detailedFindings
+            const keywords = [
+                { pattern: /cárie|carie/gi, type: 'Cárie', severity: 'moderate' },
+                { pattern: /perda óssea|perda ossea|reabsorção óssea/gi, type: 'Perda Óssea', severity: 'moderate' },
+                { pattern: /lesão periapical|lesao periapical|radiolúcida periapical/gi, type: 'Lesão Periapical', severity: 'critical' },
+                { pattern: /fratura|trinca/gi, type: 'Fratura', severity: 'critical' },
+                { pattern: /restauração|restauracao/gi, type: 'Restauração', severity: 'normal' },
+                { pattern: /periodontite|doença periodontal/gi, type: 'Periodontite', severity: 'moderate' },
+                { pattern: /cisto|quisto/gi, type: 'Lesão Cística', severity: 'critical' },
+                { pattern: /tratamento endodôntico|canal radicular/gi, type: 'Tratamento Endodôntico', severity: 'normal' },
+            ]
+
+            const extractedFindings: typeof findings = []
+            for (const kw of keywords) {
+                if (kw.pattern.test(findingsText)) {
+                    extractedFindings.push({
+                        type: kw.type,
+                        zone: 'Identificado no laudo',
+                        level: kw.severity === 'critical' ? 'Crítico' : kw.severity === 'moderate' ? 'Moderado' : 'Normal',
+                        color: kw.severity === 'critical' ? 'text-red-500' : kw.severity === 'moderate' ? 'text-amber-500' : 'text-blue-500'
+                    })
+                }
+            }
+
+            if (extractedFindings.length > 0) {
+                findings = extractedFindings
+            }
+        }
+
         const responseData = {
             meta: analysis.meta,
-            detections: analysis.detections.map((d, i) => ({
-                id: `det-${i}`,
-                label: d.label,
-                confidence: 0.95,
-                box: {
-                    ymin: d.box[0],
-                    xmin: d.box[1],
-                    ymax: d.box[2],
-                    xmax: d.box[3]
-                },
-                severity: d.severity,
-                description: d.description
-            })),
+            detections,
             report: analysis.report,
-            findings: analysis.detections.map(d => ({
-                type: d.label,
-                zone: d.description ? d.description.slice(0, 30) + '...' : 'Região Identificada',
-                level: d.severity === 'critical' ? 'Crítico' : d.severity === 'moderate' ? 'Moderado' : 'Normal',
-                color: d.severity === 'critical' ? 'text-red-500' : d.severity === 'moderate' ? 'text-amber-500' : 'text-blue-500'
-            }))
+            findings
         }
 
         return Response.json(responseData)
