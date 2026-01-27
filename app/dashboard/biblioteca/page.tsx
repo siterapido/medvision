@@ -61,6 +61,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { ArtifactRenderer } from "@/components/artifacts/artifact-renderer"
+import { ComingSoonModal } from "@/components/ui/coming-soon-modal"
 
 const getIconForType = (type: string) => {
     switch (type) {
@@ -253,6 +254,8 @@ export default function BibliotecaPage() {
     const [previewDialogOpen, setPreviewDialogOpen] = React.useState(false)
     const [selectedArtifact, setSelectedArtifact] = React.useState<Artifact | null>(null)
 
+    const [comingSoonOpen, setComingSoonOpen] = React.useState(true)
+
     // Debounce search
     React.useEffect(() => {
         const timer = setTimeout(() => {
@@ -410,10 +413,26 @@ export default function BibliotecaPage() {
     )
 
     return (
-        <div className="flex-1 flex flex-col bg-background/50 relative overflow-hidden min-h-screen">
-            {/* Background Decorative Element */}
-            <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
-            <div className="absolute top-1/2 -left-24 w-72 h-72 bg-emerald-500/5 blur-[100px] rounded-full pointer-events-none" />
+        <>
+            {/* Coming Soon Modal */}
+            <ComingSoonModal
+                isOpen={comingSoonOpen}
+                onOpenChange={setComingSoonOpen}
+                title="Biblioteca de Conhecimento"
+                description="Organize e gerencie todo seu conhecimento acadêmico em um único lugar seguro."
+                copy="Estamos preparando a Biblioteca para que você possa organizar laudos, conversas, documentos, pesquisas, simulados e muito mais. Uma experiência completa de gestão do conhecimento está chegando!"
+                icon={<Library className="h-8 w-8" />}
+                primaryButtonText="Me Notificar"
+                onPrimaryAction={() => {
+                    toast.success("Você será notificado quando a Biblioteca estiver disponível!")
+                    setComingSoonOpen(false)
+                }}
+            />
+
+            <div className="flex-1 flex flex-col bg-background/50 relative overflow-hidden min-h-screen">
+                {/* Background Decorative Element */}
+                <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
+                <div className="absolute top-1/2 -left-24 w-72 h-72 bg-emerald-500/5 blur-[100px] rounded-full pointer-events-none" />
 
             <div className="container mx-auto px-4 py-6 md:px-8 space-y-6 relative z-10 max-w-[1600px]">
                 {/* Compact Mobile-First Header */}
@@ -633,6 +652,7 @@ export default function BibliotecaPage() {
                     </AlertDialogFooter>
                 </AlertDialogContent>
             </AlertDialog>
-        </div>
+            </div>
+        </>
     )
 }

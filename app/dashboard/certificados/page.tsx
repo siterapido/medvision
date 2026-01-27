@@ -25,6 +25,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ComingSoonModal } from "@/components/ui/coming-soon-modal"
 
 interface Certificate {
     id: string
@@ -58,6 +59,7 @@ export default function CertificadosPage() {
     const [loading, setLoading] = useState(true)
     const [isRequesting, setIsRequesting] = useState(false)
     const [selectedCourseId, setSelectedCourseId] = useState<string>('')
+    const [comingSoonOpen, setComingSoonOpen] = useState(true)
 
     useEffect(() => {
         fetchData()
@@ -112,7 +114,23 @@ export default function CertificadosPage() {
     }
 
     return (
-        <div className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
+        <>
+            {/* Coming Soon Modal */}
+            <ComingSoonModal
+                isOpen={comingSoonOpen}
+                onOpenChange={setComingSoonOpen}
+                title="Certificados"
+                description="Valide suas conquistas com certificados reconhecidos na área odontológica."
+                copy="Nossa plataforma de certificação está em desenvolvimento. Em breve você poderá solicitar e gerenciar certificados de todos os cursos completados, comprovando sua especialização e avançando em sua carreira profissional."
+                icon={<Award className="h-8 w-8" />}
+                primaryButtonText="Me Notificar"
+                onPrimaryAction={() => {
+                    toast.success("Você será notificado quando Certificados estiver disponível!")
+                    setComingSoonOpen(false)
+                }}
+            />
+
+            <div className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">Certificados</h1>
@@ -269,6 +287,7 @@ export default function CertificadosPage() {
                     </Card>
                 </TabsContent>
             </Tabs>
-        </div>
+            </div>
+        </>
     )
 }
