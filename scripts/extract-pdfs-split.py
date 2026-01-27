@@ -13,9 +13,10 @@ from typing import List, Tuple
 
 import pdfplumber
 import PyPDF2
+from tqdm import tqdm
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.WARNING,  # Only show warnings and errors during progress
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
@@ -118,20 +119,36 @@ class PDFExtractor:
         """Process a single PDF - may split if large"""
 
         pdf_file = Path(pdf_path)
-        size_mb = self.splitter.get_pdf_size_mb(pdf_path)
-        page_count = self.splitter.get_pdf_page_count(pdf_path)
+
+        try:
+            size_mb = self.splitter.get_pdf_size_mb(pdf_path)
+            page_count = self.splitter.get_pdf_page_count(pdf_path)
+        except Exception as e:
+            logger.error(f"Cannot read PDF {pdf_file.name}: {e}")
+            return False
 
         logger.info(f"Processing: {pdf_file.name} ({size_mb:.1f}MB, {page_count} pages)")
 
         # Split if larger than 50MB or more than 200 pages
         if size_mb > 50 or page_count > 200:
-            logger.info(f"  → Large file detected, splitting...")
+            logger.info(f"  → Large file detected, splitting into parts...")
             temp_dir = str(pdf_file.parent / f".temp_{pdf_file.stem}")
-            split_files = self.splitter.split_pdf_by_pages(pdf_path, temp_dir, pages_per_chunk=50)
+
+            try:
+                split_files = self.splitter.split_pdf_by_pages(pdf_path, temp_dir, pages_per_chunk=50)
+            except Exception as e:
+                logger.error(f"Failed to split PDF {pdf_file.name}: {e}")
+                logger.info(f"  → Trying to process without splitting...")
+                return self._process_split_pdf(pdf_path, specialty, pdf_file.stem)
 
             all_success = True
-            for split_file in split_files:
-                if not self._process_split_pdf(split_file, specialty, pdf_file.stem):
+            # Process splits with mini progress bar
+            for i, split_file in enumerate(split_files, 1):
+                print(f"    Part {i}/{len(split_files)}...", end=" ", flush=True)
+                if self._process_split_pdf(split_file, specialty, pdf_file.stem):
+                    print("✓")
+                else:
+                    print("✗")
                     all_success = False
 
             # Cleanup temp files
@@ -216,29 +233,45 @@ class PDFExtractor:
 
         # Find all PDFs
         pdf_files = sorted(path.rglob("*.pdf"))
-        logger.info(f"Found {len(pdf_files)} PDF files")
 
-        for pdf_path in pdf_files:
-            results["total"] += 1
+        print(f"\n{'='*70}")
+        print(f"📚 INICIANDO INGESTÃO DE {len(pdf_files)} ARQUIVOS PDF")
+        print(f"{'='*70}\n")
 
-            # Get specialty from path
-            specialty = None
-            for folder, code in specialty_map.items():
-                if folder in str(pdf_path):
-                    specialty = code
-                    if specialty not in results["by_specialty"]:
-                        results["by_specialty"][specialty] = {"total": 0, "success": 0}
-                    results["by_specialty"][specialty]["total"] += 1
-                    break
+        # Progress bar
+        with tqdm(total=len(pdf_files), desc="📖 Processando PDFs",
+                  unit="arquivo", ncols=100,
+                  bar_format='{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}]') as pbar:
 
-            success = self.process_pdf(str(pdf_path), specialty)
+            for pdf_path in pdf_files:
+                results["total"] += 1
 
-            if success:
-                results["success"] += 1
-                if specialty:
-                    results["by_specialty"][specialty]["success"] += 1
-            else:
-                results["failed"] += 1
+                # Update progress bar description with current file
+                file_name = pdf_path.name[:40] + '...' if len(pdf_path.name) > 40 else pdf_path.name
+                pbar.set_description(f"📖 {file_name}")
+
+                # Get specialty from path
+                specialty = None
+                for folder, code in specialty_map.items():
+                    if folder in str(pdf_path):
+                        specialty = code
+                        if specialty not in results["by_specialty"]:
+                            results["by_specialty"][specialty] = {"total": 0, "success": 0}
+                        results["by_specialty"][specialty]["total"] += 1
+                        break
+
+                success = self.process_pdf(str(pdf_path), specialty)
+
+                if success:
+                    results["success"] += 1
+                    if specialty:
+                        results["by_specialty"][specialty]["success"] += 1
+                    pbar.set_postfix({"✓": results["success"], "✗": results["failed"]})
+                else:
+                    results["failed"] += 1
+                    pbar.set_postfix({"✓": results["success"], "✗": results["failed"]})
+
+                pbar.update(1)
 
         return results
 
@@ -274,23 +307,27 @@ def main():
 
     # Print summary
     print("\n" + "=" * 70)
-    print("PROCESSING SUMMARY")
+    print("📊 RESUMO DO PROCESSAMENTO")
     print("=" * 70)
-    print(f"Total PDFs: {results['total']}")
-    print(f"Successful: {results['success']}")
-    print(f"Failed: {results['failed']}")
+    print(f"📚 Total de PDFs: {results['total']}")
+    print(f"✅ Sucesso: {results['success']}")
+    print(f"❌ Falhas: {results['failed']}")
 
     if results['total'] > 0:
         success_rate = (results['success'] / results['total']) * 100
-        print(f"Success rate: {success_rate:.1f}%")
+        emoji = "🎉" if success_rate >= 95 else "⚠️" if success_rate >= 80 else "❌"
+        print(f"{emoji} Taxa de sucesso: {success_rate:.1f}%")
 
     if results["by_specialty"]:
-        print("\nBy Specialty:")
+        print("\n📖 Por Especialidade:")
         for specialty, counts in sorted(results["by_specialty"].items()):
             rate = (counts['success'] / counts['total'] * 100) if counts['total'] > 0 else 0
-            print(f"  {specialty}: {counts['success']}/{counts['total']} ({rate:.0f}%)")
+            emoji = "✅" if rate >= 95 else "⚠️" if rate >= 80 else "❌"
+            print(f"  {emoji} {specialty.ljust(20)}: {counts['success']}/{counts['total']} ({rate:.0f}%)")
 
     print("=" * 70)
+    print("\n💾 Dados salvos no Supabase: knowledge_documents")
+    print("🔍 Verifique com: SELECT COUNT(*) FROM knowledge_documents;\n")
 
     sys.exit(0 if results['failed'] == 0 else 1)
 

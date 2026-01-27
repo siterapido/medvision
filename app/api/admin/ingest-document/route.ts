@@ -11,7 +11,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { generateEmbedding } from "@/lib/ai/memory/embeddings";
+import { generateEmbedding, formatEmbeddingForPostgres } from "@/lib/ai/memory/embeddings";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -141,7 +141,7 @@ export async function POST(req: NextRequest) {
           total_chunks: chunks.length,
           parent_document_id: i > 0 ? parentId : null,
           embedding: embedding && embedding.length > 0
-            ? embedding.join(",")
+            ? formatEmbeddingForPostgres(embedding)
             : null,
           metadata: {
             ingestedAt: new Date().toISOString(),
