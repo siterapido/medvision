@@ -10,6 +10,25 @@ import {
   rememberFact,
   getStudentContext
 } from "../tools/memory-tools";
+import {
+  askPerplexity,
+  searchPubMed,
+  updateUserProfile,
+  saveResearch,
+  savePracticeExam,
+  saveSummary,
+  saveFlashcards,
+  saveMindMap,
+  saveImageAnalysis,
+  generateArtifact
+} from "../tools/definitions";
+import {
+  createSummaryTool,
+  createFlashcardsTool,
+  createQuizTool,
+  createResearchTool,
+  createReportTool
+} from "../tools/artifact-tools";
 
 export interface AgentConfig {
   id: string;
@@ -62,15 +81,15 @@ Responda em portugues brasileiro de forma natural e direta.`,
     description: "Pesquisa Cientifica e Dossies",
     model: "google/gemini-2.0-flash-001",
     maxSteps: 8,
-    toolsRequiringApproval: ["saveResearch", "updateUserProfile"],
+    toolsRequiringApproval: ["createResearchTool", "updateUserProfile"],
     system: `Voce e o Odonto Research, assistente de pesquisa cientifica em odontologia. Seus usuarios sao estudantes de graduacao ou profissionais de odontologia buscando evidencias cientificas para estudo ou pratica clinica.
 
 REGRA CRITICA: Responda em 3-5 linhas conversacionais sintetizando os achados principais. NUNCA liste artigos ou crie tabelas na conversa. Mencione os estudos de forma natural no texto, indicando o nivel de evidencia quando relevante.
 
-Se quiserem um dossie completo com tabelas e referencias detalhadas, use generateArtifact para criar a estrutura. Use askPerplexity para buscar evidencias atualizadas. Responda em portugues brasileiro de forma direta.`,
+Se quiserem um dossie completo com tabelas e referencias detalhadas, use createResearchTool para criar a estrutura. Use askPerplexity para buscar evidencias atualizadas. Responda em portugues brasileiro de forma direta.`,
     greetingTitle: "Pesquisa Cientifica",
     greetingDescription: "Inicie sua pesquisa academica e odontologica baseada em evidencias.",
-    tools: { askPerplexity, searchPubMed, saveResearch, updateUserProfile, generateArtifact },
+    tools: { askPerplexity, searchPubMed, createResearchTool, updateUserProfile },
   },
 
   "odonto-practice": {
@@ -79,7 +98,7 @@ Se quiserem um dossie completo com tabelas e referencias detalhadas, use generat
     description: "Casos Clinicos e Simulados",
     model: "google/gemini-2.0-flash-001",
     maxSteps: 6,
-    toolsRequiringApproval: ["savePracticeExam"],
+    toolsRequiringApproval: ["createQuizTool"],
     system: `Voce e o Odonto Practice, especialista em casos clinicos e simulados. Seus usuarios sao estudantes de graduacao em Odontologia ou profissionais se preparando para concursos e residencias.
 
 CASOS CLINICOS: Apresente como historia envolvente em 2-3 linhas comecando pela queixa principal do paciente. Revele informacoes conforme o aluno pergunta e guie o raciocinio com perguntas socraticas pontuais.
@@ -89,7 +108,7 @@ SIMULADOS: Apresente uma questao por vez no estilo prova de residencia. Apos a r
 Feedback sempre direto e construtivo em no maximo 3-5 linhas. Responda em portugues brasileiro de forma natural.`,
     greetingTitle: "Treinamento Clinico",
     greetingDescription: "Pratique casos clinicos e prepare-se para seus desafios profissionais.",
-    tools: { generateArtifact, savePracticeExam, askPerplexity, updateUserProfile },
+    tools: { createQuizTool, askPerplexity, updateUserProfile },
   },
 
   "odonto-summary": {
@@ -101,12 +120,12 @@ Feedback sempre direto e construtivo em no maximo 3-5 linhas. Responda em portug
     toolsRequiringApproval: [],
     system: `Voce e o Odonto Summary, especialista em materiais de estudo. Seus usuarios sao estudantes de graduacao em Odontologia ou profissionais buscando revisao de conteudos para provas, concursos ou atualizacao.
 
-REGRA CRITICA: Na conversa responda em 2-3 linhas apenas, confirmando o topico e perguntando se quer foco especifico. TODO conteudo estruturado como resumos e flashcards vai no artifact via generateArtifact, NUNCA na conversa.
+REGRA CRITICA: Na conversa responda em 2-3 linhas apenas, confirmando o topico e perguntando se quer foco especifico. TODO conteudo estruturado como resumos e flashcards vai no artifact via createSummaryTool ou createFlashcardsTool, NUNCA na conversa.
 
 Apos criar o material, informe em 1 linha que esta pronto no painel lateral. Responda em portugues brasileiro de forma breve e direta.`,
     greetingTitle: "Resumos Inteligentes",
     greetingDescription: "Transforme seus estudos em materiais concisos e flashcards memoraveis.",
-    tools: { generateArtifact, saveSummary, saveFlashcards, saveMindMap, updateUserProfile },
+    tools: { createSummaryTool, createFlashcardsTool, updateUserProfile },
   },
 
   "odonto-vision": {
@@ -120,12 +139,12 @@ Apos criar o material, informe em 1 linha que esta pronto no painel lateral. Res
 
 REGRA CRITICA: Inicie com observacao geral em 2-3 linhas mencionando o tipo de exame, qualidade tecnica e o achado principal mais relevante. Pergunte se quer laudo completo ou analise de area especifica.
 
-Se pedirem laudo completo, use generateArtifact com estrutura detalhada incluindo identificacao, descricao anatomica, achados especificos, hipoteses diagnosticas e sugestao de conduta.
+Se pedirem laudo completo, use createReportTool com estrutura detalhada incluindo identificacao, descricao anatomica, achados especificos, hipoteses diagnosticas e sugestao de conduta.
 
 Sempre inclua ao final "Analise assistida por IA, validar com exame clinico presencial". Responda em portugues brasileiro com linguagem tecnica adequada.`,
     greetingTitle: "Laudos Inteligentes",
     greetingDescription: "Envie radiografias e receba analises detalhadas com precisao de laudo radiologico.",
-    tools: { generateArtifact, saveImageAnalysis, updateUserProfile },
+    tools: { createReportTool, updateUserProfile },
   },
 };
 
