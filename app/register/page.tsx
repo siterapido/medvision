@@ -18,7 +18,7 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
   const trialDays = normalizeTrialDays(requestedTrial, DEFAULT_TRIAL_DAYS)
 
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#080D19]">
+    <div className="min-h-screen relative overflow-hidden bg-[#080D19]">
       {/* ATMOSPHERIC BACKGROUND SYSTEM - Same as Login Page */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         {/* Base: Pure deep dark with subtle warm undertone */}
@@ -113,8 +113,10 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
         />
       </div>
 
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-md px-4 py-8">
+      {/* Scrollable Content Wrapper */}
+      <div className="relative z-10 h-screen overflow-y-auto overflow-x-hidden scrollbar-visible">
+        <div className="min-h-screen flex items-center justify-center py-8 px-4">
+          <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
           <Link href="/" className="inline-block">
@@ -184,7 +186,42 @@ export default async function RegisterPage({ searchParams }: RegisterPageProps) 
             <span>IA Especializada</span>
           </div>
         </div>
+          </div>
+        </div>
       </div>
+
+      {/* Custom Scrollbar Styles */}
+      <style jsx>{`
+        .scrollbar-visible {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(34, 211, 238, 0.3) rgba(15, 23, 42, 0.3);
+        }
+
+        .scrollbar-visible::-webkit-scrollbar {
+          width: 8px;
+        }
+
+        .scrollbar-visible::-webkit-scrollbar-track {
+          background: rgba(15, 23, 42, 0.3);
+          border-radius: 4px;
+        }
+
+        .scrollbar-visible::-webkit-scrollbar-thumb {
+          background: rgba(34, 211, 238, 0.3);
+          border-radius: 4px;
+          transition: background 0.2s;
+        }
+
+        .scrollbar-visible::-webkit-scrollbar-thumb:hover {
+          background: rgba(34, 211, 238, 0.5);
+        }
+
+        /* Ensure smooth scrolling */
+        .scrollbar-visible {
+          scroll-behavior: smooth;
+          -webkit-overflow-scrolling: touch;
+        }
+      `}</style>
     </div>
   )
 }
