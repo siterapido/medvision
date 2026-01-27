@@ -8,7 +8,8 @@ import { motion } from "framer-motion"
 import { FadeIn } from "@/components/ui/animations"
 import { ArrowRight, Sparkles, Mail, Phone, Lock } from "lucide-react"
 import { AgentHeroVisual } from "@/components/landing/agent-hero-visual"
-import { createLeadFromLanding } from "@/app/actions/leads"
+import { createClient } from "@/lib/supabase/client"
+import { DEFAULT_TRIAL_DAYS } from "@/lib/trial"
 
 export function TrialHeroSection() {
   const [formData, setFormData] = useState({
@@ -37,11 +38,11 @@ export function TrialHeroSection() {
       newErrors.whatsapp = 'WhatsApp inválido'
     }
 
-    // Password validation (minimum 6 characters)
+    // Password validation (minimum 8 characters - Supabase requirement)
     if (!formData.password) {
       newErrors.password = 'Senha é obrigatória'
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Mínimo de 6 caracteres'
+    } else if (formData.password.length < 8) {
+      newErrors.password = 'Mínimo de 8 caracteres'
     }
 
     setErrors(newErrors)
@@ -55,25 +56,56 @@ export function TrialHeroSection() {
       setIsSubmitting(true)
 
       try {
-        // Salvar lead no banco de dados para aparecer no pipeline
-        await createLeadFromLanding({
+        const supabase = createClient()
+
+        // Registrar usuário diretamente com trial de 7 dias
+        const { data, error: signUpError } = await supabase.auth.signUp({
           email: formData.email,
-          phone: formData.whatsapp,
-          source: 'landing_page'
+          password: formData.password,
+          options: {
+            data: {
+              name: formData.email.split('@')[0], // Nome temporário baseado no email
+              whatsapp: formData.whatsapp,
+              profession: 'Não informado',
+              role: 'cliente',
+              trial_days: DEFAULT_TRIAL_DAYS,
+              trial_form: '7d',
+              source: 'landing_page'
+            },
+          },
         })
 
-        setSubmitted(true)
+        if (signUpError) {
+          console.error('Erro no registro:', signUpError)
 
-        // Redirecionar para registro com dados pré-preenchidos
-        const params = new URLSearchParams({
-          email: formData.email,
-          whatsapp: formData.whatsapp,
-          from: 'landing'
-        })
+          if (signUpError.message.includes('already registered')) {
+            setErrors({ submit: 'Este email já está cadastrado. Faça login.' })
+          } else if (signUpError.message.includes('Password should be')) {
+            setErrors({ submit: 'A senha deve ter pelo menos 6 caracteres.' })
+          } else if (signUpError.message.includes('valid email')) {
+            setErrors({ submit: 'Por favor, insira um email válido.' })
+          } else {
+            setErrors({ submit: 'Erro ao criar conta. Tente novamente.' })
+          }
+          setIsSubmitting(false)
+          return
+        }
 
-        setTimeout(() => {
-          window.location.href = `/register?${params.toString()}`
-        }, 1500)
+        if (data.user) {
+          setSubmitted(true)
+
+          // Se tiver sessão ativa, redirecionar para dashboard
+          if (data.session) {
+            setTimeout(() => {
+              window.location.href = '/dashboard'
+            }, 1500)
+          } else {
+            // Email de confirmação enviado
+            setTimeout(() => {
+              window.location.href = '/login?message=confirm-email'
+            }, 2000)
+          }
+        }
       } catch (error) {
         console.error('Erro ao enviar formulário:', error)
         setErrors({ submit: 'Erro ao processar. Tente novamente.' })
@@ -198,7 +230,7 @@ export function TrialHeroSection() {
                     <input
                       type="password"
                       name="password"
-                      placeholder="Crie uma senha"
+                      placeholder="Crie uma senha (mín. 8 caracteres)"
                       value={formData.password}
                       onChange={handleInputChange}
                       className="flex-1 bg-transparent text-white placeholder:text-slate-500 outline-none text-sm"
@@ -224,11 +256,11 @@ export function TrialHeroSection() {
                 >
                   {submitted ? (
                     <span className="flex items-center justify-center gap-2">
-                      ✓ Iniciando seu teste...
+                      ✓ Conta criada! Redirecionando...
                     </span>
                   ) : isSubmitting ? (
                     <span className="flex items-center justify-center gap-2">
-                      Processando...
+                      Criando sua conta...
                     </span>
                   ) : (
                     <span className="flex items-center justify-center gap-2">
