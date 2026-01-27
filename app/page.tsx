@@ -37,6 +37,7 @@ import { useIsMobile } from "@/lib/hooks/use-mobile"
 import { LogoScroll } from "@/components/landing/logo-scroll"
 import { SpecialistsGrid } from "@/components/landing/specialists-grid"
 import { AiVisionSection } from "@/components/landing/ai-vision-section"
+import { TrialHeroSection } from "@/components/landing/trial-hero-section"
 
 const FAQSection = dynamic(() => import("@/components/landing/faq-section").then(mod => ({ default: mod.FAQSection })), {
   ssr: false,
@@ -83,14 +84,14 @@ export default function LandingPage() {
           opacity: showStickyCTA ? 1 : 0
         }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
-        className="fixed bottom-0 left-0 right-0 p-4 bg-[#0F192F]/95 backdrop-blur-xl border-t border-[#22d3ee]/20 z-50 md:hidden safe-area-inset-bottom"
+        className="fixed bottom-0 left-0 right-0 p-4 bg-[#0F192F]/95 backdrop-blur-xl border-t border-emerald-500/20 z-50 md:hidden safe-area-inset-bottom"
         style={{ willChange: "transform, opacity" }}
       >
         <Button
           size="lg"
-          className="w-full rounded-full py-4 text-base font-semibold shadow-[0_-5px_30px_rgba(34,211,238,0.3)] border-0 text-white"
+          className="w-full rounded-full py-4 text-base font-semibold shadow-[0_-5px_30px_rgba(16,185,129,0.3)] border-0 text-white"
           style={{
-            background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
+            background: 'linear-gradient(135deg, #10B981 0%, #14B8A6 100%)'
           }}
           asChild
         >
@@ -204,98 +205,8 @@ export default function LandingPage() {
           />
         </div>
 
-        {/* Hero Section */}
-        <section id="hero-section" className="relative w-full min-h-[85vh] md:min-h-[90vh] flex items-center justify-center py-20 md:py-32 px-4 md:px-6 overflow-hidden z-10">
-          <div className="container mx-auto">
-            {/* Logo Mobile */}
-            <div className="flex justify-start md:hidden mb-8">
-              <Logo variant="white" width={140} height={30} />
-            </div>
-
-            <div className="grid lg:grid-cols-2 gap-12 xl:gap-20 items-center max-w-7xl mx-auto">
-
-              {/* Text Content */}
-              <div className="space-y-4 md:space-y-8 text-center lg:text-left order-1 relative z-10">
-                <div className="flex justify-center lg:justify-start mb-6 hidden md:flex">
-                  <Logo variant="white" width={160} height={35} />
-                </div>
-
-                <FadeIn delay={0.1} direction="up">
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-[#22d3ee] text-sm font-semibold mb-2 md:mb-4 backdrop-blur-sm">
-                    <Sparkles className="w-4 h-4" />
-                    <span>Inteligência Artificial Especializada</span>
-                  </div>
-                  <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-white leading-[1.05]">
-                    Odonto GPT é a sua<br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22d3ee] to-[#67e8f9]">
-                      Inteligência na Odontologia
-                    </span>
-                  </h1>
-                </FadeIn>
-
-                <FadeIn delay={0.2} direction="up">
-                  <div className="space-y-4">
-                    <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0 font-medium">
-                      Inteligência artificial específica para odontologia com base em livros e artigos científicos.
-                    </p>
-                    <p className="text-base sm:text-xl text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                      <span className="text-white font-semibold">O parceiro de estudos que todo estudante sonha.</span> Tire dúvidas de provas, ganhe segurança na clínica e escreva trabalhos acadêmicos em segundos.
-                    </p>
-                    <p className="text-lg font-semibold text-[#22d3ee]">
-                      Seu professor particular disponível 24/7.
-                    </p>
-                  </div>
-                </FadeIn>
-
-                <FadeIn delay={0.3} direction="up">
-                  <div className="flex flex-col sm:flex-row gap-4 pt-4 justify-center lg:justify-start">
-                    <Button
-                      size="xl"
-                      className="rounded-full px-10 py-4 text-lg font-semibold shadow-[0_10px_40px_rgba(8,145,178,0.25)] hover:scale-105 active:scale-95 transition-all border-0 text-white w-full sm:w-auto"
-                      style={{
-                        background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
-                      }}
-                      asChild
-                    >
-                      <Link href="/register">
-                        Testar Grátis Agora
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Link>
-                    </Button>
-                    <Button
-                      size="xl"
-                      variant="outline"
-                      className="rounded-full px-10 py-4 text-lg font-medium border-2 border-[rgba(8,145,178,0.5)] text-white hover:bg-[rgba(8,145,178,0.1)] hover:border-[#0891b2] transition-colors w-full sm:w-auto"
-                      asChild
-                    >
-                      <Link href="#como-funciona">
-                        Ver como funciona
-                      </Link>
-                    </Button>
-                  </div>
-                  <div className="mt-8 flex items-center justify-center lg:justify-start gap-4 text-sm text-slate-400">
-                    <div className="flex -space-x-2">
-                      {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="w-8 h-8 rounded-full border-2 border-[#0F192F] bg-slate-200 bg-cover bg-center" style={{ backgroundImage: `url(https://api.dicebear.com/9.x/avataaars/svg?seed=${i})` }} />
-                      ))}
-                      <div className="w-8 h-8 rounded-full border-2 border-[#0F192F] bg-slate-800 flex items-center justify-center text-xs font-bold text-white">+2k</div>
-                    </div>
-                    <span>Dentistas já usam o Odonto GPT</span>
-                  </div>
-                </FadeIn>
-              </div>
-
-              {/* Hero Visual */}
-              <div className="order-2 lg:order-2 relative z-0 flex justify-center lg:justify-end mt-12 lg:mt-0">
-                <FadeIn delay={0.2} className="w-full max-w-[280px] sm:max-w-md lg:max-w-2xl">
-                  {/* Providing a dark mode glow context for the visual if needed, though the component might handle it */}
-                  <AgentHeroVisual />
-                </FadeIn>
-              </div>
-
-            </div>
-          </div>
-        </section>
+        {/* Hero Section - Trial Signup */}
+        <TrialHeroSection />
 
         {/* Logo Scroll Section */}
         <LogoScroll />
@@ -327,13 +238,13 @@ export default function LandingPage() {
               viewport={{ once: false }}
               className="mx-auto max-w-3xl"
             >
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(6,182,212,0.1)] border border-[rgba(6,182,212,0.3)] mb-6">
-                <Sparkles className="w-4 h-4 text-[#22d3ee]" />
-                <span className="text-[#22d3ee] font-semibold text-sm">Veja em Ação</span>
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 mb-6">
+                <Sparkles className="w-4 h-4 text-emerald-400" />
+                <span className="text-emerald-400 font-semibold text-sm">Veja em Ação</span>
               </span>
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
                 Seus Especialistas<br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22d3ee] via-[#3b82f6] to-[#a855f7]">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400">
                   Trabalhando por Você
                 </span>
               </h2>
@@ -363,14 +274,14 @@ export default function LandingPage() {
             {/* Header */}
             <FadeIn direction="up" delay={0.1}>
               <div className="text-center max-w-3xl mx-auto mb-16">
-                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(6,182,212,0.1)] border border-[rgba(6,182,212,0.3)] mb-6">
-                  <Brain className="w-4 h-4 text-[#22d3ee]" />
-                  <span className="text-[#22d3ee] font-semibold text-sm">Realidade Acadêmica</span>
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 mb-6">
+                  <Brain className="w-4 h-4 text-emerald-400" />
+                  <span className="text-emerald-400 font-semibold text-sm">Realidade Acadêmica</span>
                 </span>
                 <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-[1.1]">
                   A Diferença Entre Estudar<br />
                   <span className="text-slate-400">Muito</span> e Estudar{" "}
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22d3ee] to-[#67e8f9]">Bem</span>
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">Bem</span>
                 </h2>
                 <p className="text-lg text-slate-400 leading-relaxed">
                   A Odonto GPT não substitui seu estudo, ela o potencializa. Veja a diferença na prática.
@@ -442,22 +353,22 @@ export default function LandingPage() {
               <FadeIn direction="left" delay={0.3}>
                 <div className="group relative h-full">
                   {/* Glow effect */}
-                  <div className="absolute -inset-[1px] bg-gradient-to-r from-[#22d3ee] to-[#0891b2] rounded-2xl opacity-100" />
-                  <div className="absolute inset-0 bg-gradient-to-br from-[#22d3ee]/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500" />
+                  <div className="absolute -inset-[1px] bg-gradient-to-r from-emerald-400 to-teal-400 rounded-2xl opacity-100" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/20 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500" />
 
                   <div className="relative h-full bg-[#0F172A] border-0 rounded-2xl p-8 lg:p-10">
                     {/* Header do Card */}
-                    <div className="flex items-center justify-between gap-4 mb-8 pb-6 border-b border-[#22d3ee]/20">
+                    <div className="flex items-center justify-between gap-4 mb-8 pb-6 border-b border-emerald-400/20">
                       <div className="flex items-center gap-4">
-                        <div className="p-3 rounded-xl bg-[#22d3ee]/10 border border-[#22d3ee]/30">
-                          <CheckCircle2 className="w-7 h-7 text-[#22d3ee]" />
+                        <div className="p-3 rounded-xl bg-emerald-400/10 border border-emerald-400/30">
+                          <CheckCircle2 className="w-7 h-7 text-emerald-400" />
                         </div>
                         <div>
                           <h3 className="text-2xl font-bold text-white">Com Odonto GPT</h3>
-                          <p className="text-sm text-[#22d3ee]/80">A vantagem competitiva</p>
+                          <p className="text-sm text-emerald-400/80">A vantagem competitiva</p>
                         </div>
                       </div>
-                      <span className="px-3 py-1.5 rounded-full bg-[#22d3ee]/10 border border-[#22d3ee]/30 text-[#22d3ee] text-xs font-bold uppercase tracking-wider">
+                      <span className="px-3 py-1.5 rounded-full bg-emerald-400/10 border border-emerald-400/30 text-emerald-400 text-xs font-bold uppercase tracking-wider">
                         Recomendado
                       </span>
                     </div>
@@ -471,15 +382,15 @@ export default function LandingPage() {
                         { text: "Conquista os melhores estágios enquanto outros ainda estão estudando", emphasis: "melhores estágios" }
                       ].map((item, i) => (
                         <div key={i} className="flex items-start gap-4 group/item">
-                          <div className="mt-1 p-1 rounded-full bg-[#22d3ee]/10 shrink-0">
-                            <CheckCircle2 className="w-4 h-4 text-[#22d3ee]" />
+                          <div className="mt-1 p-1 rounded-full bg-emerald-400/10 shrink-0">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-400" />
                           </div>
                           <p className="text-white text-sm lg:text-base leading-relaxed">
                             {item.text.split(item.emphasis).map((part, idx, arr) => (
                               <span key={idx}>
                                 {part}
                                 {idx < arr.length - 1 && (
-                                  <span className="text-[#22d3ee] font-semibold">{item.emphasis}</span>
+                                  <span className="text-emerald-400 font-semibold">{item.emphasis}</span>
                                 )}
                               </span>
                             ))}
@@ -489,11 +400,11 @@ export default function LandingPage() {
                     </div>
 
                     {/* Visual indicator */}
-                    <div className="mt-8 pt-6 border-t border-[#22d3ee]/20">
-                      <div className="flex items-center gap-3 text-sm text-[#22d3ee]/80">
+                    <div className="mt-8 pt-6 border-t border-emerald-400/20">
+                      <div className="flex items-center gap-3 text-sm text-emerald-400/80">
                         <div className="flex -space-x-1">
                           {[1, 2, 3, 4].map((i) => (
-                            <div key={i} className="w-6 h-6 rounded-full bg-[#22d3ee]/20 border-2 border-[#0F172A] flex items-center justify-center text-[10px]">
+                            <div key={i} className="w-6 h-6 rounded-full bg-emerald-400/20 border-2 border-[#0F172A] flex items-center justify-center text-[10px]">
                               🚀
                             </div>
                           ))}
@@ -512,9 +423,9 @@ export default function LandingPage() {
                 <Link href="/register">
                   <Button
                     size="lg"
-                    className="rounded-full px-10 py-6 text-lg font-semibold shadow-[0_10px_40px_rgba(8,145,178,0.25)] hover:shadow-[0_20px_60px_rgba(8,145,178,0.35)] hover:scale-105 active:scale-95 transition-all border-0 text-white"
+                    className="rounded-full px-10 py-6 text-lg font-semibold shadow-[0_10px_40px_rgba(16,185,129,0.25)] hover:shadow-[0_20px_60px_rgba(16,185,129,0.35)] hover:scale-105 active:scale-95 transition-all border-0 text-white"
                     style={{
-                      background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
+                      background: 'linear-gradient(135deg, #10B981 0%, #14B8A6 100%)'
                     }}
                   >
                     Fazer Parte do Grupo Que Estuda Melhor
@@ -542,21 +453,21 @@ export default function LandingPage() {
                     <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.1]">
                       A Era do Estudo<br />
                       <span className="text-slate-400">Solitário</span>{" "}
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22d3ee] to-[#a855f7]">Acabou.</span>
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Acabou.</span>
                     </h2>
                     <p className="text-lg text-slate-400 leading-relaxed max-w-xl">
                       Quem estuda sozinho é substituído pela próxima turma. Quem domina <span className="text-white font-semibold">IA aplicada à Odontologia</span> constrói carreiras que evoluem junto com a tecnologia.
                     </p>
                     <p className="text-base text-slate-300">
-                      Criamos o <span className="font-bold text-[#22d3ee]">ESTUDANTE INTELIGENTE</span>: o profissional que usa IA como aliada, responde com confiança e entrega resultados em minutos.
+                      Criamos o <span className="font-bold text-emerald-400">ESTUDANTE INTELIGENTE</span>: o profissional que usa IA como aliada, responde com confiança e entrega resultados em minutos.
                     </p>
                   </div>
 
                   {/* O Novo Stack */}
                   <div className="bg-[#0F172A]/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-sm">
                     <div className="flex items-center gap-3 mb-6">
-                      <div className="p-2 rounded-lg bg-gradient-to-br from-[#0891b2]/20 to-[#22d3ee]/20 border border-[#22d3ee]/30">
-                        <Zap className="w-5 h-5 text-[#22d3ee]" />
+                      <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/30">
+                        <Zap className="w-5 h-5 text-emerald-400" />
                       </div>
                       <span className="text-white font-bold text-lg">O Novo Método</span>
                     </div>
@@ -570,8 +481,8 @@ export default function LandingPage() {
                       ].map((item, i) => (
                         <div key={i} className="flex items-center gap-3 text-sm">
                           <span className="text-slate-500 line-through min-w-[140px]">De: {item.from}</span>
-                          <ArrowRight className="w-4 h-4 text-[#22d3ee] shrink-0" />
-                          <span className="text-[#22d3ee] font-medium">Para: {item.to}</span>
+                          <ArrowRight className="w-4 h-4 text-emerald-400 shrink-0" />
+                          <span className="text-emerald-400 font-medium">Para: {item.to}</span>
                         </div>
                       ))}
                     </div>
@@ -583,13 +494,13 @@ export default function LandingPage() {
               <div className="space-y-5">
                 {/* Card 1 - Agentes IA */}
                 <FadeIn direction="left" delay={0.2}>
-                  <div className="group relative bg-[#0F172A] border border-slate-800 rounded-2xl p-6 hover:border-[#22d3ee]/50 transition-all duration-300 overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-[#22d3ee]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <div className="group relative bg-[#0F172A] border border-slate-800 rounded-2xl p-6 hover:border-emerald-500/50 transition-all duration-300 overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     <div className="relative z-10">
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-[#0891b2]/20 to-[#22d3ee]/10 border border-[#22d3ee]/30">
-                            <Brain className="w-6 h-6 text-[#22d3ee]" />
+                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-emerald-500/20 to-teal-500/10 border border-emerald-500/30">
+                            <Brain className="w-6 h-6 text-emerald-400" />
                           </div>
                           <div>
                             <h3 className="text-xl font-bold text-white">Agentes Especializados</h3>
@@ -728,10 +639,10 @@ export default function LandingPage() {
               align="center"
             />
 
-            <div className="grid md:grid-cols-2 gap-12 items-center mt-12 bg-[#16243F]/50 p-8 rounded-3xl border border-[#2399B4]/20 backdrop-blur-sm">
+            <div className="grid md:grid-cols-2 gap-12 items-center mt-12 bg-[#16243F]/50 p-8 rounded-3xl border border-emerald-500/20 backdrop-blur-sm">
               <FadeIn direction="right" delay={0.1} className="space-y-6">
                 <div className="relative flex justify-center">
-                  <div className="relative w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-[#0891b2]/30 to-[#06b6d4]/30 rounded-full overflow-hidden shadow-[0_20px_60px_rgba(35,153,180,0.3)] border-4 border-[#1A2847]/50 flex items-center justify-center p-1">
+                  <div className="relative w-64 h-64 md:w-80 md:h-80 bg-gradient-to-br from-emerald-500/30 to-teal-500/30 rounded-full overflow-hidden shadow-[0_20px_60px_rgba(16,185,129,0.3)] border-4 border-[#1A2847]/50 flex items-center justify-center p-1">
                     <div className="w-full h-full rounded-full overflow-hidden relative">
                       <Image
                         src="/Imagens /roniery.jpg"
@@ -743,9 +654,9 @@ export default function LandingPage() {
                     </div>
                   </div>
                   {/* Decorative element */}
-                  <div className="absolute -bottom-4 -right-4 bg-[#16243F] border border-[#2399B4]/30 p-3 rounded-2xl shadow-xl flex items-center gap-3">
-                    <div className="bg-[#2399B4]/20 p-2 rounded-lg">
-                      <CheckCircle2 className="w-5 h-5 text-[#22d3ee]" />
+                  <div className="absolute -bottom-4 -right-4 bg-[#16243F] border border-emerald-500/30 p-3 rounded-2xl shadow-xl flex items-center gap-3">
+                    <div className="bg-emerald-500/20 p-2 rounded-lg">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-400" />
                     </div>
                     <div>
                       <div className="text-xs text-slate-400">CRO</div>
@@ -758,12 +669,12 @@ export default function LandingPage() {
               <FadeIn direction="left" delay={0.2} className="space-y-6">
                 <div>
                   <h3 className="text-3xl font-bold text-white mb-2">Roniery Costa</h3>
-                  <p className="text-[#22d3ee] font-medium text-lg">Responsável Técnico</p>
+                  <p className="text-emerald-400 font-medium text-lg">Responsável Técnico</p>
                 </div>
 
                 <div className="space-y-4">
                   <p className="text-lg font-medium text-slate-200 leading-relaxed relative">
-                    <span className="text-6xl absolute -top-6 -left-4 text-[#2399B4]/20 font-serif">&quot;</span>
+                    <span className="text-6xl absolute -top-6 -left-4 text-emerald-500/20 font-serif">&quot;</span>
                     Cada resposta que você recebe passa pela minha curadoria técnica, garantindo que
                     esteja sempre alinhada com as melhores práticas da odontologia moderna.
                   </p>
@@ -771,19 +682,19 @@ export default function LandingPage() {
 
                 <div className="grid grid-cols-2 gap-y-4 gap-x-2 text-sm">
                   <div className="flex items-center gap-2 text-slate-300">
-                    <CheckCircle2 className="h-4 w-4 text-[#22d3ee]" />
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                     <span>Cirurgião dentista</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-300">
-                    <CheckCircle2 className="h-4 w-4 text-[#22d3ee]" />
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                     <span>Me. e Dr. em Odontologia</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-300">
-                    <CheckCircle2 className="h-4 w-4 text-[#22d3ee]" />
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                     <span>+ 3.5k alunos online</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-300">
-                    <CheckCircle2 className="h-4 w-4 text-[#22d3ee]" />
+                    <CheckCircle2 className="h-4 w-4 text-emerald-400" />
                     <span>Professor universitário</span>
                   </div>
                 </div>
@@ -801,12 +712,12 @@ export default function LandingPage() {
 
         {/* CTA Footer */}
         <section className="w-full py-12 px-4 md:px-6 relative overflow-hidden z-10">
-          <div className="absolute inset-0 bg-gradient-to-t from-[#0891b2]/10 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-emerald-500/10 to-transparent" />
 
           <div className="container mx-auto max-w-4xl relative z-10 text-center space-y-8">
             <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
               Pronto para Transformar sua <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22d3ee] to-[#67e8f9]">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
                 Jornada na Odontologia?
               </span>
             </h2>
@@ -818,9 +729,9 @@ export default function LandingPage() {
               <Link href="/register">
                 <Button
                   size="xl"
-                  className="rounded-full px-12 py-6 text-xl font-bold shadow-[0_10px_40px_rgba(8,145,178,0.25)] hover:scale-105 transition-all border-0 text-white w-full sm:w-auto"
+                  className="rounded-full px-12 py-6 text-xl font-bold shadow-[0_10px_40px_rgba(16,185,129,0.25)] hover:scale-105 transition-all border-0 text-white w-full sm:w-auto"
                   style={{
-                    background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
+                    background: 'linear-gradient(135deg, #10B981 0%, #14B8A6 100%)'
                   }}
                 >
                   Começar Agora
