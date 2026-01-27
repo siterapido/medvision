@@ -4,11 +4,9 @@ import type React from "react"
 
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, Sparkles, User, Mail, Phone, Lock, Briefcase } from "lucide-react"
-import { motion } from "framer-motion"
+import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, Sparkles, ArrowRight } from "lucide-react"
 
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
@@ -194,216 +192,159 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
     <form onSubmit={handleSubmit} className="space-y-5">
 
       {/* Trial Banner */}
-      <motion.div
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="bg-gradient-to-r from-emerald-500/15 via-teal-500/10 to-emerald-500/15 border border-emerald-500/30 rounded-xl p-4 mb-6 backdrop-blur-sm"
-      >
+      <div className="bg-gradient-to-r from-[#22d3ee]/10 via-[#0891b2]/10 to-[#22d3ee]/10 border border-[#22d3ee]/30 rounded-xl p-4 mb-6 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-br from-emerald-500/30 to-teal-500/30 p-2 rounded-full">
-            <Sparkles className="h-4 w-4 text-emerald-400" />
+          <div className="bg-gradient-to-br from-[#22d3ee]/20 to-[#0891b2]/20 p-2 rounded-full">
+            <Sparkles className="h-4 w-4 text-[#22d3ee]" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-emerald-300">
+            <p className="text-sm font-semibold text-[#22d3ee]">
               {trialLabel} de acesso gratuito
             </p>
-            <p className="text-xs text-emerald-400/70">
-              Sem cartão de crédito. Acesso completo imediato.
+            <p className="text-xs text-[#22d3ee]/70">
+              Sem cartao de credito. Acesso completo imediato.
             </p>
           </div>
         </div>
-      </motion.div>
+      </div>
 
       {error && (
-        <Alert variant="destructive">
+        <Alert variant="destructive" className="bg-red-500/10 border-red-500/30 text-red-400">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="bg-green-50 text-green-900 border-green-200">
-          <CheckCircle2 className="h-4 w-4 text-green-600" />
+        <Alert className="bg-emerald-500/10 border-emerald-500/30 text-emerald-400">
+          <CheckCircle2 className="h-4 w-4" />
           <AlertDescription>
             Conta criada com sucesso! Verifique seu email para confirmar o cadastro.
           </AlertDescription>
         </Alert>
       )}
 
-      <motion.div
-        className="space-y-2"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <Label htmlFor="name" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+      <div className="space-y-2">
+        <Label htmlFor="name" className="text-sm font-medium text-slate-300">
           Nome Completo
         </Label>
-        <div className="relative flex items-center">
-          <User className="absolute left-4 w-5 h-5 text-slate-400 dark:text-slate-500 pointer-events-none" />
-          <Input
-            id="name"
-            type="text"
-            placeholder="Dr. João Silva"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-            disabled={isLoading || success}
-            className="h-12 pl-12 pr-4 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 dark:focus:ring-emerald-400/20 rounded-xl transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
-          />
-        </div>
-      </motion.div>
+        <Input
+          id="name"
+          type="text"
+          placeholder="Dr. Joao Silva"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          disabled={isLoading || success}
+          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+        />
+      </div>
 
-      <motion.div
-        className="space-y-2"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.15 }}
-      >
-        <Label htmlFor="email" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+      <div className="space-y-2">
+        <Label htmlFor="email" className="text-sm font-medium text-slate-300">
           Email
         </Label>
-        <div className="relative flex items-center">
-          <Mail className="absolute left-4 w-5 h-5 text-slate-400 dark:text-slate-500 pointer-events-none" />
-          <Input
-            id="email"
-            type="email"
-            placeholder="seu@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={isLoading || success}
-            className="h-12 pl-12 pr-4 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 dark:focus:ring-emerald-400/20 rounded-xl transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
-          />
-        </div>
-      </motion.div>
+        <Input
+          id="email"
+          type="email"
+          placeholder="seu@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          disabled={isLoading || success}
+          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+        />
+      </div>
 
-      <motion.div
-        className="space-y-2"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <Label htmlFor="whatsapp" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+      <div className="space-y-2">
+        <Label htmlFor="whatsapp" className="text-sm font-medium text-slate-300">
           WhatsApp
         </Label>
-        <div className="relative flex items-center">
-          <Phone className="absolute left-4 w-5 h-5 text-slate-400 dark:text-slate-500 pointer-events-none" />
-          <Input
-            id="whatsapp"
-            type="tel"
-            placeholder="(11) 99999-9999"
-            value={whatsapp}
-            onChange={(e) => setWhatsapp(e.target.value)}
-            required
-            disabled={isLoading || success}
-            className="h-12 pl-12 pr-4 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 dark:focus:ring-emerald-400/20 rounded-xl transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
-          />
-        </div>
-      </motion.div>
+        <Input
+          id="whatsapp"
+          type="tel"
+          placeholder="(11) 99999-9999"
+          value={whatsapp}
+          onChange={(e) => setWhatsapp(e.target.value)}
+          required
+          disabled={isLoading || success}
+          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+        />
+      </div>
 
-      <motion.div
-        className="space-y-2"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.25 }}
-      >
-        <Label htmlFor="occupation" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-          Ocupação
+      <div className="space-y-2">
+        <Label htmlFor="occupation" className="text-sm font-medium text-slate-300">
+          Ocupacao
         </Label>
-        <div className="relative">
-          <Briefcase className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500 pointer-events-none z-10" />
-          <Select
-            value={occupation}
-            onValueChange={setOccupation}
-            disabled={isLoading || success}
-            required
-          >
-            <SelectTrigger className="h-12 pl-12 pr-4 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 dark:focus:ring-emerald-400/20 rounded-xl transition-all text-slate-700 dark:text-slate-300">
-              <SelectValue placeholder="Selecione sua ocupação" />
-            </SelectTrigger>
-            <SelectContent className="bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-600">
-              <SelectItem value="Cirurgião-Dentista">Cirurgião-Dentista</SelectItem>
-              <SelectItem value="Estudante">Estudante</SelectItem>
-              <SelectItem value="Empresário">Empresário</SelectItem>
-              <SelectItem value="Outro">Outro</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </motion.div>
+        <Select
+          value={occupation}
+          onValueChange={setOccupation}
+          disabled={isLoading || success}
+          required
+        >
+          <SelectTrigger className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all [&>span]:text-slate-500 [&>span]:data-[placeholder]:text-slate-500">
+            <SelectValue placeholder="Selecione sua ocupacao" />
+          </SelectTrigger>
+          <SelectContent className="bg-[#0F172A] border-slate-700">
+            <SelectItem value="Cirurgião-Dentista" className="text-white hover:bg-slate-800 focus:bg-slate-800">Cirurgiao-Dentista</SelectItem>
+            <SelectItem value="Estudante" className="text-white hover:bg-slate-800 focus:bg-slate-800">Estudante</SelectItem>
+            <SelectItem value="Empresário" className="text-white hover:bg-slate-800 focus:bg-slate-800">Empresario</SelectItem>
+            <SelectItem value="Outro" className="text-white hover:bg-slate-800 focus:bg-slate-800">Outro</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       {occupation === "Estudante" && (
-        <motion.div
-          className="space-y-2"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -10 }}
-          transition={{ duration: 0.2 }}
-        >
-          <Label htmlFor="institution" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-            Instituição de Ensino
+        <div className="space-y-2">
+          <Label htmlFor="institution" className="text-sm font-medium text-slate-300">
+            Instituicao de Ensino
           </Label>
-          <div className="relative flex items-center">
-            <Briefcase className="absolute left-4 w-5 h-5 text-slate-400 dark:text-slate-500 pointer-events-none" />
-            <Input
-              id="institution"
-              type="text"
-              placeholder="Nome da Universidade/Faculdade"
-              value={institution}
-              onChange={(e) => setInstitution(e.target.value)}
-              required
-              disabled={isLoading || success}
-              className="h-12 pl-12 pr-4 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 dark:focus:ring-emerald-400/20 rounded-xl transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
-            />
-          </div>
-        </motion.div>
+          <Input
+            id="institution"
+            type="text"
+            placeholder="Nome da Universidade/Faculdade"
+            value={institution}
+            onChange={(e) => setInstitution(e.target.value)}
+            required
+            disabled={isLoading || success}
+            className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+          />
+        </div>
       )}
 
-      <motion.div
-        className="space-y-2"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <Label htmlFor="password" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+      <div className="space-y-2">
+        <Label htmlFor="password" className="text-sm font-medium text-slate-300">
           Senha
         </Label>
-        <div className="relative flex items-center">
-          <Lock className="absolute left-4 w-5 h-5 text-slate-400 dark:text-slate-500 pointer-events-none" />
+        <div className="relative">
           <Input
             id="password"
             type={showPassword ? "text" : "password"}
-            placeholder="Mínimo 8 caracteres"
+            placeholder="Minimo 8 caracteres"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={8}
             disabled={isLoading || success}
-            className="h-12 pl-12 pr-12 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 dark:focus:ring-emerald-400/20 rounded-xl transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            className="h-12 px-4 pr-12 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             disabled={isLoading || success}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition-colors disabled:opacity-50"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-50"
             aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
         </div>
-      </motion.div>
+      </div>
 
-      <motion.div
-        className="space-y-2"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.35 }}
-      >
-        <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-700 dark:text-slate-300">
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-300">
           Confirmar Senha
         </Label>
-        <div className="relative flex items-center">
-          <Lock className="absolute left-4 w-5 h-5 text-slate-400 dark:text-slate-500 pointer-events-none" />
+        <div className="relative">
           <Input
             id="confirmPassword"
             type={showConfirmPassword ? "text" : "password"}
@@ -413,52 +354,47 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
             required
             minLength={8}
             disabled={isLoading || success}
-            className="h-12 pl-12 pr-12 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600 focus:border-emerald-500 dark:focus:border-emerald-400 focus:ring-2 focus:ring-emerald-500/20 dark:focus:ring-emerald-400/20 rounded-xl transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+            className="h-12 px-4 pr-12 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
           />
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             disabled={isLoading || success}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-400 transition-colors disabled:opacity-50"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-50"
             aria-label={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
           >
             {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
           </button>
         </div>
-      </motion.div>
+      </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
+      <button
+        type="submit"
+        disabled={isLoading || success}
+        className="w-full h-12 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] border-0 text-white disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        style={{
+          background: success
+            ? 'linear-gradient(135deg, #059669 0%, #0d9488 100%)'
+            : 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
+        }}
       >
-        <motion.button
-          type="submit"
-          disabled={isLoading || success}
-          className="w-full h-12 rounded-full py-3 text-base font-semibold shadow-[0_10px_40px_rgba(16,185,129,0.3)] hover:scale-105 active:scale-95 transition-all border-0 text-white disabled:opacity-70 disabled:cursor-not-allowed"
-          style={{
-            background: success
-              ? 'linear-gradient(135deg, #059669 0%, #0d9488 100%)'
-              : 'linear-gradient(135deg, #10B981 0%, #14B8A6 100%)'
-          }}
-          whileHover={!isLoading && !success ? { scale: 1.05 } : {}}
-          whileTap={!isLoading && !success ? { scale: 0.95 } : {}}
-        >
-          {isLoading ? (
-            <span className="flex items-center justify-center gap-2">
-              <Loader2 className="h-5 w-5 animate-spin" />
-              Criando conta...
-            </span>
-          ) : success ? (
-            <span className="flex items-center justify-center gap-2">
-              <CheckCircle2 className="h-5 w-5" />
-              Conta criada!
-            </span>
-          ) : (
-            `Começar teste de ${trialLabel}`
-          )}
-        </motion.button>
-      </motion.div>
+        {isLoading ? (
+          <>
+            <Loader2 className="h-5 w-5 animate-spin" />
+            Criando conta...
+          </>
+        ) : success ? (
+          <>
+            <CheckCircle2 className="h-5 w-5" />
+            Conta criada!
+          </>
+        ) : (
+          <>
+            Comecar teste de {trialLabel}
+            <ArrowRight className="h-5 w-5" />
+          </>
+        )}
+      </button>
     </form>
   )
 }
