@@ -8,7 +8,7 @@
  */
 
 import {
-  Sparkles, Microscope, GraduationCap, BookOpen, Eye, PenTool, MessageCircle
+  Sparkles
 } from "lucide-react"
 import { cn } from '@/lib/utils'
 import { getAgentUI } from '@/lib/ai/agents/ui-config'
@@ -30,38 +30,6 @@ export const AGENT_PILLS: AgentPill[] = [
     fullName: 'Odonto GPT',
     placeholder: 'Pergunte sobre odontologia...',
     color: '#00A3FF',
-  },
-  {
-    id: 'odonto-research',
-    icon: <Microscope className="w-4 h-4" />,
-    shortName: 'Research',
-    fullName: 'Pesquisa Cientifica',
-    placeholder: 'Busque evidencias cientificas...',
-    color: '#00A3FF',
-  },
-  {
-    id: 'odonto-practice',
-    icon: <GraduationCap className="w-4 h-4" />,
-    shortName: 'Practice',
-    fullName: 'Casos Clinicos',
-    placeholder: 'Pratique com casos clinicos...',
-    color: '#A855F7',
-  },
-  {
-    id: 'odonto-summary',
-    icon: <BookOpen className="w-4 h-4" />,
-    shortName: 'Summary',
-    fullName: 'Resumos',
-    placeholder: 'Crie resumos e flashcards...',
-    color: '#EC4899',
-  },
-  {
-    id: 'odonto-vision',
-    icon: <Eye className="w-4 h-4" />,
-    shortName: 'Vision',
-    fullName: 'Analise de Imagens',
-    placeholder: 'Envie radiografias para analise...',
-    color: '#06B6D4',
   },
 ]
 
