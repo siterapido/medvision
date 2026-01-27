@@ -178,7 +178,11 @@ export async function POST(req: Request) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
 
     if (authError || !user) {
-      console.warn('[Chat] Unauthorized request - no valid session')
+      console.warn('[Chat] Unauthorized request - no valid session', {
+        authError: authError?.message,
+        hasUser: !!user,
+        cookies: req.headers.get('cookie')?.substring(0, 100), // Log first 100 chars of cookies
+      })
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { 'Content-Type': 'application/json' },

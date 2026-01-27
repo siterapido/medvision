@@ -57,6 +57,18 @@ const subscriptionStatuses = {
   REFUNDED: 'refunded'
 } as const;
 
+// Timeout de 25s (Cakto timeout é 30s, deixamos margem de 5s)
+const WEBHOOK_TIMEOUT_MS = 25000;
+
+function withTimeout<T>(promise: Promise<T>, timeoutMs: number, transactionId?: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`WEBHOOK_TIMEOUT:${transactionId || 'unknown'}`)), timeoutMs)
+    )
+  ]);
+}
+
 serve(async (req) => {
   // CORS preflight
   if (req.method === 'OPTIONS') {
@@ -125,21 +137,53 @@ serve(async (req) => {
   if (product && !isSubscription && !courseData) {
     return jsonResponse({ error: 'Product not found' }, 404);
   }
+  const transactionId = String((data as Record<string, unknown>)?.id || '');
+
   try {
+    let result: unknown;
+
     switch (event) {
       case 'purchase_approved':
-        return jsonResponse(await handlePurchaseApproved(payload, courseData));
+        result = await withTimeout(
+          handlePurchaseApproved(payload, courseData),
+          WEBHOOK_TIMEOUT_MS,
+          transactionId
+        );
+        return jsonResponse(result);
       case 'refund':
-        return jsonResponse(await handleRefund(payload));
+        result = await withTimeout(
+          handleRefund(payload),
+          WEBHOOK_TIMEOUT_MS,
+          transactionId
+        );
+        return jsonResponse(result);
       case 'subscription_cancelled':
-        return jsonResponse(await handleCancellation(payload));
+        result = await withTimeout(
+          handleCancellation(payload),
+          WEBHOOK_TIMEOUT_MS,
+          transactionId
+        );
+        return jsonResponse(result);
       default:
         console.info('Evento ignorado:', event);
         return jsonResponse({ success: true, message: `Evento ignorado: ${event}` }, 202);
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown';
+
+    // Se for timeout, retornamos 202 para evitar retry do Cakto
+    if (errorMessage.startsWith('WEBHOOK_TIMEOUT:')) {
+      console.warn('Webhook timeout, processamento continuará em background:', transactionId);
+      return jsonResponse({
+        success: true,
+        message: 'Processing async due to timeout',
+        transactionId,
+        async: true
+      }, 202);
+    }
+
     console.error('Erro ao processar webhook:', error);
-    return jsonResponse({ error: 'Erro interno', message: error instanceof Error ? error.message : 'Unknown' }, 500);
+    return jsonResponse({ error: 'Erro interno', message: errorMessage }, 500);
   }
 });
 
@@ -539,13 +583,19 @@ async function findUser(email: string) {
   }
 
   try {
-    const { data: { users }, error: adminError } = await supabase.auth.admin.listUsers();
+    // Otimização: usar getUserById com filtro por email ao invés de listUsers()
+    // listUsers() carrega TODOS os usuários em memória, causando lentidão
+    const { data: authUsers, error: adminError } = await supabase.auth.admin.listUsers({
+      filter: `email.eq.${email}`,
+      perPage: 1
+    });
+
     if (adminError) {
       console.error('Erro ao buscar usuario auth:', adminError);
       return null;
     }
 
-    const user = users?.find(u => u.email?.toLowerCase() === email);
+    const user = authUsers?.users?.[0];
     if (!user) return null;
 
     return {

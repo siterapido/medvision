@@ -165,6 +165,7 @@ export function useBlockingChat({
         const response = await fetch(api, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include', // Include auth cookies
           body: JSON.stringify({
             messages: apiMessages,
             agentId,

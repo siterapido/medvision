@@ -1,14 +1,14 @@
 {
   "active": [
     {
-      "slug": "fix-chat-freeze-resumo",
-      "path": "plans/fix-chat-freeze-resumo.md",
-      "title": "Corrigir travamento do chat ao solicitar resumo",
-      "summary": "Bug: O chat do Odonto GPT trava (loading infinito) quando o usuario pede um resumo. O console mostra erro \"Node cannot be found in the current page\" e multiplos logs \"[useBlockingChat] Sending messages:\".",
-      "linkedAt": "2026-01-26T16:06:33.965Z",
+      "slug": "rag-document-ingestion-testing",
+      "path": "plans/rag-document-ingestion-testing.md",
+      "title": "RAG Document Ingestion & Testing - 36 Dental Textbooks",
+      "summary": "Build and validate a production-ready RAG system by ingesting 36 dental textbooks, establishing baseline search quality metrics, and implementing comprehensive performance monitoring.",
+      "linkedAt": "2026-01-27T15:49:29.917Z",
       "status": "active"
     }
   ],
   "completed": [],
-  "primary": "fix-chat-freeze-resumo"
+  "primary": "rag-document-ingestion-testing"
 }

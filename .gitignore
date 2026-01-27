@@ -55,3 +55,7 @@ backend.log
 
 # Archived code
 _archived/
+
+# PDF textbooks
+Assuntos com PDF/
+.venv/
