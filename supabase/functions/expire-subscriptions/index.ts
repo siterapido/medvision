@@ -29,12 +29,17 @@ serve(async (req) => {
     });
   }
 
+  const result = await processExpiredSubscriptions(supabase);
+  return jsonResponse(result, result.success ? 200 : 500);
+});
+
+export async function processExpiredSubscriptions(supabaseClient: any) {
   const startTime = Date.now();
   console.log('🕐 Iniciando job de expiração de assinaturas...');
 
   try {
     // Buscar planos expirados (não-free com expires_at no passado)
-    const { data: expiredProfiles, error: fetchError } = await supabase
+    const { data: expiredProfiles, error: fetchError } = await supabaseClient
       .from('profiles')
       .select('id, email, name, plan_type, expires_at')
       .neq('plan_type', 'free')
@@ -42,19 +47,19 @@ serve(async (req) => {
 
     if (fetchError) {
       console.error('❌ Erro ao buscar planos expirados:', fetchError);
-      return jsonResponse({ error: fetchError.message }, 500);
+      return { success: false, error: fetchError.message };
     }
 
     const expiredCount = expiredProfiles?.length || 0;
     console.log(`📊 Encontrados ${expiredCount} planos expirados`);
 
     if (expiredCount === 0) {
-      return jsonResponse({
+      return {
         success: true,
         message: 'Nenhum plano expirado encontrado',
         expired_count: 0,
         duration_ms: Date.now() - startTime
-      });
+      };
     }
 
     const results: Array<{ email: string; status: 'success' | 'error'; error?: string }> = [];
@@ -62,7 +67,7 @@ serve(async (req) => {
     for (const profile of expiredProfiles || []) {
       try {
         // Atualizar perfil para free
-        const { error: updateError } = await supabase
+        const { error: updateError } = await supabaseClient
           .from('profiles')
           .update({
             plan_type: 'free',
@@ -76,7 +81,7 @@ serve(async (req) => {
         }
 
         // Registrar log da expiração
-        await supabase.from('transaction_logs').insert({
+        await supabaseClient.from('transaction_logs').insert({
           transaction_id: `exp_${profile.id}_${Date.now()}`,
           event_type: 'subscription_expired',
           user_id: profile.id,
@@ -99,7 +104,7 @@ serve(async (req) => {
         console.error(`❌ Erro ao expirar plano de ${profile.email}:`, error);
 
         // Registrar erro no log
-        await supabase.from('transaction_logs').insert({
+        await supabaseClient.from('transaction_logs').insert({
           transaction_id: `exp_err_${profile.id}_${Date.now()}`,
           event_type: 'subscription_expired',
           user_id: profile.id,
@@ -128,14 +133,14 @@ serve(async (req) => {
       });
     }
 
-    return jsonResponse({
+    return {
       success: true,
       expired_count: expiredCount,
       success_count: successCount,
       error_count: errorCount,
       duration_ms: duration,
       details: results
-    });
+    };
 
   } catch (error) {
     console.error('❌ Erro crítico no job de expiração:', error);
@@ -146,12 +151,13 @@ serve(async (req) => {
       });
     }
 
-    return jsonResponse({
+    return {
+      success: false,
       error: 'Erro interno',
       message: error instanceof Error ? error.message : 'Erro desconhecido'
-    }, 500);
+    };
   }
-});
+}
 
 function jsonResponse(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {

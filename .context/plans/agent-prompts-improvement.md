@@ -1,5 +1,5 @@
 ---
-status: active
+status: skipped
 generated: 2026-01-26
 phases:
   - id: "analysis"

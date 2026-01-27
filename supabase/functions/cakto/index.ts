@@ -21,7 +21,7 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   }
 });
 
-function extractProductId(input: string) {
+export function extractProductId(input: string) {
   const v = input.trim();
   if (!v) return DEFAULT_CAKTO_PRODUCT_ID;
   if (v.startsWith('http://') || v.startsWith('https://')) {
@@ -37,7 +37,7 @@ function extractProductId(input: string) {
   return isValidProductId(v) ? v : DEFAULT_CAKTO_PRODUCT_ID;
 }
 
-function isValidProductId(candidate: string) {
+export function isValidProductId(candidate: string) {
   return /^[A-Za-z0-9_-]+$/.test(candidate);
 }
 
@@ -119,10 +119,10 @@ serve(async (req) => {
   const product = data?.product as Record<string, unknown> | undefined;
   const productId = String(product?.id || '');
   const shortId = String(product?.short_id || '');
-  
+
   const validIds = [CAKTO_ANNUAL_PLAN_ID, CAKTO_MONTHLY_PLAN_ID, CAKTO_PRODUCT_ID];
   let isSubscription = validIds.includes(productId) || validIds.includes(shortId);
-  
+
   let courseData: { id: string; title: string } | null = null;
   if (!isSubscription && (productId || shortId)) {
     const targetId = productId || shortId;
@@ -233,7 +233,7 @@ function isTestEmail(email?: string) {
   return /(test|demo|fake)/i.test(email);
 }
 
-async function handlePurchaseApproved(payload: Record<string, unknown>, courseData: { id: string; title: string } | null = null) {
+export async function handlePurchaseApproved(payload: Record<string, unknown>, courseData: { id: string; title: string } | null = null) {
   const data = payload.data as Record<string, unknown> | undefined;
   if (!data) {
     throw new Error('Webhook sem campo data.');
@@ -253,7 +253,7 @@ async function handlePurchaseApproved(payload: Record<string, unknown>, courseDa
   const paymentMethod = String(data.paymentMethod || 'desconhecido');
   const product = data.product as Record<string, unknown> | undefined;
   const productId = String(product?.id || product?.short_id || '');
-  
+
   const isMonthly = productId === CAKTO_MONTHLY_PLAN_ID;
   const planType = isMonthly ? 'monthly' : 'annual';
 
@@ -428,7 +428,7 @@ async function handlePurchaseApproved(payload: Record<string, unknown>, courseDa
   };
 }
 
-async function handleRefund(payload: Record<string, unknown>) {
+export async function handleRefund(payload: Record<string, unknown>) {
   const data = payload.data as Record<string, unknown> | undefined;
   if (!data) throw new Error('Webhook inválido.');
   const customer = data.customer as Record<string, unknown> | undefined;
@@ -496,7 +496,7 @@ async function handleRefund(payload: Record<string, unknown>) {
   return { success: true, event: 'refund', transactionId, userId: user.id };
 }
 
-async function handleCancellation(payload: Record<string, unknown>) {
+export async function handleCancellation(payload: Record<string, unknown>) {
   const data = payload.data as Record<string, unknown> | undefined;
   if (!data) throw new Error('Webhook inválido.');
   const customer = data.customer as Record<string, unknown> | undefined;

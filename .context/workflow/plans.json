@@ -1,14 +1,14 @@
 {
   "active": [
     {
-      "slug": "rag-document-ingestion-testing",
-      "path": "plans/rag-document-ingestion-testing.md",
-      "title": "RAG Document Ingestion & Testing - 36 Dental Textbooks",
-      "summary": "Build and validate a production-ready RAG system by ingesting 36 dental textbooks, establishing baseline search quality metrics, and implementing comprehensive performance monitoring.",
-      "linkedAt": "2026-01-27T15:49:29.917Z",
+      "slug": "landing-page-trial-conversion",
+      "path": "plans/landing-page-trial-conversion.md",
+      "title": "Landing Page - Conversão Trial",
+      "summary": "Atualizar landing page focando em conversão para trial: remover preços, destacar Odonto GPT (base de conhecimento) e Odonto Vision (análise/laudo), marcar outros agentes como \"em breve\", atualizar frase do Roniery e garantir UX mobile-first.",
+      "linkedAt": "2026-01-27T18:30:19.042Z",
       "status": "active"
     }
   ],
   "completed": [],
-  "primary": "rag-document-ingestion-testing"
+  "primary": "landing-page-trial-conversion"
 }
