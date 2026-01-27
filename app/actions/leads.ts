@@ -408,6 +408,67 @@ export async function deleteLead(leadId: string) {
 }
 
 /**
+ * Cria um lead a partir do formulário da landing page (público - não requer autenticação)
+ */
+export async function createLeadFromLanding(data: {
+  email: string
+  phone: string
+  source?: string
+}) {
+  const supabase = await createClient()
+
+  const normalizedPhone = normalizePhone(data.phone)
+
+  if (normalizedPhone.length < 10) {
+    return { success: false, message: "Telefone inválido" }
+  }
+
+  // Verificar se já existe um lead com esse telefone
+  const { data: existingLead } = await supabase
+    .from("leads")
+    .select("id, status")
+    .eq("phone", normalizedPhone)
+    .maybeSingle()
+
+  if (existingLead) {
+    // Lead já existe - atualizar email se não tinha
+    if (!existingLead.status || existingLead.status === "novo_lead") {
+      await supabase
+        .from("leads")
+        .update({
+          email: data.email,
+          source: data.source || "landing_page",
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", existingLead.id)
+    }
+    return { success: true, message: "Lead atualizado", leadId: existingLead.id }
+  }
+
+  // Criar novo lead
+  const { data: newLead, error } = await supabase
+    .from("leads")
+    .insert({
+      phone: normalizedPhone,
+      email: data.email,
+      source: data.source || "landing_page",
+      status: "novo_lead",
+      sheet_source_name: "Landing Page",
+      sheet_source_description: "Formulário de teste grátis"
+    })
+    .select("id")
+    .single()
+
+  if (error) {
+    console.error("Erro ao criar lead:", error)
+    return { success: false, message: "Erro ao processar cadastro" }
+  }
+
+  revalidatePath("/admin/pipeline")
+  return { success: true, message: "Lead criado", leadId: newLead.id }
+}
+
+/**
  * Deleta múltiplos leads
  */
 export async function deleteLeads(leadIds: string[]) {

@@ -2,8 +2,8 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { Eye, EyeOff, Loader2, AlertCircle, CheckCircle2, Sparkles, User, Mail, Phone, Lock, Briefcase } from "lucide-react"
 import { motion } from "framer-motion"
 
@@ -28,6 +28,7 @@ type RegisterFormProps = {
 
 export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormProps) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [whatsapp, setWhatsapp] = useState("")
@@ -43,6 +44,15 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
 
   const normalizedTrialDays = normalizeTrialDays(trialDays)
   const trialLabel = `${normalizedTrialDays} dia${normalizedTrialDays > 1 ? "s" : ""}`
+
+  // Pré-preencher campos com dados da landing page
+  useEffect(() => {
+    const emailParam = searchParams.get('email')
+    const whatsappParam = searchParams.get('whatsapp')
+
+    if (emailParam) setEmail(emailParam)
+    if (whatsappParam) setWhatsapp(whatsappParam)
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()

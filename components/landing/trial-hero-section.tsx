@@ -8,6 +8,7 @@ import { motion } from "framer-motion"
 import { FadeIn } from "@/components/ui/animations"
 import { ArrowRight, Sparkles, Mail, Phone, Lock } from "lucide-react"
 import { AgentHeroVisual } from "@/components/landing/agent-hero-visual"
+import { createLeadFromLanding } from "@/app/actions/leads"
 
 export function TrialHeroSection() {
   const [formData, setFormData] = useState({
@@ -17,6 +18,7 @@ export function TrialHeroSection() {
   })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitted, setSubmitted] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {}
@@ -46,16 +48,37 @@ export function TrialHeroSection() {
     return Object.keys(newErrors).length === 0
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     if (validateForm()) {
-      // Here you would normally send the data to your backend
-      setSubmitted(true)
-      // Redirect after a short delay
-      setTimeout(() => {
-        window.location.href = '/register'
-      }, 2000)
+      setIsSubmitting(true)
+
+      try {
+        // Salvar lead no banco de dados para aparecer no pipeline
+        await createLeadFromLanding({
+          email: formData.email,
+          phone: formData.whatsapp,
+          source: 'landing_page'
+        })
+
+        setSubmitted(true)
+
+        // Redirecionar para registro com dados pré-preenchidos
+        const params = new URLSearchParams({
+          email: formData.email,
+          whatsapp: formData.whatsapp,
+          from: 'landing'
+        })
+
+        setTimeout(() => {
+          window.location.href = `/register?${params.toString()}`
+        }, 1500)
+      } catch (error) {
+        console.error('Erro ao enviar formulário:', error)
+        setErrors({ submit: 'Erro ao processar. Tente novamente.' })
+        setIsSubmitting(false)
+      }
     }
   }
 
@@ -189,19 +212,23 @@ export function TrialHeroSection() {
                 {/* Submit Button */}
                 <motion.button
                   type="submit"
-                  disabled={submitted}
+                  disabled={submitted || isSubmitting}
                   className="w-full rounded-full py-4 text-base font-semibold shadow-[0_10px_40px_rgba(16,185,129,0.3)] hover:scale-105 active:scale-95 transition-all border-0 text-white disabled:opacity-70 disabled:cursor-not-allowed"
                   style={{
                     background: submitted
                       ? 'linear-gradient(135deg, #059669 0%, #0d9488 100%)'
                       : 'linear-gradient(135deg, #10B981 0%, #14B8A6 100%)'
                   }}
-                  whileHover={!submitted ? { scale: 1.05 } : {}}
-                  whileTap={!submitted ? { scale: 0.95 } : {}}
+                  whileHover={!submitted && !isSubmitting ? { scale: 1.05 } : {}}
+                  whileTap={!submitted && !isSubmitting ? { scale: 0.95 } : {}}
                 >
                   {submitted ? (
                     <span className="flex items-center justify-center gap-2">
                       ✓ Iniciando seu teste...
+                    </span>
+                  ) : isSubmitting ? (
+                    <span className="flex items-center justify-center gap-2">
+                      Processando...
                     </span>
                   ) : (
                     <span className="flex items-center justify-center gap-2">
@@ -210,6 +237,10 @@ export function TrialHeroSection() {
                     </span>
                   )}
                 </motion.button>
+
+                {errors.submit && (
+                  <p className="text-red-400 text-xs text-center">{errors.submit}</p>
+                )}
 
                 <p className="text-xs text-slate-500 text-center">
                   Sem compromisso. Cancele a qualquer momento.
