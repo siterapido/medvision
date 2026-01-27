@@ -92,27 +92,27 @@ export function NotesModal({ open, onOpenChange, userId, userName }: NotesModalP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 border-slate-700">
+      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col bg-[#020617] border-[rgba(148,163,184,0.12)] shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="text-white flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-cyan-400" />
+          <DialogTitle className="text-[#f8fafc] flex items-center gap-2.5">
+            <MessageSquare className="h-5 w-5 text-[#06b6d4]" />
             Notas do Lead
             {userName && (
-              <span className="text-slate-400 font-normal text-sm">({userName})</span>
+              <span className="text-[#94a3b8] font-normal text-sm">({userName})</span>
             )}
           </DialogTitle>
-          <DialogDescription className="text-slate-400">
+          <DialogDescription className="text-[#94a3b8]">
             Adicione e gerencie anotações sobre este lead no pipeline de conversão.
           </DialogDescription>
         </DialogHeader>
 
         <div className="flex-1 flex flex-col gap-4 min-h-0">
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Textarea
               value={newNote}
               onChange={(e) => setNewNote(e.target.value)}
               placeholder="Digite sua nota aqui..."
-              className="bg-slate-800/50 border-slate-600 text-white placeholder:text-slate-500 min-h-[100px] resize-none"
+              className="bg-[#0a0f1f] border-[rgba(148,163,184,0.08)] text-[#f8fafc] placeholder:text-[#64748b] min-h-[100px] resize-none focus:border-[#06b6d4] focus:ring-1 focus:ring-[rgba(6,182,212,0.15)]"
               onKeyDown={(e) => {
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                   e.preventDefault()
@@ -123,7 +123,7 @@ export function NotesModal({ open, onOpenChange, userId, userName }: NotesModalP
             <Button
               onClick={handleAddNote}
               disabled={!newNote.trim() || isPending}
-              className="w-full bg-cyan-600 hover:bg-cyan-700 text-white"
+              className="w-full bg-gradient-to-r from-[#0891b2] to-[#06b6d4] hover:from-[#0e7490] hover:to-[#0891b2] text-white font-medium transition-all"
             >
               {isPending ? (
                 <>
@@ -133,7 +133,7 @@ export function NotesModal({ open, onOpenChange, userId, userName }: NotesModalP
               ) : (
                 <>
                   Adicionar Nota
-                  <span className="text-xs ml-2 text-slate-300">(Ctrl+Enter)</span>
+                  <span className="text-xs ml-2 opacity-80">(⌘+Enter)</span>
                 </>
               )}
             </Button>
@@ -142,31 +142,31 @@ export function NotesModal({ open, onOpenChange, userId, userName }: NotesModalP
           <div className="flex-1 min-h-0">
             <ScrollArea className="h-full">
               {isLoading ? (
-                <div className="flex items-center justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-cyan-500" />
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-6 w-6 animate-spin text-[#06b6d4]" />
                 </div>
               ) : notes.length === 0 ? (
-                <div className="text-center py-8 text-slate-400">
-                  <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p>Nenhuma nota adicionada ainda.</p>
+                <div className="text-center py-12 text-[#64748b]">
+                  <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-30" />
+                  <p className="text-sm">Nenhuma nota adicionada ainda.</p>
                 </div>
               ) : (
                 <div className="space-y-3">
                   {notes.map((note) => (
                     <div
                       key={note.id}
-                      className="rounded-lg border border-slate-700 bg-slate-800/50 p-4 space-y-2"
+                      className="rounded-xl border border-[rgba(148,163,184,0.08)] bg-[#0f172a] p-4 space-y-3 hover:border-[rgba(148,163,184,0.12)] transition-colors"
                     >
-                      <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
-                          <p className="text-sm text-white whitespace-pre-wrap">{note.note}</p>
+                          <p className="text-sm text-[#f8fafc] whitespace-pre-wrap leading-relaxed">{note.note}</p>
                         </div>
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleDeleteNote(note.id)}
                           disabled={deletingId === note.id}
-                          className="h-8 w-8 p-0 text-slate-400 hover:text-red-400 hover:bg-red-500/10"
+                          className="h-8 w-8 p-0 text-[#64748b] hover:text-[#f87171] hover:bg-[rgba(248,113,113,0.12)]"
                         >
                           {deletingId === note.id ? (
                             <Loader2 className="h-4 w-4 animate-spin" />
@@ -175,7 +175,7 @@ export function NotesModal({ open, onOpenChange, userId, userName }: NotesModalP
                           )}
                         </Button>
                       </div>
-                      <div className="flex items-center justify-between text-xs text-slate-500">
+                      <div className="flex items-center justify-between text-xs text-[#64748b] pt-2 border-t border-[rgba(148,163,184,0.08)]">
                         <span>
                           Por: {note.profiles?.name || note.profiles?.email || "Admin"}
                         </span>

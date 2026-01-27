@@ -51,55 +51,55 @@ export function FollowupScheduler({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-slate-900 border-slate-800 text-slate-100">
+      <DialogContent className="sm:max-w-[425px] bg-[#020617] border-[rgba(148,163,184,0.12)] text-[#f8fafc] shadow-2xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CalendarClock className="h-5 w-5 text-pink-500" />
+          <DialogTitle className="flex items-center gap-2.5">
+            <CalendarClock className="h-5 w-5 text-[#06b6d4]" />
             Agendar Follow-up
           </DialogTitle>
-          <DialogDescription className="text-slate-400">
+          <DialogDescription className="text-[#94a3b8]">
             Defina uma data e hora para entrar em contato com este lead.
           </DialogDescription>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+
+        <form onSubmit={handleSubmit} className="space-y-5 pt-4">
           <div className="space-y-2">
-            <Label htmlFor="date" className="text-slate-300">Data e Hora</Label>
+            <Label htmlFor="date" className="text-[#cbd5e1] font-medium">Data e Hora</Label>
             <Input
               id="date"
               type="datetime-local"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="bg-slate-950 border-slate-800 text-slate-100 focus:ring-pink-500"
+              className="bg-[#0a0f1f] border-[rgba(148,163,184,0.08)] text-[#f8fafc] focus:border-[#06b6d4] focus:ring-1 focus:ring-[rgba(6,182,212,0.15)]"
               required
             />
           </div>
-          
+
           <div className="space-y-2">
-            <Label htmlFor="note" className="text-slate-300">Observação</Label>
+            <Label htmlFor="note" className="text-[#cbd5e1] font-medium">Observação</Label>
             <Textarea
               id="note"
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder="Ex: Ligar para verificar se conseguiu acessar o curso..."
-              className="bg-slate-950 border-slate-800 text-slate-100 focus:ring-pink-500 min-h-[100px]"
+              className="bg-[#0a0f1f] border-[rgba(148,163,184,0.08)] text-[#f8fafc] placeholder:text-[#64748b] focus:border-[#06b6d4] focus:ring-1 focus:ring-[rgba(6,182,212,0.15)] min-h-[100px]"
               required
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-2">
+          <div className="flex justify-end gap-3 pt-3">
             <Button
               type="button"
               variant="ghost"
               onClick={() => onOpenChange(false)}
-              className="hover:bg-slate-800 hover:text-slate-200"
+              className="hover:bg-[#0f172a] text-[#94a3b8] hover:text-[#f8fafc]"
             >
               Cancelar
             </Button>
             <Button
               type="submit"
               disabled={isPending || !date || !note.trim()}
-              className="bg-pink-600 hover:bg-pink-700 text-white"
+              className="bg-gradient-to-r from-[#0891b2] to-[#06b6d4] hover:from-[#0e7490] hover:to-[#0891b2] text-white font-medium transition-all"
             >
               {isPending ? (
                 <>

@@ -140,30 +140,39 @@ function DroppableColumn({ stage, leads, isDragging, onStageChange }: DroppableC
     <div
       ref={setNodeRef}
       className={cn(
-        "shrink-0 w-72 h-[calc(100vh-140px)] flex flex-col bg-slate-800/40 rounded-lg overflow-hidden transition-colors border-t-2",
+        "shrink-0 w-72 h-[calc(100vh-140px)] flex flex-col rounded-lg overflow-hidden transition-all duration-200",
+        // Surface usando system.md --surface-200 equivalente
+        "bg-[#0f172a]",
+        // Border sutil do design system
+        "border border-[rgba(148,163,184,0.08)]",
+        // Borda superior colorida (signature do sistema)
+        "border-t-2",
         stage.color,
-        isOver && "bg-slate-700/60 ring-1 ring-inset ring-cyan-400/30"
+        // Hover state com glow sutil (signature)
+        isOver && "border-[rgba(6,182,212,0.3)] shadow-[0_0_20px_rgba(6,182,212,0.15)]"
       )}
     >
       {/* Column Header */}
-      <div className="flex items-center justify-between px-3 py-2.5 shrink-0 bg-slate-700/30">
-        <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wide">{stage.title}</h3>
-        <span className="text-[10px] font-medium text-slate-400 bg-slate-800/60 px-1.5 py-0.5 rounded">
+      <div className="flex items-center justify-between px-4 py-3 shrink-0 border-b border-[rgba(148,163,184,0.08)]">
+        <h3 className="text-xs font-semibold text-[#f8fafc] uppercase tracking-wider">
+          {stage.title}
+        </h3>
+        <span className="text-[10px] font-medium text-[#94a3b8] bg-[#020617] px-2 py-0.5 rounded-md border border-[rgba(148,163,184,0.08)]">
           {leads.length}
         </span>
       </div>
 
       {/* Column Content */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
-        <div className={cn("p-2 space-y-2 min-h-[100px]")}>
+      <div className="flex-1 overflow-y-auto">
+        <div className={cn("p-3 space-y-2.5 min-h-[100px]")}>
           {leads.map((lead) => (
             <LeadCard key={lead.id} lead={lead} onStageChange={onStageChange} />
           ))}
           {leads.length === 0 && (
-            <div className="flex flex-col items-center justify-center gap-1.5 py-12 text-center opacity-40">
-              <Clock3 className="h-4 w-4 text-slate-600" />
-              <p className="text-[10px] text-slate-500 font-medium">
-                {isDragging ? "Solte aqui" : "Vazio"}
+            <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
+              <Clock3 className="h-5 w-5 text-[#64748b] opacity-40" />
+              <p className="text-xs text-[#64748b] font-medium">
+                {isDragging ? "Solte aqui" : "Nenhum lead"}
               </p>
             </div>
           )}
@@ -279,26 +288,26 @@ export function PipelineKanbanBoard({ leads }: { leads: PipelineLead[] }) {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="flex flex-col h-full bg-[#030711]">
-        {/* Minimalist Header */}
-        <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-slate-900">
+      <div className="flex flex-col h-full bg-[#020617]">
+        {/* Header com design system */}
+        <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-[rgba(148,163,184,0.08)]">
           <div className="flex items-baseline gap-3">
-            <h2 className="text-lg font-medium text-slate-100">Conversão Trial</h2>
-            <span className="text-xs text-slate-500 font-mono">
+            <h2 className="text-xl font-semibold text-[#f8fafc]">Pipeline de Conversão</h2>
+            <span className="text-xs text-[#94a3b8] font-medium">
               {filteredCount} leads
             </span>
           </div>
           <Input
             value={search}
             onChange={(event) => setSearch(event.target.value)}
-            placeholder="Filtrar leads..."
-            className="h-8 w-64 bg-slate-950 border-slate-800 text-slate-300 placeholder:text-slate-600 text-xs focus:ring-1 focus:ring-slate-700"
+            placeholder="Buscar por nome, email, profissão..."
+            className="h-9 w-80 bg-[#0a0f1f] border-[rgba(148,163,184,0.08)] text-[#f8fafc] placeholder:text-[#64748b] text-sm focus:border-[#06b6d4] focus:ring-1 focus:ring-[rgba(6,182,212,0.15)] transition-all"
           />
         </div>
 
-        {/* Board */}
+        {/* Board com espaçamento refinado */}
         <div className="flex-1 overflow-x-auto">
-          <div className="flex flex-row gap-3 p-4 min-w-max h-full items-stretch">
+          <div className="flex flex-row gap-4 p-6 min-w-max h-full items-stretch">
             {STAGES.map((stage) => (
               <DroppableColumn
                 key={stage.id}
@@ -314,7 +323,7 @@ export function PipelineKanbanBoard({ leads }: { leads: PipelineLead[] }) {
 
       <DragOverlay>
         {activeLead ? (
-          <div className="opacity-80 rotate-2 cursor-grabbing scale-105">
+          <div className="opacity-90 rotate-1 cursor-grabbing scale-[1.02] transition-transform">
             <LeadCard lead={activeLead} isDragOverlay />
           </div>
         ) : null}

@@ -127,58 +127,63 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
         ref={setNodeRef}
         style={style}
         className={cn(
-          "group relative flex flex-col gap-2 rounded-md border border-slate-700 bg-slate-800/60 p-2.5 hover:border-slate-600 transition-all",
-          isDragging && !isDragOverlay && "opacity-50",
+          "group relative flex flex-col gap-2.5 rounded-xl border p-3 transition-all duration-200",
+          // Surface e border do design system
+          "bg-[#0f172a] border-[rgba(148,163,184,0.08)]",
+          // Hover com glow sutil (signature)
+          "hover:border-[rgba(148,163,184,0.12)] hover:shadow-[0_0_20px_rgba(6,182,212,0.1)]",
+          isDragging && !isDragOverlay && "opacity-40",
           !isDragOverlay && "cursor-pointer active:cursor-grabbing",
-          isUrgent && "border-l-2 border-l-red-400 bg-red-500/10"
+          // Urgente: borda esquerda vermelha + glow vermelho
+          isUrgent && "border-l-2 border-l-[#f87171] shadow-[0_0_20px_rgba(248,113,113,0.15)]"
         )}
         onClick={() => !isDragOverlay && setDetailsOpen(true)}
       >
-        {/* Header Compacto */}
+        {/* Header refinado */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 mb-0.5">
+            <div className="flex items-center gap-2 mb-1">
               <button
                 {...listeners}
                 {...attributes}
-                className="text-slate-600 hover:text-slate-400 -ml-1 cursor-grab active:cursor-grabbing p-0.5 hover:bg-slate-700/50 rounded"
+                className="text-[#64748b] hover:text-[#cbd5e1] cursor-grab active:cursor-grabbing p-1 hover:bg-[#131d37] rounded transition-colors"
                 onClick={(e) => e.stopPropagation()}
               >
                 <GripVertical className="h-3.5 w-3.5" />
               </button>
-              <span className="font-medium text-sm text-slate-200 truncate block">
+              <span className="font-semibold text-sm text-[#f8fafc] truncate block">
                 {lead.name || "Lead sem nome"}
               </span>
             </div>
-            <div className="flex items-center gap-2 text-[10px] text-slate-500 pl-4">
+            <div className="flex items-center gap-2 text-[10px] text-[#94a3b8] pl-[30px]">
               <span className="truncate">{lead.email}</span>
-              {ageLabel && <span>• {ageLabel}</span>}
+              {ageLabel && <span className="text-[#64748b]">• {ageLabel}</span>}
             </div>
           </div>
           
-          <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
+          <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
             <Button
                variant="ghost"
                size="icon"
-               className="h-6 w-6 text-slate-500 hover:text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity"
+               className="h-7 w-7 text-[#64748b] hover:text-[#06b6d4] hover:bg-[#131d37] opacity-0 group-hover:opacity-100 transition-all"
                onClick={() => setDetailsOpen(true)}
                title="Expandir detalhes"
             >
               <Maximize2 className="h-3.5 w-3.5" />
             </Button>
-            
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 text-slate-400 hover:text-slate-200"
+                  className="h-7 w-7 text-[#94a3b8] hover:text-[#f8fafc] hover:bg-[#131d37]"
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-slate-800 border-slate-700">
-                <div className="px-2 py-1.5 text-xs font-semibold text-slate-400">
+              <DropdownMenuContent align="end" className="w-48 bg-[#0f172a] border-[rgba(148,163,184,0.12)]">
+                <div className="px-2 py-1.5 text-xs font-semibold text-[#64748b] uppercase tracking-wide">
                   Mover para...
                 </div>
                 {Object.entries(STAGE_LABELS).map(([key, label]) => (
@@ -186,14 +191,14 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
                     key={key}
                     onClick={() => handleStageChange(key as PipelineStage)}
                     className={cn(
-                      "text-xs cursor-pointer",
-                      currentStage === key && "bg-slate-800 text-cyan-400"
+                      "text-xs cursor-pointer text-[#cbd5e1] hover:bg-[#131d37]",
+                      currentStage === key && "bg-[rgba(6,182,212,0.15)] text-[#06b6d4]"
                     )}
                   >
                     {label}
                   </DropdownMenuItem>
                 ))}
-                <DropdownMenuSeparator className="bg-slate-700" />
+                <DropdownMenuSeparator className="bg-[rgba(148,163,184,0.08)]" />
                 {whatsappUrl && (
                   <DropdownMenuItem asChild>
                     <a 
@@ -222,35 +227,35 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
           </div>
         </div>
 
-        {/* Badges Minimalistas */}
-        <div className="flex flex-wrap gap-1.5 pl-4">
+        {/* Badges refinados */}
+        <div className="flex flex-wrap gap-1.5 pl-[30px]">
           {isPaid ? (
-            <Badge variant="secondary" className="h-4 px-1.5 text-[9px] font-medium bg-indigo-400/20 text-indigo-200 hover:bg-indigo-400/30 border-0">
+            <Badge variant="secondary" className="h-5 px-2 text-[10px] font-medium bg-[rgba(139,92,246,0.12)] text-[#c4b5fd] border border-[rgba(139,92,246,0.2)]">
               {lead.plan_type}
             </Badge>
           ) : (
-            <Badge variant="outline" className="h-4 px-1.5 text-[9px] font-normal border-slate-600 text-slate-400">
+            <Badge variant="outline" className="h-5 px-2 text-[10px] font-normal border-[rgba(148,163,184,0.2)] text-[#94a3b8]">
               Free
             </Badge>
           )}
-          
+
           {lead.profession && (
-            <Badge variant="outline" className="h-4 px-1.5 text-[9px] font-normal border-slate-600 text-slate-300">
+            <Badge variant="outline" className="h-5 px-2 text-[10px] font-normal border-[rgba(148,163,184,0.2)] text-[#cbd5e1]">
               {lead.profession}
             </Badge>
           )}
 
           {daysRemaining !== null && (
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className={cn(
-                "h-4 px-1.5 text-[9px] border-0",
-                isUrgent 
-                  ? "bg-red-400/20 text-red-200 font-medium" 
-                  : "bg-cyan-400/20 text-cyan-200"
+                "h-5 px-2 text-[10px] border",
+                isUrgent
+                  ? "bg-[rgba(248,113,113,0.12)] text-[#fca5a5] border-[rgba(248,113,113,0.3)] font-semibold"
+                  : "bg-[rgba(6,182,212,0.12)] text-[#06b6d4] border-[rgba(6,182,212,0.3)]"
               )}
             >
-              {daysRemaining === 0 ? "Expirou hoje" : `${daysRemaining}d restantes`}
+              {daysRemaining === 0 ? "Expira hoje" : `${daysRemaining}d`}
             </Badge>
           )}
         </div>
