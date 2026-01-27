@@ -39,7 +39,7 @@ export function AiVisionSection() {
         <section ref={ref} className="py-24 relative overflow-hidden bg-[#0F192F]">
             {/* Background effects */}
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-500/5 rounded-full blur-[120px] pointer-events-none" />
-            
+
             <div className="container mx-auto px-4 max-w-6xl">
                 <div className="grid lg:grid-cols-2 gap-12 items-center">
                     <FadeIn direction="right">
@@ -48,22 +48,19 @@ export function AiVisionSection() {
                                 <Eye className="w-4 h-4" />
                                 <span>Odonto Vision (Pro)</span>
                             </div>
-                            
+
                             <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight">
-                                Inteligência Artificial em <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">Odontologia</span>
+                                Analisa e Lauda <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">Radiografias</span>
                             </h2>
-                            
+
                             <div className="space-y-6 text-lg text-slate-300 leading-relaxed">
                                 <p>
-                                    Com base em livros e artigos científicos.
+                                    Envie radiografias odontológicas e receba laudos automáticos
+                                    com sugestões diagnósticas baseadas em IA.
                                 </p>
-                                
+
                                 <p className="font-medium text-slate-100 text-xl border-l-4 border-purple-500 pl-4 py-1">
-                                    Já imaginou enviar uma radiografia odontológica e a IA laudar para você?
-                                </p>
-                                
-                                <p>
-                                    Agora é possível com a <strong className="text-white">OdontoGPT</strong>.
+                                    Já imaginou enviar uma radiografia e a IA laudar para você?
                                 </p>
                             </div>
 
@@ -85,7 +82,7 @@ export function AiVisionSection() {
                     <FadeIn direction="left" delay={0.2}>
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-indigo-500/20 blur-xl rounded-2xl" />
-                             <Card className="p-6 bg-slate-900/80 border-purple-500/30 backdrop-blur-xl rounded-2xl overflow-hidden relative z-10">
+                            <Card className="p-6 bg-slate-900/80 border-purple-500/30 backdrop-blur-xl rounded-2xl overflow-hidden relative z-10">
                                 {/* Visual content from AgentDemoVision */}
                                 <div className="flex items-center gap-3 mb-6 pb-4 border-b border-slate-700">
                                     <motion.div
@@ -189,7 +186,7 @@ export function AiVisionSection() {
                                         </div>
                                     </motion.div>
                                 )}
-                             </Card>
+                            </Card>
                         </div>
                     </FadeIn>
                 </div>

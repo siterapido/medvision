@@ -235,7 +235,7 @@ export default function LandingPage() {
 
                 <FadeIn delay={0.2} direction="up">
                   <div className="space-y-4">
-                     <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0 font-medium">
+                    <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0 font-medium">
                       Inteligência artificial específica para odontologia com base em livros e artigos científicos.
                     </p>
                     <p className="text-base sm:text-xl text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
@@ -764,8 +764,8 @@ export default function LandingPage() {
                 <div className="space-y-4">
                   <p className="text-lg font-medium text-slate-200 leading-relaxed relative">
                     <span className="text-6xl absolute -top-6 -left-4 text-[#2399B4]/20 font-serif">&quot;</span>
-                    Criei a Odonto GPT para ser o consultor que eu gostaria de ter tido durante minha formação -
-                    acessível 24/7, sem julgamentos, e com respostas fundamentadas na literatura que realmente importa.
+                    Cada resposta que você recebe passa pela minha curadoria técnica, garantindo que
+                    esteja sempre alinhada com as melhores práticas da odontologia moderna.
                   </p>
                 </div>
 
@@ -788,179 +788,13 @@ export default function LandingPage() {
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-[#1A2847]">
-                  <p className="text-sm text-slate-400 italic">
-                    &quot;Cada resposta que você recebe passa pela minha curadoria técnica, garantindo que
-                    esteja sempre alinhada com as melhores práticas da odontologia moderna.&quot;
-                  </p>
-                </div>
+
               </FadeIn>
             </div>
           </div>
         </section>
 
-        {/* Pricing */}
-        <section id="planos" className="w-full py-20 md:py-32 px-4 md:px-6 relative z-10">
 
-          <div className="mx-auto max-w-6xl space-y-10 md:space-y-12">
-            <SectionHeader
-              label="Sua Vantagem Competitiva"
-              icon={TrendingUp}
-              title="Enquanto Seus Colegas Ainda Estão no Google, Você Já Tem a Resposta"
-              description="Acesso ilimitado ao consultor de odontologia 24/7 que vai te fazer economizar horas de estudo e te poupar de constrangimentos na clínica"
-              align="center"
-            />
-
-            {/* Planos Anuais - Centralized */}
-            <div className="flex flex-col lg:flex-row justify-center gap-6 md:gap-8 max-w-5xl mx-auto">
-
-              {/* Plano Anual - Mais Econômico */}
-              <ScaleIn delay={0.2} className="h-full">
-                <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-[3px] shadow-2xl md:scale-[1.04] w-full min-h-[480px] flex flex-col h-full bg-[#16243F] border-[#2399B4] hover:shadow-[0_20px_60px_rgba(35,153,180,0.3)]">
-                  {/* Spotlight Bg */}
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(8,145,178,0.15)_0%,_transparent_70%)]" />
-
-                  {/* Fita de oferta especial */}
-                  <div className="pointer-events-none absolute -right-14 top-6 rotate-45 z-10">
-                    <span className="bg-[#06b6d4] text-white px-16 py-1 text-xs font-semibold shadow-md">Oferta Especial</span>
-                  </div>
-                  <div className="text-center mb-5 relative z-10">
-                    <div className="flex justify-center mb-2">
-                      <span className="bg-[#0891b2] text-white px-3 py-1 rounded-full text-xs font-semibold">ESCOLHA INTELIGENTE</span>
-                    </div>
-                    <h3 className="text-xl font-bold mb-1 text-white">Plano Anual Básico</h3>
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="text-xs md:text-sm text-slate-400 line-through">Valor original: R$ 597/ano</span>
-                      <span className="text-xs md:text-sm font-semibold tracking-wide text-[#22d3ee]">35% OFF - Preço de Lançamento</span>
-                    </div>
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-3xl md:text-4xl font-extrabold text-[#22d3ee]">R$ 387</span>
-                      <span className="text-slate-400">/ano</span>
-                    </div>
-                    <div className="mt-2 text-xs md:text-sm font-medium text-[#22d3ee]">Economize R$ 210 (R$ 32,25/mês)</div>
-                  </div>
-
-                  <ul className="space-y-3 mb-6 flex-grow relative z-10">
-                    {[
-                      "Consultor 24/7 no WhatsApp",
-                      "Respostas fundamentadas em literatura",
-                      "Prescrições com dosagens corretas",
-                      "Ajuda em provas e estágios",
-                      "Live exclusiva toda quarta-feira",
-                      <>🎁 <strong>Ebook exclusivo:</strong> Validação nos EUA</>,
-                      <>🎁 <strong>Certificado mensal</strong> de participação</>,
-                      <>🎁 <strong>Acesso prioritário</strong> a novidades</>
-                    ].map((item, i) => (
-                      <li key={i} className="flex items-start gap-3 text-white">
-                        <Check className="w-5 h-5 text-[#22d3ee] flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{item}</span>
-                      </li>
-                    ))}
-                  </ul>
-
-                  <div className="mt-auto space-y-4 relative z-10">
-                    <p className="text-center text-sm font-medium text-[#22d3ee]">
-                      Inclui teste grátis de 7 dias
-                    </p>
-                    <Link href="/register" className="block">
-                      <Button className="w-full shadow-lg border-0" size="lg" style={{ background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)' }}>
-                        Começar Teste Grátis
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Button>
-                    </Link>
-                  </div>
-                </Card>
-              </ScaleIn>
-
-              {/* Plano Anual Pro - Odonto Vision */}
-              <ScaleIn delay={0.3} className="h-full">
-                <Card className="relative overflow-hidden p-8 md:p-10 transition-all border-2 border-indigo-500 shadow-[0_0_40px_rgba(99,102,241,0.15)] md:scale-[1.04] w-full min-h-[480px] flex flex-col h-full bg-[#16243F] hover:shadow-[0_20px_60px_rgba(99,102,241,0.25)] group">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(99,102,241,0.15)_0%,_transparent_70%)]" />
-
-                  {/* Fita de oferta especial */}
-                  <div className="pointer-events-none absolute -right-14 top-6 rotate-45 z-10">
-                    <span className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-16 py-1 text-xs font-semibold shadow-lg shadow-indigo-500/20">PLANO PRO</span>
-                  </div>
-                  <div className="text-center mb-5 relative z-10">
-                    <div className="flex justify-center mb-2">
-                      <span className="bg-gradient-to-r from-indigo-600 to-violet-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg shadow-indigo-500/20">MELHOR CUSTO-BENEFÍCIO</span>
-                    </div>
-                    <h3 className="text-xl font-bold mb-1 text-white">Plano Anual Pro</h3>
-                    <div className="flex flex-col items-center gap-1">
-                      <span className="text-xs md:text-sm text-slate-400 line-through">Valor original: R$ 797/ano</span>
-                      <span className="text-xs md:text-sm font-semibold tracking-wide text-indigo-400">25% OFF - Preço de Lançamento</span>
-                    </div>
-                    <div className="flex items-baseline justify-center gap-1">
-                      <span className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">R$ 597</span>
-                      <span className="text-slate-400">/ano</span>
-                    </div>
-                    <div className="mt-2 text-xs md:text-sm font-medium text-indigo-400">Economize R$ 200 (R$ 49,75/mês)</div>
-                    <div className="mt-3 p-2 bg-indigo-950/30 rounded-lg border border-indigo-500/30">
-                      <p className="text-xs font-semibold text-indigo-300">+ Curso de Farmacologia: R$ 367</p>
-                      <p className="text-xs text-indigo-400 mt-1">Valor total: R$ 964 (economize R$ 567)</p>
-                    </div>
-                  </div>
-
-                  <ul className="space-y-3 mb-6 flex-grow relative z-10">
-                    {[
-                      "Tudo do Plano Básico",
-                      <>🎓 <strong>Curso Completo de Farmacologia</strong></>
-                    ].map((item, i) => (
-                      <li key={i} className="flex items-start gap-3 text-white">
-                        <Check className="w-5 h-5 text-indigo-500 flex-shrink-0 mt-0.5" />
-                        <span className="text-sm">{item}</span>
-                      </li>
-                    ))}
-                    <li className="col-span-full mt-4">
-                      <div className="p-4 bg-[#0F192F] rounded-xl border border-cyan-500/30 shadow-lg relative overflow-hidden group-hover:border-cyan-500/50 transition-colors">
-                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 to-indigo-500/10 opacity-50" />
-                        <div className="flex items-center gap-3 mb-3 relative z-10">
-                          <div className="p-2 rounded-lg bg-gradient-to-br from-cyan-900/50 to-indigo-900/50 border border-cyan-500/30">
-                            <Eye className="w-5 h-5 text-cyan-400" />
-                          </div>
-                          <div>
-                            <div className="text-[10px] font-bold text-cyan-400 uppercase tracking-wider">Novo</div>
-                            <div className="font-bold text-sm text-white">Odonto Vision (Beta)</div>
-                          </div>
-                        </div>
-                        <p className="text-xs text-slate-300 leading-relaxed relative z-10">
-                          Envie fotos de casos clínicos e raio-x para análise instantânea de nossa IA.
-                        </p>
-                      </div>
-                    </li>
-                  </ul>
-
-                  <div className="mt-auto space-y-4">
-                    <p className="text-center text-sm font-medium text-indigo-400">
-                      Inclui teste grátis de 7 dias
-                    </p>
-                    <Link href="/register" className="block">
-                      <Button className="w-full shadow-lg border-0 text-white hover:scale-[1.02] transition-transform" size="lg" style={{ background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' }}>
-                        Começar Teste Grátis
-                        <ArrowRight className="ml-2 h-5 w-5" />
-                      </Button>
-                    </Link>
-                  </div>
-                </Card>
-              </ScaleIn>
-            </div>
-
-            {/* Trust indicators */}
-            <div className="mt-16 text-center">
-              <p className="text-sm text-muted-foreground mb-4">Pagamento seguro via kiwify</p>
-              <div className="flex items-center justify-center gap-6 text-xs text-muted-foreground">
-                <span className="flex items-center gap-2">
-                  <Shield className="w-4 h-4" />
-                  Garantia de 7 dias
-                </span>
-                <span className="flex items-center gap-2">
-                  <Lock className="w-4 h-4" />
-                  Dados Criptografados
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* FAQ Section */}
         <FAQSection />
@@ -995,7 +829,7 @@ export default function LandingPage() {
               </Link>
             </div>
             <p className="text-sm text-slate-500">
-              Teste grátis por 7 dias. Cancele quando quiser.
+              Teste grátis por 7 dias. Sem compromisso.
             </p>
           </div>
         </section>

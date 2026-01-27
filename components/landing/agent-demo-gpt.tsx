@@ -59,14 +59,15 @@ export function AgentDemoGPT() {
                         </h2>
 
                         <p className="text-lg text-slate-300 leading-relaxed">
-                            Seu assistente versátil para dúvidas rápidas do dia a dia. Respostas diretas para qualquer pergunta sobre odontologia, sem frescura.
+                            Respostas baseadas em <strong className="text-white">livros e artigos científicos</strong>.
+                            Seu consultor versátil para dúvidas do dia a dia e suporte clínico.
                         </p>
 
                         <div className="space-y-3">
                             {[
-                                "Respostas instantâneas e objetivas",
-                                "Conversação natural como um colega experiente",
-                                "Disponível 24/7 para qualquer dúvida"
+                                "Base de conhecimento científica atualizada",
+                                "Citações de literatura confiável",
+                                "Disponível 24/7"
                             ].map((item, i) => (
                                 <motion.div
                                     key={i}
