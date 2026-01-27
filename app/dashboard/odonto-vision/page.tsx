@@ -341,7 +341,7 @@ export default function OdontoVisionPage() {
     }
 
     return (
-        <div className="min-h-screen pb-20 pt-6 px-4 md:px-8 max-w-6xl mx-auto custom-scrollbar">
+        <div className="min-h-screen pb-20 pt-6 px-4 md:px-8 max-w-6xl mx-auto custom-scrollbar overflow-y-auto">
             {/* Header */}
             <header className="mb-10 space-y-2">
                 <div className="flex items-center gap-3">
@@ -856,6 +856,10 @@ export default function OdontoVisionPage() {
             <style jsx global>{`
         html {
           scroll-behavior: smooth;
+          overflow: auto;
+        }
+        body {
+          overflow: auto;
         }
         ::-webkit-scrollbar {
           width: 12px;
@@ -869,10 +873,12 @@ export default function OdontoVisionPage() {
           border-radius: 10px;
           border: 2px solid transparent;
           background-clip: content-box;
+          cursor: grab;
         }
         ::-webkit-scrollbar-thumb:hover {
           background: rgba(59, 130, 246, 1);
           background-clip: content-box;
+          cursor: grabbing;
         }
         ::-webkit-scrollbar-thumb:active {
           background: rgba(29, 78, 216, 1);
