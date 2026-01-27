@@ -858,17 +858,25 @@ export default function OdontoVisionPage() {
           scroll-behavior: smooth;
         }
         ::-webkit-scrollbar {
-          width: 8px;
+          width: 12px;
         }
         ::-webkit-scrollbar-track {
-          background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-          background: rgba(59, 130, 246, 0.5);
+          background: rgba(200, 200, 200, 0.1);
           border-radius: 10px;
         }
+        ::-webkit-scrollbar-thumb {
+          background: rgba(59, 130, 246, 0.7);
+          border-radius: 10px;
+          border: 2px solid transparent;
+          background-clip: content-box;
+        }
         ::-webkit-scrollbar-thumb:hover {
-          background: rgba(59, 130, 246, 0.8);
+          background: rgba(59, 130, 246, 1);
+          background-clip: content-box;
+        }
+        ::-webkit-scrollbar-thumb:active {
+          background: rgba(29, 78, 216, 1);
+          background-clip: content-box;
         }
       `}</style>
         </div>
