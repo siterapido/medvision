@@ -1,8 +1,11 @@
+"use client"
+
 import Link from "next/link"
 import { DEFAULT_TRIAL_DAYS, normalizeTrialDays } from "@/lib/trial"
 import { RegisterForm } from "@/components/auth/register-form"
 import { Logo } from "@/components/logo"
 import { Brain, Sparkles, Shield, Zap } from "lucide-react"
+import { use } from "react"
 
 type RegisterPageProps = {
   searchParams?: Promise<{
@@ -10,8 +13,8 @@ type RegisterPageProps = {
   }>
 }
 
-export default async function RegisterPage({ searchParams }: RegisterPageProps) {
-  const resolvedSearchParams = await searchParams
+export default function RegisterPage({ searchParams }: RegisterPageProps) {
+  const resolvedSearchParams = use(searchParams || Promise.resolve({}))
   const requestedTrial = typeof resolvedSearchParams?.trial === "string"
     ? Number(resolvedSearchParams.trial)
     : undefined
