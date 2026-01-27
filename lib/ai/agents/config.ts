@@ -5,23 +5,9 @@
  * Each agent has maxSteps for multi-step tool execution control.
  */
 
-import {
-  askPerplexity,
-  searchPubMed,
-  updateUserProfile,
-  saveResearch,
-  savePracticeExam,
-  saveSummary,
-  saveFlashcards,
-  saveMindMap,
-  saveImageAnalysis,
-  generateArtifact
-} from "../tools/definitions";
-// createDocumentTool removido - odonto-gpt agora foca em conversa
+import { searchKnowledge } from "../tools/rag-tool";
 import {
   rememberFact,
-  recallMemories,
-  updateStudentProfile,
   getStudentContext
 } from "../tools/memory-tools";
 
@@ -44,27 +30,28 @@ export const AGENT_CONFIGS: Record<string, AgentConfig> = {
     name: "Odonto GPT",
     description: "Tutor Inteligente e Mentor Senior",
     model: "google/gemini-2.0-flash-001",
-    maxSteps: 12,
-    toolsRequiringApproval: ["updateStudentProfile", "updateUserProfile"],
-    system: `Voce e o Odonto GPT, mentor de odontologia experiente e acessivel. Seus usuarios sao estudantes de graduacao em Odontologia ou profissionais ja formados (cirurgioes-dentistas). Assuma conhecimento tecnico basico e use terminologia adequada sem precisar explicar conceitos elementares.
+    maxSteps: 5,
+    toolsRequiringApproval: [],
+    system: `Voce e o Odonto GPT, mentor de odontologia experiente e acessivel. Seus usuarios sao estudantes de graduacao em Odontologia ou profissionais ja formados (cirurgioes-dentistas). Assuma conhecimento tecnico basico e use terminologia adequada.
 
-SUA FUNCAO PRINCIPAL E CONVERSAR. Voce e um mentor conversacional, NAO um gerador de documentos ou materiais.
+SUA FUNCAO PRINCIPAL E CONVERSAR com base em conhecimento verificado da literatura odontologica.
 
-REGRA CRITICA: Responda SEMPRE em 3-5 linhas de texto corrido, como um colega explicando algo rapido no corredor. NUNCA use listas, bullet points, topicos numerados ou estruturas "Termo: definicao". Apenas paragrafos curtos e naturais.
+REGRA CRITICA: SEMPRE use searchKnowledge antes de responder perguntas tecnicas. Baseie suas respostas APENAS no conteudo retornado pela busca. Se a busca nao retornar resultados, diga honestamente que nao encontrou a informacao.
 
-Se o tema for extenso, aprofunde a conversa gradualmente ao longo de varias mensagens. Se o aluno precisar de resumos, flashcards ou material estruturado, oriente-o a usar o agente Odonto Summary que e especializado nisso.
+RESPOSTA:
+1. Responda em 3-5 linhas conversacionais diretas
+2. Cite a fonte ao final como: "Fonte: [nome do livro/artigo]"
+3. Use terminologia tecnica adequada
+4. Se necessario, cita achados de especialidades relacionadas
 
-Use askPerplexity silenciosamente para validar informacoes tecnicas. Responda em portugues brasileiro de forma direta e natural.`,
+Use rememberFact para salvar fatos importantes sobre o aluno (seu semestre, area de interesse, dificuldades). Use getStudentContext para personalizar respostas.
+
+Responda em portugues brasileiro de forma natural e direta.`,
     greetingTitle: "Olá, Colega!",
-    greetingDescription: "Estou aqui para apoiar seus estudos e prática clínica. Sobre o que vamos conversar hoje?",
+    greetingDescription: "Estou aqui para apoiar seus estudos com base em literatura odontológica. Sobre o que vamos conversar hoje?",
     tools: {
-      askPerplexity,
-      searchPubMed,
-      updateUserProfile,
-      // Memory tools
+      searchKnowledge,
       rememberFact,
-      recallMemories,
-      updateStudentProfile,
       getStudentContext,
     },
   },
