@@ -12,6 +12,7 @@ import {
   Phone,
   Maximize2,
   Trash2,
+  User,
 } from "lucide-react"
 import { useDraggable } from "@dnd-kit/core"
 
@@ -54,6 +55,13 @@ type PipelineLead = {
   trial_used?: boolean | null
   created_at?: string | null
   pipeline_stage?: string | null
+  // Vendedor responsável
+  assigned_to?: string | null
+  assigned_seller?: {
+    id: string
+    name: string | null
+    email: string | null
+  } | null
 }
 
 type PipelineStage =
@@ -107,6 +115,21 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
     ? Math.max(0, getRemainingTrialDays(lead.trial_ends_at))
     : null
 
+  // Calculate trial progress (7 days total = 100%)
+  const trialProgress = (() => {
+    if (!lead.trial_started_at || !lead.trial_ends_at) return null
+    const startDate = new Date(lead.trial_started_at)
+    const endDate = new Date(lead.trial_ends_at)
+    const now = new Date()
+    const totalDuration = endDate.getTime() - startDate.getTime()
+    const elapsed = now.getTime() - startDate.getTime()
+    const progress = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100))
+    return Math.round(progress)
+  })()
+
+  // Seller info
+  const sellerName = lead.assigned_seller?.name || lead.assigned_seller?.email?.split("@")[0]
+
   const ageLabel = lead.created_at
     ? formatDistanceToNow(new Date(lead.created_at), { addSuffix: true, locale: ptBR })
     : null
@@ -159,7 +182,7 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
         ref={setNodeRef}
         style={style}
         className={cn(
-          "group relative flex flex-col gap-2.5 rounded-xl border p-3 transition-all duration-200",
+          "group relative flex flex-col gap-3 rounded-xl border p-4 transition-all duration-200",
           // Surface e border do design system
           "bg-[#0f172a] border-[rgba(148,163,184,0.08)]",
           // Hover com glow sutil (signature)
@@ -299,6 +322,40 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
             </Badge>
           )}
         </div>
+
+        {/* Trial Progress Bar */}
+        {trialProgress !== null && (
+          <div className="pl-[30px] space-y-1">
+            <div className="h-1.5 bg-[#131d37] rounded-full overflow-hidden">
+              <div
+                className={cn(
+                  "h-full transition-all duration-500 rounded-full",
+                  isUrgent
+                    ? "bg-gradient-to-r from-[#f87171] to-[#fca5a5]"
+                    : "bg-gradient-to-r from-[#0891b2] to-[#06b6d4]"
+                )}
+                style={{ width: `${trialProgress}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-[#64748b]">
+              {daysRemaining !== null && daysRemaining > 0
+                ? `${daysRemaining} dias restantes`
+                : daysRemaining === 0
+                ? "Expira hoje"
+                : "Trial expirado"}
+            </p>
+          </div>
+        )}
+
+        {/* Seller Badge */}
+        {sellerName && (
+          <div className="flex items-center gap-1.5 pl-[30px]">
+            <User className="h-3 w-3 text-[#8b5cf6]" />
+            <span className="text-[10px] font-medium text-[#c4b5fd]">
+              {sellerName}
+            </span>
+          </div>
+        )}
       </div>
 
       <LeadDetailsDialog

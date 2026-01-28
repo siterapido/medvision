@@ -15,6 +15,8 @@ import {
   MapPin,
   Phone,
   User,
+  UserCheck,
+  Users,
 } from "lucide-react"
 
 import {
@@ -27,7 +29,15 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
-import { getLeadDetails, updatePipelineStage } from "@/app/actions/pipeline"
+import { getLeadDetails, updatePipelineStage, assignLeadToSeller, getSellers } from "@/app/actions/pipeline"
+import { getRemainingTrialDays } from "@/lib/trial"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { LeadActionsBar, PipelineStage } from "./lead-actions-bar"
 import { LeadTimeline, TimelineEvent } from "./lead-timeline"
 import { FollowupScheduler } from "./followup-scheduler"
@@ -55,10 +65,13 @@ export function LeadDetailsDialog({
   const [followupOpen, setFollowupOpen] = useState(false)
   const [notesOpen, setNotesOpen] = useState(false)
   const [isUpdatingStage, startStageTransition] = useTransition()
+  const [sellers, setSellers] = useState<Array<{ id: string; name: string | null; email: string | null }>>([])
+  const [isAssigningSeller, setIsAssigningSeller] = useState(false)
 
   useEffect(() => {
     if (open && leadId) {
       loadData()
+      loadSellers()
     }
   }, [open, leadId])
 
@@ -73,6 +86,35 @@ export function LeadDetailsDialog({
       console.error("Erro ao carregar detalhes:", error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadSellers = async () => {
+    try {
+      const result = await getSellers()
+      if (result.success && result.data) {
+        setSellers(result.data)
+      }
+    } catch (error) {
+      console.error("Erro ao carregar vendedores:", error)
+    }
+  }
+
+  const handleAssignSeller = async (sellerId: string | null) => {
+    setIsAssigningSeller(true)
+    try {
+      const result = await assignLeadToSeller(leadId, sellerId)
+      if (result.success) {
+        setData((prev: any) => ({
+          ...prev,
+          profile: { ...prev.profile, assigned_to: sellerId }
+        }))
+        onStageChange?.()
+      }
+    } catch (error) {
+      console.error("Erro ao atribuir vendedor:", error)
+    } finally {
+      setIsAssigningSeller(false)
     }
   }
 
@@ -105,16 +147,37 @@ export function LeadDetailsDialog({
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(val)
 
+  // Trial progress calculation
+  const daysRemaining = profile.trial_ends_at
+    ? Math.max(0, getRemainingTrialDays(profile.trial_ends_at))
+    : null
+
+  const trialProgress = (() => {
+    if (!profile.trial_started_at || !profile.trial_ends_at) return null
+    const startDate = new Date(profile.trial_started_at)
+    const endDate = new Date(profile.trial_ends_at)
+    const now = new Date()
+    const totalDuration = endDate.getTime() - startDate.getTime()
+    const elapsed = now.getTime() - startDate.getTime()
+    const progress = Math.min(100, Math.max(0, (elapsed / totalDuration) * 100))
+    return Math.round(progress)
+  })()
+
+  const isUrgent = daysRemaining !== null && daysRemaining <= 2
+
+  // Get assigned seller info
+  const assignedSeller = sellers.find(s => s.id === profile.assigned_to)
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-4xl max-h-[90vh] flex flex-col p-0 gap-0 bg-[#020617] border-[rgba(148,163,184,0.12)] text-[#f8fafc] overflow-hidden shadow-2xl">
+        <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col p-0 gap-0 bg-[#020617] border-[rgba(148,163,184,0.12)] text-[#f8fafc] overflow-hidden shadow-2xl">
           <div className="flex flex-col h-full overflow-hidden">
             {/* Header com design system */}
             <div className="flex flex-col gap-4 px-6 py-5 border-b border-[rgba(148,163,184,0.08)] bg-[#0a0f1f]">
-              <div className="flex items-start justify-between">
-                <div className="space-y-2">
-                  <DialogTitle className="text-2xl font-semibold text-[#f8fafc] flex items-center gap-3">
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                <div className="space-y-2 flex-1">
+                  <DialogTitle className="text-2xl font-semibold text-[#f8fafc] flex items-center gap-3 flex-wrap">
                     {profile.name || leadName || "Lead sem nome"}
                     {profile.plan_type !== "free" && (
                       <Badge variant="secondary" className="bg-[rgba(139,92,246,0.12)] text-[#c4b5fd] border border-[rgba(139,92,246,0.2)] text-xs">
@@ -122,7 +185,7 @@ export function LeadDetailsDialog({
                       </Badge>
                     )}
                   </DialogTitle>
-                  <div className="flex items-center gap-4 text-sm text-[#94a3b8]">
+                  <div className="flex items-center gap-4 text-sm text-[#94a3b8] flex-wrap">
                     <span className="flex items-center gap-1.5">
                       <Mail className="h-4 w-4 text-[#64748b]" />
                       {profile.email}
@@ -135,7 +198,7 @@ export function LeadDetailsDialog({
                     )}
                   </div>
                 </div>
-                
+
                 <LeadActionsBar
                   userId={leadId}
                   currentStage={profile.pipeline_stage}
@@ -146,6 +209,48 @@ export function LeadDetailsDialog({
                   onScheduleFollowup={() => setFollowupOpen(true)}
                 />
               </div>
+
+              {/* Prominent Trial Progress Bar */}
+              {trialProgress !== null && (
+                <div className="space-y-2 bg-[#0f172a] rounded-xl p-4 border border-[rgba(148,163,184,0.08)]">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-[#94a3b8] font-medium">Progresso do Trial</span>
+                    <span className={cn(
+                      "font-semibold",
+                      isUrgent ? "text-[#f87171]" : "text-[#06b6d4]"
+                    )}>
+                      {daysRemaining !== null && daysRemaining > 0
+                        ? `${daysRemaining} dias restantes`
+                        : daysRemaining === 0
+                        ? "Expira hoje"
+                        : "Trial expirado"}
+                    </span>
+                  </div>
+                  <div className="h-3 bg-[#131d37] rounded-full overflow-hidden">
+                    <div
+                      className={cn(
+                        "h-full transition-all duration-500 rounded-full",
+                        isUrgent
+                          ? "bg-gradient-to-r from-[#f87171] to-[#fca5a5]"
+                          : "bg-gradient-to-r from-[#0891b2] to-[#06b6d4]"
+                      )}
+                      style={{ width: `${trialProgress}%` }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs text-[#64748b]">
+                    <span>
+                      {profile.trial_started_at
+                        ? format(new Date(profile.trial_started_at), "dd/MM/yyyy", { locale: ptBR })
+                        : "-"}
+                    </span>
+                    <span>
+                      {profile.trial_ends_at
+                        ? format(new Date(profile.trial_ends_at), "dd/MM/yyyy", { locale: ptBR })
+                        : "-"}
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Content */}
@@ -154,9 +259,9 @@ export function LeadDetailsDialog({
                 <Loader2 className="h-8 w-8 animate-spin text-[#06b6d4]" />
               </div>
             ) : (
-              <div className="flex-1 flex overflow-hidden">
+              <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
                 {/* Left Sidebar - Info */}
-                <div className="w-1/3 border-r border-[rgba(148,163,184,0.08)] bg-[#0a0f1f] overflow-y-auto p-6 space-y-6">
+                <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-[rgba(148,163,184,0.08)] bg-[#0a0f1f] overflow-y-auto p-6 space-y-6">
                   {/* Status do Trial */}
                   <div className="space-y-3">
                     <h3 className="text-xs font-semibold text-[#64748b] uppercase tracking-wider flex items-center gap-2">
@@ -232,6 +337,62 @@ export function LeadDetailsDialog({
                           <span className="text-xs text-[#64748b]">Origem</span>
                           <span className="text-[#f8fafc] font-medium">{profile.account_source}</span>
                         </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Vendedor Responsável */}
+                  <div className="space-y-3">
+                    <h3 className="text-xs font-semibold text-[#64748b] uppercase tracking-wider flex items-center gap-2">
+                      <UserCheck className="h-4 w-4" />
+                      Vendedor Responsável
+                    </h3>
+                    <div className="bg-[#0f172a] rounded-xl p-4 border border-[rgba(148,163,184,0.08)]">
+                      <Select
+                        value={profile.assigned_to || "none"}
+                        onValueChange={(value) => handleAssignSeller(value === "none" ? null : value)}
+                        disabled={isAssigningSeller}
+                      >
+                        <SelectTrigger className="w-full bg-[#131d37] border-[rgba(148,163,184,0.12)] text-[#f8fafc] h-10">
+                          <SelectValue placeholder="Selecionar vendedor">
+                            {profile.assigned_to && assignedSeller ? (
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-[#8b5cf6]" />
+                                <span>{assignedSeller.name || assignedSeller.email?.split("@")[0]}</span>
+                              </div>
+                            ) : (
+                              <span className="text-[#64748b]">Nenhum vendedor</span>
+                            )}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="bg-[#0f172a] border-[rgba(148,163,184,0.12)]">
+                          <SelectItem
+                            value="none"
+                            className="text-[#94a3b8] hover:bg-[#131d37] focus:bg-[#131d37] cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2">
+                              <Users className="h-4 w-4" />
+                              <span>Nenhum vendedor</span>
+                            </div>
+                          </SelectItem>
+                          {sellers.map((seller) => (
+                            <SelectItem
+                              key={seller.id}
+                              value={seller.id}
+                              className="text-[#f8fafc] hover:bg-[#131d37] focus:bg-[#131d37] cursor-pointer"
+                            >
+                              <div className="flex items-center gap-2">
+                                <User className="h-4 w-4 text-[#8b5cf6]" />
+                                <span>{seller.name || seller.email?.split("@")[0]}</span>
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {sellers.length === 0 && (
+                        <p className="text-xs text-[#64748b] mt-2">
+                          Nenhum vendedor cadastrado no sistema.
+                        </p>
                       )}
                     </div>
                   </div>

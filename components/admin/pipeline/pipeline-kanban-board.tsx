@@ -38,6 +38,13 @@ type PipelineLead = {
   chat_count?: number | null
   vision_used?: boolean | null
   last_active_at?: string | null
+  // Vendedor responsável
+  assigned_to?: string | null
+  assigned_seller?: {
+    id: string
+    name: string | null
+    email: string | null
+  } | null
 }
 
 /**
@@ -224,7 +231,7 @@ function DroppableColumn({ stage, leads, isDragging, onStageChange }: DroppableC
     <div
       ref={setNodeRef}
       className={cn(
-        "shrink-0 w-64 h-[calc(100vh-140px)] flex flex-col rounded-lg overflow-hidden transition-all duration-200",
+        "shrink-0 w-80 h-[calc(100vh-140px)] flex flex-col rounded-lg overflow-hidden transition-all duration-200",
         "bg-[#0f172a]",
         "border border-[rgba(148,163,184,0.08)]",
         "border-t-2",
@@ -397,7 +404,7 @@ export function PipelineKanbanBoard({ leads }: { leads: PipelineLead[] }) {
 
         {/* Board */}
         <div className="flex-1 overflow-x-auto">
-          <div className="flex flex-row gap-3 p-4 min-w-max h-full items-stretch">
+          <div className="flex flex-row gap-4 p-4 min-w-max h-full items-stretch">
             {STAGES.map((stage) => (
               <DroppableColumn
                 key={stage.id}
