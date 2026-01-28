@@ -260,6 +260,7 @@ export default function BibliotecaPage() {
     const [activeCreationType, setActiveCreationType] = React.useState<string | null>(null)
     const [isGenerating, setIsGenerating] = React.useState(false)
     const [showGenerationOverlay, setShowGenerationOverlay] = React.useState(false)
+    const [previewDialogOpen, setPreviewDialogOpen] = React.useState(false)
 
     // Debounce search
     React.useEffect(() => {
