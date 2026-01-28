@@ -59,3 +59,15 @@ _archived/
 # PDF textbooks
 Assuntos com PDF/
 .venv/
+
+# Temporary implementation docs
+00_START_HERE.md
+DEPLOYMENT_CHECKLIST_*.md
+IMPLEMENTATION_COMPLETE.md
+PHASE_*_*.md
+PHASE_*_*.txt
+VALIDATION_*.md
+VALIDATION_*.txt
+
+# User-specific SQL scripts
+grant_access_*.sql
