@@ -28,6 +28,12 @@ export function groupChatsByDate<T extends { createdAt: Date | string }>(
     older: [],
   }
 
+  // Defensive check: ensure chats is an array
+  if (!Array.isArray(chats)) {
+    console.warn('[groupChatsByDate] Expected array, got:', typeof chats)
+    return groups
+  }
+
   for (const chat of chats) {
     const chatDate = new Date(chat.createdAt)
 

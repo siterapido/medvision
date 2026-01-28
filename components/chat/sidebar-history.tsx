@@ -52,6 +52,18 @@ const groupChatsByDate = (chats: Chat[]): GroupedChats => {
   const oneWeekAgo = subWeeks(now, 1)
   const oneMonthAgo = subMonths(now, 1)
 
+  // Defensive check: ensure chats is an array
+  if (!Array.isArray(chats)) {
+    console.warn('[groupChatsByDate] Expected array, got:', typeof chats)
+    return {
+      today: [],
+      yesterday: [],
+      lastWeek: [],
+      lastMonth: [],
+      older: [],
+    }
+  }
+
   return chats.reduce(
     (groups, chat) => {
       const chatDate = new Date(chat.createdAt)

@@ -230,7 +230,14 @@ export function PipelineKanbanBoard({ leads }: { leads: PipelineLead[] }) {
     const map: Record<string, PipelineLeadWithStage> = {}
 
     withStage.forEach((lead) => {
-      grouped[lead.resolvedStage].push(lead)
+      // Defensive check: ensure the stage exists in grouped
+      const stage = lead.resolvedStage
+      if (grouped[stage]) {
+        grouped[stage].push(lead)
+      } else {
+        console.warn('[PipelineKanban] Unknown stage:', stage, 'for lead:', lead.id)
+        grouped.novo_usuario.push(lead) // Fallback to novo_usuario
+      }
       map[lead.id] = lead
     })
 

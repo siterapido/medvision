@@ -52,9 +52,12 @@ export function HistoricoListEnhanced() {
   // Build available agents from loaded chats
   const availableAgents = useMemo(() => {
     const agents = new Set<string>()
-    chats.forEach((chat) => {
-      if (chat.agentType) agents.add(chat.agentType)
-    })
+    // Defensive check: ensure chats is an array
+    if (Array.isArray(chats)) {
+      chats.forEach((chat) => {
+        if (chat.agentType) agents.add(chat.agentType)
+      })
+    }
     return Array.from(agents)
   }, [chats])
 
