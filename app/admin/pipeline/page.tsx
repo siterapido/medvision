@@ -36,6 +36,7 @@ async function TrialPipelineContent() {
     )
     .neq("role", "admin")
     .neq("role", "vendedor")
+    .is("deleted_at", null)
     .or(
       "trial_started_at.not.is.null,trial_ends_at.not.is.null,trial_used.eq.true,pipeline_stage.not.is.null"
     )

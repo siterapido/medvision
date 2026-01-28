@@ -335,6 +335,99 @@ export async function deleteFollowup(followupId: string) {
   return { success: true }
 }
 
+export async function deleteLead(userId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: "Usuário não autenticado" }
+  }
+
+  // Verificar se o usuário é admin
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (profile?.role !== "admin") {
+    return { success: false, message: "Apenas administradores podem excluir leads" }
+  }
+
+  // Verificar se o lead existe e não é um admin
+  const { data: leadProfile } = await supabase
+    .from("profiles")
+    .select("role, deleted_at")
+    .eq("id", userId)
+    .single()
+
+  if (!leadProfile) {
+    return { success: false, message: "Lead não encontrado" }
+  }
+
+  if (leadProfile.role === "admin") {
+    return { success: false, message: "Não é possível excluir um administrador pelo pipeline" }
+  }
+
+  if (leadProfile.deleted_at) {
+    return { success: false, message: "Este lead já está na lixeira" }
+  }
+
+  // Soft delete: marcar como deletado ao invés de remover permanentemente
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      deleted_at: new Date().toISOString(),
+      deleted_by: user.id
+    })
+    .eq("id", userId)
+
+  if (error) {
+    console.error("Erro ao mover lead para lixeira:", error)
+    return { success: false, message: "Erro ao mover lead para lixeira" }
+  }
+
+  revalidatePath("/admin/pipeline")
+  return { success: true, message: "Lead movido para lixeira com sucesso" }
+}
+
+export async function restoreLead(userId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: "Usuário não autenticado" }
+  }
+
+  // Verificar se o usuário é admin
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (profile?.role !== "admin") {
+    return { success: false, message: "Apenas administradores podem restaurar leads" }
+  }
+
+  // Restaurar o lead
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      deleted_at: null,
+      deleted_by: null
+    })
+    .eq("id", userId)
+
+  if (error) {
+    console.error("Erro ao restaurar lead:", error)
+    return { success: false, message: "Erro ao restaurar lead" }
+  }
+
+  revalidatePath("/admin/pipeline")
+  return { success: true, message: "Lead restaurado com sucesso" }
+}
+
 export async function getLeadDetails(userId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()

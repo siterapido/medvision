@@ -11,6 +11,7 @@ import {
   MoreHorizontal,
   Phone,
   Maximize2,
+  Trash2,
 } from "lucide-react"
 import { useDraggable } from "@dnd-kit/core"
 
@@ -23,9 +24,19 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { cn } from "@/lib/utils"
 import { getRemainingTrialDays } from "@/lib/trial"
-import { updatePipelineStage } from "@/app/actions/pipeline"
+import { updatePipelineStage, deleteLead } from "@/app/actions/pipeline"
 import { LeadDetailsDialog } from "./lead-details-dialog"
 
 type PipelineLead = {
@@ -77,7 +88,9 @@ interface LeadCardProps {
 
 export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCardProps) {
   const [detailsOpen, setDetailsOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: lead.id,
@@ -93,11 +106,11 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
   const daysRemaining = lead.trial_ends_at
     ? Math.max(0, getRemainingTrialDays(lead.trial_ends_at))
     : null
-  
+
   const ageLabel = lead.created_at
     ? formatDistanceToNow(new Date(lead.created_at), { addSuffix: true, locale: ptBR })
     : null
-    
+
   const phoneDigits = sanitizePhone(lead.whatsapp)
   const whatsappUrl = phoneDigits ? `https://wa.me/${phoneDigits}` : null
   const isPaid = !!lead.plan_type && lead.plan_type !== "free"
@@ -115,6 +128,25 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
       console.error("Erro ao atualizar etapa:", error)
     } finally {
       setIsUpdating(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    setIsDeleting(true)
+    try {
+      const result = await deleteLead(lead.id)
+      if (result.success) {
+        onStageChange?.()
+        setDeleteDialogOpen(false)
+      } else {
+        console.error("Erro ao excluir lead:", result.message)
+        alert(result.message)
+      }
+    } catch (error) {
+      console.error("Erro ao excluir lead:", error)
+      alert("Erro ao excluir lead")
+    } finally {
+      setIsDeleting(false)
     }
   }
 
@@ -222,6 +254,14 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
                     Ver perfil
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-[rgba(148,163,184,0.08)]" />
+                <DropdownMenuItem
+                  onClick={() => setDeleteDialogOpen(true)}
+                  className="text-xs cursor-pointer text-[#f59e0b] hover:text-[#fbbf24] hover:bg-[rgba(245,158,11,0.1)]"
+                >
+                  <Trash2 className="h-3 w-3 mr-2" />
+                  Mover para lixeira
+                </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -268,6 +308,45 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
         leadName={lead.name}
         onStageChange={onStageChange}
       />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent className="bg-[#0f172a] border-[rgba(148,163,184,0.12)]">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-[#f8fafc]">
+              Mover lead para lixeira
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-[#94a3b8]">
+              Tem certeza que deseja mover o lead <strong className="text-[#cbd5e1]">{lead.name || lead.email}</strong> para a lixeira?
+              <div className="mt-3 p-3 bg-[#131d37] rounded-lg border border-[rgba(148,163,184,0.08)]">
+                <p className="text-[#cbd5e1] text-xs mb-2">O lead será:</p>
+                <ul className="list-disc list-inside space-y-1 text-xs">
+                  <li>Removido do pipeline</li>
+                  <li>Mantido na lixeira por 30 dias</li>
+                  <li>Pode ser restaurado a qualquer momento</li>
+                </ul>
+              </div>
+              <p className="mt-2 text-xs text-[#64748b]">
+                As notas e follow-ups serão preservados e restaurados junto com o lead.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              disabled={isDeleting}
+              className="bg-[#131d37] border-[rgba(148,163,184,0.12)] text-[#cbd5e1] hover:bg-[#1a2642] hover:text-[#f8fafc]"
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="bg-[#f59e0b] text-white hover:bg-[#d97706] border-0"
+            >
+              {isDeleting ? "Movendo..." : "Mover para lixeira"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   )
 }
