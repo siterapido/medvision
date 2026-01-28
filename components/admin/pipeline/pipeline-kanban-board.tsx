@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Clock3 } from "lucide-react"
+import { Clock3, Inbox, FlaskConical, Brain, RefreshCw, Lock, CreditCard, Ghost, XCircle } from "lucide-react"
 import {
   DndContext,
   DragEndEvent,
@@ -14,7 +14,6 @@ import {
 } from "@dnd-kit/core"
 
 import { Input } from "@/components/ui/input"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import { getRemainingTrialDays } from "@/lib/trial"
 import { updatePipelineStage } from "@/app/actions/pipeline"
@@ -35,93 +34,176 @@ type PipelineLead = {
   trial_used?: boolean | null
   created_at?: string | null
   pipeline_stage?: string | null
+  // Métricas de engajamento (se disponíveis)
+  chat_count?: number | null
+  vision_used?: boolean | null
+  last_active_at?: string | null
 }
 
+/**
+ * Funil comportamental Trial → Pro
+ * Baseado em ações reais do usuário, não em metodologia de vendas
+ */
 type PipelineStage =
-  | "novo_usuario"
-  | "situacao"
-  | "problema"
-  | "implicacao"
-  | "motivacao"
-  | "convertido"
-  | "nao_convertido"
+  | "cadastro"           // 📥 Cadastro Realizado
+  | "primeira_consulta"  // 🧪 Primeira Consulta
+  | "usou_vision"        // 🧠 Usou Odonto Vision
+  | "uso_recorrente"     // 🔄 Uso Recorrente (3+ consultas)
+  | "barreira_plano"     // 🚧 Barreira do Plano (limite atingido)
+  | "convertido"         // 💳 Convertido (pagamento confirmado)
+  | "risco_churn"        // 👻 Risco de Churn (inativo 3+ dias)
+  | "perdido"            // ❌ Perdido (trial expirado sem conversão)
 
 type StageConfig = {
   id: PipelineStage
   title: string
+  emoji: string
   color: string
+  icon: typeof Inbox
+  description: string
 }
 
 const STAGES: StageConfig[] = [
-  { id: "novo_usuario", title: "Novo Usuário", color: "border-t-slate-400" },
-  { id: "situacao", title: "Situação (S)", color: "border-t-cyan-400" },
-  { id: "problema", title: "Problema (P)", color: "border-t-sky-400" },
-  { id: "implicacao", title: "Implicação (I)", color: "border-t-violet-400" },
-  { id: "motivacao", title: "Motivação (M)", color: "border-t-fuchsia-400" },
-  { id: "convertido", title: "Convertido", color: "border-t-green-400" },
-  { id: "nao_convertido", title: "Não Convertido", color: "border-t-red-400" },
+  {
+    id: "cadastro",
+    title: "Cadastro",
+    emoji: "📥",
+    color: "border-t-slate-400",
+    icon: Inbox,
+    description: "Recém cadastrado"
+  },
+  {
+    id: "primeira_consulta",
+    title: "1ª Consulta",
+    emoji: "🧪",
+    color: "border-t-cyan-400",
+    icon: FlaskConical,
+    description: "Fez primeira consulta"
+  },
+  {
+    id: "usou_vision",
+    title: "Usou Vision",
+    emoji: "🧠",
+    color: "border-t-violet-400",
+    icon: Brain,
+    description: "Usou análise de imagem"
+  },
+  {
+    id: "uso_recorrente",
+    title: "Uso Recorrente",
+    emoji: "🔄",
+    color: "border-t-blue-400",
+    icon: RefreshCw,
+    description: "3+ consultas"
+  },
+  {
+    id: "barreira_plano",
+    title: "Barreira",
+    emoji: "🚧",
+    color: "border-t-amber-400",
+    icon: Lock,
+    description: "Atingiu limite do trial"
+  },
+  {
+    id: "convertido",
+    title: "Convertido",
+    emoji: "💳",
+    color: "border-t-green-400",
+    icon: CreditCard,
+    description: "Pagamento confirmado"
+  },
+  {
+    id: "risco_churn",
+    title: "Risco Churn",
+    emoji: "👻",
+    color: "border-t-orange-400",
+    icon: Ghost,
+    description: "Inativo há 3+ dias"
+  },
+  {
+    id: "perdido",
+    title: "Perdido",
+    emoji: "❌",
+    color: "border-t-red-400",
+    icon: XCircle,
+    description: "Trial expirado"
+  },
 ]
 
 type PipelineLeadWithStage = PipelineLead & { resolvedStage: PipelineStage }
 
 /**
- * Resolve a etapa do pipeline para um lead baseado na metodologia SPIN
- * Se pipeline_stage estiver definido, usa ele
- * Caso contrário, resolve automaticamente baseado no status do trial
+ * Resolve a etapa do pipeline baseado em comportamento real do usuário
+ * Prioridades:
+ * 1. Conversão (sempre prevalece)
+ * 2. Stage manual definido pelo admin
+ * 3. Resolução automática baseada em métricas de engajamento
  */
 function resolvePipelineStage(lead: PipelineLead): PipelineStage {
-  // Se tem etapa manual definida, usa ela (exceto se convertido)
-  if (lead.pipeline_stage) {
-    const manualStage = lead.pipeline_stage as PipelineStage
-    // Se converter para pago, sempre mostra como convertido
-    const hasPaidPlan = !!lead.plan_type && lead.plan_type !== "free"
-    if (hasPaidPlan && manualStage !== "convertido") {
-      return "convertido"
-    }
-    return manualStage
-  }
-
-  // Resolução automática baseada no status do trial (metodologia SPIM adaptada)
   const now = new Date()
   const endsAt = lead.trial_ends_at ? new Date(lead.trial_ends_at) : null
-  const startsAt = lead.trial_started_at ? new Date(lead.trial_started_at) : null
+  const lastActive = lead.last_active_at ? new Date(lead.last_active_at) : null
   const hasPaidPlan = !!lead.plan_type && lead.plan_type !== "free"
   const hasActiveSubscription =
     !!lead.subscription_status &&
     !["canceled", "inactive", "trialing", "free"].includes(lead.subscription_status)
 
-  // Sempre prioriza conversão
+  // 1. Sempre prioriza conversão
   if (hasPaidPlan || hasActiveSubscription) {
     return "convertido"
   }
 
-  // Trial ativo - calcular progresso baseado em dias decorridos (SPIM adaptado)
-  if (endsAt && startsAt) {
-    const daysRemaining = Math.max(0, getRemainingTrialDays(endsAt))
-    const totalDays = Math.ceil((endsAt.getTime() - startsAt.getTime()) / (1000 * 60 * 60 * 24))
-    const daysElapsed = totalDays - daysRemaining
-    
-    // Trial com ≤2 dias restantes → Motivação (M) - momento crítico
-    if (daysRemaining <= 2) {
-      return "motivacao"
+  // 2. Se tem stage manual definido pelo admin, usa ele
+  if (lead.pipeline_stage) {
+    const validStages: PipelineStage[] = [
+      "cadastro", "primeira_consulta", "usou_vision", "uso_recorrente",
+      "barreira_plano", "convertido", "risco_churn", "perdido"
+    ]
+    if (validStages.includes(lead.pipeline_stage as PipelineStage)) {
+      return lead.pipeline_stage as PipelineStage
     }
-
-    // Trial com >50% concluído → Implicação (I) - risco de perder
-    if (totalDays > 0 && daysElapsed / totalDays >= 0.5) {
-      return "implicacao"
-    }
-
-    // Trial iniciado mas ainda no início → Problema (P) - engajamento baixo
-    return "problema"
   }
 
-  // Trial iniciado mas sem data de término → Problema (P)
-  if (startsAt) {
-    return "problema"
+  // 3. Resolução automática baseada em comportamento
+
+  // Trial expirado sem conversão = Perdido
+  if (endsAt && endsAt < now) {
+    return "perdido"
   }
 
-  // Sem trial iniciado → Novo Usuário - recém cadastrado
-  return "novo_usuario"
+  // Inativo há mais de 3 dias = Risco de Churn
+  if (lastActive) {
+    const daysSinceActive = Math.floor((now.getTime() - lastActive.getTime()) / (1000 * 60 * 60 * 24))
+    if (daysSinceActive >= 3) {
+      return "risco_churn"
+    }
+  }
+
+  // Trial com menos de 2 dias restantes = Barreira do plano (momento crítico)
+  if (endsAt) {
+    const daysRemaining = getRemainingTrialDays(endsAt)
+    if (daysRemaining <= 2 && daysRemaining > 0) {
+      return "barreira_plano"
+    }
+  }
+
+  // Usou Vision
+  if (lead.vision_used) {
+    return "usou_vision"
+  }
+
+  // Uso recorrente (3+ consultas)
+  if (lead.chat_count && lead.chat_count >= 3) {
+    return "uso_recorrente"
+  }
+
+  // Fez pelo menos uma consulta
+  if (lead.chat_count && lead.chat_count >= 1) {
+    return "primeira_consulta"
+  }
+
+  // Padrão: apenas cadastro
+  return "cadastro"
 }
 
 interface DroppableColumnProps {
@@ -136,27 +218,33 @@ function DroppableColumn({ stage, leads, isDragging, onStageChange }: DroppableC
     id: stage.id,
   })
 
+  const Icon = stage.icon
+
   return (
     <div
       ref={setNodeRef}
       className={cn(
-        "shrink-0 w-72 h-[calc(100vh-140px)] flex flex-col rounded-lg overflow-hidden transition-all duration-200",
-        // Surface usando system.md --surface-200 equivalente
+        "shrink-0 w-64 h-[calc(100vh-140px)] flex flex-col rounded-lg overflow-hidden transition-all duration-200",
         "bg-[#0f172a]",
-        // Border sutil do design system
         "border border-[rgba(148,163,184,0.08)]",
-        // Borda superior colorida (signature do sistema)
         "border-t-2",
         stage.color,
-        // Hover state com glow sutil (signature)
         isOver && "border-[rgba(6,182,212,0.3)] shadow-[0_0_20px_rgba(6,182,212,0.15)]"
       )}
     >
       {/* Column Header */}
-      <div className="flex items-center justify-between px-4 py-3 shrink-0 border-b border-[rgba(148,163,184,0.08)]">
-        <h3 className="text-xs font-semibold text-[#f8fafc] uppercase tracking-wider">
-          {stage.title}
-        </h3>
+      <div className="flex items-center justify-between px-3 py-2.5 shrink-0 border-b border-[rgba(148,163,184,0.08)]">
+        <div className="flex items-center gap-2">
+          <span className="text-base">{stage.emoji}</span>
+          <div>
+            <h3 className="text-xs font-semibold text-[#f8fafc] leading-tight">
+              {stage.title}
+            </h3>
+            <p className="text-[10px] text-[#64748b] leading-tight">
+              {stage.description}
+            </p>
+          </div>
+        </div>
         <span className="text-[10px] font-medium text-[#94a3b8] bg-[#020617] px-2 py-0.5 rounded-md border border-[rgba(148,163,184,0.08)]">
           {leads.length}
         </span>
@@ -164,13 +252,13 @@ function DroppableColumn({ stage, leads, isDragging, onStageChange }: DroppableC
 
       {/* Column Content */}
       <div className="flex-1 overflow-y-auto">
-        <div className={cn("p-3 space-y-2.5 min-h-[100px]")}>
+        <div className={cn("p-2.5 space-y-2 min-h-[100px]")}>
           {leads.map((lead) => (
             <LeadCard key={lead.id} lead={lead} onStageChange={onStageChange} />
           ))}
           {leads.length === 0 && (
-            <div className="flex flex-col items-center justify-center gap-2 py-16 text-center">
-              <Clock3 className="h-5 w-5 text-[#64748b] opacity-40" />
+            <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
+              <Icon className="h-5 w-5 text-[#64748b] opacity-40" />
               <p className="text-xs text-[#64748b] font-medium">
                 {isDragging ? "Solte aqui" : "Nenhum lead"}
               </p>
@@ -218,25 +306,25 @@ export function PipelineKanbanBoard({ leads }: { leads: PipelineLead[] }) {
     }))
 
     const grouped: Record<PipelineStage, PipelineLeadWithStage[]> = {
-      novo_usuario: [],
-      situacao: [],
-      problema: [],
-      implicacao: [],
-      motivacao: [],
+      cadastro: [],
+      primeira_consulta: [],
+      usou_vision: [],
+      uso_recorrente: [],
+      barreira_plano: [],
       convertido: [],
-      nao_convertido: [],
+      risco_churn: [],
+      perdido: [],
     }
 
     const map: Record<string, PipelineLeadWithStage> = {}
 
     withStage.forEach((lead) => {
-      // Defensive check: ensure the stage exists in grouped
       const stage = lead.resolvedStage
       if (grouped[stage]) {
         grouped[stage].push(lead)
       } else {
         console.warn('[PipelineKanban] Unknown stage:', stage, 'for lead:', lead.id)
-        grouped.novo_usuario.push(lead) // Fallback to novo_usuario
+        grouped.cadastro.push(lead)
       }
       map[lead.id] = lead
     })
@@ -267,17 +355,12 @@ export function PipelineKanbanBoard({ leads }: { leads: PipelineLead[] }) {
     const leadId = active.id as string
     const newStage = over.id as PipelineStage
 
-    // Encontrar o lead no mapa
     const lead = leadsMap[leadId]
     if (!lead) return
 
-    // Se já está na mesma etapa, não faz nada
     if (lead.resolvedStage === newStage) return
 
-    // Atualizar no banco
     await updatePipelineStage(leadId, newStage)
-    
-    // Refresh para mostrar nova posição
     handleStageChange()
   }
 
@@ -296,7 +379,7 @@ export function PipelineKanbanBoard({ leads }: { leads: PipelineLead[] }) {
       onDragCancel={handleDragCancel}
     >
       <div className="flex flex-col h-full bg-[#020617]">
-        {/* Header com design system */}
+        {/* Header */}
         <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-[rgba(148,163,184,0.08)]">
           <div className="flex items-baseline gap-3">
             <h2 className="text-xl font-semibold text-[#f8fafc]">Pipeline de Conversão</h2>
@@ -312,9 +395,9 @@ export function PipelineKanbanBoard({ leads }: { leads: PipelineLead[] }) {
           />
         </div>
 
-        {/* Board com espaçamento refinado */}
+        {/* Board */}
         <div className="flex-1 overflow-x-auto">
-          <div className="flex flex-row gap-4 p-6 min-w-max h-full items-stretch">
+          <div className="flex flex-row gap-3 p-4 min-w-max h-full items-stretch">
             {STAGES.map((stage) => (
               <DroppableColumn
                 key={stage.id}

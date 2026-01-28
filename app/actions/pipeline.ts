@@ -3,16 +3,32 @@
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 
+/**
+ * Funil comportamental Trial → Pro
+ * Baseado em ações reais do usuário
+ */
 type PipelineStage =
-  | "novo_usuario"
-  | "situacao"
-  | "problema"
-  | "implicacao"
-  | "motivacao"
-  | "convertido"
-  | "nao_convertido"
+  | "cadastro"           // 📥 Cadastro Realizado
+  | "primeira_consulta"  // 🧪 Primeira Consulta
+  | "usou_vision"        // 🧠 Usou Odonto Vision
+  | "uso_recorrente"     // 🔄 Uso Recorrente (3+ consultas)
+  | "barreira_plano"     // 🚧 Barreira do Plano (limite atingido)
+  | "convertido"         // 💳 Convertido (pagamento confirmado)
+  | "risco_churn"        // 👻 Risco de Churn (inativo 3+ dias)
+  | "perdido"            // ❌ Perdido (trial expirado sem conversão)
 
-export async function updatePipelineStage(userId: string, stage: PipelineStage | null) {
+const VALID_STAGES: PipelineStage[] = [
+  "cadastro",
+  "primeira_consulta",
+  "usou_vision",
+  "uso_recorrente",
+  "barreira_plano",
+  "convertido",
+  "risco_churn",
+  "perdido"
+]
+
+export async function updatePipelineStage(userId: string, stage: PipelineStage | string | null) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
@@ -31,9 +47,23 @@ export async function updatePipelineStage(userId: string, stage: PipelineStage |
     return { success: false, message: "Apenas administradores podem atualizar etapas do pipeline" }
   }
 
-  // Validar stage
-  if (stage && !["novo_usuario", "situacao", "problema", "implicacao", "motivacao", "convertido", "nao_convertido"].includes(stage)) {
-    return { success: false, message: "Etapa inválida" }
+  // Validar stage - aceita tanto novos quanto antigos (para compatibilidade)
+  if (stage && !VALID_STAGES.includes(stage as PipelineStage)) {
+    // Mapear stages antigos para novos
+    const legacyMap: Record<string, PipelineStage> = {
+      "novo_usuario": "cadastro",
+      "situacao": "primeira_consulta",
+      "problema": "primeira_consulta",
+      "implicacao": "uso_recorrente",
+      "motivacao": "barreira_plano",
+      "nao_convertido": "perdido"
+    }
+
+    if (legacyMap[stage]) {
+      stage = legacyMap[stage]
+    } else {
+      return { success: false, message: "Etapa inválida" }
+    }
   }
 
   const { error } = await supabase
