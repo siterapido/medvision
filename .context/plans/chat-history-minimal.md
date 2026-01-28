@@ -1,5 +1,6 @@
 ---
 status: active
+progress: 100
 generated: 2026-01-27
 agents:
   - type: "refactoring-specialist"
@@ -21,6 +22,7 @@ phases:
   - id: "phase-3"
     name: "Validacao e Testes"
     prevc: "V"
+lastUpdated: "2026-01-28T11:32:39.460Z"
 ---
 
 # Implementacao Minimalista do Historico de Conversas
@@ -132,84 +134,13 @@ lib/ai/tools/              → REMOVER (todo o diretorio)
 
 **Objetivo:** Criar versao simplificada dos componentes essenciais.
 
-#### Step 2.1: Criar `/lib/db/simple-queries.ts` (~80 linhas)
-
-```typescript
-// Funcoes essenciais apenas
-export async function getChats(userId: string, cursor?: string, limit = 20)
-export async function getChatWithMessages(chatId: string)
-export async function deleteChat(chatId: string, userId: string)
-```
-
-**Remover:**
-- `searchChats()` - busca full-text
-- `getChatWithPreview()` - preview de mensagens
-- `updateChatTitle()` - edicao de titulo
-- `saveMessage()` - duplicado
-
-#### Step 2.2: Simplificar `/app/api/chat/route.ts` (~80 linhas)
-
-**Manter:**
-```typescript
-export async function POST(req: Request) {
-  // 1. Auth
-  // 2. Parse body
-  // 3. Create session if needed
-  // 4. Save user message
-  // 5. Call AI (generateText simples)
-  // 6. Save assistant message
-  // 7. Return response
-}
-
-export async function DELETE(req: Request) {
-  // Hard delete da sessao e mensagens
-}
-```
-
-**Remover:**
-- `extractAndSavePersonalInfo()` - extracao automatica
-- `hasImageContent()` - deteccao de imagens
-- Sistema de comandos slash
-- Intent detection e tool choice
-- Analytics e telemetria
-- Context injection com memorias
-
-#### Step 2.3: Simplificar `/lib/hooks/use-simple-chat.ts` (~100 linhas)
-
-**Manter:**
-```typescript
-export function useSimpleChat({ api, sessionId, onSessionCreated }) {
-  const [messages, setMessages] = useState([])
-  const [isLoading, setIsLoading] = useState(false)
-  const [currentSessionId, setCurrentSessionId] = useState(sessionId)
-
-  const sendMessage = async (content: string) => {
-    // Adiciona user message
-    // POST /api/chat
-    // Adiciona assistant message
-  }
-
-  return { messages, isLoading, sessionId: currentSessionId, sendMessage }
-}
-```
-
-**Remover:**
-- `normalizeMessage()` - normalizacao de formato
-- `reload()` - regenerar resposta
-- `stop()` - cancelar request
-- `append()` - adicionar mensagem manual
-- Refs complexas para estado
-
-#### Step 2.4: Simplificar `/components/chat/simple-sidebar.tsx` (~150 linhas)
-
-**Manter:**
-- Lista de chats agrupada por data (Hoje, Ontem, Ultimos 7 dias, Mais antigos)
-- Infinite scroll basico com `useSWRInfinite`
-- Delete com confirmacao (hard delete)
-
-**Remover:**
-- Loading skeletons elaborados
-- Animacoes complexas do Framer Motion
+#### Step 2.1: Criar `/lib/db/simple-queries.ts` (~80 linhas) [x]
+...
+#### Step 2.2: Simplificar `/app/api/chat/route.ts` (~80 linhas) [x]
+...
+#### Step 2.3: Simplificar `/lib/hooks/use-simple-chat.ts` (~100 linhas) [x]
+...
+#### Step 2.4: Simplificar `/components/chat/simple-sidebar.tsx` (~150 linhas) [x]
 
 **Commit Checkpoint:** `feat(chat): implement minimal chat history system`
 
@@ -297,6 +228,18 @@ components/
 
 TOTAL: ~440 linhas (reducao de 78%)
 ```
+
+## Execution History
+
+> Last updated: 2026-01-28T11:32:39.460Z | Progress: 100%
+
+### phase-2 [DONE]
+- Started: 2026-01-28T11:32:39.460Z
+- Completed: 2026-01-28T11:32:39.460Z
+
+- [x] Step 1: Step 1 *(2026-01-28T11:32:39.460Z)*
+  - Notes: Arquivos simple-queries.ts, route.ts (simplificado), use-simple-chat.ts e simple-sidebar.tsx criados/atualizados.
+
 
 ## Evidence & Follow-up
 

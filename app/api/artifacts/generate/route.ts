@@ -39,10 +39,22 @@ interface FlashcardsConfig {
   includeImages?: boolean
 }
 
-type ArtifactConfig = SummaryConfig | FlashcardsConfig
+interface ResearchConfig {
+  query: string
+  scope: 'pubmed' | 'scholar' | 'recent' | 'comprehensive'
+  language: 'pt' | 'en' | 'both'
+}
+
+interface ExamConfig {
+  topic: string
+  difficulty: 'easy' | 'medium' | 'hard'
+  numQuestions: number
+}
+
+type ArtifactConfig = SummaryConfig | FlashcardsConfig | ResearchConfig | ExamConfig
 
 interface GenerateRequest {
-  type: 'summary' | 'flashcards'
+  type: 'summary' | 'flashcards' | 'research' | 'exam'
   config: ArtifactConfig
 }
 
@@ -94,14 +106,60 @@ FORMATO DE SAIDA - JSON VALIDO:
 
 IMPORTANTE: Retorne APENAS o JSON, sem texto adicional.`
 
+const RESEARCH_SYSTEM_PROMPT = `Voce e um pesquisador senior em Odontologia. Sua tarefa e realizar uma analise critica da literatura cientifica sobre o tema solicitado.
+
+REGRAS:
+- Cite autores e anos (ficticios mas plausiveis baseados em tendencias reais se necessario, ou baseados no conhecimento treinado)
+- Use linguagem formal e cientifica
+- Divida em: Introducao, Metodologia de Busca (descritiva), Resultados (com evidencias), Conclusao e Referencias Bibliograficas (formato ABNT)
+- Foque em odontologia baseada em evidencias (OBE)
+
+FORMATO DE SAIDA - JSON VALIDO:
+{
+  "title": "Titulo Cientifico da Pesquisa",
+  "markdownContent": "Conteudo completo formatado em Markdown",
+  "sources": [
+    { "title": "Titulo do Artigo", "url": "https://pubmed.ncbi.nlm.nih.gov/...", "status": "verified" }
+  ],
+  "researchType": "Revisao Sistematica / Meta-analise / Analise de Literatura",
+  "tags": ["Odontologia", "Pesquisa", "OBE"]
+}
+
+IMPORTANTE: Retorne APENAS o JSON, sem texto adicional.`
+
+const EXAM_SYSTEM_PROMPT = `Voce e um professor de Odontologia especializado em preparar alunos para concursos e residencias. Crie um simulado de alta qualidade.
+
+REGRAS:
+- Questoes de multipla escolha (A, B, C, D, E)
+- Apenas UMA alternativa correta
+- Explique detalhadamente POR QUE a alternativa esta correta e por que as outras estao erradas
+- Adapte a dificuldade ao nivel solicitado
+
+FORMATO DE SAIDA - JSON VALIDO:
+{
+  "title": "Simulado Pratico: [Tema]",
+  "questions": [
+    {
+      "question_text": "Texto da pergunta",
+      "type": "multiple_choice",
+      "options": ["Opcao A", "Opcao B", "Opcao C", "Opcao D", "Opcao E"],
+      "correct_answer": "Opcao A",
+      "explanation": "Explicacao tecnica detalhada",
+      "difficulty": "medium"
+    }
+  ]
+}
+
+IMPORTANTE: Retorne APENAS o JSON, sem texto adicional.`
+
 function getSummaryPrompt(config: SummaryConfig): string {
-  const depthDescriptions = {
+  const depthDescriptions: Record<string, string> = {
     basico: 'Faca um resumo introdutorio focado nos conceitos fundamentais (3-4 secoes)',
     intermediario: 'Faca um resumo detalhado cobrindo aspectos importantes e clinicos (5-6 secoes)',
     avancado: 'Faca um resumo aprofundado com detalhes avancados e nuances clinicas (7-8 secoes)'
   }
 
-  const formatDescriptions = {
+  const formatDescriptions: Record<string, string> = {
     resumo: 'Use paragrafos explicativos fluidos',
     topicos: 'Use listas com bullets organizados hierarquicamente',
     esquema: 'Use estrutura visual com titulos, subtitulos e indentacao'
@@ -120,7 +178,7 @@ Retorne um JSON valido conforme o formato especificado.`
 }
 
 function getFlashcardsPrompt(config: FlashcardsConfig): string {
-  const difficultyDescriptions = {
+  const difficultyDescriptions: Record<string, string> = {
     facil: 'Nivel basico - conceitos fundamentais, definicoes, memorizar',
     medio: 'Nivel graduacao - aplicacao clinica, correlacoes, raciocinio',
     dificil: 'Nivel residencia - casos complexos, detalhes avancados, nuances'
@@ -134,6 +192,23 @@ ${difficultyDescriptions[config.difficulty]}
 
 Crie exatamente ${config.quantity} cards variados cobrindo diferentes aspectos do tema.
 
+Retorne um JSON valido conforme o formato especificado.`
+}
+
+function getResearchPrompt(config: ResearchConfig): string {
+  return `Realize uma pesquisa cientifica profunda sobre: "${config.query}"
+Escopo da busca: ${config.scope}
+Idioma dos resultados: ${config.language === 'both' ? 'Portugues e Ingles' : config.language}
+
+Forneca uma analise critica com base em odontologia baseada em evidencias.
+Retorne um JSON valido conforme o formato especificado.`
+}
+
+function getExamPrompt(config: ExamConfig): string {
+  return `Crie um simulado com ${config.numQuestions} questoes sobre: "${config.topic}"
+Dificuldade: ${config.difficulty}
+
+As questoes devem ser desafiadoras e representativas de provas de residencia e concursos na area.
 Retorne um JSON valido conforme o formato especificado.`
 }
 
@@ -166,6 +241,16 @@ export async function POST(req: Request) {
       if (!flashcardsConfig.topic || !flashcardsConfig.quantity || !flashcardsConfig.difficulty) {
         return Response.json({ error: 'Invalid flashcards config' }, { status: 400 })
       }
+    } else if (type === 'research') {
+      const researchConfig = config as ResearchConfig
+      if (!researchConfig.query) {
+        return Response.json({ error: 'Invalid research config' }, { status: 400 })
+      }
+    } else if (type === 'exam') {
+      const examConfig = config as ExamConfig
+      if (!examConfig.topic || !examConfig.numQuestions) {
+        return Response.json({ error: 'Invalid exam config' }, { status: 400 })
+      }
     } else {
       return Response.json({ error: 'Invalid artifact type' }, { status: 400 })
     }
@@ -179,6 +264,12 @@ export async function POST(req: Request) {
     if (type === 'summary') {
       systemPrompt = SUMMARY_SYSTEM_PROMPT
       userPrompt = getSummaryPrompt(config as SummaryConfig)
+    } else if (type === 'research') {
+      systemPrompt = RESEARCH_SYSTEM_PROMPT
+      userPrompt = getResearchPrompt(config as ResearchConfig)
+    } else if (type === 'exam') {
+      systemPrompt = EXAM_SYSTEM_PROMPT
+      userPrompt = getExamPrompt(config as ExamConfig)
     } else {
       systemPrompt = FLASHCARDS_SYSTEM_PROMPT
       userPrompt = getFlashcardsPrompt(config as FlashcardsConfig)
@@ -251,7 +342,7 @@ export async function POST(req: Request) {
           format: summaryConfig.format,
         },
       }
-    } else {
+    } else if (type === 'flashcards') {
       const flashcardsConfig = config as FlashcardsConfig
       const cards = (parsedContent.cards || []).map((card: any, idx: number) => ({
         id: `card-${idx + 1}`,
@@ -280,6 +371,52 @@ export async function POST(req: Request) {
         metadata: {
           count: cards.length,
           difficulty: flashcardsConfig.difficulty,
+        },
+      }
+    } else if (type === 'research') {
+      const researchConfig = config as ResearchConfig
+      artifactData = {
+        id: artifactId,
+        user_id: user.id,
+        title: parsedContent.title || `Pesquisa: ${researchConfig.query}`,
+        type: 'research',
+        description: `Pesquisa científica sobre ${researchConfig.query}`,
+        content: {
+          query: researchConfig.query,
+          markdownContent: parsedContent.markdownContent,
+          sources: parsedContent.sources || [],
+          researchType: parsedContent.researchType || 'Análise de Literatura',
+        },
+        ai_context: {
+          agent: 'biblioteca-forms',
+          model: GENERATION_MODEL,
+          generatedAt: new Date().toISOString(),
+        },
+        metadata: {
+          sourcesCount: (parsedContent.sources || []).length,
+        },
+      }
+    } else if (type === 'exam') {
+      const examConfig = config as ExamConfig
+      artifactData = {
+        id: artifactId,
+        user_id: user.id,
+        title: parsedContent.title || `Simulado: ${examConfig.topic}`,
+        type: 'exam',
+        description: `Simulado de ${parsedContent.questions?.length || 0} questões sobre ${examConfig.topic}`,
+        content: {
+          topic: examConfig.topic,
+          questions: parsedContent.questions || [],
+          difficulty: examConfig.difficulty,
+        },
+        ai_context: {
+          agent: 'biblioteca-forms',
+          model: GENERATION_MODEL,
+          generatedAt: new Date().toISOString(),
+        },
+        metadata: {
+          questionsCount: (parsedContent.questions || []).length,
+          difficulty: examConfig.difficulty,
         },
       }
     }

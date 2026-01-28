@@ -61,7 +61,9 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { ArtifactRenderer } from "@/components/artifacts/artifact-renderer"
-import { ComingSoonModal } from "@/components/ui/coming-soon-modal"
+import { ArtifactCreationHub } from "@/components/artifacts/artifact-creation-hub"
+import { GenerationOverlay } from "@/components/artifacts/generation-overlay"
+import { SummaryForm, ResearchForm, ExamForm, type SummaryFormValues, type ResearchFormValues, type ExamFormValues } from "@/components/artifacts/artifact-forms"
 
 const getIconForType = (type: string) => {
     switch (type) {
@@ -251,10 +253,13 @@ export default function BibliotecaPage() {
     const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
     const [artifactToDelete, setArtifactToDelete] = React.useState<string | null>(null)
 
-    const [previewDialogOpen, setPreviewDialogOpen] = React.useState(false)
     const [selectedArtifact, setSelectedArtifact] = React.useState<Artifact | null>(null)
 
-    const [comingSoonOpen, setComingSoonOpen] = React.useState(true)
+    // New states for Hub and Forms
+    const [creationDialogOpen, setCreationDialogOpen] = React.useState(false)
+    const [activeCreationType, setActiveCreationType] = React.useState<string | null>(null)
+    const [isGenerating, setIsGenerating] = React.useState(false)
+    const [showGenerationOverlay, setShowGenerationOverlay] = React.useState(false)
 
     // Debounce search
     React.useEffect(() => {
@@ -292,6 +297,47 @@ export default function BibliotecaPage() {
     const openPreview = (item: Artifact) => {
         setSelectedArtifact(item)
         setPreviewDialogOpen(true)
+    }
+
+    const handleCreateArtifact = async (type: string, data: any) => {
+        setIsGenerating(true)
+        setShowGenerationOverlay(true)
+        setCreationDialogOpen(false)
+
+        try {
+            const response = await fetch('/api/artifacts/generate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type, config: data })
+            })
+
+            if (!response.ok) throw new Error('Falha na geração')
+
+            const result = await response.json()
+
+            // Wait a bit to let the animation finish or feel premium
+            await new Promise(resolve => setTimeout(resolve, 3000))
+
+            toast.success("Artefato gerado com sucesso!")
+            mutate() // Refresh library
+            setShowGenerationOverlay(false)
+            setIsGenerating(false)
+
+            // Optionally open the preview of the newly created artifact
+            if (result.artifact) {
+                // We'll need to fetch the full artifact or handle from result
+                // For now just closing is fine as it appears in the list
+            }
+        } catch (error) {
+            toast.error("Erro ao gerar artefato. Tente novamente.")
+            setIsGenerating(false)
+            setShowGenerationOverlay(false)
+        }
+    }
+
+    const openCreationDialog = (type: string) => {
+        setActiveCreationType(type)
+        setCreationDialogOpen(true)
     }
 
     const ArtifactCard = ({ item }: { item: Artifact }) => (
@@ -414,244 +460,272 @@ export default function BibliotecaPage() {
 
     return (
         <>
-            {/* Coming Soon Modal */}
-            <ComingSoonModal
-                isOpen={comingSoonOpen}
-                onOpenChange={setComingSoonOpen}
-                title="Biblioteca de Conhecimento"
-                description="Organize e gerencie todo seu conhecimento acadêmico em um único lugar seguro."
-                copy="Estamos preparando a Biblioteca para que você possa organizar laudos, conversas, documentos, pesquisas, simulados e muito mais. Uma experiência completa de gestão do conhecimento está chegando!"
-                icon={<Library className="h-8 w-8" />}
-                primaryButtonText="Me Notificar"
-                onPrimaryAction={() => {
-                    toast.success("Você será notificado quando a Biblioteca estiver disponível!")
-                    setComingSoonOpen(false)
-                }}
+            <GenerationOverlay
+                isOpen={showGenerationOverlay}
+                onClose={() => setShowGenerationOverlay(false)}
+                type={activeCreationType || ''}
+                title={getLabelForType(activeCreationType || '')}
             />
+
+            <Dialog open={creationDialogOpen} onOpenChange={setCreationDialogOpen}>
+                <DialogContent className="glass-card border-white/10 sm:max-w-[600px] p-0 rounded-[2rem] overflow-hidden bg-slate-950/95 backdrop-blur-2xl">
+                    <div className="p-8 border-b border-white/5 bg-white/5">
+                        <DialogHeader>
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="p-2 rounded-xl bg-primary/10 border border-primary/20 text-primary">
+                                    {getIconForType(activeCreationType || '')}
+                                </div>
+                                <DialogTitle className="text-2xl font-bold text-white">
+                                    Novo {getLabelForType(activeCreationType || '')}
+                                </DialogTitle>
+                            </div>
+                            <DialogDescription className="text-slate-400">
+                                Preencha os detalhes abaixo para que nossa inteligência gere seu artefato de estudo.
+                            </DialogDescription>
+                        </DialogHeader>
+                    </div>
+                    <div className="p-8">
+                        {activeCreationType === 'summary' && (
+                            <SummaryForm
+                                onSubmit={(data) => handleCreateArtifact('summary', data)}
+                                isLoading={isGenerating}
+                            />
+                        )}
+                        {activeCreationType === 'research' && (
+                            <ResearchForm
+                                onSubmit={(data) => handleCreateArtifact('research', data)}
+                                isLoading={isGenerating}
+                            />
+                        )}
+                        {activeCreationType === 'exam' && (
+                            <ExamForm
+                                onSubmit={(data) => handleCreateArtifact('exam', data)}
+                                isLoading={isGenerating}
+                            />
+                        )}
+                        {['vision', 'mindmap', 'writing'].includes(activeCreationType || '') && (
+                            <div className="py-12 text-center space-y-4">
+                                <div className="inline-flex p-4 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-500">
+                                    <Sparkles className="h-8 w-8" />
+                                </div>
+                                <h3 className="text-lg font-bold text-white">Configurando Agente Especialista</h3>
+                                <p className="text-slate-400 max-w-xs mx-auto">
+                                    O formulário para este agente está em fase final de homologação. Tente Pesquisa ou Resumo por enquanto!
+                                </p>
+                                <Button variant="outline" onClick={() => setCreationDialogOpen(false)} className="rounded-xl border-white/10">
+                                    Voltar
+                                </Button>
+                            </div>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
 
             <div className="flex-1 flex flex-col bg-background/50 relative overflow-hidden min-h-screen">
                 {/* Background Decorative Element */}
                 <div className="absolute -top-24 -right-24 w-96 h-96 bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
                 <div className="absolute top-1/2 -left-24 w-72 h-72 bg-emerald-500/5 blur-[100px] rounded-full pointer-events-none" />
 
-            <div className="container mx-auto px-4 py-6 md:px-8 space-y-6 relative z-10 max-w-[1600px]">
-                {/* Compact Mobile-First Header */}
-                <div className="flex flex-col gap-4 border-b border-border/40 pb-4">
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                        <div>
-                            <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight text-foreground/90">
-                                Biblioteca
-                            </h1>
-                            <p className="text-sm text-muted-foreground/80 mt-1 hidden md:block">
-                                Gerencie todo o seu conhecimento e artefatos.
-                            </p>
-                        </div>
-
-                        <div className="flex gap-2 w-full md:w-auto">
-                            <div className="relative flex-1 md:w-72 group">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground group-focus-within:text-primary transition-colors" />
-                                <Input
-                                    type="search"
-                                    placeholder="Buscar..."
-                                    className="pl-9 h-10 bg-card/50 backdrop-blur-md border border-border/30 rounded-xl focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-all text-sm"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
+                <div className="container mx-auto px-4 py-6 md:px-8 space-y-6 relative z-10 max-w-[1600px]">
+                    {/* Compact Mobile-First Header */}
+                    <div className="flex flex-col gap-8 border-b border-border/40 pb-8">
+                        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                            <div>
+                                <h1 className="text-3xl md:text-4xl font-heading font-bold tracking-tight text-white leading-tight">
+                                    Biblioteca de <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-blue-400">Conhecimento</span>
+                                </h1>
+                                <p className="text-sm text-slate-400 mt-2 hidden md:block max-w-md">
+                                    Gere, organize e gerencie todo o seu conhecimento acadêmico e artefatos inteligentes em um só lugar.
+                                </p>
                             </div>
 
-                            <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                    <Button variant="outline" size="icon" className="h-10 w-10 shrink-0 rounded-xl bg-card/50 border border-border/30 hover:border-primary/40 text-muted-foreground hover:text-primary transition-all">
-                                        <SortAsc className="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="glass-card w-48 p-2">
-                                    <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground px-2 py-1.5">Ordenar por</DropdownMenuLabel>
-                                    <DropdownMenuItem className="rounded-lg gap-2 text-xs" onClick={() => setSortBy('createdAt')}>
-                                        <Clock className="h-3.5 w-3.5" /> Recentes {sortBy === 'createdAt' && "✓"}
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem className="rounded-lg gap-2 text-xs" onClick={() => setSortBy('title')}>
-                                        <SortAsc className="h-3.5 w-3.5" /> Nome {sortBy === 'title' && "✓"}
-                                    </DropdownMenuItem>
-                                    <DropdownMenuSeparator className="bg-border/10" />
-                                    <DropdownMenuItem className="rounded-lg justify-between text-xs" onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}>
-                                        {sortOrder === 'asc' ? 'Crescente' : 'Decrescente'}
-                                        {sortOrder === 'asc' ? <ArrowUpRight className="h-3.5 w-3.5 rotate-45" /> : <ArrowUpRight className="h-3.5 w-3.5 rotate-[225deg]" />}
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                            <div className="flex gap-2 w-full md:w-auto">
+                                {/* Search and Sort (kept as is but styled more dark) */}
+                                <div className="relative flex-1 md:w-72 group">
+                                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-500 group-focus-within:text-primary transition-colors" />
+                                    <Input
+                                        type="search"
+                                        placeholder="Buscar na biblioteca..."
+                                        className="pl-9 h-11 bg-slate-900/50 backdrop-blur-md border border-white/10 rounded-xl focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-all text-sm text-white"
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                    />
+                                </div>
+                            </div>
                         </div>
+
+                        {/* Artifact Creation Hub */}
+                        <ArtifactCreationHub onSelectType={openCreationDialog} />
                     </div>
+
+                    <Tabs value={selectedType} onValueChange={(v) => setSelectedType(v as any)} className="w-full space-y-8">
+                        <div className="sticky top-0 z-20 py-2 bg-background/80 backdrop-blur-md -mx-4 px-4">
+                            <TabsList className="w-full justify-start overflow-x-scroll h-auto p-1 bg-muted/20 border border-border/10 rounded-xl gap-2 no-scrollbar">
+                                {[
+                                    { value: "all", label: "Todos", icon: LayoutDashboard },
+                                    { value: "vision", label: "Laudos", icon: Scan },
+                                    { value: "chat", label: "Conversas", icon: MessageSquare },
+                                    { value: "document", label: "Documentos", icon: FileText },
+                                    { value: "research", label: "Pesquisas", icon: BookOpen },
+                                    { value: "exam", label: "Simulados", icon: GraduationCap },
+                                    { value: "summary", label: "Resumos", icon: Library },
+                                    { value: "flashcards", label: "Flashcards", icon: WalletCards },
+                                    { value: "mindmap", label: "Mapas", icon: BrainCircuit },
+                                    { value: "image", label: "Imagens", icon: ImageIcon },
+                                ].map((tab) => (
+                                    <TabsTrigger
+                                        key={tab.value}
+                                        value={tab.value}
+                                        className={cn(
+                                            "rounded-lg px-4 py-2 h-9 text-xs font-medium gap-2 border border-transparent transition-all capitalize whitespace-nowrap",
+                                            "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm",
+                                            "hover:bg-muted/50"
+                                        )}
+                                    >
+                                        <tab.icon className="h-3.5 w-3.5" />
+                                        {tab.label}
+                                    </TabsTrigger>
+                                ))}
+                            </TabsList>
+                        </div>
+
+                        <TabsContent value={selectedType} className="mt-0 outline-none">
+                            {isLoading ? (
+                                <div className="flex flex-col items-center justify-center py-20 gap-4">
+                                    <div className="relative">
+                                        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                                        <div className="absolute inset-0 blur-xl bg-primary/20 rounded-full" />
+                                    </div>
+                                    <p className="text-sm font-medium text-muted-foreground animate-pulse">Sincronizando biblioteca...</p>
+                                </div>
+                            ) : error ? (
+                                <div className="flex flex-col items-center justify-center py-20 text-center glass-card rounded-3xl p-10 max-w-md mx-auto">
+                                    <AlertCircle className="h-12 w-12 text-red-500/80 mb-4" />
+                                    <h3 className="text-lg font-bold">Erro na conexão</h3>
+                                    <p className="text-sm text-muted-foreground mt-2 mb-6">Não conseguimos recuperar seus artefatos no momento.</p>
+                                    <Button onClick={() => mutate()} variant="default" className="rounded-xl px-8 shadow-lg shadow-primary/20">
+                                        Tentar Novamente
+                                    </Button>
+                                </div>
+                            ) : data.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center py-24 text-center glass-card rounded-[2rem] p-12 max-w-xl mx-auto border-dashed border-white/10">
+                                    <div className="p-5 rounded-full bg-muted/30 border border-border/20 mb-6 shrink-0">
+                                        {searchTerm ? <SearchX className="h-10 w-10 text-muted-foreground/60" /> : <Sparkles className="h-10 w-10 text-primary/40" />}
+                                    </div>
+                                    <h3 className="text-xl font-bold">
+                                        {searchTerm ? "Nenhuma correspondência" : "Sua biblioteca está vazia"}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground mt-2 mb-8 max-w-sm">
+                                        {searchTerm
+                                            ? "Não encontramos itens com esse termo. Tente usar palavras-chave mais genéricas."
+                                            : "Seus artefatos gerados aparecerão aqui. Comece uma conversa com nossos especialistas agora."}
+                                    </p>
+                                    <Button onClick={() => setSearchTerm("")} className="rounded-xl px-10 h-12 gap-2 shadow-xl shadow-primary/20">
+                                        {searchTerm ? "Limpar Busca" : "Começar a Criar"} <ArrowUpRight className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            ) : (
+                                <motion.div
+                                    variants={containerVariants}
+                                    initial="hidden"
+                                    animate="visible"
+                                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+                                >
+                                    <AnimatePresence mode="popLayout">
+                                        {data.map(item => (
+                                            <ArtifactCard key={item.id} item={item} />
+                                        ))}
+                                    </AnimatePresence>
+                                </motion.div>
+                            )}
+                        </TabsContent>
+                    </Tabs>
                 </div>
 
-                <Tabs value={selectedType} onValueChange={(v) => setSelectedType(v as any)} className="w-full space-y-8">
-                    <div className="sticky top-0 z-20 py-2 bg-background/80 backdrop-blur-md -mx-4 px-4">
-                        <TabsList className="w-full justify-start overflow-x-scroll h-auto p-1 bg-muted/20 border border-border/10 rounded-xl gap-2 no-scrollbar">
-                            {[
-                                { value: "all", label: "Todos", icon: LayoutDashboard },
-                                { value: "vision", label: "Laudos", icon: Scan },
-                                { value: "chat", label: "Conversas", icon: MessageSquare },
-                                { value: "document", label: "Documentos", icon: FileText },
-                                { value: "research", label: "Pesquisas", icon: BookOpen },
-                                { value: "exam", label: "Simulados", icon: GraduationCap },
-                                { value: "summary", label: "Resumos", icon: Library },
-                                { value: "flashcards", label: "Flashcards", icon: WalletCards },
-                                { value: "mindmap", label: "Mapas", icon: BrainCircuit },
-                                { value: "image", label: "Imagens", icon: ImageIcon },
-                            ].map((tab) => (
-                                <TabsTrigger
-                                    key={tab.value}
-                                    value={tab.value}
-                                    className={cn(
-                                        "rounded-lg px-4 py-2 h-9 text-xs font-medium gap-2 border border-transparent transition-all capitalize whitespace-nowrap",
-                                        "data-[state=active]:bg-primary data-[state=active]:text-primary-foreground data-[state=active]:shadow-sm",
-                                        "hover:bg-muted/50"
-                                    )}
-                                >
-                                    <tab.icon className="h-3.5 w-3.5" />
-                                    {tab.label}
-                                </TabsTrigger>
-                            ))}
-                        </TabsList>
-                    </div>
+                {/* Preview Dialog */}
+                <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
+                    <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto glass-card border-white/10 p-0 rounded-[2rem] overflow-hidden custom-scrollbar bg-background/95 backdrop-blur-3xl shadow-2xl">
+                        {selectedArtifact && (
+                            <div className="flex flex-col h-full">
+                                <div className="p-8 border-b border-border/20 bg-muted/10 backdrop-blur-md">
+                                    <DialogHeader className="space-y-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary">
+                                                {getIconForType(selectedArtifact.type)}
+                                            </div>
+                                            <div>
+                                                <Badge variant="outline" className="mb-1 text-[10px] uppercase tracking-widest font-bold">
+                                                    {getLabelForType(selectedArtifact.type)}
+                                                </Badge>
+                                                <DialogTitle className="text-3xl md:text-4xl font-heading font-bold tracking-tight">
+                                                    {selectedArtifact.title}
+                                                </DialogTitle>
+                                            </div>
+                                        </div>
+                                        <DialogDescription className="text-base text-muted-foreground/80 leading-relaxed">
+                                            {selectedArtifact.description}
+                                        </DialogDescription>
+                                    </DialogHeader>
+                                </div>
 
-                    <TabsContent value={selectedType} className="mt-0 outline-none">
-                        {isLoading ? (
-                            <div className="flex flex-col items-center justify-center py-20 gap-4">
-                                <div className="relative">
-                                    <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                                    <div className="absolute inset-0 blur-xl bg-primary/20 rounded-full" />
+                                <div className="p-8 pb-32">
+                                    <ArtifactRenderer
+                                        artifact={convertToRenderArtifact(selectedArtifact)}
+                                    />
                                 </div>
-                                <p className="text-sm font-medium text-muted-foreground animate-pulse">Sincronizando biblioteca...</p>
-                            </div>
-                        ) : error ? (
-                            <div className="flex flex-col items-center justify-center py-20 text-center glass-card rounded-3xl p-10 max-w-md mx-auto">
-                                <AlertCircle className="h-12 w-12 text-red-500/80 mb-4" />
-                                <h3 className="text-lg font-bold">Erro na conexão</h3>
-                                <p className="text-sm text-muted-foreground mt-2 mb-6">Não conseguimos recuperar seus artefatos no momento.</p>
-                                <Button onClick={() => mutate()} variant="default" className="rounded-xl px-8 shadow-lg shadow-primary/20">
-                                    Tentar Novamente
-                                </Button>
-                            </div>
-                        ) : data.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-24 text-center glass-card rounded-[2rem] p-12 max-w-xl mx-auto border-dashed border-white/10">
-                                <div className="p-5 rounded-full bg-muted/30 border border-border/20 mb-6 shrink-0">
-                                    {searchTerm ? <SearchX className="h-10 w-10 text-muted-foreground/60" /> : <Sparkles className="h-10 w-10 text-primary/40" />}
+
+                                <div className="sticky bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background via-background/90 to-transparent flex justify-between items-center z-50 border-t border-border/10">
+                                    <div className="flex items-center gap-4 text-xs text-muted-foreground font-medium">
+                                        <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/20">
+                                            <Clock className="h-3 w-3" />
+                                            {new Date(selectedArtifact.createdAt).toLocaleString("pt-BR")}
+                                        </div>
+                                        <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20">
+                                            <Sparkles className="h-3 w-3" />
+                                            {selectedArtifact.aiContext.agent}
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <Button variant="outline" className="rounded-xl" onClick={() => setPreviewDialogOpen(false)}>
+                                            Fechar
+                                        </Button>
+                                        <Button className="rounded-xl shadow-lg shadow-primary/20 font-bold" onClick={() => toast.info("Funcionalidade de exportação em breve")}>
+                                            Exportar
+                                        </Button>
+                                    </div>
                                 </div>
-                                <h3 className="text-xl font-bold">
-                                    {searchTerm ? "Nenhuma correspondência" : "Sua biblioteca está vazia"}
-                                </h3>
-                                <p className="text-sm text-muted-foreground mt-2 mb-8 max-w-sm">
-                                    {searchTerm
-                                        ? "Não encontramos itens com esse termo. Tente usar palavras-chave mais genéricas."
-                                        : "Seus artefatos gerados aparecerão aqui. Comece uma conversa com nossos especialistas agora."}
-                                </p>
-                                <Button onClick={() => setSearchTerm("")} className="rounded-xl px-10 h-12 gap-2 shadow-xl shadow-primary/20">
-                                    {searchTerm ? "Limpar Busca" : "Começar a Criar"} <ArrowUpRight className="h-4 w-4" />
-                                </Button>
                             </div>
-                        ) : (
-                            <motion.div
-                                variants={containerVariants}
-                                initial="hidden"
-                                animate="visible"
-                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-                            >
-                                <AnimatePresence mode="popLayout">
-                                    {data.map(item => (
-                                        <ArtifactCard key={item.id} item={item} />
-                                    ))}
-                                </AnimatePresence>
-                            </motion.div>
                         )}
-                    </TabsContent>
-                </Tabs>
-            </div>
+                    </DialogContent>
+                </Dialog>
 
-            {/* Preview Dialog */}
-            <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-                <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto glass-card border-white/10 p-0 rounded-[2rem] overflow-hidden custom-scrollbar bg-background/95 backdrop-blur-3xl shadow-2xl">
-                    {selectedArtifact && (
-                        <div className="flex flex-col h-full">
-                            <div className="p-8 border-b border-border/20 bg-muted/10 backdrop-blur-md">
-                                <DialogHeader className="space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-3 rounded-2xl bg-primary/10 border border-primary/20 text-primary">
-                                            {getIconForType(selectedArtifact.type)}
-                                        </div>
-                                        <div>
-                                            <Badge variant="outline" className="mb-1 text-[10px] uppercase tracking-widest font-bold">
-                                                {getLabelForType(selectedArtifact.type)}
-                                            </Badge>
-                                            <DialogTitle className="text-3xl md:text-4xl font-heading font-bold tracking-tight">
-                                                {selectedArtifact.title}
-                                            </DialogTitle>
-                                        </div>
-                                    </div>
-                                    <DialogDescription className="text-base text-muted-foreground/80 leading-relaxed">
-                                        {selectedArtifact.description}
-                                    </DialogDescription>
-                                </DialogHeader>
-                            </div>
-
-                            <div className="p-8 pb-32">
-                                <ArtifactRenderer
-                                    artifact={convertToRenderArtifact(selectedArtifact)}
-                                />
-                            </div>
-
-                            <div className="sticky bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background via-background/90 to-transparent flex justify-between items-center z-50 border-t border-border/10">
-                                <div className="flex items-center gap-4 text-xs text-muted-foreground font-medium">
-                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-muted/50 border border-border/20">
-                                        <Clock className="h-3 w-3" />
-                                        {new Date(selectedArtifact.createdAt).toLocaleString("pt-BR")}
-                                    </div>
-                                    <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                                        <Sparkles className="h-3 w-3" />
-                                        {selectedArtifact.aiContext.agent}
-                                    </div>
-                                </div>
-                                <div className="flex gap-2">
-                                    <Button variant="outline" className="rounded-xl" onClick={() => setPreviewDialogOpen(false)}>
-                                        Fechar
-                                    </Button>
-                                    <Button className="rounded-xl shadow-lg shadow-primary/20 font-bold" onClick={() => toast.info("Funcionalidade de exportação em breve")}>
-                                        Exportar
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </DialogContent>
-            </Dialog>
-
-            {/* Delete Confirmation Dialog */}
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent className="glass-card border-border/80 rounded-3xl bg-background/80 backdrop-blur-2xl">
-                    <AlertDialogHeader>
-                        <AlertDialogTitle className="text-xl font-bold">Expurgar Conhecimento?</AlertDialogTitle>
-                        <AlertDialogDescription className="text-base">
-                            Esta ação removerá permanentemente este artefato da sua biblioteca digital. Deseja prosseguir?
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter className="gap-2 sm:gap-0">
-                        <AlertDialogCancel disabled={isDeleting} className="rounded-xl border-border/40 hover:bg-muted">
-                            Manter Item
-                        </AlertDialogCancel>
-                        <AlertDialogAction
-                            onClick={handleDelete}
-                            disabled={isDeleting}
-                            className="bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-500/20"
-                        >
-                            {isDeleting ? (
-                                <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Removendo...</>
-                            ) : (
-                                "Remover Permanentemente"
-                            )}
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+                {/* Delete Confirmation Dialog */}
+                <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                    <AlertDialogContent className="glass-card border-border/80 rounded-3xl bg-background/80 backdrop-blur-2xl">
+                        <AlertDialogHeader>
+                            <AlertDialogTitle className="text-xl font-bold">Expurgar Conhecimento?</AlertDialogTitle>
+                            <AlertDialogDescription className="text-base">
+                                Esta ação removerá permanentemente este artefato da sua biblioteca digital. Deseja prosseguir?
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter className="gap-2 sm:gap-0">
+                            <AlertDialogCancel disabled={isDeleting} className="rounded-xl border-border/40 hover:bg-muted">
+                                Manter Item
+                            </AlertDialogCancel>
+                            <AlertDialogAction
+                                onClick={handleDelete}
+                                disabled={isDeleting}
+                                className="bg-red-600 hover:bg-red-700 text-white rounded-xl shadow-lg shadow-red-500/20"
+                            >
+                                {isDeleting ? (
+                                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Removendo...</>
+                                ) : (
+                                    "Remover Permanentemente"
+                                )}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
             </div>
         </>
     )
