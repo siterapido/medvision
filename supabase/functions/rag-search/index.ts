@@ -14,6 +14,9 @@ async function generateEmbedding(text: string): Promise<number[]> {
   try {
     const truncatedText = text.substring(0, 8000); // Limit to 8000 chars to avoid token limits
 
+    console.log("[RAG-SEARCH] Generating embedding for text length:", truncatedText.length);
+    console.log("[RAG-SEARCH] API Key present:", !!OPENROUTER_API_KEY);
+
     const response = await fetch("https://openrouter.ai/api/v1/embeddings", {
       method: "POST",
       headers: {
@@ -26,20 +29,25 @@ async function generateEmbedding(text: string): Promise<number[]> {
       }),
     });
 
+    console.log("[RAG-SEARCH] Embedding API response status:", response.status);
+
     if (!response.ok) {
       const error = await response.text();
-      console.error("Embedding API error:", error);
+      console.error("[RAG-SEARCH] Embedding API error:", error);
       throw new Error(`Embedding API error: ${response.status}`);
     }
 
     const data = await response.json();
+    console.log("[RAG-SEARCH] Embedding response has data:", !!data.data, "length:", data.data?.length);
+
     if (!data.data || data.data.length === 0) {
       throw new Error("No embedding returned from API");
     }
 
+    console.log("[RAG-SEARCH] Embedding dimension:", data.data[0].embedding?.length);
     return data.data[0].embedding;
   } catch (error) {
-    console.error("Error generating embedding:", error);
+    console.error("[RAG-SEARCH] Error generating embedding:", error);
     throw error;
   }
 }
@@ -101,6 +109,7 @@ Deno.serve(async (req) => {
     const embeddingStr = formatVector(embedding);
 
     // Search knowledge documents
+    console.log("[RAG-SEARCH] Calling hybrid_search_knowledge with threshold:", matchThreshold);
     const { data: documents, error: docError } = await supabase.rpc(
       "hybrid_search_knowledge",
       {
@@ -115,7 +124,9 @@ Deno.serve(async (req) => {
     );
 
     if (docError) {
-      console.error("Document search error:", docError);
+      console.error("[RAG-SEARCH] Document search error:", docError);
+    } else {
+      console.log("[RAG-SEARCH] Documents found:", documents?.length || 0);
     }
 
     // Search user memories if userId is provided
