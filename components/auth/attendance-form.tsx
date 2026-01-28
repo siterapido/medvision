@@ -68,6 +68,7 @@ export function AttendanceForm() {
         email,
         password: tempPassword,
         options: {
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             name,
             whatsapp,
@@ -86,11 +87,11 @@ export function AttendanceForm() {
 
         // Mensagens de erro em português
         if (signUpError.message.includes("already registered") || signUpError.message.includes("User already registered")) {
-          // Se o usuário já existe, apenas registra a presença
-          setSuccess(true)
+          // Se o usuário já existe, mostra mensagem e redireciona para login
+          setError("Este email já está cadastrado. Redirecionando para o login...")
           setTimeout(() => {
-            router.push("/login?message=attendance_registered")
-          }, 3000)
+            router.push("/login")
+          }, 2000)
           return
         } else if (signUpError.message.includes("valid email")) {
           setError("Por favor, insira um email válido.")
@@ -123,10 +124,17 @@ export function AttendanceForm() {
           console.warn("[attendance] Não foi possível configurar o trial", trialUpdateError)
         }
 
-        // Redireciona após 3 segundos
-        setTimeout(() => {
-          router.push("/login?message=attendance_success")
-        }, 3000)
+        // Se há uma sessão ativa (email auto-confirmado), redireciona direto para o dashboard
+        if (data.session) {
+          setTimeout(() => {
+            router.replace("/dashboard")
+          }, 2000)
+        } else {
+          // Caso contrário, redireciona para login com mensagem
+          setTimeout(() => {
+            router.push("/login?message=attendance_success")
+          }, 3000)
+        }
       }
     } catch (err) {
       console.error("Unexpected error:", err)
@@ -148,7 +156,7 @@ export function AttendanceForm() {
         <Alert className="bg-emerald-500/10 border-emerald-500/30 text-emerald-400">
           <CheckCircle2 className="h-4 w-4" />
           <AlertDescription>
-            Presença confirmada! Verifique seu email para acessar sua conta e o Odonto GPT.
+            Presença confirmada! Redirecionando para o Odonto GPT...
           </AlertDescription>
         </Alert>
       )}
@@ -244,7 +252,7 @@ export function AttendanceForm() {
       {/* Info box */}
       <div className="bg-slate-800/30 border border-slate-700/50 rounded-lg p-3">
         <p className="text-xs text-slate-400 text-center">
-          Ao confirmar sua presença, você receberá um email com suas credenciais de acesso ao Odonto GPT.
+          Ao confirmar sua presença, você terá acesso imediato ao Odonto GPT por 7 dias.
         </p>
       </div>
 
