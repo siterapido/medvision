@@ -1,45 +1,20 @@
 project:
-  name: "landing-page-trial-conversion"
+  name: "artifact-simplification-and-library-refactor"
   scale: MEDIUM
-  started: "2026-01-27T18:30:12.743Z"
-  current_phase: V
+  started: "2026-01-28T10:35:43.294Z"
+  current_phase: P
 
 phases:
   P:
-    status: filled
-    started_at: "2026-01-27T18:30:12.743Z"
-    completed_at: "2026-01-27T18:42:56.081Z"
+    status: in_progress
+    started_at: "2026-01-28T10:35:43.294Z"
   R:
-    status: filled
-    started_at: "2026-01-27T18:42:56.093Z"
-    completed_at: "2026-01-27T18:43:09.452Z"
+    status: pending
   E:
-    status: filled
-    started_at: "2026-01-27T18:43:09.454Z"
-    completed_at: "2026-01-27T18:43:16.385Z"
+    status: pending
   V:
-    status: completed
-    started_at: "2026-01-27T18:43:16.386Z"
-    completed_at: "2026-01-27T18:43:24.108Z"
-    outputs:
-      - path: "Validation complete"
-        status: filled
+    status: pending
   C:
     status: skipped
     reason: "Not required for scale MEDIUM"
-
-execution:
-  history:
-    - timestamp: "2026-01-27T18:43:24.108Z"
-      phase: V
-      action: completed
-  last_activity: "2026-01-27T18:43:24.108Z"
-  resume_context: "Fase V (Validação) concluída"
-
-approval:
-  plan_created: true
-  plan_approved: true
-  approved_by: "architect"
-  approved_at: "2026-01-27T18:43:03.022Z"
-  approval_notes: "Plan executed and reviewed. Changes implemented according to requirements."
 

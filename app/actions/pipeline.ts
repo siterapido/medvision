@@ -569,7 +569,7 @@ export async function getLeadDetails(userId: string) {
     .from("profiles")
     .select(`
       *,
-      assigned_seller:profiles!profiles_assigned_to_fkey(id, name, email)
+      assigned_seller:profiles!assigned_to(id, name, email)
     `)
     .eq("id", userId)
     .single()

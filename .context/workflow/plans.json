@@ -1,14 +1,4 @@
 {
-  "active": [
-    {
-      "slug": "landing-page-trial-conversion",
-      "path": "plans/landing-page-trial-conversion.md",
-      "title": "Landing Page - Conversão Trial",
-      "summary": "Atualizar landing page focando em conversão para trial: remover preços, destacar Odonto GPT (base de conhecimento) e Odonto Vision (análise/laudo), marcar outros agentes como \"em breve\", atualizar frase do Roniery e garantir UX mobile-first.",
-      "linkedAt": "2026-01-27T18:30:19.042Z",
-      "status": "active"
-    }
-  ],
-  "completed": [],
-  "primary": "landing-page-trial-conversion"
+  "active": [],
+  "completed": []
 }

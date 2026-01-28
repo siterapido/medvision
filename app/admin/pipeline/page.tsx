@@ -34,7 +34,7 @@ async function TrialPipelineContent() {
     .select(`
       id, name, email, role, trial_started_at, trial_ends_at, trial_used, created_at, pipeline_stage,
       assigned_to,
-      assigned_seller:profiles!profiles_assigned_to_fkey(id, name, email)
+      assigned_seller:profiles!assigned_to(id, name, email)
     `)
     .neq("role", "admin")
     .neq("role", "vendedor")
