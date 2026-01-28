@@ -1,19 +1,15 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import { isToday, isYesterday, subMonths, subWeeks } from 'date-fns'
+import { useState } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { motion } from 'motion/react'
 import { toast } from 'sonner'
-import useSWRInfinite from 'swr/infinite'
 import { Loader2, MessageSquare } from 'lucide-react'
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarGroupContent,
   SidebarMenu,
-  SidebarMenuItem,
-  SidebarMenuButton,
   useSidebar,
 } from '@/components/ui/sidebar'
 import {
@@ -26,84 +22,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import type { Chat } from '@/lib/db/queries'
-import { cn } from '@/lib/utils'
 import { ChatItem } from '@/components/chat/sidebar-history-item'
-
-type GroupedChats = {
-  today: Chat[]
-  yesterday: Chat[]
-  lastWeek: Chat[]
-  lastMonth: Chat[]
-  older: Chat[]
-}
-
-export type ChatHistory = {
-  chats: Chat[]
-  hasMore: boolean
-}
-
-const PAGE_SIZE = 20
-
-const fetcher = async (url: string) => {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error('Failed to fetch')
-  return res.json()
-}
-
-const groupChatsByDate = (chats: Chat[]): GroupedChats => {
-  const now = new Date()
-  const oneWeekAgo = subWeeks(now, 1)
-  const oneMonthAgo = subMonths(now, 1)
-
-  return chats.reduce(
-    (groups, chat) => {
-      const chatDate = new Date(chat.createdAt)
-
-      if (isToday(chatDate)) {
-        groups.today.push(chat)
-      } else if (isYesterday(chatDate)) {
-        groups.yesterday.push(chat)
-      } else if (chatDate > oneWeekAgo) {
-        groups.lastWeek.push(chat)
-      } else if (chatDate > oneMonthAgo) {
-        groups.lastMonth.push(chat)
-      } else {
-        groups.older.push(chat)
-      }
-
-      return groups
-    },
-    {
-      today: [],
-      yesterday: [],
-      lastWeek: [],
-      lastMonth: [],
-      older: [],
-    } as GroupedChats
-  )
-}
-
-function getChatHistoryPaginationKey(
-  pageIndex: number,
-  previousPageData: ChatHistory | null
-) {
-  if (previousPageData && previousPageData.hasMore === false) {
-    return null
-  }
-
-  if (pageIndex === 0) {
-    return `/api/history?limit=${PAGE_SIZE}`
-  }
-
-  const firstChatFromPage = previousPageData?.chats.at(-1)
-
-  if (!firstChatFromPage) {
-    return null
-  }
-
-  return `/api/history?ending_before=${firstChatFromPage.id}&limit=${PAGE_SIZE}`
-}
+import { useHistory, iterateGroups } from '@/lib/chat'
 
 interface SidebarChatsProps {
   userId: string | undefined
@@ -112,7 +32,6 @@ interface SidebarChatsProps {
 export function SidebarChats({ userId }: SidebarChatsProps) {
   const { state, setOpenMobile } = useSidebar()
   const isCollapsed = state === 'collapsed'
-  const pathname = usePathname()
   const searchParams = useSearchParams()
   const router = useRouter()
   const id = searchParams.get('id')
@@ -121,77 +40,36 @@ export function SidebarChats({ userId }: SidebarChatsProps) {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
 
   const {
-    data: paginatedChatHistories,
-    setSize,
-    isValidating,
+    groupedChats,
+    hasMore,
     isLoading,
-    mutate,
-  } = useSWRInfinite<ChatHistory>(getChatHistoryPaginationKey, fetcher, {
-    fallbackData: [],
+    isValidating,
+    isEmpty,
+    loadMore,
+    deleteChat,
+  } = useHistory({
+    mode: 'cursor',
+    pageSize: 20,
+    enabled: !!userId,
   })
 
-  const hasReachedEnd = paginatedChatHistories
-    ? paginatedChatHistories.some((page) => page.hasMore === false)
-    : false
-
-  const hasEmptyChatHistory = paginatedChatHistories
-    ? paginatedChatHistories.every((page) => page.chats.length === 0)
-    : false
-
-  const groupedChats = useMemo(() => {
-    if (!paginatedChatHistories) return null
-    const chatsFromHistory = paginatedChatHistories.flatMap(
-      (paginatedChatHistory) => paginatedChatHistory.chats
-    )
-    const grouped = groupChatsByDate(chatsFromHistory)
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log('[SidebarChats] Grouped chats:', {
-        total: chatsFromHistory.length,
-        today: grouped.today.length,
-        yesterday: grouped.yesterday.length,
-        lastWeek: grouped.lastWeek.length,
-        lastMonth: grouped.lastMonth.length,
-        older: grouped.older.length,
-      })
-    }
-
-    return grouped
-  }, [paginatedChatHistories])
-
-  const handleDelete = () => {
+  const handleDelete = async () => {
     const chatToDelete = deleteId
     const isCurrentChat = id === chatToDelete
-
     setShowDeleteDialog(false)
 
-    const deletePromise = fetch(`/api/chat?id=${chatToDelete}`, {
-      method: 'DELETE',
-    })
+    if (!chatToDelete) return
 
-    toast.promise(deletePromise, {
-      loading: 'Excluindo conversa...',
-      success: () => {
-        mutate((chatHistories) => {
-          if (chatHistories) {
-            return chatHistories.map((chatHistory) => ({
-              ...chatHistory,
-              chats: chatHistory.chats.filter(
-                (chat) => chat.id !== chatToDelete
-              ),
-            }))
-          }
-        })
-
-        if (isCurrentChat) {
-          router.replace('/dashboard/chat')
-          router.refresh()
-        }
-
-        return 'Conversa excluida'
-      },
-      error: 'Erro ao excluir conversa',
-    })
+    const success = await deleteChat(chatToDelete)
+    if (success) {
+      toast.success('Conversa excluida')
+      if (isCurrentChat) {
+        router.replace('/dashboard/chat')
+        router.refresh()
+      }
+    } else {
+      toast.error('Erro ao excluir conversa')
+    }
   }
 
   // Don't render if collapsed
@@ -239,7 +117,7 @@ export function SidebarChats({ userId }: SidebarChatsProps) {
     )
   }
 
-  if (hasEmptyChatHistory) {
+  if (isEmpty) {
     return (
       <SidebarGroup>
         <SidebarGroupLabel className="text-xs font-medium text-[var(--sidebar-text-tertiary)] uppercase tracking-wider">
@@ -257,29 +135,6 @@ export function SidebarChats({ userId }: SidebarChatsProps) {
     )
   }
 
-  const renderChatGroup = (title: string, chats: Chat[]) => {
-    if (chats.length === 0) return null
-    return (
-      <div key={title} className="mb-4">
-        <div className="px-2 py-1 text-[11px] font-medium text-[var(--sidebar-text-tertiary)] uppercase tracking-wide">
-          {title}
-        </div>
-        {chats.map((chat) => (
-          <ChatItem
-            key={chat.id}
-            chat={chat}
-            isActive={chat.id === id}
-            onDelete={(chatId) => {
-              setDeleteId(chatId)
-              setShowDeleteDialog(true)
-            }}
-            setOpenMobile={setOpenMobile}
-          />
-        ))}
-      </div>
-    )
-  }
-
   return (
     <>
       <SidebarGroup>
@@ -288,26 +143,36 @@ export function SidebarChats({ userId }: SidebarChatsProps) {
         </SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
-            {groupedChats && (
-              <>
-                {renderChatGroup('Hoje', groupedChats.today)}
-                {renderChatGroup('Ontem', groupedChats.yesterday)}
-                {renderChatGroup('Ultimos 7 dias', groupedChats.lastWeek)}
-                {renderChatGroup('Ultimos 30 dias', groupedChats.lastMonth)}
-                {renderChatGroup('Mais antigos', groupedChats.older)}
-              </>
-            )}
+            {Array.from(iterateGroups(groupedChats)).map(({ key, label, chats }) => (
+              <div key={key} className="mb-4">
+                <div className="px-2 py-1 text-[11px] font-medium text-[var(--sidebar-text-tertiary)] uppercase tracking-wide">
+                  {label}
+                </div>
+                {chats.map((chat) => (
+                  <ChatItem
+                    key={chat.id}
+                    chat={chat}
+                    isActive={chat.id === id}
+                    onDelete={(chatId) => {
+                      setDeleteId(chatId)
+                      setShowDeleteDialog(true)
+                    }}
+                    setOpenMobile={setOpenMobile}
+                  />
+                ))}
+              </div>
+            ))}
           </SidebarMenu>
 
           <motion.div
             onViewportEnter={() => {
-              if (!isValidating && !hasReachedEnd) {
-                setSize((size) => size + 1)
+              if (!isValidating && hasMore) {
+                loadMore()
               }
             }}
           />
 
-          {!hasReachedEnd && (
+          {hasMore && (
             <div className="flex flex-row items-center gap-2 px-2 py-4 text-[var(--sidebar-text-tertiary)]">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span className="text-xs">Carregando...</span>

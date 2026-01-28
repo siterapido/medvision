@@ -3,17 +3,18 @@
 import Link from 'next/link'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Trash2, MessageSquare, ArrowRight, User, Bot } from 'lucide-react'
+import { Trash2, MessageSquare, ArrowRight, User, Bot, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import type { ChatWithPreview } from '@/lib/db/queries'
+import { useMessagePreview } from '@/lib/chat'
+import type { ChatWithMessages } from '@/lib/chat'
 import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
 import { getAgentUI } from '@/lib/ai/agents/ui-config'
 
 interface HistoricoCardProps {
-  chat: ChatWithPreview
+  chat: ChatWithMessages
   onDelete: (id: string) => void
 }
 
@@ -22,15 +23,27 @@ export function HistoricoCard({ chat, onDelete }: HistoricoCardProps) {
   const agentUI = getAgentUI(chat.agentType || '')
   const AgentIcon = agentUI?.icon || MessageSquare
 
+  const {
+    messages: previewMessages,
+    isLoading: previewLoading,
+    onMouseEnter,
+    onMouseLeave,
+  } = useMessagePreview(chat.id, { delay: 400 })
+
+  // Use preview from hook if loaded, otherwise show nothing
+  const displayMessages = previewMessages.length > 0 ? previewMessages.slice(0, 2) : []
+
   return (
     <Link href={`/dashboard/chat?id=${chat.id}`}>
       <Card
         className={cn(
-          'group p-4 h-full',
+          'group p-4 h-full min-h-[140px]',
           'bg-[var(--surface-200)] border-[var(--border-default)]',
           'hover:border-[var(--brand)] hover:shadow-lg hover:shadow-[var(--brand-glow)]',
           'transition-all duration-200'
         )}
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
       >
         <div className="flex justify-between items-start mb-3">
           <div className="flex items-center gap-3">
@@ -59,10 +72,14 @@ export function HistoricoCard({ chat, onDelete }: HistoricoCardProps) {
           </Badge>
         </div>
 
-        {/* Preview Messages */}
-        {chat.preview && chat.preview.length > 0 && (
-          <div className="space-y-2 mb-4">
-            {chat.preview.slice(0, 2).map((msg) => (
+        {/* Preview Messages - Lazy loaded on hover */}
+        <div className="space-y-2 mb-4 min-h-[48px]">
+          {previewLoading ? (
+            <div className="flex items-center justify-center py-2">
+              <Loader2 className="h-4 w-4 animate-spin text-[var(--text-tertiary)]" />
+            </div>
+          ) : displayMessages.length > 0 ? (
+            displayMessages.map((msg) => (
               <div
                 key={msg.id}
                 className="flex gap-2 text-sm text-[var(--text-secondary)]"
@@ -76,9 +93,13 @@ export function HistoricoCard({ chat, onDelete }: HistoricoCardProps) {
                 </div>
                 <p className="line-clamp-2">{msg.content}</p>
               </div>
-            ))}
-          </div>
-        )}
+            ))
+          ) : (
+            <p className="text-sm text-[var(--text-tertiary)] italic">
+              Passe o mouse para ver preview
+            </p>
+          )}
+        </div>
 
         {/* Footer */}
         <div className="flex justify-between items-center pt-3 border-t border-[var(--border-subtle)]">

@@ -3,29 +3,15 @@
 /**
  * useChatHistory - Helper hook for chat history revalidation
  *
- * Provides utilities to revalidate the sidebar chat history
- * when new sessions are created.
+ * @deprecated Use useHistoryRevalidation from '@/lib/chat' instead
+ *
+ * This file re-exports from the new location for backwards compatibility.
  */
 
-import { useSWRConfig } from 'swr'
-import { useCallback } from 'react'
+import { useHistoryRevalidation } from '@/lib/chat'
 
 export function useChatHistory() {
-  const { mutate } = useSWRConfig()
-
-  /**
-   * Revalidate the sidebar chat history
-   * Call this when a new session is created
-   */
-  const revalidateHistory = useCallback(() => {
-    // Revalidate all history-related SWR keys
-    mutate(
-      (key) => typeof key === 'string' && key.startsWith('/api/history'),
-      undefined,
-      { revalidate: true }
-    )
-    console.log('[useChatHistory] Revalidated chat history')
-  }, [mutate])
+  const { revalidateHistory } = useHistoryRevalidation()
 
   return {
     revalidateHistory,
