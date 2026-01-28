@@ -31,9 +31,11 @@ async function TrialPipelineContent() {
 
   const { data: leads, error } = await supabase
     .from("profiles")
-    .select(
-      "id, name, email, role, trial_started_at, trial_ends_at, trial_used, created_at, pipeline_stage"
-    )
+    .select(`
+      id, name, email, role, trial_started_at, trial_ends_at, trial_used, created_at, pipeline_stage,
+      assigned_to,
+      assigned_seller:profiles!profiles_assigned_to_fkey(id, name, email)
+    `)
     .neq("role", "admin")
     .neq("role", "vendedor")
     .is("deleted_at", null)

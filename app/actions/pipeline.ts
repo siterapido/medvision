@@ -3,6 +3,8 @@
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
 
+// Force cache invalidate - build fix 2025
+
 /**
  * Funil comportamental Trial → Pro
  * Baseado em ações reais do usuário
@@ -458,6 +460,91 @@ export async function restoreLead(userId: string) {
   return { success: true, message: "Lead restaurado com sucesso" }
 }
 
+export async function assignLeadToSeller(userId: string, sellerId: string | null) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: "Usuário não autenticado" }
+  }
+
+  // Verificar se o usuário é admin
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (profile?.role !== "admin") {
+    return { success: false, message: "Apenas administradores podem atribuir vendedores" }
+  }
+
+  // Se sellerId for fornecido, verificar se é um vendedor válido
+  if (sellerId) {
+    const { data: seller } = await supabase
+      .from("profiles")
+      .select("id, role")
+      .eq("id", sellerId)
+      .single()
+
+    if (!seller) {
+      return { success: false, message: "Vendedor não encontrado" }
+    }
+
+    if (seller.role !== "vendedor" && seller.role !== "admin") {
+      return { success: false, message: "Usuário não é um vendedor" }
+    }
+  }
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ assigned_to: sellerId })
+    .eq("id", userId)
+
+  if (error) {
+    console.error("Erro ao atribuir vendedor:", error)
+    return { success: false, message: "Erro ao atribuir vendedor" }
+  }
+
+  revalidatePath("/admin/pipeline")
+  return { success: true }
+}
+
+export async function getSellers() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, data: [], message: "Usuário não autenticado" }
+  }
+
+  // Verificar se o usuário é admin
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (profile?.role !== "admin") {
+    return { success: false, data: [], message: "Acesso negado" }
+  }
+
+  // Buscar vendedores (role = 'vendedor' ou 'admin')
+  const { data: sellers, error } = await supabase
+    .from("profiles")
+    .select("id, name, email")
+    .in("role", ["vendedor", "admin"])
+    .is("deleted_at", null)
+    .order("name", { ascending: true })
+
+  if (error) {
+    console.error("Erro ao buscar vendedores:", error)
+    return { success: false, data: [], message: "Erro ao buscar vendedores" }
+  }
+
+  return { success: true, data: sellers || [] }
+}
+
 export async function getLeadDetails(userId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -477,10 +564,13 @@ export async function getLeadDetails(userId: string) {
     return { success: false, message: "Acesso negado" }
   }
 
-  // Buscar dados do perfil
+  // Buscar dados do perfil com vendedor atribuído
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("*")
+    .select(`
+      *,
+      assigned_seller:profiles!profiles_assigned_to_fkey(id, name, email)
+    `)
     .eq("id", userId)
     .single()
 
