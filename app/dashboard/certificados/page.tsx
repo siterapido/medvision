@@ -1,22 +1,26 @@
 "use client"
 
-import { useEffect, useState } from 'react'
-import { Award, Download, Clock, CheckCircle2, AlertCircle, Search, ExternalLink, Plus } from 'lucide-react'
+import { useEffect, useState } from "react"
+import { Award, Download, ExternalLink, Calendar, Clock, Plus, CheckCircle2 } from "lucide-react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { toast } from "sonner"
-import { cn } from "@/lib/utils"
+import { Badge } from "@/components/ui/badge"
 import {
     Dialog,
     DialogContent,
-    DialogDescription,
-    DialogFooter,
+    DialogTrigger,
     DialogHeader,
     DialogTitle,
-    DialogTrigger
+    DialogDescription,
+    DialogFooter
 } from "@/components/ui/dialog"
+import {
+    Tabs,
+    TabsContent,
+    TabsList,
+    TabsTrigger,
+} from "@/components/ui/tabs"
 import {
     Select,
     SelectContent,
@@ -24,60 +28,51 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ComingSoonModal } from "@/components/ui/coming-soon-modal"
-
-interface Certificate {
-    id: string
-    issue_date: string
-    hours: number
-    certificate_url: string
-    status: string
-    course: {
-        title: string
-    }
-}
-
-interface Request {
-    id: string
-    request_date: string
-    status: string
-    course: {
-        title: string
-    }
-}
-
-interface Course {
-    id: string
-    title: string
-}
+import { CertificateRenderer } from "@/components/certificates/certificate-renderer"
+import { toast } from "sonner"
+import { cn } from "@/lib/utils"
 
 export default function CertificadosPage() {
-    const [certificates, setCertificates] = useState<Certificate[]>([])
-    const [requests, setRequests] = useState<Request[]>([])
-    const [availableCourses, setAvailableCourses] = useState<Course[]>([])
+    const [certificates, setCertificates] = useState<any[]>([])
+    const [requests, setRequests] = useState<any[]>([])
+    const [availableCourses, setAvailableCourses] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
-    const [isRequesting, setIsRequesting] = useState(false)
     const [selectedCourseId, setSelectedCourseId] = useState<string>('')
-    const [comingSoonOpen, setComingSoonOpen] = useState(true)
+    const [isRequesting, setIsRequesting] = useState(false)
 
     useEffect(() => {
         fetchData()
     }, [])
 
     const fetchData = async () => {
+        setLoading(true)
         try {
-            const [certsRes, reqsRes, coursesRes] = await Promise.all([
-                fetch('/api/certificates'),
-                fetch('/api/certificates/request'),
-                fetch('/api/certificates/available-courses')
+            // Dynamically import server actions to avoid build issues if mixed environment
+            const { getUserCertificates, getUserRequests, requestCertificate } = await import('@/app/actions/certificates')
+
+            // We need a way to get available courses for the user to request. 
+            // For now, let's fetch all courses or reuse an existing API if available, 
+            // or just use what we have. 
+            // Let's assume we can fetch courses from client or add another action.
+            // Using a simple fetch for courses as fallback or separate action.
+            // Use existing action pattern:
+            const { getStudentCourses } = await import('@/app/actions/courses').catch(() => ({ getStudentCourses: async () => [] })) // Fallback if action doesn't exist
+
+            // Actually, let's just use the certificates and requests mainly.
+            // And fetch all courses.
+            const apiCoursesRes = await fetch('/api/certificates/available-courses').catch(() => ({ ok: false, json: async () => [] }))
+
+            const [certsData, reqsData, coursesJson] = await Promise.all([
+                getUserCertificates(),
+                getUserRequests(),
+                apiCoursesRes.ok ? apiCoursesRes.json() : []
             ])
 
-            if (certsRes.ok) setCertificates(await certsRes.json())
-            if (reqsRes.ok) setRequests(await reqsRes.json())
-            if (coursesRes.ok) setAvailableCourses(await coursesRes.json())
+            setCertificates(certsData || [])
+            setRequests(reqsData || [])
+            setAvailableCourses(coursesJson)
         } catch (error) {
-            console.error('Error fetching data:', error)
+            console.error("Error fetching certificates:", error)
             toast.error("Erro ao carregar dados")
         } finally {
             setLoading(false)
@@ -89,53 +84,33 @@ export default function CertificadosPage() {
             toast.error("Selecione um curso")
             return
         }
-
         setIsRequesting(true)
-        try {
-            const res = await fetch('/api/certificates/request', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ course_id: selectedCourseId })
-            })
 
-            if (res.ok) {
+        try {
+            const { requestCertificate } = await import('@/app/actions/certificates')
+            const result = await requestCertificate(selectedCourseId)
+
+            if (result.success) {
                 toast.success("Solicitação enviada com sucesso!")
                 setSelectedCourseId('')
                 fetchData()
             } else {
-                const error = await res.json()
-                toast.error(error.error || "Erro ao enviar solicitação")
+                toast.error(result.error || "Erro ao solicitar")
             }
         } catch (error) {
-            toast.error("Erro ao conectar com o servidor")
+            toast.error("Erro inesperado")
         } finally {
             setIsRequesting(false)
         }
     }
 
     return (
-        <>
-            {/* Coming Soon Modal */}
-            <ComingSoonModal
-                isOpen={comingSoonOpen}
-                onOpenChange={setComingSoonOpen}
-                title="Certificados"
-                description="Valide suas conquistas com certificados reconhecidos na área odontológica."
-                copy="Nossa plataforma de certificação está em desenvolvimento. Em breve você poderá solicitar e gerenciar certificados de todos os cursos completados, comprovando sua especialização e avançando em sua carreira profissional."
-                icon={<Award className="h-8 w-8" />}
-                primaryButtonText="Me Notificar"
-                onPrimaryAction={() => {
-                    toast.success("Você será notificado quando Certificados estiver disponível!")
-                    setComingSoonOpen(false)
-                }}
-            />
-
-            <div className="p-6 md:p-10 space-y-8 max-w-7xl mx-auto">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div className="container mx-auto py-10 space-y-8">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight">Certificados</h1>
+                    <h1 className="text-3xl font-bold">Meus Certificados</h1>
                     <p className="text-muted-foreground mt-1">
-                        Visualização de conquistas e solicitações de novos certificados.
+                        Visualize e baixe seus certificados de conclusão.
                     </p>
                 </div>
 
@@ -159,16 +134,18 @@ export default function CertificadosPage() {
                                     <SelectValue placeholder="Selecione um curso" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {availableCourses.map((course) => (
+                                    {availableCourses.length > 0 ? availableCourses.map((course) => (
                                         <SelectItem key={course.id} value={course.id}>
                                             {course.title}
                                         </SelectItem>
-                                    ))}
+                                    )) : (
+                                        <SelectItem value="none" disabled>Nenhum curso disponível para solicitação</SelectItem>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
                         <DialogFooter>
-                            <Button variant="outline">Cancelar</Button>
+                            <Button variant="outline" onClick={() => setSelectedCourseId('')}>Cancelar</Button>
                             <Button onClick={handleRequestCertificate} disabled={isRequesting || !selectedCourseId}>
                                 {isRequesting ? "Enviando..." : "Confirmar Solicitação"}
                             </Button>
@@ -178,63 +155,82 @@ export default function CertificadosPage() {
             </div>
 
             <Tabs defaultValue="issued" className="w-full">
-                <TabsList className="bg-muted/50 p-1">
-                    <TabsTrigger value="issued" className="gap-2">
-                        <Award className="h-4 w-4" />
-                        Emitidos ({certificates.length})
-                    </TabsTrigger>
-                    <TabsTrigger value="requests" className="gap-2">
-                        <Clock className="h-4 w-4" />
-                        Solicitações ({requests.length})
-                    </TabsTrigger>
+                <TabsList className="grid w-full max-w-[400px] grid-cols-2">
+                    <TabsTrigger value="issued">Emitidos</TabsTrigger>
+                    <TabsTrigger value="requests">Solicitações</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="issued" className="mt-6">
                     {loading ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            {[1, 2, 3].map((i) => (
-                                <Skeleton key={i} className="h-[240px] w-full rounded-xl" />
-                            ))}
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                            {[1, 2, 3].map(i => <Skeleton key={i} className="h-64 w-full" />)}
                         </div>
                     ) : certificates.length > 0 ? (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {certificates.map((cert) => (
-                                <Card key={cert.id} className="overflow-hidden group hover:shadow-xl transition-all duration-300 border-border bg-card">
-                                    <div className="h-2 bg-primary" />
+                                <Card key={cert.id} className="overflow-hidden hover:shadow-lg transition-all group">
+                                    <div className="aspect-video relative bg-slate-100 flex items-center justify-center overflow-hidden">
+                                        {cert.template?.background_url ? (
+                                            <img
+                                                src={cert.template.background_url}
+                                                alt="Certificate Preview"
+                                                className="w-full h-full object-cover opacity-80 transition-transform duration-500 group-hover:scale-105"
+                                            />
+                                        ) : (
+                                            <Award className="h-16 w-16 text-slate-300" />
+                                        )}
+                                        <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors" />
+                                    </div>
                                     <CardHeader>
                                         <div className="flex justify-between items-start">
-                                            <Badge variant="outline" className="text-primary border-primary/20">
-                                                {cert.hours} Horas
+                                            <Badge variant="outline" className="border-primary/20 text-primary">
+                                                {cert.metadata?.hours || cert.template?.hours || 0} Horas
                                             </Badge>
-                                            <Award className="h-6 w-6 text-primary" />
                                         </div>
-                                        <CardTitle className="text-xl mt-4 group-hover:text-primary transition-colors">
-                                            {cert.course?.title}
-                                        </CardTitle>
+                                        <CardTitle className="line-clamp-1 mt-2">{cert.course?.title || cert.metadata?.course_title || "Curso Odonto GPT"}</CardTitle>
                                         <CardDescription className="flex items-center gap-1">
                                             <CheckCircle2 className="h-3 w-3 text-green-500" />
                                             Emitido em {new Date(cert.issue_date).toLocaleDateString('pt-BR')}
                                         </CardDescription>
                                     </CardHeader>
-                                    <CardFooter className="pt-4 border-t border-border/50">
-                                        <Button variant="outline" className="w-full gap-2 border-primary/20 hover:bg-primary hover:text-white transition-all" asChild>
-                                            <a href={cert.certificate_url} target="_blank" rel="noopener noreferrer">
-                                                <Download className="h-4 w-4" />
-                                                Baixar Certificado (PDF)
-                                            </a>
-                                        </Button>
-                                    </CardFooter>
+                                    <CardContent>
+                                        <Dialog>
+                                            <DialogTrigger asChild>
+                                                <Button className="w-full">
+                                                    <ExternalLink className="mr-2 h-4 w-4" />
+                                                    Visualizar Certificado
+                                                </Button>
+                                            </DialogTrigger>
+                                            <DialogContent className="max-w-[900px] w-full p-0 bg-transparent border-none shadow-none flex justify-center">
+                                                <CertificateRenderer
+                                                    data={{
+                                                        studentName: cert.metadata?.student_name || "Estudante",
+                                                        courseTitle: cert.metadata?.course_title || cert.course?.title || "Curso",
+                                                        hours: cert.metadata?.hours || cert.template?.hours || 0,
+                                                        date: new Date(cert.issue_date).toLocaleDateString('pt-BR'),
+                                                        code: cert.code,
+                                                        backgroundUrl: cert.template?.background_url,
+                                                        signatures: cert.template?.signatures
+                                                    }}
+                                                    scale={1}
+                                                />
+                                            </DialogContent>
+                                        </Dialog>
+                                    </CardContent>
                                 </Card>
                             ))}
                         </div>
                     ) : (
-                        <div className="flex flex-col items-center justify-center p-16 text-center rounded-3xl bg-muted/20 border-2 border-dashed border-border/50">
-                            <Award className="h-20 w-20 text-muted-foreground/10 mb-6" />
-                            <h2 className="text-2xl font-semibold">Nenhum certificado emitido</h2>
-                            <p className="text-muted-foreground max-w-md mt-2">
-                                Comece agora seus estudos e conquiste suas certificações para impulsionar sua carreira.
-                            </p>
-                        </div>
+                        <Card>
+                            <CardContent className="flex flex-col items-center justify-center py-16 text-center text-muted-foreground">
+                                <Award className="h-12 w-12 mb-4 opacity-20" />
+                                <p className="text-lg font-medium">Você ainda não possui certificados.</p>
+                                <p className="text-sm">Complete cursos para ganhar seus certificados.</p>
+                                <Button variant="outline" className="mt-4" onClick={() => window.location.href = '/dashboard/cursos'}>
+                                    Ir para Cursos
+                                </Button>
+                            </CardContent>
+                        </Card>
                     )}
                 </TabsContent>
 
@@ -247,7 +243,7 @@ export default function CertificadosPage() {
                         <CardContent>
                             {loading ? (
                                 <div className="space-y-4">
-                                    {[1, 2, 3].map(i => <Skeleton key={i} className="h-16 w-full" />)}
+                                    {[1, 2].map(i => <Skeleton key={i} className="h-16 w-full" />)}
                                 </div>
                             ) : requests.length > 0 ? (
                                 <div className="space-y-4">
@@ -287,7 +283,6 @@ export default function CertificadosPage() {
                     </Card>
                 </TabsContent>
             </Tabs>
-            </div>
-        </>
+        </div>
     )
 }

@@ -76,40 +76,39 @@
 }
 
 .dark {
-  /* --- Dark Mode (Default/Preferred) --- */
+  /* --- Dark Mode (Lighter/Legible) --- */
 
-  /* Canvas & Surfaces - Following system.md exactly */
-  --background: #020617;
-  /* Canvas - slate-950, near black */
+  /* Canvas & Surfaces - Adjusted for better legibility */
+  --background: #0f172a;
+  /* Slate 900 - Lighter than before */
   --foreground: #f8fafc;
+
   /* Slate 50 */
 
-  /* Surface Layers - system.md specification */
-  --surface-100: #0a0f1f;
-  /* 3% lighter than canvas */
-  --surface-200: #0f172a;
-  /* slate-900, for cards */
-  --surface-300: #131d37;
-  /* for elevated elements, dropdowns */
+  /* Surface Layers */
+  --surface-100: #1e293b;
+  /* Slate 800 */
+  --surface-200: #1e293b;
+  /* Slate 800 */
+  --surface-300: #334155;
+  /* Slate 700 */
 
-  /* Glassmorphism Bases */
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --glass-bg: rgba(15, 23, 42, 0.6);
+  /* Glassmorphism Bases - Adjusted opacity */
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-bg: rgba(30, 41, 59, 0.7);
+  /* Slate 800 with opacity */
 
   /* Primary Accents */
   --primary: #06b6d4;
   /* Cyan 500 */
   --primary-foreground: #ffffff;
   --primary-hover: #22d3ee;
-  /* Cyan 400 - Lighter for dark mode hover */
+  /* Cyan 400 */
 
-  /* Brand - system.md tokens */
+  /* Brand */
   --brand: #06b6d4;
-  /* cyan-500 */
   --brand-muted: #0891b2;
-  /* cyan-600 */
-  --brand-glow: rgba(6, 182, 212, 0.15);
-  /* subtle glow effect */
+  --brand-glow: rgba(6, 182, 212, 0.2);
 
   /* Secondary Surfaces */
   --secondary: #1e293b;
@@ -118,55 +117,49 @@
 
   /* UI States */
   --muted: #1e293b;
+  /* Slate 800 */
   --muted-foreground: #94a3b8;
   /* Slate 400 */
   --accent: #1e293b;
+  /* Slate 800 */
   --accent-foreground: #f8fafc;
 
-  /* Surfaces - use surface-200 for cards */
-  --card: #0f172a;
-  /* surface-200 */
+  /* Surfaces */
+  --card: #1e293b;
+  /* Slate 800 */
   --card-foreground: #f8fafc;
-  --popover: #131d37;
-  /* surface-300 for elevated */
+  --popover: #1e293b;
+  /* Slate 800 */
   --popover-foreground: #f8fafc;
 
-  /* Border System - system.md specification */
-  --border: rgba(148, 163, 184, 0.08);
-  /* border-default - barely there */
-  --border-subtle: rgba(148, 163, 184, 0.05);
-  /* even softer */
-  --border-strong: rgba(148, 163, 184, 0.12);
-  /* hover, focus */
-  --border-overlay: rgba(148, 163, 184, 0.15);
-  /* dropdowns, modals */
+  /* Border System */
+  --border: #334155;
+  /* Slate 700 - Visible but subtle */
+  --border-subtle: #1e293b;
+  --border-strong: #475569;
+  --border-overlay: rgba(148, 163, 184, 0.2);
 
   /* Inputs */
-  --input: #0a0f1f;
-  /* surface-100 for inset feel */
+  --input: #1e293b;
+  /* Slate 800 */
   --ring: #06b6d4;
 
   /* Sidebar overrides */
-  --sidebar: #0B1120;
-  /* Matches main background for seamless feel */
+  --sidebar: #0f172a;
+  /* Match background */
   --sidebar-foreground: #f8fafc;
   --sidebar-primary: #06b6d4;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #1e293b;
   --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: rgba(255, 255, 255, 0.05);
+  --sidebar-border: #1e293b;
 
   /* Chart Colors */
   --chart-1: #22d3ee;
-  /* Cyan */
   --chart-2: #60a5fa;
-  /* Blue */
   --chart-3: #a78bfa;
-  /* Violet */
   --chart-4: #f472b6;
-  /* Pink */
   --chart-5: #34d399;
-  /* Emerald */
 }
 
 @theme inline {

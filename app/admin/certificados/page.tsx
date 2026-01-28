@@ -67,7 +67,7 @@ interface IssuedCertificate {
 
 export default function AdminCertificadosPage() {
     const [requests, setRequests] = useState<CertificateRequest[]>([])
-    const [issuedCerts, setIssuedCerts] = useState<IssuedCertificate[]>([])
+    const [templates, setTemplates] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [isIssuing, setIsIssuing] = useState(false)
 
@@ -83,13 +83,18 @@ export default function AdminCertificadosPage() {
     const fetchData = async () => {
         setLoading(true)
         try {
-            const [reqsRes, certsRes] = await Promise.all([
-                fetch('/api/admin/certificate-requests'),
-                fetch('/api/admin/certificates')
+            // Import server action dynamically or use from a separate file if client component
+            const { getCertificateTemplates } = await import('@/app/actions/certificates')
+
+            const [reqsRes, certsRes, tmplData] = await Promise.all([
+                fetch('/api/admin/certificate-requests').catch(() => ({ ok: false, json: async () => [] })),
+                fetch('/api/admin/certificates').catch(() => ({ ok: false, json: async () => [] })),
+                getCertificateTemplates().catch(() => [])
             ])
 
             if (reqsRes.ok) setRequests(await reqsRes.json())
             if (certsRes.ok) setIssuedCerts(await certsRes.json())
+            setTemplates(tmplData || [])
         } catch (error) {
             console.error('Error fetching admin data:', error)
             toast.error("Erro ao carregar dados")
@@ -172,17 +177,71 @@ export default function AdminCertificadosPage() {
                 <div>
                     <h1 className="text-3xl font-bold">Gestão de Certificados</h1>
                     <p className="text-muted-foreground mt-1">
-                        Gere e gerencie os certificados emitidos para os estudantes.
+                        Gera e gerencia modelos e certificados emitidos.
                     </p>
                 </div>
-                <Award className="h-10 w-10 text-primary opacity-20" />
+                <div className="flex gap-2">
+                    <Button onClick={() => window.location.href = '/admin/certificados/templates/new'}>
+                        <FileText className="mr-2 h-4 w-4" />
+                        Novo Modelo
+                    </Button>
+                    <Award className="h-10 w-10 text-primary opacity-20" />
+                </div>
             </div>
 
-            <Tabs defaultValue="requests" className="w-full">
-                <TabsList className="grid w-full max-w-[400px] grid-cols-2">
+            <Tabs defaultValue="templates" className="w-full">
+                <TabsList className="grid w-full max-w-[600px] grid-cols-3">
+                    <TabsTrigger value="templates">Modelos</TabsTrigger>
                     <TabsTrigger value="requests">Solicitações</TabsTrigger>
                     <TabsTrigger value="issued">Emitidos</TabsTrigger>
                 </TabsList>
+
+                <TabsContent value="templates" className="mt-6">
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Modelos de Certificado</CardTitle>
+                            <CardDescription>Gerencie os templates disponíveis para os cursos.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            {loading ? (
+                                <div className="space-y-4">
+                                    {[1, 2].map(i => <Skeleton key={i} className="h-12 w-full" />)}
+                                </div>
+                            ) : templates.length > 0 ? (
+                                <Table>
+                                    <TableHeader>
+                                        <TableRow>
+                                            <TableHead>Nome</TableHead>
+                                            <TableHead>Carga Horária</TableHead>
+                                            <TableHead>Validade</TableHead>
+                                            <TableHead className="text-right">Ações</TableHead>
+                                        </TableRow>
+                                    </TableHeader>
+                                    <TableBody>
+                                        {templates.map((tmpl) => (
+                                            <TableRow key={tmpl.id}>
+                                                <TableCell className="font-medium">{tmpl.name}</TableCell>
+                                                <TableCell>{tmpl.hours} horas</TableCell>
+                                                <TableCell>{tmpl.validity_period_days ? `${tmpl.validity_period_days} dias` : 'Vitalício'}</TableCell>
+                                                <TableCell className="text-right">
+                                                    <Button size="sm" variant="ghost" asChild>
+                                                        <a href={`/admin/certificados/templates/${tmpl.id}`}>
+                                                            Editar
+                                                        </a>
+                                                    </Button>
+                                                </TableCell>
+                                            </TableRow>
+                                        ))}
+                                    </TableBody>
+                                </Table>
+                            ) : (
+                                <div className="py-10 text-center text-muted-foreground">
+                                    Nenhum modelo criado.
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </TabsContent>
 
                 <TabsContent value="requests" className="mt-6">
                     <Card>

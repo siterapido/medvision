@@ -71,3 +71,6 @@ VALIDATION_*.txt
 
 # User-specific SQL scripts
 grant_access_*.sql
+
+# Google Drive backups
+.next.backup-google-drive/

@@ -231,43 +231,52 @@ function DroppableColumn({ stage, leads, isDragging, onStageChange }: DroppableC
     <div
       ref={setNodeRef}
       className={cn(
-        "shrink-0 w-80 h-[calc(100vh-140px)] flex flex-col rounded-lg overflow-hidden transition-all duration-200",
-        "bg-[#0f172a]",
-        "border border-[rgba(148,163,184,0.08)]",
-        "border-t-2",
-        stage.color,
-        isOver && "border-[rgba(6,182,212,0.3)] shadow-[0_0_20px_rgba(6,182,212,0.15)]"
+        "shrink-0 w-80 lg:w-[350px] flex flex-col rounded-2xl overflow-hidden transition-all duration-300",
+        "bg-card/40 backdrop-blur-md",
+        "border border-border/50",
+        "group/column hover:bg-card/60",
+        isOver && "border-primary/30 shadow-[0_0_30px_rgba(6,182,212,0.15)] ring-1 ring-primary/20 bg-card"
       )}
     >
       {/* Column Header */}
-      <div className="flex items-center justify-between px-3 py-2.5 shrink-0 border-b border-[rgba(148,163,184,0.08)]">
-        <div className="flex items-center gap-2">
-          <span className="text-base">{stage.emoji}</span>
+      <div className={cn(
+        "flex items-center justify-between px-5 py-4 shrink-0 border-b border-border/40 relative overflow-hidden",
+        "bg-gradient-to-b from-background/50 to-transparent"
+      )}>
+        {/* Top Color Accent */}
+        <div className={cn("absolute top-0 left-0 right-0 h-[2px]", stage.color.replace('border-t-', 'bg-'))} />
+
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-background/50 border border-border/50 flex items-center justify-center text-lg shadow-sm">
+            {stage.emoji}
+          </div>
           <div>
-            <h3 className="text-xs font-semibold text-[#f8fafc] leading-tight">
+            <h3 className="text-sm font-heading font-bold text-slate-100 leading-tight tracking-tight">
               {stage.title}
             </h3>
-            <p className="text-[10px] text-[#64748b] leading-tight">
+            <p className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5">
               {stage.description}
             </p>
           </div>
         </div>
-        <span className="text-[10px] font-medium text-[#94a3b8] bg-[#020617] px-2 py-0.5 rounded-md border border-[rgba(148,163,184,0.08)]">
+        <span className="text-[11px] font-bold text-muted-foreground bg-background/50 px-2.5 py-1 rounded-full border border-border/50 shadow-sm min-w-[28px] text-center">
           {leads.length}
         </span>
       </div>
 
       {/* Column Content */}
-      <div className="flex-1 overflow-y-auto">
-        <div className={cn("p-2.5 space-y-2 min-h-[100px]")}>
+      <div className="flex-1 overflow-y-auto px-3 py-4 custom-scrollbar">
+        <div className={cn("space-y-4 min-h-[150px]")}>
           {leads.map((lead) => (
             <LeadCard key={lead.id} lead={lead} onStageChange={onStageChange} />
           ))}
           {leads.length === 0 && (
-            <div className="flex flex-col items-center justify-center gap-2 py-12 text-center">
-              <Icon className="h-5 w-5 text-[#64748b] opacity-40" />
-              <p className="text-xs text-[#64748b] font-medium">
-                {isDragging ? "Solte aqui" : "Nenhum lead"}
+            <div className="flex flex-col items-center justify-center gap-3 py-16 text-center opacity-50 group-hover/column:opacity-80 transition-opacity">
+              <div className="w-12 h-12 rounded-full bg-background/50 flex items-center justify-center border border-border/50">
+                <Icon className="h-5 w-5 text-muted-foreground" />
+              </div>
+              <p className="text-xs text-muted-foreground font-medium max-w-[120px]">
+                {isDragging ? "Solte aqui" : "Nenhum lead nesta etapa"}
               </p>
             </div>
           )}
@@ -385,26 +394,31 @@ export function PipelineKanbanBoard({ leads }: { leads: PipelineLead[] }) {
       onDragEnd={handleDragEnd}
       onDragCancel={handleDragCancel}
     >
-      <div className="flex flex-col h-full bg-[#020617]">
+      <div className="flex flex-col h-full bg-background">
         {/* Header */}
-        <div className="flex items-center justify-between gap-4 px-6 py-4 border-b border-[rgba(148,163,184,0.08)]">
-          <div className="flex items-baseline gap-3">
-            <h2 className="text-xl font-semibold text-[#f8fafc]">Pipeline de Conversão</h2>
-            <span className="text-xs text-[#94a3b8] font-medium">
-              {filteredCount} leads
-            </span>
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-8 py-6 border-b border-border/40 bg-background/80 backdrop-blur-xl sticky top-0 z-10 supports-[backdrop-filter]:bg-background/60">
+          <div className="flex items-baseline gap-4 w-full md:w-auto">
+            <h2 className="text-2xl font-heading font-bold text-foreground tracking-tight">Pipeline de Conversão</h2>
+            <div className="px-3 py-1 rounded-full bg-muted border border-border text-muted-foreground text-xs font-medium shadow-sm">
+              {filteredCount} leads ativos
+            </div>
           </div>
-          <Input
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Buscar por nome, email, profissão..."
-            className="h-9 w-80 bg-[#0a0f1f] border-[rgba(148,163,184,0.08)] text-[#f8fafc] placeholder:text-[#64748b] text-sm focus:border-[#06b6d4] focus:ring-1 focus:ring-[rgba(6,182,212,0.15)] transition-all"
-          />
+          <div className="relative w-full md:w-96 group">
+            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground group-focus-within:text-primary transition-colors"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+            </div>
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar por nome, email, profissão..."
+              className="pl-10 h-11 w-full bg-muted/50 border-border text-foreground placeholder:text-muted-foreground/70 text-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/10 focus:bg-muted transition-all rounded-xl"
+            />
+          </div>
         </div>
 
         {/* Board */}
-        <div className="flex-1 overflow-x-auto">
-          <div className="flex flex-row gap-4 p-4 min-w-max h-full items-stretch">
+        <div className="flex-1 overflow-x-auto overflow-y-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
+          <div className="flex flex-row gap-6 p-8 min-w-max h-full items-stretch">
             {STAGES.map((stage) => (
               <DroppableColumn
                 key={stage.id}

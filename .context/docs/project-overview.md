@@ -23,4 +23,5 @@ Odonto GPT is a modern web application designed for the dental industry, providi
 - **AI Chat**: Conversational interface for interacting with dentistry-focused AI models.
 - **OdontoFlix**: A course and lesson player for educational content.
 - **Admin Dashboard**: Management interface for users, certificates, and agents.
+- **Biblioteca de Artefatos**: Sistema de geração e armazenamento de conteúdos educacionais e clínicos (Pesquisas, Flashcards, Laudos, Resumos, etc.) produzidos por IA.
 - **Automated Workflows**: Integration with external services for payments and notifications.

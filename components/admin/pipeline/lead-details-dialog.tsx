@@ -17,6 +17,8 @@ import {
   User,
   UserCheck,
   Users,
+  Clock3,
+  Sparkles
 } from "lucide-react"
 
 import {
@@ -171,83 +173,82 @@ export function LeadDetailsDialog({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="max-w-6xl max-h-[90vh] flex flex-col p-0 gap-0 bg-[#020617] border-[rgba(148,163,184,0.12)] text-[#f8fafc] overflow-hidden shadow-2xl">
-          <div className="flex flex-col h-full overflow-hidden">
-            {/* Header com design system */}
-            <div className="flex flex-col gap-4 px-6 py-5 border-b border-[rgba(148,163,184,0.08)] bg-[#0a0f1f]">
-              <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                <div className="space-y-2 flex-1">
-                  <DialogTitle className="text-2xl font-semibold text-[#f8fafc] flex items-center gap-3 flex-wrap">
+        <DialogContent className="max-w-5xl max-h-[90vh] flex flex-col p-0 gap-0 bg-[#020617] border border-[rgba(148,163,184,0.08)] text-[#f8fafc] overflow-hidden shadow-2xl sm:rounded-2xl">
+          <div className="flex flex-col h-full overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-cyan-900/10 via-[#020617] to-[#020617]">
+            {/* Header com design system refinado */}
+            <div className="flex flex-col gap-6 px-8 py-6 border-b border-[rgba(148,163,184,0.08)] bg-[#0a0f1f]/80 backdrop-blur-md sticky top-0 z-20">
+              <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6">
+                <div className="space-y-3 flex-1">
+                  <DialogTitle className="text-3xl font-heading font-bold text-[#f8fafc] flex items-center gap-4 flex-wrap tracking-tight">
                     {profile.name || leadName || "Lead sem nome"}
                     {profile.plan_type !== "free" && (
-                      <Badge variant="secondary" className="bg-[rgba(139,92,246,0.12)] text-[#c4b5fd] border border-[rgba(139,92,246,0.2)] text-xs">
+                      <Badge variant="secondary" className="px-3 py-1 bg-violet-500/10 text-violet-300 border border-violet-500/20 text-xs font-medium rounded-full shadow-[0_0_10px_rgba(139,92,246,0.1)]">
                         {profile.plan_type}
                       </Badge>
                     )}
                   </DialogTitle>
-                  <div className="flex items-center gap-4 text-sm text-[#94a3b8] flex-wrap">
-                    <span className="flex items-center gap-1.5">
-                      <Mail className="h-4 w-4 text-[#64748b]" />
+
+                  <div className="flex items-center gap-6 text-sm text-[#94a3b8] flex-wrap">
+                    <span className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-900/50 border border-slate-800/50">
+                      <Mail className="h-4 w-4 text-cyan-500" />
                       {profile.email}
                     </span>
                     {profile.phone && (
-                      <span className="flex items-center gap-1.5">
-                        <Phone className="h-4 w-4 text-[#64748b]" />
+                      <span className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-slate-900/50 border border-slate-800/50">
+                        <Phone className="h-4 w-4 text-emerald-500" />
                         {profile.phone}
                       </span>
                     )}
                   </div>
                 </div>
 
-                <LeadActionsBar
-                  userId={leadId}
-                  currentStage={profile.pipeline_stage}
-                  email={profile.email}
-                  whatsapp={profile.whatsapp || profile.phone}
-                  onStageChange={handleStageChange}
-                  onAddNote={() => setNotesOpen(true)}
-                  onScheduleFollowup={() => setFollowupOpen(true)}
-                />
+                <div className="flex-shrink-0">
+                  <LeadActionsBar
+                    userId={leadId}
+                    currentStage={profile.pipeline_stage}
+                    email={profile.email}
+                    whatsapp={profile.whatsapp || profile.phone}
+                    onStageChange={handleStageChange}
+                    onAddNote={() => setNotesOpen(true)}
+                    onScheduleFollowup={() => setFollowupOpen(true)}
+                  />
+                </div>
               </div>
 
-              {/* Prominent Trial Progress Bar */}
-              {trialProgress !== null && (
-                <div className="space-y-2 bg-[#0f172a] rounded-xl p-4 border border-[rgba(148,163,184,0.08)]">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-[#94a3b8] font-medium">Progresso do Trial</span>
+              {/* Status Bar unificada e elegante */}
+              {(trialProgress !== null || isUrgent) && (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 rounded-xl bg-slate-900/40 border border-slate-800/60 items-center">
+                  <div className="md:col-span-1 flex flex-col justify-center">
+                    <span className="text-xs font-medium text-slate-500 uppercase tracking-wider mb-1">Status do Trial</span>
                     <span className={cn(
-                      "font-semibold",
-                      isUrgent ? "text-[#f87171]" : "text-[#06b6d4]"
+                      "text-sm font-bold flex items-center gap-2",
+                      isUrgent ? "text-rose-400" : "text-cyan-400"
                     )}>
                       {daysRemaining !== null && daysRemaining > 0
-                        ? `${daysRemaining} dias restantes`
+                        ? <><Clock3 className="w-4 h-4" /> {daysRemaining} dias restantes</>
                         : daysRemaining === 0
-                        ? "Expira hoje"
-                        : "Trial expirado"}
+                          ? "⚠️ Expira hoje"
+                          : "❌ Expirado"
+                      }
                     </span>
                   </div>
-                  <div className="h-3 bg-[#131d37] rounded-full overflow-hidden">
-                    <div
-                      className={cn(
-                        "h-full transition-all duration-500 rounded-full",
-                        isUrgent
-                          ? "bg-gradient-to-r from-[#f87171] to-[#fca5a5]"
-                          : "bg-gradient-to-r from-[#0891b2] to-[#06b6d4]"
-                      )}
-                      style={{ width: `${trialProgress}%` }}
-                    />
-                  </div>
-                  <div className="flex justify-between text-xs text-[#64748b]">
-                    <span>
-                      {profile.trial_started_at
-                        ? format(new Date(profile.trial_started_at), "dd/MM/yyyy", { locale: ptBR })
-                        : "-"}
-                    </span>
-                    <span>
-                      {profile.trial_ends_at
-                        ? format(new Date(profile.trial_ends_at), "dd/MM/yyyy", { locale: ptBR })
-                        : "-"}
-                    </span>
+
+                  <div className="md:col-span-3 space-y-2">
+                    <div className="flex justify-between text-xs text-slate-400 px-1">
+                      <span>Início: {profile.trial_started_at ? format(new Date(profile.trial_started_at), "dd/MM", { locale: ptBR }) : "-"}</span>
+                      <span>Fim: {profile.trial_ends_at ? format(new Date(profile.trial_ends_at), "dd/MM", { locale: ptBR }) : "-"}</span>
+                    </div>
+                    <div className="h-2.5 bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                      <div
+                        className={cn(
+                          "h-full transition-all duration-700 ease-out rounded-full shadow-[0_0_10px_rgba(6,182,212,0.3)]",
+                          isUrgent
+                            ? "bg-gradient-to-r from-rose-500 to-orange-500"
+                            : "bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-500"
+                        )}
+                        style={{ width: `${trialProgress}%` }}
+                      />
+                    </div>
                   </div>
                 </div>
               )}
@@ -256,45 +257,47 @@ export function LeadDetailsDialog({
             {/* Content */}
             {loading ? (
               <div className="flex-1 flex items-center justify-center min-h-[400px]">
-                <Loader2 className="h-8 w-8 animate-spin text-[#06b6d4]" />
+                <Loader2 className="h-8 w-8 animate-spin text-cyan-500" />
               </div>
             ) : (
-              <div className="flex-1 flex flex-col md:flex-row overflow-hidden">
+              <div className="flex-1 flex flex-col md:flex-row overflow-hidden bg-[#020617]">
                 {/* Left Sidebar - Info */}
-                <div className="w-full md:w-1/3 border-b md:border-b-0 md:border-r border-[rgba(148,163,184,0.08)] bg-[#0a0f1f] overflow-y-auto p-6 space-y-6">
+                <div className="w-full md:w-[320px] lg:w-[350px] border-b md:border-b-0 md:border-r border-slate-800/50 bg-[#050914] overflow-y-auto p-6 space-y-8 flex-shrink-0 custom-scrollbar">
                   {/* Status do Trial */}
-                  <div className="space-y-3">
-                    <h3 className="text-xs font-semibold text-[#64748b] uppercase tracking-wider flex items-center gap-2">
-                      <History className="h-4 w-4" />
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                      <History className="h-3.5 w-3.5" />
                       Status do Trial
                     </h3>
-                    <div className="bg-[#0f172a] rounded-xl p-4 border border-[rgba(148,163,184,0.08)] space-y-3">
+                    <div className="bg-slate-900/40 rounded-xl p-5 border border-slate-800/60 space-y-4 shadow-sm backdrop-blur-sm">
                       <div className="flex justify-between items-center text-sm">
-                        <span className="text-[#94a3b8]">Início</span>
-                        <span className="text-[#f8fafc] font-medium">
+                        <span className="text-slate-400">Início</span>
+                        <span className="text-slate-200 font-medium font-mono text-xs bg-slate-800/50 px-2 py-1 rounded">
                           {profile.trial_started_at
-                            ? format(new Date(profile.trial_started_at), "dd/MM/yyyy", { locale: ptBR })
+                            ? format(new Date(profile.trial_started_at), "dd MMM yyyy", { locale: ptBR })
                             : "-"}
                         </span>
                       </div>
                       <div className="flex justify-between items-center text-sm">
-                        <span className="text-[#94a3b8]">Fim</span>
-                        <span className="text-[#f8fafc] font-medium">
+                        <span className="text-slate-400">Fim</span>
+                        <span className="text-slate-200 font-medium font-mono text-xs bg-slate-800/50 px-2 py-1 rounded">
                           {profile.trial_ends_at
-                            ? format(new Date(profile.trial_ends_at), "dd/MM/yyyy", { locale: ptBR })
+                            ? format(new Date(profile.trial_ends_at), "dd MMM yyyy", { locale: ptBR })
                             : "-"}
                         </span>
                       </div>
-                      <div className="pt-3 border-t border-[rgba(148,163,184,0.08)]">
-                         <div className="flex justify-between items-center text-sm">
-                          <span className="text-[#94a3b8]">Status</span>
+                      <div className="pt-4 border-t border-slate-800/60">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-slate-400">Assinatura</span>
                           <Badge variant="outline" className={cn(
                             "border",
-                            profile.subscription_status === 'active' ? "bg-[rgba(52,211,153,0.12)] text-[#34d399] border-[rgba(52,211,153,0.3)]" :
-                            profile.subscription_status === 'canceled' ? "bg-[rgba(248,113,113,0.12)] text-[#f87171] border-[rgba(248,113,113,0.3)]" :
-                            "bg-[#0a0f1f] text-[#94a3b8] border-[rgba(148,163,184,0.2)]"
+                            profile.subscription_status === 'active' ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20" :
+                              profile.subscription_status === 'canceled' ? "bg-rose-500/10 text-rose-400 border-rose-500/20" :
+                                "bg-slate-800/50 text-slate-400 border-slate-700/50"
                           )}>
-                            {profile.subscription_status || "Inativo"}
+                            {profile.subscription_status === 'active' ? 'Ativa' :
+                              profile.subscription_status === 'canceled' ? 'Cancelada' :
+                                profile.subscription_status || "Inativo"}
                           </Badge>
                         </div>
                       </div>
@@ -302,87 +305,100 @@ export function LeadDetailsDialog({
                   </div>
 
                   {/* Dados Pessoais */}
-                  <div className="space-y-3">
-                    <h3 className="text-xs font-semibold text-[#64748b] uppercase tracking-wider flex items-center gap-2">
-                      <User className="h-4 w-4" />
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                      <User className="h-3.5 w-3.5" />
                       Dados Pessoais
                     </h3>
-                    <div className="bg-[#0f172a] rounded-xl p-4 border border-[rgba(148,163,184,0.08)] space-y-3 text-sm">
+                    <div className="bg-slate-900/40 rounded-xl p-5 border border-slate-800/60 space-y-4 text-sm shadow-sm backdrop-blur-sm">
                       {profile.profession && (
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs text-[#64748b]">Profissão</span>
-                          <span className="text-[#f8fafc] font-medium">{profile.profession}</span>
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-xs text-slate-500">Profissão</span>
+                          <span className="text-slate-200 font-medium flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-cyan-500"></div>
+                            {profile.profession}
+                          </span>
                         </div>
                       )}
+
                       {profile.institution && (
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs text-[#64748b]">Instituição</span>
-                          <span className="text-[#f8fafc] font-medium flex items-center gap-1.5">
-                            <GraduationCap className="h-3.5 w-3.5 text-[#06b6d4]" />
+                        <div className="flex flex-col gap-1.5">
+                          <span className="text-xs text-slate-500">Instituição</span>
+                          <span className="text-slate-200 font-medium flex items-center gap-2">
+                            <GraduationCap className="h-4 w-4 text-cyan-500/70" />
                             {profile.institution}
                           </span>
                         </div>
                       )}
-                      {profile.state && (
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs text-[#64748b]">Estado</span>
-                          <span className="text-[#f8fafc] font-medium flex items-center gap-1.5">
-                            <MapPin className="h-3.5 w-3.5 text-[#06b6d4]" />
-                            {profile.state}
-                          </span>
-                        </div>
-                      )}
-                      {profile.account_source && (
-                        <div className="flex flex-col gap-1">
-                          <span className="text-xs text-[#64748b]">Origem</span>
-                          <span className="text-[#f8fafc] font-medium">{profile.account_source}</span>
-                        </div>
-                      )}
+
+                      <div className="grid grid-cols-2 gap-4">
+                        {profile.state && (
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-xs text-slate-500">Estado</span>
+                            <span className="text-slate-200 font-medium flex items-center gap-2">
+                              <MapPin className="h-4 w-4 text-cyan-500/70" />
+                              {profile.state}
+                            </span>
+                          </div>
+                        )}
+                        {profile.account_source && (
+                          <div className="flex flex-col gap-1.5">
+                            <span className="text-xs text-slate-500">Origem</span>
+                            <span className="text-slate-200 font-medium flex items-center gap-2">
+                              {profile.account_source}
+                            </span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
 
                   {/* Vendedor Responsável */}
-                  <div className="space-y-3">
-                    <h3 className="text-xs font-semibold text-[#64748b] uppercase tracking-wider flex items-center gap-2">
-                      <UserCheck className="h-4 w-4" />
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                      <UserCheck className="h-3.5 w-3.5" />
                       Vendedor Responsável
                     </h3>
-                    <div className="bg-[#0f172a] rounded-xl p-4 border border-[rgba(148,163,184,0.08)]">
+                    <div className="bg-slate-900/40 rounded-xl p-1 border border-slate-800/60 shadow-sm backdrop-blur-sm">
                       <Select
                         value={profile.assigned_to || "none"}
                         onValueChange={(value) => handleAssignSeller(value === "none" ? null : value)}
                         disabled={isAssigningSeller}
                       >
-                        <SelectTrigger className="w-full bg-[#131d37] border-[rgba(148,163,184,0.12)] text-[#f8fafc] h-10">
+                        <SelectTrigger className="w-full bg-transparent border-none text-slate-200 h-10 hover:bg-slate-800/30 transition-colors focus:ring-0">
                           <SelectValue placeholder="Selecionar vendedor">
                             {profile.assigned_to && assignedSeller ? (
                               <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-[#8b5cf6]" />
+                                <div className="w-6 h-6 rounded-full bg-violet-500/20 flex items-center justify-center text-xs font-bold text-violet-300">
+                                  {assignedSeller.name?.charAt(0) || "V"}
+                                </div>
                                 <span>{assignedSeller.name || assignedSeller.email?.split("@")[0]}</span>
                               </div>
                             ) : (
-                              <span className="text-[#64748b]">Nenhum vendedor</span>
+                              <span className="text-slate-500">Atribuir vendedor...</span>
                             )}
                           </SelectValue>
                         </SelectTrigger>
-                        <SelectContent className="bg-[#0f172a] border-[rgba(148,163,184,0.12)]">
+                        <SelectContent className="bg-[#0f172a] border-slate-800">
                           <SelectItem
                             value="none"
-                            className="text-[#94a3b8] hover:bg-[#131d37] focus:bg-[#131d37] cursor-pointer"
+                            className="text-slate-400 hover:bg-slate-800 focus:bg-slate-800 cursor-pointer"
                           >
                             <div className="flex items-center gap-2">
                               <Users className="h-4 w-4" />
-                              <span>Nenhum vendedor</span>
+                              <span>Remover atribuição</span>
                             </div>
                           </SelectItem>
                           {sellers.map((seller) => (
                             <SelectItem
                               key={seller.id}
                               value={seller.id}
-                              className="text-[#f8fafc] hover:bg-[#131d37] focus:bg-[#131d37] cursor-pointer"
+                              className="text-slate-200 hover:bg-slate-800 focus:bg-slate-800 cursor-pointer"
                             >
                               <div className="flex items-center gap-2">
-                                <User className="h-4 w-4 text-[#8b5cf6]" />
+                                <div className="w-5 h-5 rounded-full bg-violet-500/20 flex items-center justify-center text-[10px] font-bold text-violet-300">
+                                  {seller.name?.charAt(0) || "V"}
+                                </div>
                                 <span>{seller.name || seller.email?.split("@")[0]}</span>
                               </div>
                             </SelectItem>
@@ -390,30 +406,30 @@ export function LeadDetailsDialog({
                         </SelectContent>
                       </Select>
                       {sellers.length === 0 && (
-                        <p className="text-xs text-[#64748b] mt-2">
-                          Nenhum vendedor cadastrado no sistema.
+                        <p className="text-xs text-slate-500 px-3 pb-2">
+                          Nenhum vendedor cadastrado.
                         </p>
                       )}
                     </div>
                   </div>
 
                   {/* Métricas */}
-                  <div className="space-y-3">
-                    <h3 className="text-xs font-semibold text-[#64748b] uppercase tracking-wider flex items-center gap-2">
-                      <LayoutDashboard className="h-4 w-4" />
+                  <div className="space-y-4">
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                      <LayoutDashboard className="h-3.5 w-3.5" />
                       Métricas
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
-                      <div className="bg-[#0f172a] p-4 rounded-xl border border-[rgba(148,163,184,0.08)]">
-                        <span className="text-xs text-[#64748b] block mb-1.5">Total Gasto</span>
-                        <span className="text-base font-semibold text-[#34d399]">
+                      <div className="bg-slate-900/40 p-5 rounded-xl border border-slate-800/60 shadow-sm backdrop-blur-sm group hover:border-emerald-500/30 transition-colors">
+                        <span className="text-xs text-slate-500 block mb-2 font-medium">Total Gasto</span>
+                        <span className="text-xl font-bold text-emerald-400 tracking-tight group-hover:text-emerald-300 transition-colors">
                           {formatCurrency(stats.total_spent)}
                         </span>
                       </div>
-                      <div className="bg-[#0f172a] p-4 rounded-xl border border-[rgba(148,163,184,0.08)]">
-                        <span className="text-xs text-[#64748b] block mb-1.5">Cursos</span>
-                        <span className="text-base font-semibold text-[#06b6d4]">
-                          {stats.completed_courses}/{stats.total_courses}
+                      <div className="bg-slate-900/40 p-5 rounded-xl border border-slate-800/60 shadow-sm backdrop-blur-sm group hover:border-cyan-500/30 transition-colors">
+                        <span className="text-xs text-slate-500 block mb-2 font-medium">Cursos</span>
+                        <span className="text-xl font-bold text-cyan-400 tracking-tight group-hover:text-cyan-300 transition-colors">
+                          {stats.completed_courses}<span className="text-slate-600 text-sm font-normal">/{stats.total_courses}</span>
                         </span>
                       </div>
                     </div>
@@ -421,64 +437,79 @@ export function LeadDetailsDialog({
                 </div>
 
                 {/* Right Content - Tabs */}
-                <div className="flex-1 flex flex-col bg-[#020617]">
+                <div className="flex-1 flex flex-col bg-[#020617]/30">
                   <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col">
-                    <div className="px-6 pt-5 border-b border-[rgba(148,163,184,0.08)]">
-                      <TabsList className="bg-transparent h-auto p-0 gap-8">
+                    <div className="px-8 pt-6 border-b border-slate-800/40 bg-[#0a0f1f]/30 backdrop-blur-sm">
+                      <TabsList className="bg-transparent h-auto p-0 gap-8 w-full justify-start">
                         <TabsTrigger
                           value="overview"
-                          className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#06b6d4] rounded-none px-0 pb-3 text-[#94a3b8] data-[state=active]:text-[#06b6d4] transition-all font-medium"
+                          className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cyan-500 rounded-none px-2 pb-4 text-slate-500 data-[state=active]:text-cyan-400 transition-all font-medium hover:text-slate-300"
                         >
-                          Timeline & Atividades
+                          <div className="flex items-center gap-2.5">
+                            <History className="w-4 h-4" />
+                            Timeline & Atividades
+                          </div>
                         </TabsTrigger>
                         <TabsTrigger
                           value="courses"
-                          className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-[#06b6d4] rounded-none px-0 pb-3 text-[#94a3b8] data-[state=active]:text-[#06b6d4] transition-all font-medium"
+                          className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-cyan-500 rounded-none px-2 pb-4 text-slate-500 data-[state=active]:text-cyan-400 transition-all font-medium hover:text-slate-300"
                         >
-                          Cursos em Andamento
+                          <div className="flex items-center gap-2.5">
+                            <BookOpen className="w-4 h-4" />
+                            Cursos
+                          </div>
                         </TabsTrigger>
                       </TabsList>
                     </div>
 
-                    <div className="flex-1 overflow-hidden">
-                      <TabsContent value="overview" className="h-full m-0">
-                        <ScrollArea className="h-full p-6">
-                          <LeadTimeline events={timeline} />
+                    <div className="flex-1 overflow-hidden relative">
+                      <TabsContent value="overview" className="h-full m-0 data-[state=active]:flex flex-col absolute inset-0">
+                        <ScrollArea className="flex-1 h-full">
+                          <div className="p-8 max-w-4xl mx-auto">
+                            <LeadTimeline events={timeline} />
+                          </div>
                         </ScrollArea>
                       </TabsContent>
-                      
-                      <TabsContent value="courses" className="h-full m-0">
-                        <ScrollArea className="h-full p-6">
+
+                      <TabsContent value="courses" className="h-full m-0 absolute inset-0">
+                        <ScrollArea className="h-full p-8">
                           {courses.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center py-16 text-[#64748b]">
-                              <BookOpen className="h-12 w-12 mb-4 opacity-30" />
-                              <p className="text-sm">Nenhum curso iniciado</p>
+                            <div className="flex flex-col items-center justify-center py-20 text-slate-600">
+                              <div className="w-16 h-16 rounded-full bg-slate-900/50 flex items-center justify-center mb-4">
+                                <BookOpen className="h-8 w-8 opacity-40" />
+                              </div>
+                              <p className="text-sm font-medium">Nenhum curso iniciado</p>
                             </div>
                           ) : (
-                            <div className="grid gap-4">
+                            <div className="grid gap-4 max-w-3xl mx-auto">
                               {courses.map((course: any) => (
-                                <div key={course.id} className="flex gap-4 p-4 rounded-xl border border-[rgba(148,163,184,0.08)] bg-[#0f172a] hover:border-[rgba(148,163,184,0.12)] hover:shadow-[0_0_20px_rgba(6,182,212,0.1)] transition-all">
+                                <div key={course.id} className="group flex gap-5 p-5 rounded-2xl border border-slate-800/50 bg-slate-900/20 hover:border-slate-700 hover:bg-slate-900/40 hover:shadow-[0_0_20px_rgba(6,182,212,0.05)] transition-all duration-300">
                                   {course.course?.thumbnail && (
-                                    <div className="w-28 h-18 rounded-lg overflow-hidden flex-shrink-0 bg-[#131d37] border border-[rgba(148,163,184,0.08)]">
+                                    <div className="w-32 h-20 rounded-lg overflow-hidden flex-shrink-0 bg-slate-900 shadow-lg border border-slate-800/50 group-hover:scale-[1.02] transition-transform">
                                       <img src={course.course.thumbnail} alt="" className="w-full h-full object-cover" />
                                     </div>
                                   )}
-                                  <div className="flex-1 min-w-0">
-                                    <h4 className="font-semibold text-[#f8fafc] truncate">{course.course?.title}</h4>
-                                    <div className="flex items-center gap-3 mt-3">
-                                      <div className="flex-1 h-2 bg-[#131d37] rounded-full overflow-hidden border border-[rgba(148,163,184,0.08)]">
+                                  <div className="flex-1 min-w-0 flex flex-col justify-center">
+                                    <h4 className="font-heading font-semibold text-slate-200 text-lg truncate group-hover:text-cyan-400 transition-colors">{course.course?.title}</h4>
+
+                                    <div className="flex items-center gap-4 mt-3">
+                                      <div className="flex-1 h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700/50">
                                         <div
-                                          className="h-full bg-gradient-to-r from-[#0891b2] to-[#06b6d4] transition-all duration-500"
+                                          className="h-full bg-gradient-to-r from-cyan-600 to-cyan-400 transition-all duration-700 ease-out relative overflow-hidden"
                                           style={{ width: `${course.progress}%` }}
-                                        />
+                                        >
+                                          <div className="absolute inset-0 bg-white/20 animate-[shimmer_2s_infinite]"></div>
+                                        </div>
                                       </div>
-                                      <span className="text-xs font-semibold text-[#06b6d4] w-10 text-right">
+                                      <span className="text-xs font-bold text-cyan-500 w-12 text-right font-mono">
                                         {course.progress}%
                                       </span>
                                     </div>
-                                    <p className="text-xs text-[#64748b] mt-2">
+
+                                    <div className="flex items-center gap-2 mt-2 text-[10px] text-slate-500 uppercase tracking-widest font-medium">
+                                      <Clock3 className="w-3 h-3" />
                                       Último acesso {formatDistanceToNow(new Date(course.updated_at), { locale: ptBR, addSuffix: true })}
-                                    </p>
+                                    </div>
                                   </div>
                                 </div>
                               ))}

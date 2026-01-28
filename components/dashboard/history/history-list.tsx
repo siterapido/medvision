@@ -1,91 +1,53 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { getUserSessions, deleteSession } from '@/app/actions/chat'
-import { AgentSession } from '@/lib/ai/chat-service'
+import { useState } from 'react'
 import Link from 'next/link'
-import { formatDistanceToNow, isToday, isYesterday, format, isThisWeek } from 'date-fns'
+import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { MessageSquare, Trash2, Calendar, ArrowRight, Search, Clock, Bot, Filter } from 'lucide-react'
+import { MessageSquare, Trash2, Calendar, ArrowRight, Search, Clock, Bot, Filter, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { toast } from 'sonner'
-import { useRouter } from 'next/navigation'
 import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
 import { getAgentUI } from '@/lib/ai/agents/ui-config'
+import { useHistory, groupChatsByDate } from '@/lib/chat'
 
 export function HistoryList() {
-    const [sessions, setSessions] = useState<AgentSession[]>([])
-    const [isLoading, setIsLoading] = useState(true)
+    const { chats, isLoading, deleteChat, hasMore, loadMore, isValidating } = useHistory()
     const [searchFilter, setSearchFilter] = useState('')
     const [agentFilter, setAgentFilter] = useState<string>('all')
-    const router = useRouter()
-
-    useEffect(() => {
-        loadSessions()
-    }, [])
-
-    async function loadSessions() {
-        try {
-            setIsLoading(true)
-            const data = await getUserSessions()
-            setSessions(data as any[])
-        } catch (error) {
-            console.error(error)
-            toast.error("Erro ao carregar histórico")
-        } finally {
-            setIsLoading(false)
-        }
-    }
 
     async function handleDelete(e: React.MouseEvent, id: string) {
         e.preventDefault()
         e.stopPropagation()
         if (!confirm("Tem certeza que deseja apagar esta conversa?")) return
-
-        try {
-            await deleteSession(id)
-            setSessions(prev => prev.filter(s => s.id !== id))
-            toast.success("Conversa removida")
-        } catch (error) {
-            toast.error("Erro ao remover conversa")
-        }
+        await deleteChat(id)
     }
 
     // Filter sessions
-    const filteredSessions = sessions.filter(s => {
+    const filteredSessions = chats.filter(s => {
         const matchesSearch = (s.title || 'Nova Conversa').toLowerCase().includes(searchFilter.toLowerCase())
-        const matchesAgent = agentFilter === 'all' || s.agent_type === agentFilter
+        const matchesAgent = agentFilter === 'all' || s.agentType === agentFilter
         return matchesSearch && matchesAgent
     })
 
-    // Group sessions by date
-    const groupedSessions = filteredSessions.reduce((groups, session) => {
-        const date = new Date(session.updated_at || session.created_at)
-        let key = 'Antigos'
+    // Group sessions by date using shared utility
+    const groupedChatsStruct = groupChatsByDate(filteredSessions)
 
-        if (isToday(date)) {
-            key = 'Hoje'
-        } else if (isYesterday(date)) {
-            key = 'Ontem'
-        } else if (isThisWeek(date)) {
-            key = 'Esta Semana'
-        } else {
-            key = 'Anteriormente'
-        }
-
-        if (!groups[key]) {
-            groups[key] = []
-        }
-        groups[key].push(session)
-        return groups
-    }, {} as Record<string, AgentSession[]>)
+    // Map the struct to the array format expected by the render loop if we want to keep order control
+    // Or just iterate over the keys. The shared utility returns specific keys.
+    const groupedSessions = {
+        'Hoje': groupedChatsStruct.today,
+        'Ontem': groupedChatsStruct.yesterday,
+        'Esta Semana': groupedChatsStruct.lastWeek,
+        'Mês Anterior': groupedChatsStruct.lastMonth,
+        'Antigos': groupedChatsStruct.older
+    }
 
     // Order of keys for display
-    const groupOrder = ['Hoje', 'Ontem', 'Esta Semana', 'Anteriormente']
+    const groupOrder = ['Hoje', 'Ontem', 'Esta Semana', 'Mês Anterior', 'Antigos']
 
-    const uniqueAgents = Array.from(new Set(sessions.map(s => s.agent_type))).filter(Boolean)
+    const uniqueAgents = Array.from(new Set(chats.map(s => s.agentType))).filter(Boolean)
 
-    if (isLoading) {
+    if (isLoading && chats.length === 0) {
         return (
             <div className="space-y-8">
                 <div className="flex gap-4">
@@ -104,7 +66,7 @@ export function HistoryList() {
         )
     }
 
-    if (sessions.length === 0) {
+    if (chats.length === 0) {
         return (
             <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 min-h-[400px]">
                 <div className="p-6 rounded-full bg-primary/5 ring-1 ring-primary/10">
@@ -158,7 +120,7 @@ export function HistoryList() {
                     {uniqueAgents.map(agent => (
                         <button
                             key={agent}
-                            onClick={() => setAgentFilter(agent)}
+                            onClick={() => setAgentFilter(agent as string)}
                             className={cn(
                                 "flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-medium transition-all whitespace-nowrap border border-transparent",
                                 agentFilter === agent
@@ -166,7 +128,7 @@ export function HistoryList() {
                                     : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
                             )}
                         >
-                            {AGENT_CONFIGS[agent]?.name || agent || 'OdontoGPT'}
+                            {AGENT_CONFIGS[agent as string]?.name || agent || 'OdontoGPT'}
                         </button>
                     ))}
                 </div>
@@ -174,7 +136,7 @@ export function HistoryList() {
 
             {/* Content Grouped by Date */}
             <div className="space-y-10">
-                {Object.keys(groupedSessions).length === 0 && (
+                {Object.values(groupedSessions).every(g => g.length === 0) && (
                     <div className="text-center py-20 text-muted-foreground">
                         <p>Nenhuma conversa encontrada com os filtros atuais.</p>
                         <button
@@ -187,7 +149,7 @@ export function HistoryList() {
                 )}
 
                 {groupOrder.map(groupKey => {
-                    const groupSessions = groupedSessions[groupKey]
+                    const groupSessions = groupedSessions[groupKey as keyof typeof groupedSessions]
                     if (!groupSessions || groupSessions.length === 0) return null
 
                     return (
@@ -198,8 +160,9 @@ export function HistoryList() {
                             </h2>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {groupSessions.map((session, index) => {
-                                    const agentConfig = AGENT_CONFIGS[session.agent_type]
-                                    const AgentIcon = getAgentUI(session.agent_type)?.icon || Bot
+                                    const agentType = session.agentType || 'qa'
+                                    const agentConfig = AGENT_CONFIGS[agentType]
+                                    const AgentIcon = getAgentUI(agentType)?.icon || Bot
 
                                     return (
                                         <Link
@@ -211,7 +174,7 @@ export function HistoryList() {
                                                 <div className="flex items-start justify-between">
                                                     <div className={cn(
                                                         "p-2 rounded-lg bg-gradient-to-br transition-all duration-300 group-hover:scale-110",
-                                                        getAgentUI(session.agent_type)?.gradient || "from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900"
+                                                        getAgentUI(agentType)?.gradient || "from-zinc-100 to-zinc-200 dark:from-zinc-800 dark:to-zinc-900"
                                                     )}>
                                                         <AgentIcon className="w-4 h-4 text-foreground/80" />
                                                     </div>
@@ -239,7 +202,7 @@ export function HistoryList() {
                                                 <div className="flex items-center gap-1.5">
                                                     <Calendar className="w-3.5 h-3.5 text-muted-foreground/70" />
                                                     <span>
-                                                        {format(new Date(session.updated_at || session.created_at), "d 'de' MMM, HH:mm", { locale: ptBR })}
+                                                        {format(new Date(session.createdAt), "d 'de' MMM, HH:mm", { locale: ptBR })}
                                                     </span>
                                                 </div>
                                                 <ArrowRight className="w-4 h-4 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-primary" />
@@ -252,6 +215,23 @@ export function HistoryList() {
                     )
                 })}
             </div>
+
+            {hasMore ? (
+                <div className="flex justify-center py-6">
+                    <button
+                        onClick={() => loadMore()}
+                        disabled={isValidating}
+                        className="flex items-center gap-2 px-6 py-2 rounded-full bg-muted/50 hover:bg-muted text-sm font-medium transition-colors"
+                    >
+                        {isValidating ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                        {isValidating ? 'Carregando...' : 'Carregar mais antigos'}
+                    </button>
+                </div>
+            ) : chats.length > 0 && (
+                <div className="flex justify-center py-6 text-xs text-muted-foreground">
+                    Todos os registros foram carregados
+                </div>
+            )}
         </div>
     )
 }

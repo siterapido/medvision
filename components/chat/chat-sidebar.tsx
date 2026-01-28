@@ -4,13 +4,9 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { toast } from 'sonner'
-import { useSWRConfig } from 'swr'
-import { unstable_serialize } from 'swr/infinite'
 import { Plus, Trash2, BotMessageSquare } from 'lucide-react'
-import {
-  getChatHistoryPaginationKey,
-  SidebarHistory,
-} from './sidebar-history'
+import { SidebarHistory } from './sidebar-history'
+import { useHistoryRevalidation } from '@/lib/chat'
 import { Button } from '@/components/ui/button'
 import {
   Sidebar,
@@ -42,7 +38,7 @@ interface ChatSidebarProps {
 export function ChatSidebar({ userId, userName, userImage }: ChatSidebarProps) {
   const router = useRouter()
   const { setOpenMobile } = useSidebar()
-  const { mutate } = useSWRConfig()
+  const { revalidateHistory } = useHistoryRevalidation()
   const [showDeleteAllDialog, setShowDeleteAllDialog] = useState(false)
 
   const handleDeleteAll = () => {
@@ -53,7 +49,7 @@ export function ChatSidebar({ userId, userName, userImage }: ChatSidebarProps) {
     toast.promise(deletePromise, {
       loading: 'Excluindo todas as conversas...',
       success: () => {
-        mutate(unstable_serialize(getChatHistoryPaginationKey))
+        revalidateHistory()
         setShowDeleteAllDialog(false)
         router.replace('/dashboard/chat')
         router.refresh()

@@ -13,6 +13,8 @@ import {
   Maximize2,
   Trash2,
   User,
+  Clock3,
+  Mail
 } from "lucide-react"
 import { useDraggable } from "@dnd-kit/core"
 
@@ -107,8 +109,8 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
 
   const style = transform
     ? {
-        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-      }
+      transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+    }
     : undefined
 
   const daysRemaining = lead.trial_ends_at
@@ -182,47 +184,58 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
         ref={setNodeRef}
         style={style}
         className={cn(
-          "group relative flex flex-col gap-3 rounded-xl border p-4 transition-all duration-200",
-          // Surface e border do design system
-          "bg-[#0f172a] border-[rgba(148,163,184,0.08)]",
-          // Hover com glow sutil (signature)
-          "hover:border-[rgba(148,163,184,0.12)] hover:shadow-[0_0_20px_rgba(6,182,212,0.1)]",
-          isDragging && !isDragOverlay && "opacity-40",
+          "group relative flex flex-col gap-3 rounded-xl p-4 transition-all duration-300",
+          // Base styles - Glassy feel
+          "bg-card/40 backdrop-blur-sm border border-border/60 shadow-sm",
+          // Hover effects
+          "hover:bg-card/80 hover:border-border hover:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5)] hover:shadow-cyan-900/10 hover:-translate-y-0.5",
+          // Dragging state
+          isDragging && !isDragOverlay && "opacity-30 grayscale",
+          isDragOverlay && "rotate-2 scale-105 shadow-2xl shadow-primary/20 border-primary/30 bg-card z-50 cursor-grabbing",
           !isDragOverlay && "cursor-pointer active:cursor-grabbing",
-          // Urgente: borda esquerda vermelha + glow vermelho
-          isUrgent && "border-l-2 border-l-[#f87171] shadow-[0_0_20px_rgba(248,113,113,0.15)]"
+          // Urgent state
+          isUrgent && "border-l-2 border-l-rose-500 bg-gradient-to-r from-rose-500/5 to-transparent shadow-[inset_0_0_20px_rgba(244,63,94,0.05)]"
         )}
         onClick={() => !isDragOverlay && setDetailsOpen(true)}
       >
         {/* Header refinado */}
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
+            <div className="flex items-center gap-2 mb-1.5">
               <button
                 {...listeners}
                 {...attributes}
-                className="text-[#64748b] hover:text-[#cbd5e1] cursor-grab active:cursor-grabbing p-1 hover:bg-[#131d37] rounded transition-colors"
+                className="text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing -ml-1 p-0.5 rounded transition-colors opacity-0 group-hover:opacity-100"
                 onClick={(e) => e.stopPropagation()}
+                title="Arraste para mover"
               >
-                <GripVertical className="h-3.5 w-3.5" />
+                <GripVertical className="h-4 w-4" />
               </button>
-              <span className="font-semibold text-sm text-[#f8fafc] truncate block">
+              <span className={cn(
+                "font-semibold text-sm truncate block transition-colors",
+                isDragOverlay ? "text-primary" : "text-foreground group-hover:text-foreground"
+              )}>
                 {lead.name || "Lead sem nome"}
               </span>
             </div>
-            <div className="flex items-center gap-2 text-[10px] text-[#94a3b8] pl-[30px]">
-              <span className="truncate">{lead.email}</span>
-              {ageLabel && <span className="text-[#64748b]">• {ageLabel}</span>}
+
+            <div className="flex items-center gap-4 pl-4">
+              <div className="flex flex-col gap-0.5">
+                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium group-hover:text-muted-foreground/80 transition-colors">
+                  <Mail className="w-3 h-3 opacity-60" />
+                  <span className="truncate max-w-[140px]">{lead.email}</span>
+                </div>
+              </div>
             </div>
           </div>
-          
-          <div className="flex items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+
+          <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-200" onClick={(e) => e.stopPropagation()}>
             <Button
-               variant="ghost"
-               size="icon"
-               className="h-7 w-7 text-[#64748b] hover:text-[#06b6d4] hover:bg-[#131d37] opacity-0 group-hover:opacity-100 transition-all"
-               onClick={() => setDetailsOpen(true)}
-               title="Expandir detalhes"
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+              onClick={() => setDetailsOpen(true)}
+              title="Expandir detalhes"
             >
               <Maximize2 className="h-3.5 w-3.5" />
             </Button>
@@ -232,57 +245,58 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 text-[#94a3b8] hover:text-[#f8fafc] hover:bg-[#131d37]"
+                  className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 bg-[#0f172a] border-[rgba(148,163,184,0.12)]">
-                <div className="px-2 py-1.5 text-xs font-semibold text-[#64748b] uppercase tracking-wide">
-                  Mover para...
+              <DropdownMenuContent align="end" className="w-56 bg-card border-border shadow-xl rounded-xl p-1.5">
+                <div className="px-2 py-2 text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                  Ações Rápidas
                 </div>
                 {Object.entries(STAGE_LABELS).map(([key, label]) => (
                   <DropdownMenuItem
                     key={key}
                     onClick={() => handleStageChange(key as PipelineStage)}
                     className={cn(
-                      "text-xs cursor-pointer text-[#cbd5e1] hover:bg-[#131d37]",
-                      currentStage === key && "bg-[rgba(6,182,212,0.15)] text-[#06b6d4]"
+                      "text-xs cursor-pointer text-foreground hover:bg-muted focus:bg-muted rounded-md py-2 px-3",
+                      currentStage === key && "bg-primary/10 text-primary font-medium"
                     )}
                   >
-                    {label}
+                    <div className="w-1.5 h-1.5 rounded-full bg-current mr-2 opacity-50" />
+                    Mover para {label}
                   </DropdownMenuItem>
                 ))}
-                <DropdownMenuSeparator className="bg-[rgba(148,163,184,0.08)]" />
+                <DropdownMenuSeparator className="bg-border/50 my-1" />
                 {whatsappUrl && (
                   <DropdownMenuItem asChild>
-                    <a 
-                      href={whatsappUrl} 
-                      target="_blank" 
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
                       rel="noreferrer"
-                      className="text-xs cursor-pointer flex items-center"
+                      className="text-xs cursor-pointer flex items-center text-emerald-400 hover:bg-emerald-500/10 hover:text-emerald-300 focus:bg-emerald-500/10 focus:text-emerald-300 rounded-md py-2 px-3"
                     >
-                      <Phone className="h-3 w-3 mr-2" />
-                      WhatsApp
+                      <Phone className="h-3.5 w-3.5 mr-2" />
+                      Conversar no WhatsApp
                     </a>
                   </DropdownMenuItem>
                 )}
-                <DropdownMenuItem onClick={() => setDetailsOpen(true)} className="text-xs cursor-pointer">
-                  <MessageSquare className="h-3 w-3 mr-2" />
+                <DropdownMenuItem onClick={() => setDetailsOpen(true)} className="text-xs cursor-pointer text-foreground hover:bg-muted rounded-md py-2 px-3">
+                  <MessageSquare className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
                   Ver detalhes e notas
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href={`/admin/usuarios/${lead.id}`} className="text-xs cursor-pointer flex items-center">
-                    <ArrowUpRight className="h-3 w-3 mr-2" />
-                    Ver perfil
+                  <Link href={`/admin/usuarios/${lead.id}`} className="text-xs cursor-pointer flex items-center text-foreground hover:bg-muted rounded-md py-2 px-3">
+                    <ArrowUpRight className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+                    Ver perfil completo
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuSeparator className="bg-[rgba(148,163,184,0.08)]" />
+                <DropdownMenuSeparator className="bg-border/50 my-1" />
                 <DropdownMenuItem
                   onClick={() => setDeleteDialogOpen(true)}
-                  className="text-xs cursor-pointer text-[#f59e0b] hover:text-[#fbbf24] hover:bg-[rgba(245,158,11,0.1)]"
+                  className="text-xs cursor-pointer text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 focus:bg-rose-500/10 focus:text-rose-300 rounded-md py-2 px-3"
                 >
-                  <Trash2 className="h-3 w-3 mr-2" />
+                  <Trash2 className="h-3.5 w-3.5 mr-2" />
                   Mover para lixeira
                 </DropdownMenuItem>
               </DropdownMenuContent>
@@ -291,19 +305,19 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
         </div>
 
         {/* Badges refinados */}
-        <div className="flex flex-wrap gap-1.5 pl-[30px]">
+        <div className="flex flex-wrap gap-1.5 pl-5">
           {isPaid ? (
-            <Badge variant="secondary" className="h-5 px-2 text-[10px] font-medium bg-[rgba(139,92,246,0.12)] text-[#c4b5fd] border border-[rgba(139,92,246,0.2)]">
+            <Badge variant="secondary" className="h-5 px-2 text-[10px] font-medium bg-violet-500/10 text-violet-300 border border-violet-500/20 rounded-md">
               {lead.plan_type}
             </Badge>
           ) : (
-            <Badge variant="outline" className="h-5 px-2 text-[10px] font-normal border-[rgba(148,163,184,0.2)] text-[#94a3b8]">
+            <Badge variant="outline" className="h-5 px-2 text-[10px] font-medium border-border text-muted-foreground bg-muted/30 rounded-md">
               Free
             </Badge>
           )}
 
           {lead.profession && (
-            <Badge variant="outline" className="h-5 px-2 text-[10px] font-normal border-[rgba(148,163,184,0.2)] text-[#cbd5e1]">
+            <Badge variant="outline" className="h-5 px-2 text-[10px] font-normal border-border text-muted-foreground bg-muted/30 rounded-md">
               {lead.profession}
             </Badge>
           )}
@@ -312,12 +326,13 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
             <Badge
               variant="outline"
               className={cn(
-                "h-5 px-2 text-[10px] border",
+                "h-5 px-2 text-[10px] border rounded-md font-medium",
                 isUrgent
-                  ? "bg-[rgba(248,113,113,0.12)] text-[#fca5a5] border-[rgba(248,113,113,0.3)] font-semibold"
-                  : "bg-[rgba(6,182,212,0.12)] text-[#06b6d4] border-[rgba(6,182,212,0.3)]"
+                  ? "bg-rose-500/10 text-rose-400 border-rose-500/30"
+                  : "bg-cyan-500/10 text-cyan-400 border-cyan-500/30"
               )}
             >
+              <Clock3 className="w-3 h-3 mr-1 opacity-70" />
               {daysRemaining === 0 ? "Expira hoje" : `${daysRemaining}d`}
             </Badge>
           )}
@@ -325,37 +340,46 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
 
         {/* Trial Progress Bar */}
         {trialProgress !== null && (
-          <div className="pl-[30px] space-y-1">
-            <div className="h-1.5 bg-[#131d37] rounded-full overflow-hidden">
+          <div className="pl-5 space-y-1.5 mt-1">
+            <div className="h-1 bg-muted rounded-full overflow-hidden">
               <div
                 className={cn(
-                  "h-full transition-all duration-500 rounded-full",
+                  "h-full transition-all duration-700 ease-out rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)]",
                   isUrgent
-                    ? "bg-gradient-to-r from-[#f87171] to-[#fca5a5]"
-                    : "bg-gradient-to-r from-[#0891b2] to-[#06b6d4]"
+                    ? "bg-gradient-to-r from-rose-500 to-amber-500"
+                    : "bg-gradient-to-r from-cyan-600 to-blue-500"
                 )}
                 style={{ width: `${trialProgress}%` }}
               />
             </div>
-            <p className="text-[10px] text-[#64748b]">
-              {daysRemaining !== null && daysRemaining > 0
-                ? `${daysRemaining} dias restantes`
-                : daysRemaining === 0
-                ? "Expira hoje"
-                : "Trial expirado"}
-            </p>
+            <div className="flex justify-between items-center text-[9px] text-muted-foreground font-medium uppercase tracking-wider">
+              <span>Trial</span>
+              <span>{daysRemaining !== null ? (daysRemaining === 0 ? "Fim" : `${Math.round(trialProgress)}%`) : "Expirado"}</span>
+            </div>
           </div>
         )}
 
-        {/* Seller Badge */}
-        {sellerName && (
-          <div className="flex items-center gap-1.5 pl-[30px]">
-            <User className="h-3 w-3 text-[#8b5cf6]" />
-            <span className="text-[10px] font-medium text-[#c4b5fd]">
-              {sellerName}
+        {/* Footer info (Seller + Age) */}
+        <div className="flex items-center justify-between pl-5 mt-1 pt-2 border-t border-border/40">
+          {sellerName ? (
+            <div className="flex items-center gap-1.5">
+              <div className="w-4 h-4 rounded-full bg-violet-500/10 flex items-center justify-center border border-violet-500/20">
+                <User className="h-2.5 w-2.5 text-violet-400" />
+              </div>
+              <span className="text-[10px] font-medium text-violet-300">
+                {sellerName}
+              </span>
+            </div>
+          ) : (
+            <span className="text-[10px] text-muted-foreground font-medium">Sem vendedor</span>
+          )}
+
+          {ageLabel && (
+            <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
+              {ageLabel}
             </span>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       <LeadDetailsDialog
@@ -367,22 +391,22 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
       />
 
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent className="bg-[#0f172a] border-[rgba(148,163,184,0.12)]">
+        <AlertDialogContent className="bg-card border-border">
           <AlertDialogHeader>
-            <AlertDialogTitle className="text-[#f8fafc]">
+            <AlertDialogTitle className="text-foreground">
               Mover lead para lixeira
             </AlertDialogTitle>
-            <AlertDialogDescription className="text-[#94a3b8]">
-              Tem certeza que deseja mover o lead <strong className="text-[#cbd5e1]">{lead.name || lead.email}</strong> para a lixeira?
-              <div className="mt-3 p-3 bg-[#131d37] rounded-lg border border-[rgba(148,163,184,0.08)]">
-                <p className="text-[#cbd5e1] text-xs mb-2">O lead será:</p>
+            <AlertDialogDescription className="text-muted-foreground">
+              Tem certeza que deseja mover o lead <strong className="text-foreground">{lead.name || lead.email}</strong> para a lixeira?
+              <div className="mt-3 p-3 bg-muted rounded-lg border border-border/50">
+                <p className="text-foreground text-xs mb-2">O lead será:</p>
                 <ul className="list-disc list-inside space-y-1 text-xs">
                   <li>Removido do pipeline</li>
                   <li>Mantido na lixeira por 30 dias</li>
                   <li>Pode ser restaurado a qualquer momento</li>
                 </ul>
               </div>
-              <p className="mt-2 text-xs text-[#64748b]">
+              <p className="mt-2 text-xs text-muted-foreground">
                 As notas e follow-ups serão preservados e restaurados junto com o lead.
               </p>
             </AlertDialogDescription>
@@ -390,7 +414,7 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
           <AlertDialogFooter>
             <AlertDialogCancel
               disabled={isDeleting}
-              className="bg-[#131d37] border-[rgba(148,163,184,0.12)] text-[#cbd5e1] hover:bg-[#1a2642] hover:text-[#f8fafc]"
+              className="bg-muted border-border/50 text-foreground hover:bg-muted/80 hover:text-foreground"
             >
               Cancelar
             </AlertDialogCancel>

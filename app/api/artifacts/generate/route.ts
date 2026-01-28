@@ -9,11 +9,15 @@
 
 import { generateText } from 'ai'
 import { openrouter } from '@/lib/ai/openrouter'
+import { perplexity, PERPLEXITY_RESEARCH_MODEL, buildResearchPrompt } from '@/lib/ai/perplexity'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { createClient } from '@supabase/supabase-js'
 import { nanoid } from 'nanoid'
 
 export const maxDuration = 60
+
+// Check if Perplexity is available
+const usePerplexity = !!process.env.PERPLEXITY_API_KEY
 
 // Admin client for persistence (bypasses RLS)
 const adminSupabase = createClient(
@@ -51,11 +55,27 @@ interface ExamConfig {
   numQuestions: number
 }
 
-type ArtifactConfig = SummaryConfig | FlashcardsConfig | ResearchConfig | ExamConfig
+interface MindMapConfig {
+  topic: string
+  depth: '2' | '3' | '4'
+  maxNodes: number
+  layout: 'hierarchical' | 'radial'
+  specialty?: string
+}
+
+type ArtifactConfig = SummaryConfig | FlashcardsConfig | ResearchConfig | ExamConfig | MindMapConfig
+
+interface VisionConfig {
+  examType: string
+  patientContext?: string
+  clinicalNotes?: string
+  focusArea?: string
+  imageBase64?: string // Base64 encoded image
+}
 
 interface GenerateRequest {
-  type: 'summary' | 'flashcards' | 'research' | 'exam'
-  config: ArtifactConfig
+  type: 'summary' | 'flashcards' | 'research' | 'exam' | 'mindmap' | 'vision'
+  config: ArtifactConfig | VisionConfig
 }
 
 // System prompts for artifact generation
@@ -152,6 +172,80 @@ FORMATO DE SAIDA - JSON VALIDO:
 
 IMPORTANTE: Retorne APENAS o JSON, sem texto adicional.`
 
+const MINDMAP_SYSTEM_PROMPT = `Voce e um especialista em criar mapas mentais educacionais para Odontologia. Crie mapas mentais claros, hierarquicos e visualmente organizados.
+
+REGRAS:
+- O no central deve ser o tema principal
+- Cada nivel deve ter conceitos relacionados e progressivamente mais especificos
+- Use terminologia tecnica odontologica correta
+- Mantenha labels concisos (max 4-5 palavras por no)
+- Organize de forma logica e pedagogica
+
+FORMATO DE SAIDA - JSON VALIDO (estrutura de arvore):
+{
+  "title": "Mapa Mental: [Tema]",
+  "root": {
+    "id": "root",
+    "label": "Tema Central",
+    "children": [
+      {
+        "id": "node-1",
+        "label": "Subtopico 1",
+        "children": [
+          { "id": "node-1-1", "label": "Detalhe 1.1" },
+          { "id": "node-1-2", "label": "Detalhe 1.2" }
+        ]
+      },
+      {
+        "id": "node-2",
+        "label": "Subtopico 2",
+        "children": [
+          { "id": "node-2-1", "label": "Detalhe 2.1" }
+        ]
+      }
+    ]
+  }
+}
+
+IMPORTANTE: Retorne APENAS o JSON, sem texto adicional. Cada no DEVE ter um id unico.`
+
+const VISION_SYSTEM_PROMPT = `Voce e um radiologista odontologico especialista com mais de 20 anos de experiencia. Analise a imagem fornecida e crie um laudo profissional detalhado.
+
+REGRAS:
+- Analise tecnicamente a qualidade da imagem
+- Identifique todos os achados relevantes
+- Use terminologia tecnica correta (CID-10 quando aplicavel)
+- Seja preciso nas localizacoes anatomicas
+- Forneca hipoteses diagnosticas fundamentadas
+- Inclua recomendacoes de conduta
+
+FORMATO DE SAIDA - JSON VALIDO:
+{
+  "title": "Laudo Radiografico: [Tipo de Exame]",
+  "meta": {
+    "imageType": "Tipo identificado da imagem",
+    "quality": "Qualidade tecnica (Excelente/Boa/Aceitavel/Inadequada)",
+    "technique": "Tecnica radiografica utilizada"
+  },
+  "findings": [
+    {
+      "type": "Tipo do achado",
+      "zone": "Localizacao anatomica precisa",
+      "level": "Nivel de atencao (Baixo/Moderado/Alto)",
+      "description": "Descricao detalhada"
+    }
+  ],
+  "report": {
+    "technicalAnalysis": "Analise tecnica da imagem",
+    "detailedFindings": "Achados detalhados em texto",
+    "diagnosticHypothesis": "Hipotese diagnostica principal",
+    "differentialDiagnosis": ["Diagnostico diferencial 1", "Diagnostico diferencial 2"],
+    "recommendations": ["Recomendacao 1", "Recomendacao 2"]
+  }
+}
+
+IMPORTANTE: Retorne APENAS o JSON, sem texto adicional.`
+
 function getSummaryPrompt(config: SummaryConfig): string {
   const depthDescriptions: Record<string, string> = {
     basico: 'Faca um resumo introdutorio focado nos conceitos fundamentais (3-4 secoes)',
@@ -212,6 +306,26 @@ As questoes devem ser desafiadoras e representativas de provas de residencia e c
 Retorne um JSON valido conforme o formato especificado.`
 }
 
+function getMindMapPrompt(config: MindMapConfig): string {
+  const depthDescriptions: Record<string, string> = {
+    '2': 'Crie um mapa simples com 2 niveis de profundidade (raiz + filhos)',
+    '3': 'Crie um mapa com 3 niveis de profundidade (raiz + filhos + netos)',
+    '4': 'Crie um mapa detalhado com 4 niveis de profundidade'
+  }
+
+  return `Crie um mapa mental sobre: "${config.topic}"
+${config.specialty ? `Especialidade: ${config.specialty}` : ''}
+
+Profundidade: ${config.depth} niveis
+${depthDescriptions[config.depth]}
+
+Maximo de nos: ${config.maxNodes}
+Layout preferido: ${config.layout === 'hierarchical' ? 'Hierarquico (da esquerda para direita)' : 'Radial (do centro para fora)'}
+
+Crie uma estrutura de arvore bem organizada com conceitos relacionados.
+Retorne um JSON valido conforme o formato especificado.`
+}
+
 export async function POST(req: Request) {
   try {
     // 1. Authentication
@@ -251,6 +365,16 @@ export async function POST(req: Request) {
       if (!examConfig.topic || !examConfig.numQuestions) {
         return Response.json({ error: 'Invalid exam config' }, { status: 400 })
       }
+    } else if (type === 'mindmap') {
+      const mindmapConfig = config as MindMapConfig
+      if (!mindmapConfig.topic || !mindmapConfig.depth) {
+        return Response.json({ error: 'Invalid mindmap config' }, { status: 400 })
+      }
+    } else if (type === 'vision') {
+      const visionConfig = config as VisionConfig
+      if (!visionConfig.examType) {
+        return Response.json({ error: 'Invalid vision config' }, { status: 400 })
+      }
     } else {
       return Response.json({ error: 'Invalid artifact type' }, { status: 400 })
     }
@@ -261,26 +385,53 @@ export async function POST(req: Request) {
     let systemPrompt: string
     let userPrompt: string
 
+    // Model selection - use Perplexity for research if available
+    let modelToUse = openrouter(GENERATION_MODEL)
+
     if (type === 'summary') {
       systemPrompt = SUMMARY_SYSTEM_PROMPT
       userPrompt = getSummaryPrompt(config as SummaryConfig)
     } else if (type === 'research') {
-      systemPrompt = RESEARCH_SYSTEM_PROMPT
-      userPrompt = getResearchPrompt(config as ResearchConfig)
+      const researchConfig = config as ResearchConfig
+      if (usePerplexity) {
+        // Use Perplexity for real citations
+        modelToUse = perplexity(PERPLEXITY_RESEARCH_MODEL)
+        systemPrompt = 'Você é um pesquisador científico especializado em odontologia baseada em evidências.'
+        userPrompt = buildResearchPrompt({
+          query: researchConfig.query,
+          scope: researchConfig.scope,
+          language: researchConfig.language
+        })
+        console.log('[Artifact Generate] Using Perplexity for research')
+      } else {
+        systemPrompt = RESEARCH_SYSTEM_PROMPT
+        userPrompt = getResearchPrompt(researchConfig)
+      }
     } else if (type === 'exam') {
       systemPrompt = EXAM_SYSTEM_PROMPT
       userPrompt = getExamPrompt(config as ExamConfig)
+    } else if (type === 'mindmap') {
+      systemPrompt = MINDMAP_SYSTEM_PROMPT
+      userPrompt = getMindMapPrompt(config as MindMapConfig)
+    } else if (type === 'vision') {
+      systemPrompt = VISION_SYSTEM_PROMPT
+      const visionConfig = config as VisionConfig
+      userPrompt = `Analise esta imagem de ${visionConfig.examType}.
+${visionConfig.clinicalNotes ? `Contexto clinico: ${visionConfig.clinicalNotes}` : ''}
+${visionConfig.focusArea ? `Area de foco: ${visionConfig.focusArea}` : ''}
+
+Retorne um JSON valido conforme o formato especificado.`
     } else {
       systemPrompt = FLASHCARDS_SYSTEM_PROMPT
       userPrompt = getFlashcardsPrompt(config as FlashcardsConfig)
     }
 
     const result = await generateText({
-      model: openrouter(GENERATION_MODEL),
+      model: modelToUse,
       system: systemPrompt,
       prompt: userPrompt,
       temperature: 0.6,
-      maxOutputTokens: 4000,
+      maxTokens: 4000,
     })
 
     // 5. Parse LLM response
@@ -417,6 +568,67 @@ export async function POST(req: Request) {
         metadata: {
           questionsCount: (parsedContent.questions || []).length,
           difficulty: examConfig.difficulty,
+        },
+      }
+    } else if (type === 'mindmap') {
+      const mindmapConfig = config as MindMapConfig
+      artifactData = {
+        id: artifactId,
+        user_id: user.id,
+        title: parsedContent.title || `Mapa Mental: ${mindmapConfig.topic}`,
+        type: 'mindmap',
+        description: `Mapa mental sobre ${mindmapConfig.topic} (${mindmapConfig.depth} níveis)`,
+        content: {
+          topic: mindmapConfig.topic,
+          root: parsedContent.root,
+          depth: mindmapConfig.depth,
+          layout: mindmapConfig.layout,
+          specialty: mindmapConfig.specialty,
+        },
+        ai_context: {
+          agent: 'biblioteca-forms',
+          model: GENERATION_MODEL,
+          generatedAt: new Date().toISOString(),
+        },
+        metadata: {
+          depth: mindmapConfig.depth,
+          layout: mindmapConfig.layout,
+        },
+      }
+    } else if (type === 'vision') {
+      const visionConfig = config as VisionConfig
+      const examTypeLabels: Record<string, string> = {
+        radiografia_panoramica: "Radiografia Panorâmica",
+        radiografia_periapical: "Radiografia Periapical",
+        radiografia_interproximal: "Radiografia Interproximal",
+        tomografia_cbct: "Tomografia CBCT",
+        foto_intraoral: "Fotografia Intraoral",
+        foto_extraoral: "Fotografia Extraoral",
+      }
+      artifactData = {
+        id: artifactId,
+        user_id: user.id,
+        title: parsedContent.title || `Laudo: ${examTypeLabels[visionConfig.examType] || visionConfig.examType}`,
+        type: 'vision',
+        description: `Laudo de análise de ${examTypeLabels[visionConfig.examType] || visionConfig.examType}`,
+        content: {
+          examType: visionConfig.examType,
+          analysis: {
+            meta: parsedContent.meta,
+            findings: parsedContent.findings || [],
+            report: parsedContent.report,
+          },
+          imageBase64: visionConfig.imageBase64 || '',
+          analyzedAt: new Date().toISOString(),
+        },
+        ai_context: {
+          agent: 'biblioteca-forms',
+          model: GENERATION_MODEL,
+          generatedAt: new Date().toISOString(),
+        },
+        metadata: {
+          examType: visionConfig.examType,
+          findingsCount: (parsedContent.findings || []).length,
         },
       }
     }

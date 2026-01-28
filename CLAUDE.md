@@ -130,7 +130,7 @@ Welcome to the repository knowledge base. Start with the project overview, then 
 **Dashboard do Usuário** (`/dashboard`)
 - Chat com IA streaming
 - OdontoVision (análise visual de imagens)
-- Biblioteca de recursos (full-text search)
+- Biblioteca de Artefatos (Pesquisas, Resumos, Flashcards, Laudos, etc.)
 - OdontoFlix (streaming de vídeos)
 - Histórico de conversas
 - Certificados gerados
@@ -159,7 +159,7 @@ Welcome to the repository knowledge base. Start with the project overview, then 
 2. **OdontoVision** - Análise visual por IA (upload de imagens)
 3. **Research Agent** - Busca de informações via Perplexity Sonar
 4. **OdontoFlix** - Streaming de vídeos com Bunny CDN
-5. **Biblioteca** - Busca full-text em recursos
+5. **Biblioteca de Artefatos** - Geração, armazenamento e busca de conteúdos (Pesquisas, Flashcards, Laudos, Resumos, Mapas Mentais, Simulados).
 6. **Geração de Certificados** - jsPDF + custom templates
 7. **Sistema de Trial** - Conversão Trial → Pro (behavioral funnel)
 8. **Pipeline de Vendas** - 8 estágios: cadastro → convertido → risco_churn → perdido
@@ -189,8 +189,8 @@ Welcome to the repository knowledge base. Start with the project overview, then 
 | `chat_messages` | Histórico de conversas (retenção 30 dias) |
 | `chat_threads` | Agrupamento de conversas |
 | `agent_sessions` | Rastreamento de sessões IA |
-| `artifacts` | Código/documentos gerados + versioning |
-| `materials` | Recursos de aprendizado |
+| `artifacts` | Conteúdos gerados (Pesquisas, Flashcards, Laudos, etc.) + versioning |
+| `materials` | Recursos de aprendizado (PDFs, links extras) |
 | `live_events` | Agendamento de webinars |
 | `subscriptions` | Planos (trial, pro) |
 | `pipeline` | Rastreamento de funil de vendas |

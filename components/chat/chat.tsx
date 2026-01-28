@@ -12,7 +12,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { useBlockingChat } from '@/lib/hooks/use-blocking-chat'
-import { useChatHistory } from '@/lib/hooks/use-chat-history'
+import { useHistoryRevalidation } from '@/lib/chat'
 import { Messages } from './messages'
 import { MultimodalInput } from './multimodal-input'
 import { ToolApprovalDialog } from './tool-approval-dialog'
@@ -22,7 +22,7 @@ interface ChatProps {
   initialMessages?: Array<{
     id: string
     role: 'user' | 'assistant'
-    parts: Array<{ type: string; text?: string; [key: string]: any }>
+    parts: Array<{ type: string; text?: string;[key: string]: any }>
   }>
   apiEndpoint?: string
   agentId?: string
@@ -42,7 +42,7 @@ export function Chat({
   const [chatId] = useState(() => id || crypto.randomUUID())
   const [input, setInput] = useState('')
   const [selectedAgent, setSelectedAgent] = useState(initialAgentId)
-  const { revalidateHistory } = useChatHistory()
+  const { revalidateHistory } = useHistoryRevalidation()
 
   // Callback when a new session is created
   const handleSessionCreated = useCallback((newSessionId: string) => {
