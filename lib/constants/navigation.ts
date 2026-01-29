@@ -1,18 +1,12 @@
 import {
     Home,
     MessageCircle,
-    BookOpen,
-    MonitorPlay,
     Eye,
-    FileBadge,
     Bell,
     History,
     LayoutDashboard,
     Bot,
     FileText,
-    Calendar,
-    Workflow,
-    Sparkles,
     Users,
     Award
 } from 'lucide-react'
@@ -28,10 +22,10 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
     { href: '/dashboard', label: 'Início', icon: Home },
     { href: '/dashboard/chat', label: 'Chat', icon: MessageCircle },
-    { href: '/dashboard/biblioteca', label: 'Biblioteca', icon: BookOpen },
-    { href: '/dashboard/odontoflix', label: 'OdontoFlix', icon: MonitorPlay },
+    // { href: '/dashboard/biblioteca', label: 'Biblioteca', icon: BookOpen }, // Disabled
+    // { href: '/dashboard/odontoflix', label: 'OdontoFlix', icon: MonitorPlay }, // Disabled
     { href: '/dashboard/odonto-vision', label: 'Odonto Vision', icon: Eye },
-    { href: '/dashboard/certificados', label: 'Certificados', icon: FileBadge },
+    // { href: '/dashboard/certificados', label: 'Certificados', icon: FileBadge }, // Disabled
     { href: '/dashboard/historico', label: 'Histórico', icon: History },
 ]
 

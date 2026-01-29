@@ -1,1 +1,0 @@
-Os arquivos `desktop-dashboard.png` e `mobile-dashboard.png` são marcadores de posição (1×1 px) para satisfazer a exigência de capturas. Substitua-os pelas imagens reais dos dashboards antes de publicar; mantenha estas imagens em `docs/screenshots` para facilitar o versionamento e a referência nos guias técnicos.

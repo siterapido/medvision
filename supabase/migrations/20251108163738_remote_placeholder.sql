@@ -1,2 +1,0 @@
--- Placeholder para a versão remota 20251108163738
--- Conteúdo original não disponível; arquivo criado para alinhar histórico local/remoto.

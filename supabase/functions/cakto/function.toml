@@ -1,4 +1,0 @@
-name = "cakto"
-language = "ts"
-entrypoint = "index.ts"
-verify_jwt = false

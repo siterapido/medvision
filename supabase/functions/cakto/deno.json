@@ -1,9 +1,0 @@
-
-{
-  "tasks": {
-    "start": "deno run --allow-all index.ts"
-  },
-  "compilerOptions": {
-    "lib": ["deno.ns", "deno.unstable", "dom", "dom.iterable"]
-  }
-}

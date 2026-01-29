@@ -1,2 +1,0 @@
--- Placeholder para a versão remota 20251108164532
--- Necessário para manter sincronização com o banco remoto.
