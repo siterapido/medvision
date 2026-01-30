@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/sidebar'
 import { SidebarHeader } from './sidebar-header'
 import { SidebarNav } from './sidebar-nav'
+import { SidebarHistory } from './sidebar-history'
 import { SidebarUser } from './sidebar-user'
 import { NewChatButton } from './new-chat-button'
 import { cn } from '@/lib/utils'
@@ -58,6 +59,8 @@ export function UnifiedSidebar({ user }: UnifiedSidebarProps) {
       <SidebarContent className="sidebar-scrollbar">
         {/* Navigation Section */}
         <SidebarNav />
+        {/* History Section */}
+        <SidebarHistory />
       </SidebarContent>
 
       {/* Footer with User Profile - Perplexity style */}
