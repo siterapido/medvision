@@ -2,9 +2,6 @@ import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import {
   MessageSquare,
-  Library,
-  GraduationCap,
-  Award,
   ArrowRight,
   Sparkles,
   Search,
@@ -38,24 +35,7 @@ const quickActions: QuickActionCard[] = [
     href: '/dashboard/chat',
     icon: Sparkles,
   },
-  {
-    title: 'Biblioteca',
-    description: 'Meus protocolos',
-    href: '/dashboard/biblioteca',
-    icon: Library,
-  },
-  {
-    title: 'OdontoFlix',
-    description: 'Aulas e cursos',
-    href: '/dashboard/odontoflix',
-    icon: GraduationCap,
-  },
-  {
-    title: 'Certificados',
-    description: 'Minhas conquistas',
-    href: '/dashboard/certificados',
-    icon: Award,
-  },
+  // Biblioteca, OdontoFlix, and Certificados are disabled
 ]
 
 // Helper para tradução de tipos de artefatos
@@ -219,7 +199,7 @@ export default async function NewDashboardPage() {
           <section>
             <div className="flex items-center justify-between mb-4 px-1">
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Em Progresso</h2>
-              <Link href="/dashboard/odontoflix" className="text-xs text-primary hover:underline">Ver tudo</Link>
+              {/* OdontoFlix is disabled */}
             </div>
             {currentCourse ? (
               <div className="rounded-2xl border border-border/40 bg-card p-4 space-y-4 hover:bg-muted/5 transition-colors">
@@ -243,9 +223,7 @@ export default async function NewDashboardPage() {
                     <div className="h-full bg-primary rounded-full transition-all duration-1000" style={{ width: `${currentCourse.progress}%` }} />
                   </div>
                 </div>
-                <button className="w-full py-2 text-xs font-medium text-center border border-border/50 rounded-lg hover:bg-muted transition-colors">
-                  Continuar Assistindo
-                </button>
+                {/* Continuar Assistindo - OdontoFlix is disabled */}
               </div>
             ) : (
               <div className="rounded-2xl border border-dashed border-border/40 p-8 text-center space-y-2">
@@ -260,7 +238,7 @@ export default async function NewDashboardPage() {
           <section>
             <div className="flex items-center justify-between mb-4 px-1">
               <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Recentes</h2>
-              <Link href="/dashboard/biblioteca" className="text-xs text-primary hover:underline">Biblioteca</Link>
+              {/* Biblioteca is disabled */}
             </div>
             <div className="space-y-3">
               {artifacts && artifacts.length > 0 ? (
@@ -269,13 +247,13 @@ export default async function NewDashboardPage() {
                   const ArtifactIcon = typeInfo.icon
 
                   return (
-                    <Link key={artifact.id} href={`/dashboard/biblioteca?id=${artifact.id}`} className="block group">
+                    <div key={artifact.id} className="block opacity-50 cursor-not-allowed">
                       <div className="flex items-center gap-3 p-3 rounded-xl border border-transparent hover:border-border/40 hover:bg-muted/10 transition-all">
-                        <div className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 border border-border/30 group-hover:border-primary/20 group-hover:text-primary transition-colors">
+                        <div className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center shrink-0 border border-border/30">
                           <ArtifactIcon className="h-4 w-4 text-muted-foreground" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <h4 className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">{artifact.title}</h4>
+                          <h4 className="text-sm font-medium text-foreground truncate">{artifact.title}</h4>
                           <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
                             <span>{typeInfo.label}</span>
                             <span className="h-0.5 w-0.5 rounded-full bg-muted-foreground/50" />
@@ -285,7 +263,7 @@ export default async function NewDashboardPage() {
                           </div>
                         </div>
                       </div>
-                    </Link>
+                    </div>
                   )
                 })
               ) : (
@@ -294,9 +272,7 @@ export default async function NewDashboardPage() {
                   <p className="text-xs text-muted-foreground">Nenhum artefato criado</p>
                 </div>
               )}
-              <Link href="/dashboard/biblioteca" className="block text-center py-2 text-xs text-muted-foreground hover:text-foreground border border-dashed border-border/40 rounded-xl hover:bg-muted/5 transition-colors">
-                Ver todos os arquivos
-              </Link>
+              {/* Ver todos os arquivos - Biblioteca is disabled */}
             </div>
           </section>
 

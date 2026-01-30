@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 import { Image as ImageIcon, FileText, CheckCircle2, AlertCircle, Sparkles, Quote, Info } from "lucide-react"
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer"
 import remarkGfm from "remark-gfm"
-import { MarkdownComponents } from "@/components/ui/markdown-components"
+import { MarkdownComponents } from "@/components/agno-chat/markdown-components"
 
 interface ImageContentProps {
     artifact: {

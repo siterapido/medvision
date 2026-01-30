@@ -45,7 +45,7 @@ interface MultimodalInputProps {
   setInput: (value: string) => void
   status: 'ready' | 'submitted' | 'streaming' | 'error'
   stop: () => void
-  onSubmit: (attachments?: File[]) => void
+  onSubmit: () => void
   className?: string
   // Subscription info
   subscriptionInfo?: { isPro: boolean; trialDaysRemaining: number }
@@ -83,7 +83,7 @@ export function MultimodalInput({
   // Auto-resize textarea
   const adjustHeight = useCallback(() => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = '56px'
+      textareaRef.current.style.height = '44px'
       const scrollHeight = textareaRef.current.scrollHeight
       textareaRef.current.style.height = `${Math.min(scrollHeight, 200)}px`
     }
@@ -93,100 +93,17 @@ export function MultimodalInput({
     adjustHeight()
   }, [input, adjustHeight])
 
-  // Auto-focus on mount (skip on mobile)
+  // Auto-focus on mount
   useEffect(() => {
-    const checkMobile = window.matchMedia('(max-width: 640px)').matches
-    if (!checkMobile) {
-      const timer = setTimeout(() => {
-        textareaRef.current?.focus()
-      }, 100)
-      return () => clearTimeout(timer)
-    }
+    const timer = setTimeout(() => {
+      textareaRef.current?.focus()
+    }, 100)
+    return () => clearTimeout(timer)
   }, [])
 
-  // Handle file selection
-  const handleFiles = useCallback((files: FileList | File[]) => {
-    const fileArray = Array.from(files)
-    const newAttachments: Attachment[] = []
+  const [isListening, setIsListening] = useState(false)
+  const recognitionRef = useRef<any>(null)
 
-    fileArray.forEach((file) => {
-      const isImage = file.type.startsWith('image/')
-      const attachment: Attachment = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        file,
-        type: isImage ? 'image' : 'document',
-      }
-
-      if (isImage) {
-        const reader = new FileReader()
-        reader.onload = (e) => {
-          setAttachments((prev) =>
-            prev.map((a) =>
-              a.id === attachment.id
-                ? { ...a, preview: e.target?.result as string }
-                : a
-            )
-          )
-        }
-        reader.readAsDataURL(file)
-      }
-
-      newAttachments.push(attachment)
-    })
-
-    setAttachments((prev) => [...prev, ...newAttachments])
-    toast.success(`${fileArray.length} arquivo(s) anexado(s)`)
-  }, [])
-
-  // Drag and drop handlers
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(true)
-  }, [])
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault()
-    setIsDragging(false)
-  }, [])
-
-  const handleDrop = useCallback(
-    (e: React.DragEvent) => {
-      e.preventDefault()
-      setIsDragging(false)
-      if (e.dataTransfer.files.length > 0) {
-        handleFiles(e.dataTransfer.files)
-      }
-    },
-    [handleFiles]
-  )
-
-  // Paste handler for images
-  const handlePaste = useCallback(
-    (e: React.ClipboardEvent) => {
-      const items = e.clipboardData.items
-      const files: File[] = []
-
-      for (let i = 0; i < items.length; i++) {
-        if (items[i].type.startsWith('image/')) {
-          const file = items[i].getAsFile()
-          if (file) files.push(file)
-        }
-      }
-
-      if (files.length > 0) {
-        e.preventDefault()
-        handleFiles(files)
-      }
-    },
-    [handleFiles]
-  )
-
-  // Remove attachment
-  const removeAttachment = (id: string) => {
-    setAttachments((prev) => prev.filter((a) => a.id !== id))
-  }
-
-  // Voice input
   const toggleVoiceInput = () => {
     if (isListening) {
       if (recognitionRef.current) {
@@ -196,11 +113,9 @@ export function MultimodalInput({
       return
     }
 
-    const SpeechRecognition =
-      (window as any).SpeechRecognition ||
-      (window as any).webkitSpeechRecognition
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
     if (!SpeechRecognition) {
-      toast.error('Seu navegador nao suporta reconhecimento de voz.')
+      toast.error('Seu navegador não suporta reconhecimento de voz.')
       return
     }
 
@@ -212,7 +127,7 @@ export function MultimodalInput({
 
     recognition.onstart = () => {
       setIsListening(true)
-      toast.info('Ouvindo...')
+      toast.info("Ouvindo...")
     }
 
     recognition.onend = () => {
@@ -239,20 +154,16 @@ export function MultimodalInput({
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      if ((input.trim() || attachments.length > 0) && status === 'ready') {
-        handleSubmit()
+      if (input.trim() && status === 'ready') {
+        onSubmit()
       }
     }
   }
 
-  const handleSubmit = (e?: React.FormEvent) => {
-    e?.preventDefault()
-    if ((!input.trim() && attachments.length === 0) || status !== 'ready')
-      return
-
-    const files = attachments.map((a) => a.file)
-    onSubmit(files.length > 0 ? files : undefined)
-    setAttachments([])
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!input.trim() || status !== 'ready') return
+    onSubmit()
   }
 
   return (
@@ -382,8 +293,7 @@ export function MultimodalInput({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            onPaste={handlePaste}
-            placeholder="Perguntar ao Odonto GPT..."
+            placeholder="Envie uma mensagem..."
             disabled={isLoading}
             rows={1}
             className={cn(
@@ -457,7 +367,7 @@ export function MultimodalInput({
             {/* Voice button */}
             <Button
               type="button"
-              variant="ghost"
+              variant="outline"
               size="icon"
               onClick={toggleVoiceInput}
               disabled={isLoading}
@@ -469,7 +379,7 @@ export function MultimodalInput({
               )}
               title={isListening ? 'Parar gravacao' : 'Entrada de voz'}
             >
-              <MicIcon size={18} />
+              <StopIcon size={14} />
             </Button>
 
             {/* Submit/Stop button - Restored style from 3816e13 */}

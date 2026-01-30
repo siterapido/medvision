@@ -1,17 +1,14 @@
 /**
  * OpenRouter Provider Configuration
- *
+ * 
  * Utiliza o @ai-sdk/openai com baseURL customizado para OpenRouter.
  * Isso permite acesso a centenas de modelos via uma única API.
- *
- * IMPORTANTE: OpenRouter só suporta Chat Completions API, não Responses API.
- * Por isso usamos .chat() explicitamente (AI SDK v5+ usa Responses API por padrão).
  */
 
 import { createOpenAI } from '@ai-sdk/openai'
 
 // Criar provider OpenRouter usando a compatibilidade OpenAI
-const openrouterProvider = createOpenAI({
+export const openrouter = createOpenAI({
   name: 'openrouter',
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -21,12 +18,6 @@ const openrouterProvider = createOpenAI({
   },
 })
 
-/**
- * OpenRouter model factory - uses Chat Completions API (not Responses API)
- * OpenRouter doesn't support the Responses API format.
- */
-export const openrouter = (modelId: string) => openrouterProvider.chat(modelId)
-
 // Modelos disponíveis via OpenRouter (versões pagas - mais estáveis)
 export const MODELS = {
   // Chat principal - Gemini Flash (muito barato: ~$0.075/1M tokens)
@@ -35,8 +26,8 @@ export const MODELS = {
   // Pesquisa - Perplexity Sonar
   research: 'perplexity/sonar',
 
-  // Visão - para análise de imagens radiográficas (Gemini 3 Pro Image)
-  vision: 'google/gemini-3-pro-image-preview',
+  // Visão - para análise de imagens radiográficas
+  vision: 'openai/gpt-4o',
 
   // Escrita - para geração de conteúdo
   writer: 'anthropic/claude-3-haiku',

@@ -22,10 +22,11 @@ export function Greeting({ userName }: GreetingProps) {
   // Format display name: "Doutor(a)" or "Doutor(a), FirstName"
   const displayName = 'Doutor(a)'
 
+export function Greeting() {
   return (
     <div
-      className="flex size-full flex-col items-center justify-center text-center p-4 space-y-6 animate-in fade-in zoom-in-95 duration-500"
-      key="greeting"
+      className="mx-auto mt-4 flex size-full max-w-3xl flex-col justify-center px-4 md:mt-16 md:px-8"
+      key="overview"
     >
       {/* Icon with gradient and glow effect */}
       <div className="relative">

@@ -1,11 +1,11 @@
 /**
  * Artifact System Types
- *
+ * 
  * Sistema de artefatos inspirado no Vercel AI Chatbot para renderizar
  * componentes interativos no chat (codigo, imagens, graficos, etc.)
  */
 
-export type ArtifactKind =
+export type ArtifactKind = 
   | 'code'
   | 'image'
   | 'text'
@@ -15,10 +15,6 @@ export type ArtifactKind =
   | 'summary'
   | 'document'
   | 'diagram'
-  | 'quiz'
-  | 'research'
-  | 'report'
-  | 'vision'
 
 export interface ArtifactBase {
   id: string
@@ -77,7 +73,6 @@ export interface FlashcardArtifact extends ArtifactBase {
     back: string
     category?: string
   }[]
-  topic?: string
 }
 
 export interface SummaryArtifact extends ArtifactBase {
@@ -85,8 +80,6 @@ export interface SummaryArtifact extends ArtifactBase {
   content: string
   keyPoints?: string[]
   source?: string
-  topic?: string
-  tags?: string[]
 }
 
 export interface DocumentArtifact extends ArtifactBase {
@@ -105,114 +98,7 @@ export interface DiagramArtifact extends ArtifactBase {
   svgContent?: string
 }
 
-// Quiz Artifact
-export interface QuizQuestion {
-  id: string
-  text: string
-  options: {
-    id: string
-    text: string
-    isCorrect: boolean
-  }[]
-  explanation: string
-  difficulty: 'easy' | 'medium' | 'hard'
-}
-
-export interface QuizArtifact extends ArtifactBase {
-  kind: 'quiz'
-  topic: string
-  specialty?: string
-  questions: QuizQuestion[]
-}
-
-// Research Artifact
-export interface ResearchSource {
-  title: string
-  url: string
-  summary?: string
-  authors?: string
-  pubdate?: string
-}
-
-export interface ResearchArtifact extends ArtifactBase {
-  kind: 'research'
-  query: string
-  content: string
-  sources: ResearchSource[]
-  methodology?: string
-}
-
-// Report Artifact (Laudo)
-export interface ReportArtifact extends ArtifactBase {
-  kind: 'report'
-  examType: string
-  content: string
-  findings: string[]
-  recommendations: string[]
-  imageUrl?: string
-  quality?: {
-    rating: 'good' | 'adequate' | 'limited'
-    notes?: string
-  }
-}
-
-// Vision Artifact (Laudo Odonto Vision)
-export interface VisionFinding {
-  type: string
-  zone: string
-  level: string
-  color: string
-}
-
-export interface VisionDetection {
-  id: string
-  label: string
-  confidence: number
-  box: { ymin: number; xmin: number; ymax: number; xmax: number }
-  severity: 'critical' | 'moderate' | 'normal'
-  description?: string
-}
-
-export interface VisionReport {
-  technicalAnalysis: string
-  detailedFindings: string
-  diagnosticHypothesis: string
-  recommendations: string[]
-}
-
-export interface VisionAnalysis {
-  meta?: {
-    imageType: string
-    quality: string
-    notes?: string
-  }
-  detections: VisionDetection[]
-  findings: VisionFinding[]
-  report?: VisionReport
-  clinicalAssessment?: string
-  recommendations?: string[]
-}
-
-export interface VisionAnnotation {
-  id: string
-  tool: 'pen' | 'circle' | 'arrow' | 'text'
-  color: 'red' | 'yellow' | 'blue' | 'white'
-  points?: { x: number; y: number }[]
-  start?: { x: number; y: number }
-  end?: { x: number; y: number }
-  text?: string
-}
-
-export interface VisionArtifact extends ArtifactBase {
-  kind: 'vision'
-  thumbnailBase64: string
-  imageBase64: string
-  analysis: VisionAnalysis
-  annotations?: VisionAnnotation[]
-  analyzedAt: string
-}
-
-export type Artifact =
+export type Artifact = 
   | CodeArtifact
   | ImageArtifact
   | TextArtifact
@@ -222,10 +108,6 @@ export type Artifact =
   | SummaryArtifact
   | DocumentArtifact
   | DiagramArtifact
-  | QuizArtifact
-  | ResearchArtifact
-  | ReportArtifact
-  | VisionArtifact
 
 // Simple factory functions for each artifact type
 export function createCodeArtifact(data: Omit<CodeArtifact, 'id' | 'createdAt' | 'kind'> & { id?: string }): CodeArtifact {
@@ -273,60 +155,6 @@ export function createImageArtifact(data: Omit<ImageArtifact, 'id' | 'createdAt'
   }
 }
 
-export function createQuizArtifact(data: Omit<QuizArtifact, 'id' | 'createdAt' | 'kind'> & { id?: string }): QuizArtifact {
-  return {
-    ...data,
-    kind: 'quiz',
-    id: data.id || `artifact-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    createdAt: new Date(),
-  }
-}
-
-export function createResearchArtifact(data: Omit<ResearchArtifact, 'id' | 'createdAt' | 'kind'> & { id?: string }): ResearchArtifact {
-  return {
-    ...data,
-    kind: 'research',
-    id: data.id || `artifact-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    createdAt: new Date(),
-  }
-}
-
-export function createReportArtifact(data: Omit<ReportArtifact, 'id' | 'createdAt' | 'kind'> & { id?: string }): ReportArtifact {
-  return {
-    ...data,
-    kind: 'report',
-    id: data.id || `artifact-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    createdAt: new Date(),
-  }
-}
-
-export function createVisionArtifact(data: Omit<VisionArtifact, 'id' | 'createdAt' | 'kind'> & { id?: string }): VisionArtifact {
-  return {
-    ...data,
-    kind: 'vision',
-    id: data.id || `artifact-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    createdAt: new Date(),
-  }
-}
-
-export function createTextArtifact(data: Omit<TextArtifact, 'id' | 'createdAt' | 'kind'> & { id?: string }): TextArtifact {
-  return {
-    ...data,
-    kind: 'text',
-    id: data.id || `artifact-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    createdAt: new Date(),
-  }
-}
-
-export function createDiagramArtifact(data: Omit<DiagramArtifact, 'id' | 'createdAt' | 'kind'> & { id?: string }): DiagramArtifact {
-  return {
-    ...data,
-    kind: 'diagram',
-    id: data.id || `artifact-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    createdAt: new Date(),
-  }
-}
-
 // Type guard functions
 export function isCodeArtifact(artifact: Artifact): artifact is CodeArtifact {
   return artifact.kind === 'code'
@@ -350,20 +178,4 @@ export function isFlashcardArtifact(artifact: Artifact): artifact is FlashcardAr
 
 export function isSummaryArtifact(artifact: Artifact): artifact is SummaryArtifact {
   return artifact.kind === 'summary'
-}
-
-export function isQuizArtifact(artifact: Artifact): artifact is QuizArtifact {
-  return artifact.kind === 'quiz'
-}
-
-export function isResearchArtifact(artifact: Artifact): artifact is ResearchArtifact {
-  return artifact.kind === 'research'
-}
-
-export function isReportArtifact(artifact: Artifact): artifact is ReportArtifact {
-  return artifact.kind === 'report'
-}
-
-export function isVisionArtifact(artifact: Artifact): artifact is VisionArtifact {
-  return artifact.kind === 'vision'
 }

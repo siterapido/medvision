@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 import { BookOpen, FileText, ExternalLink, Quote, Sparkles } from "lucide-react"
 import { MarkdownRenderer } from "@/components/ui/markdown-renderer"
 import remarkGfm from "remark-gfm"
-import { MarkdownComponents } from "@/components/ui/markdown-components"
+import { MarkdownComponents } from "@/components/agno-chat/markdown-components"
 
 interface ResearchContentProps {
     research: {

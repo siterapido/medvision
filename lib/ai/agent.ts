@@ -51,7 +51,18 @@ export async function processMessageSync(
     // Sistema prompt adaptado para WhatsApp (mais conciso)
     const whatsappSystemPrompt = `${agentConfig.system}
 
-IMPORTANTE: Você está respondendo via WhatsApp. Mantenha suas respostas concisas e bem formatadas para leitura em dispositivos móveis. Evite respostas muito longas.`
+IMPORTANTE: Você está respondendo via WhatsApp. Mantenha suas respostas concisas e bem formatadas para leitura em dispositivos móveis. Evite respostas muito longas.
+
+COMANDOS ESPECIAIS (use quando apropriado):
+- Se o usuário perguntar sobre preços/assinatura: [SEND_PAYMENT_LINK]
+- Se o usuário pedir para recuperar senha: [SEND_PASSWORD_RESET]
+- Se o usuário pedir para acessar dashboard: [SEND_DASHBOARD_LINK]
+
+Exemplo:
+Usuário: "Quanto custa?"
+Você: "O Odonto GPT custa R$ 97/mês com acesso ilimitado! [SEND_PAYMENT_LINK]"
+
+Coloque o comando no final da sua resposta, será substituído automaticamente.`
 
     const result = await generateText({
       model: openrouter(agentConfig.model || MODELS.chat),

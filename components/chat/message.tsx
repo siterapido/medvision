@@ -13,165 +13,39 @@ import type { UIMessage } from 'ai'
 import { cn } from '@/lib/utils'
 import { SparklesIcon, LoaderIcon } from './icons'
 import { Markdown } from './markdown'
-import { getAgentUI } from '@/lib/ai/agents/ui-config'
-import {
-  ArtifactRenderer,
-  InteractiveArtifact,
-  type Artifact,
+import { 
+  ArtifactRenderer, 
+  type Artifact, 
   createCodeArtifact,
   createSummaryArtifact,
   createFlashcardArtifact,
   createTableArtifact,
-  createImageArtifact,
-  createQuizArtifact,
-  createResearchArtifact,
-  createReportArtifact
+  createImageArtifact
 } from '@/components/artifacts'
-import { Code, Image, Table, FileText, Layers, Search, Lightbulb, CheckCircle, FlaskConical, ClipboardList } from 'lucide-react'
-import { getStreamingComponent, ToolExecutionIndicator } from './stream-components'
-import { MessageActions } from './message-actions'
-import { uiMessageToBlocks, groupTextBlocks, type MessageBlock, type TextBlock, type FileBlock } from '@/lib/ai/message-blocks'
-import { FileBlockRenderer } from './blocks/file-block'
+import { Code, Image, Table, FileText, Layers, Search, Lightbulb } from 'lucide-react'
 
 interface MessageProps {
   message: UIMessage
   isLoading?: boolean
-  onEdit?: (messageId: string) => void
-  onRegenerate?: () => void
-  agentId?: string
 }
 
-/**
- * Renderiza um bloco individual (text, tool, artifact, file, etc)
- */
-function MessageBlockRenderer({ block, blockKey }: { block: MessageBlock; blockKey: string }) {
-  // File block (images and attachments)
-  if (block.type === 'file') {
-    const fileBlock = block as FileBlock
-    return (
-      <FileBlockRenderer
-        key={blockKey}
-        url={fileBlock.url}
-        mediaType={fileBlock.mediaType}
-        filename={fileBlock.filename}
-        className="mb-2"
-      />
-    )
-  }
-
-  if (block.type === 'text') {
-    const textBlock = block as TextBlock
-    return (
-      <div key={blockKey}>
-        <div
-          className={cn('break-words rounded-2xl', {
-            // User messages: cyan-tinted background (system.md)
-            'w-fit px-3 py-2 text-right text-black dark:text-white bg-brand/10 border border-brand/20 text-sm sm:text-base':
-              textBlock.role === 'user',
-            'bg-transparent text-left text-black dark:text-white text-sm sm:text-base': textBlock.role === 'assistant',
-          })}
-        >
-          {textBlock.role === 'assistant' ? (
-            <Markdown>{textBlock.content}</Markdown>
-          ) : (
-            textBlock.content
-          )}
-        </div>
-      </div>
-    )
-  }
-
-  if (block.type === 'tool') {
-    return renderToolBlock(block as any, blockKey)
-  }
-
-  // Artifacts and other types handled by existing logic
-  return null
-}
-
-/**
- * Renderiza um bloco de tool
- */
-function renderToolBlock(toolBlock: any, key: string) {
-  const { toolName, state, input, output } = toolBlock
-
-  // Loading states - use streaming components for better UX
-  if (state === 'streaming' || state === 'input-streaming' || state === 'input-available') {
-    const StreamingComponent = getStreamingComponent(toolName)
-
-    if (StreamingComponent) {
-      return (
-        <StreamingComponent
-          key={key}
-          title={input?.title || getToolDisplayName(toolName)}
-          className="mt-2"
-        />
-      )
-    }
-
-    // Fallback to generic indicator
-    return <ToolExecutionIndicator key={key} toolName={toolName} className="mt-2" />
-  }
-
-  // Output available - render artifact if applicable
-  if (state === 'output-available' || state === 'done') {
-    // Try to render as artifact
-    const artifact = parseToolOutputAsArtifact(toolName, output, input)
-    if (artifact) {
-      return <InteractiveArtifact key={key} artifact={artifact} className="mt-2" />
-    }
-
-    // Fallback: render generic tool output
-    return (
-      <div key={key} className="mt-2 rounded-lg border border-border bg-card overflow-hidden">
-        <div className="flex items-center gap-2 px-3 py-2 bg-muted/50 border-b border-border">
-          {getToolIcon(toolName)}
-          <span className="text-sm font-medium">{getToolDisplayName(toolName)}</span>
-        </div>
-        {output && (
-          <div className="p-3 text-sm">
-            {typeof output === 'string' ? (
-              <p>{output}</p>
-            ) : (
-              <pre className="text-xs overflow-x-auto">{JSON.stringify(output, null, 2)}</pre>
-            )}
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  return null
-}
-
-// Map tool names to artifact rendering (mantido para compatibilidade)
+// Map tool names to artifact rendering
 function renderToolPart(part: any, key: string) {
   const toolName = part.type.replace('tool-', '')
   const state = 'state' in part ? part.state : undefined
   const output = 'output' in part ? part.output : undefined
   const input = 'input' in part ? part.input : undefined
 
-  // Loading states - use streaming components for better UX
+  // Loading states
   if (state === 'streaming' || state === 'input-streaming' || state === 'input-available') {
-    const StreamingComponent = getStreamingComponent(toolName)
-
-    if (StreamingComponent) {
-      return (
-        <StreamingComponent
-          key={key}
-          title={input?.title || getToolDisplayName(toolName)}
-          className="mt-2"
-        />
-      )
-    }
-
-    // Fallback to generic indicator
     return (
-      <ToolExecutionIndicator
+      <div
         key={key}
-        toolName={toolName}
-        className="mt-2"
-      />
+        className="flex items-center gap-2 text-muted-foreground text-sm p-3 rounded-lg border border-border bg-muted/30"
+      >
+        <LoaderIcon size={16} />
+        <span>Processando {getToolDisplayName(toolName)}...</span>
+      </div>
     )
   }
 
@@ -180,13 +54,7 @@ function renderToolPart(part: any, key: string) {
     // Try to render as artifact
     const artifact = parseToolOutputAsArtifact(toolName, output, input)
     if (artifact) {
-      return (
-        <InteractiveArtifact 
-          key={key} 
-          artifact={artifact} 
-          className="mt-2" 
-        />
-      )
+      return <ArtifactRenderer key={key} artifact={artifact} className="mt-2" />
     }
 
     // Fallback: render generic tool output
@@ -224,32 +92,6 @@ function parseToolOutputAsArtifact(
   input: any
 ): Artifact | null {
   if (!output) return null
-
-  // Unified Tool Handler (createDocument)
-  if (toolName === 'createDocument') {
-    const kind = output.kind || input?.kind
-    const base = {
-      id: output.id || input?.id || `art-${Date.now()}`,
-      title: output.title || input?.title || 'Documento',
-      createdAt: new Date(),
-    }
-
-    switch (kind) {
-      case 'summary':
-        return createSummaryArtifact({ 
-          id: base.id,
-          title: base.title,
-          content: output.content, 
-          keyPoints: output.keyPoints, 
-          topic: output.topic 
-        })
-      default:
-        // Se o tipo não for summary (por enquanto), não renderiza como artifact
-        // ou renderiza um fallback se necessário.
-        // Dado que restringimos a tool para apenas 'summary', isso deve ser suficiente.
-        return null
-    }
-  }
 
   switch (toolName) {
     case 'createCode':
@@ -319,55 +161,6 @@ function parseToolOutputAsArtifact(
       }
       return null
 
-    case 'createQuiz':
-    case 'generateQuiz':
-      const questions = output.questions || []
-      if (questions.length === 0) return null
-      return createQuizArtifact({
-        title: output.title || input?.title || 'Quiz',
-        topic: output.topic || input?.topic || '',
-        specialty: output.specialty,
-        questions: questions.map((q: any, i: number) => ({
-          id: q.id || `q-${i}`,
-          text: q.text || q.question || '',
-          options: (q.options || []).map((opt: any, j: number) => ({
-            id: opt.id || String.fromCharCode(65 + j),
-            text: opt.text || '',
-            isCorrect: opt.isCorrect || false,
-          })),
-          explanation: q.explanation || '',
-          difficulty: q.difficulty || 'medium',
-        })),
-      })
-
-    case 'createResearch':
-    case 'generateResearch':
-      return createResearchArtifact({
-        title: output.title || input?.title || 'Pesquisa',
-        query: output.query || input?.query || '',
-        content: output.content || '',
-        sources: (output.sources || []).map((s: any) => ({
-          title: s.title || '',
-          url: s.url || '',
-          summary: s.summary,
-          authors: s.authors,
-          pubdate: s.pubdate,
-        })),
-        methodology: output.methodology,
-      })
-
-    case 'createReport':
-    case 'generateReport':
-      return createReportArtifact({
-        title: output.title || input?.title || 'Laudo',
-        examType: output.examType || 'Exame',
-        content: output.content || '',
-        findings: output.findings || [],
-        recommendations: output.recommendations || [],
-        imageUrl: output.imageUrl,
-        quality: output.quality,
-      })
-
     default:
       return null
   }
@@ -389,12 +182,6 @@ function getToolDisplayName(toolName: string): string {
     searchArticles: 'Pesquisa de Artigos',
     generateImage: 'Imagem',
     createImage: 'Imagem',
-    createQuiz: 'Quiz',
-    generateQuiz: 'Quiz',
-    createResearch: 'Pesquisa',
-    generateResearch: 'Pesquisa',
-    createReport: 'Laudo',
-    generateReport: 'Laudo',
   }
   return names[toolName] || toolName
 }
@@ -402,7 +189,7 @@ function getToolDisplayName(toolName: string): string {
 // Get icon for tool
 function getToolIcon(toolName: string) {
   const iconClass = 'h-4 w-4 text-primary'
-
+  
   if (toolName.includes('code') || toolName.includes('Code')) {
     return <Code className={iconClass} />
   }
@@ -421,165 +208,92 @@ function getToolIcon(toolName: string) {
   if (toolName.includes('search') || toolName.includes('Search')) {
     return <Search className={iconClass} />
   }
-  if (toolName.includes('quiz') || toolName.includes('Quiz')) {
-    return <CheckCircle className={iconClass} />
-  }
-  if (toolName.includes('research') || toolName.includes('Research')) {
-    return <FlaskConical className={iconClass} />
-  }
-  if (toolName.includes('report') || toolName.includes('Report')) {
-    return <ClipboardList className={iconClass} />
-  }
-
+  
   return <Lightbulb className={iconClass} />
 }
 
-export function Message({ message, isLoading, onEdit, onRegenerate, agentId = 'odonto-gpt' }: MessageProps) {
-  // Convert message to blocks
-  const blocks = uiMessageToBlocks(message)
-  const groupedBlocks = groupTextBlocks(blocks)
-
-  // Extract text content for copy action
-  const textContent = message.parts
-    ?.filter((p): p is { type: 'text'; text: string } => p.type === 'text' && 'text' in p)
-    .map((p) => p.text)
-    .join('\n') || ''
-
-  // Get agent config for avatar
-  const agentConfig = getAgentUI(agentId)
-
+export function Message({ message, isLoading }: MessageProps) {
   return (
     <div
       className="group/message fade-in w-full animate-in duration-200"
       data-role={message.role}
     >
       <div
-        className={cn('flex w-full items-start gap-2 sm:gap-3', {
+        className={cn('flex w-full items-start gap-2 md:gap-3', {
           'justify-end': message.role === 'user',
           'justify-start': message.role === 'assistant',
         })}
       >
-        {/* Avatar do assistente - Apple/iOS style gradient */}
+        {/* Avatar do assistente */}
         {message.role === 'assistant' && (
-          <div
-            className={cn(
-              'flex size-7 shrink-0 items-center justify-center rounded-xl sm:size-8 sm:rounded-xl',
-              'bg-gradient-to-br shadow-md transition-all duration-300 hover:shadow-lg',
-              `bg-gradient-to-br ${agentConfig.gradient}`
-            )}
-          >
-            {(() => {
-              const IconComponent = agentConfig.icon
-              return <IconComponent className="size-4 text-white" />
-            })()}
+          <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
+            <SparklesIcon size={14} />
           </div>
         )}
 
-        {/* Conteudo da mensagem - renderizado em blocos */}
+        {/* Conteudo da mensagem */}
         <div
-          className={cn('flex min-w-0 flex-col', {
-            'gap-2 sm:gap-3 md:gap-4': groupedBlocks.length > 0,
-            'w-full max-w-[calc(100%-2.25rem)] sm:max-w-[calc(100%-3rem)]':
-              message.role === 'assistant',
-            'max-w-[85%] xs:max-w-[80%] sm:max-w-[min(fit-content,75%)]': message.role === 'user',
+          className={cn('flex flex-col', {
+            'gap-2 md:gap-4': message.parts?.some(
+              (p) => p.type === 'text' && 'text' in p && p.text?.trim()
+            ),
+            'w-full max-w-[calc(100%-3rem)]': message.role === 'assistant',
+            'max-w-[calc(100%-2.5rem)] sm:max-w-[min(fit-content,80%)]':
+              message.role === 'user',
           })}
         >
-          {/* Renderizar blocos */}
-          {groupedBlocks.map((block, index) => (
-            <MessageBlockRenderer
-              key={`message-${message.id}-block-${index}`}
-              block={block}
-              blockKey={`message-${message.id}-block-${index}`}
-            />
-          ))}
+          {message.parts?.map((part, index) => {
+            const key = `message-${message.id}-part-${index}`
 
-          {/* Fallback para mensagens sem blocos (compatibilidade) */}
-          {groupedBlocks.length === 0 &&
-            message.parts?.map((part, index) => {
-              const key = `message-${message.id}-part-${index}`
-
-              // File parts (images, documents)
-              if (part.type === 'file' && 'url' in part) {
-                return (
-                  <FileBlockRenderer
-                    key={key}
-                    url={(part as any).url}
-                    mediaType={(part as any).mediaType}
-                    filename={(part as any).filename}
-                    className="mb-2"
-                  />
-                )
-              }
-
-              if (part.type === 'text') {
-                return (
-                  <div key={key}>
-                    <div
-                      className={cn('break-words rounded-2xl', {
-                        // User messages: cyan-tinted background (system.md)
-                        'w-fit px-3 py-2 text-right text-black dark:text-white bg-brand/10 border border-brand/20 text-sm sm:text-base':
-                          message.role === 'user',
-                        'bg-transparent text-left text-black dark:text-white text-sm sm:text-base': message.role === 'assistant',
-                      })}
-                    >
-                      {message.role === 'assistant' ? (
-                        <Markdown>{part.text}</Markdown>
-                      ) : (
-                        part.text
-                      )}
-                    </div>
+            if (part.type === 'text') {
+              return (
+                <div key={key}>
+                  <div
+                    className={cn('wrap-break-word rounded-2xl px-3 py-2', {
+                      'w-fit text-right text-primary-foreground bg-primary':
+                        message.role === 'user',
+                      'bg-transparent px-0 py-0 text-left':
+                        message.role === 'assistant',
+                    })}
+                  >
+                    {message.role === 'assistant' ? (
+                      <Markdown>{part.text}</Markdown>
+                    ) : (
+                      part.text
+                    )}
                   </div>
-                )
-              }
+                </div>
+              )
+            }
 
-              if (part.type.startsWith('tool-')) {
-                return renderToolPart(part, key)
-              }
+            // Tool invocations (pesquisa, artefatos)
+            if (part.type.startsWith('tool-')) {
+              return renderToolPart(part, key)
+            }
 
-              return null
-            })}
-
-          {/* Message Actions */}
-          {!isLoading && textContent && (
-            <MessageActions
-              messageId={message.id}
-              content={textContent}
-              role={message.role as 'user' | 'assistant'}
-              onEdit={onEdit}
-              onRegenerate={onRegenerate}
-              className="mt-1"
-            />
-          )}
+            return null
+          })}
         </div>
       </div>
     </div>
   )
 }
 
-export function ThinkingMessage({ agentId = 'odonto-gpt' }: { agentId?: string }) {
-  const agentConfig = getAgentUI(agentId)
-
+export function ThinkingMessage() {
   return (
     <div
       className="group/message fade-in w-full animate-in duration-300"
       data-role="assistant"
     >
-      <div className="flex items-start justify-start gap-2 sm:gap-3">
-        <div
-          className={cn(
-            'flex size-7 shrink-0 items-center justify-center rounded-xl sm:size-8 sm:rounded-xl',
-            'bg-gradient-to-br shadow-md transition-all duration-300',
-            `bg-gradient-to-br ${agentConfig.gradient}`
-          )}
-        >
-          {(() => {
-            const IconComponent = agentConfig.icon
-            return <IconComponent className="size-4 text-white animate-pulse" />
-          })()}
+      <div className="flex items-start justify-start gap-3">
+        <div className="flex size-8 shrink-0 items-center justify-center rounded-full bg-background ring-1 ring-border">
+          <div className="animate-pulse">
+            <SparklesIcon size={14} />
+          </div>
         </div>
 
-        <div className="flex w-full flex-col gap-2 sm:gap-3 md:gap-4">
-          <div className="flex items-center gap-1 p-0 text-muted-foreground text-xs sm:text-sm">
+        <div className="flex w-full flex-col gap-2 md:gap-4">
+          <div className="flex items-center gap-1 p-0 text-muted-foreground text-sm">
             <span className="animate-pulse">Pensando</span>
             <span className="inline-flex">
               <span className="animate-bounce [animation-delay:0ms]">.</span>

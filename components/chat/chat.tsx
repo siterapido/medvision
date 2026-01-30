@@ -1,11 +1,10 @@
 'use client'
 
 /**
- * Chat - Blocking UI Pattern with useBlockingChat Hook
- *
- * Componente principal de chat usando blocking (non-streaming) responses.
- * Respostas completas de uma vez, sem streaming progressivo.
- * Mobile: Header flutuante estilo Perplexity
+ * Chat - Vercel Chat SDK Pattern
+ * 
+ * Componente principal de chat seguindo o padrão oficial da Vercel.
+ * Usa useChat do @ai-sdk/react com DefaultChatTransport.
  */
 
 import { useState, useCallback, useMemo } from 'react'
@@ -24,11 +23,7 @@ import { Button } from '@/components/ui/button'
 
 interface ChatProps {
   id?: string
-  initialMessages?: Array<{
-    id: string
-    role: 'user' | 'assistant'
-    parts: Array<{ type: string; text?: string;[key: string]: any }>
-  }>
+  initialMessages?: UIMessage[]
   apiEndpoint?: string
   agentId?: string
   userName?: string
@@ -45,172 +40,30 @@ export function Chat({
   userImage,
   subscriptionInfo,
 }: ChatProps) {
-  const router = useRouter()
-  const [chatId] = useState(() => id || crypto.randomUUID())
   const [input, setInput] = useState('')
   const [selectedAgent, setSelectedAgent] = useState(initialAgentId)
   const { revalidateHistory } = useHistoryRevalidation()
   const { toggleSidebar } = useSidebar()
 
-  // Callback when a new session is created
-  const handleSessionCreated = useCallback((newSessionId: string) => {
-    console.log('[Chat] New session created:', newSessionId)
-    // Revalidate sidebar to show the new chat
-    revalidateHistory()
-    // Update URL to include the new session ID (without full page reload)
-    if (!id) {
-      router.replace(`/dashboard/chat?id=${newSessionId}`, { scroll: false })
-    }
-  }, [id, revalidateHistory, router])
-
-  // useBlockingChat hook - blocking (non-streaming) responses
-  const {
-    messages,
-    setMessages,
-    stop,
-    reload,
-    error,
-    sendMessage,
-    status,
-    isLoading,
-    sessionId,
-  } = useBlockingChat({
-    api: apiEndpoint,
-    initialMessages: initialMessages as any,
-    agentId: selectedAgent,
-    sessionId: id,
-    onError: (err) => {
-      console.error('[Chat] Error:', err)
-      toast.error('Erro no chat', {
-        description: err.message || 'Erro desconhecido',
-      })
-    },
-    onSessionCreated: handleSessionCreated,
+  const { messages, sendMessage, status, stop } = useChat<UIMessage>({
+    id,
+    messages: initialMessages,
+    transport: new DefaultChatTransport({
+      api: apiEndpoint,
+      body: { chatId: id },
+    }),
   })
 
-  // Tool approval handler (simplified for blocking UI)
-  const addToolApprovalResponse = useCallback(
-    (_response: { id: string; approved: boolean }) => {
-      // Tool approval is handled server-side with maxSteps in blocking mode
-      toast.info('Tool approval handled automatically')
-    },
-    []
-  )
+  const handleSubmit = () => {
+    if (!input.trim() || status !== 'ready') return
 
-  // Handle sending messages via useBlockingChat
-  const handleManualSubmit = useCallback(
-    (textInput: string, attachments?: File[]) => {
-      if ((!textInput.trim() && !attachments?.length) || isLoading) return
+    sendMessage({
+      role: 'user',
+      parts: [{ type: 'text', text: input }],
+    })
 
-      setInput('')
-
-      // Use sendMessage to send the message with attachments through the blocking chat hook
-      sendMessage(textInput, attachments)
-    },
-    [isLoading, sendMessage, setInput]
-  )
-
-  // Find pending tool approvals
-  const pendingApproval = useMemo(() => {
-    for (const message of messages.slice().reverse()) {
-      if (message.role !== 'assistant' || !message.parts) continue
-
-      for (const part of message.parts) {
-        if (
-          typeof part === 'object' &&
-          'type' in part &&
-          typeof part.type === 'string' &&
-          part.type.startsWith('tool-') &&
-          'state' in part &&
-          part.state === 'approval-requested' &&
-          'approval' in part &&
-          part.approval
-        ) {
-          return {
-            toolName: part.type.replace('tool-', ''),
-            input: 'input' in part ? (part.input as Record<string, unknown>) : undefined,
-            approvalId: part.approval.id,
-          }
-        }
-      }
-    }
-    return null
-  }, [messages])
-
-  // Handle submit with optional attachments (images, files)
-  const handleSubmit = useCallback(
-    (attachments?: File[]) => {
-      // Pass input and attachments to handleManualSubmit
-      handleManualSubmit(input, attachments)
-    },
-    [input, handleManualSubmit]
-  )
-
-  // Handle suggestion click
-  const handleSuggestionClick = useCallback(
-    (suggestion: string) => {
-      if (isLoading) return
-      handleManualSubmit(suggestion)
-    },
-    [isLoading, handleManualSubmit]
-  )
-
-  // Handle edit message
-  const handleEditMessage = useCallback(
-    (messageId: string) => {
-      const message = messages.find((m) => m.id === messageId)
-      if (message && message.role === 'user') {
-        const textContent = message.parts
-          ?.filter(
-            (p): p is { type: 'text'; text: string } =>
-              typeof p === 'object' && p.type === 'text' && 'text' in p
-          )
-          .map((p) => p.text)
-          .join('\n')
-
-        if (textContent) {
-          setInput(textContent)
-          toast.info('Editando mensagem')
-        }
-      }
-    },
-    [messages]
-  )
-
-  // Handle regenerate
-  const handleRegenerate = useCallback(() => {
-    reload()
-    toast.info('Regenerando resposta...')
-  }, [reload])
-
-  // Handle tool approval
-  const handleApprove = useCallback(() => {
-    if (pendingApproval) {
-      addToolApprovalResponse({
-        id: pendingApproval.approvalId,
-        approved: true,
-      })
-      toast.success('Acao aprovada')
-    }
-  }, [pendingApproval, addToolApprovalResponse])
-
-  // Handle tool rejection
-  const handleReject = useCallback(() => {
-    if (pendingApproval) {
-      addToolApprovalResponse({
-        id: pendingApproval.approvalId,
-        approved: false,
-      })
-      toast.info('Acao cancelada')
-    }
-  }, [pendingApproval, addToolApprovalResponse])
-
-  // Map status to component status (blocking UI - no streaming state)
-  const componentStatus = useMemo(() => {
-    if (isLoading) return 'submitted'
-    if (error) return 'error'
-    return status === 'ready' ? 'ready' : 'submitted'
-  }, [status, error, isLoading])
+    setInput('')
+  }
 
   return (
     <div className="relative flex h-full min-h-0 min-w-0 flex-col bg-background">
@@ -252,13 +105,13 @@ export function Chat({
         />
       </div>
 
-      {/* Tool Approval Dialog */}
-      {pendingApproval && (
-        <ToolApprovalDialog
-          toolName={pendingApproval.toolName}
-          input={pendingApproval.input}
-          onApprove={handleApprove}
-          onReject={handleReject}
+      <div className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
+        <MultimodalInput
+          input={input}
+          setInput={setInput}
+          status={status}
+          stop={stop}
+          onSubmit={handleSubmit}
         />
       )}
 
