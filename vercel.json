@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/whatsapp-triggers",
-      "schedule": "0 */4 * * *"
+      "schedule": "0 10 * * *"
     }
   ]
 }
