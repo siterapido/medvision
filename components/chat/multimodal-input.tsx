@@ -286,14 +286,27 @@ export function MultimodalInput({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
-          'input-glow', // THE SIGNATURE
-          'relative flex flex-col gap-1 p-2',
-          // Rounded corners
-          'rounded-[28px]',
+          'relative flex flex-col gap-1 p-2 transition-all duration-300',
+          'rounded-[28px] overflow-hidden',
+
+          // Light Mode - Transparent Gradient
+          'bg-gradient-to-b from-slate-50/60 to-slate-50/20 border border-cyan-500/20 backdrop-blur-xl',
+          'shadow-[0_4px_20px_-4px_rgba(6,182,212,0.1)]',
+          'hover:from-slate-50/80 hover:to-slate-50/40 hover:border-cyan-500/40 hover:shadow-[0_4px_24px_-4px_rgba(6,182,212,0.2)]',
+          'focus-within:from-slate-50/90 focus-within:to-slate-50/50 focus-within:border-cyan-500/50',
+
+          // Dark Mode - Deep Blue Transparent Gradient (More Glass)
+          'dark:bg-gradient-to-b dark:from-[#020617]/60 dark:to-[#020617]/30 dark:border-white/[0.08] dark:backdrop-blur-xl',
+          'dark:shadow-[0_4px_30px_-4px_rgba(6,182,212,0.15)]',
+          'dark:hover:from-[#020617]/80 dark:hover:to-[#020617]/50 dark:hover:border-white/[0.15] dark:hover:shadow-[0_4px_40px_-4px_rgba(6,182,212,0.25)]',
+          'dark:focus-within:from-[#020617]/90 dark:focus-within:to-[#020617]/70 dark:focus-within:border-cyan-500/40',
+
           // Drag state
           isDragging && 'border-cyan-500/50 bg-cyan-500/5'
         )}
       >
+        {/* Internal Blue Glow - Enhanced for Gradient */}
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/[0.05] via-transparent to-cyan-500/[0.02] pointer-events-none" />
         {/* Drag overlay */}
         {isDragging && (
           <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-[28px] bg-primary/10 dark:bg-white/[0.08] backdrop-blur-sm">

@@ -1,0 +1,12 @@
+{
+  "decisions": [
+    {
+      "title": "Add Profile and Settings to Sidebar",
+      "description": "Moved profile page from /newdashboard/perfil to /dashboard/perfil and created /dashboard/configuracoes. Enabled user profile in sidebar for desktop and added Perfil/Configuracoes links to the user dropdown.",
+      "phase": "V",
+      "status": "accepted",
+      "id": "dec-1769771082374",
+      "decidedAt": "2026-01-30T11:04:42.374Z"
+    }
+  ]
+}

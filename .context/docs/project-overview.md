@@ -1,27 +1,26 @@
----
-type: doc
-name: project-overview
-description: High-level purpose and technical stack of the Odonto GPT project.
-category: overview
-generated: 2026-01-24
-status: filled
----
+# Project Overview
 
-# Project Overview: Odonto GPT
+OdontoGPT is a Next.js 14+ web application designed for dental professionals. It creates a personalized dashboard for managing dental practice workflows, viewing educational content (OdontoFlix), and managing certificates.
 
-Odonto GPT is a modern web application designed for the dental industry, providing an AI-driven interface for managing courses, lessons, and student interactions.
+## Architecture
 
-## Technical Stack
-- **Framework**: Next.js 16 (App Router)
-- **Styling**: Tailwind CSS, Shadcn UI (Radix UI)
-- **Database & Auth**: Supabase
-- **AI Integration**: Vercel AI SDK (@ai-sdk/react, @ai-sdk/openai)
-- **Deployment**: Vercel
-- **Integrations**: Cakto (payments), Zapi (WhatsApp), Bunny CDN (video hosting)
+-   **Frontend**: Next.js (App Router), React, Tailwind CSS, Shadcn UI, Framer Motion.
+-   **Backend**: Supabase (Auth, Database, Row Level Security), Next.js Server Actions.
+-   **AI Integration**: Vercel AI SDK for chat features (`/api/chat`).
+-   **Theme**: `next-themes` with a custom "frontend-design" system (Dark/Teal).
 
 ## Core Features
-- **AI Chat**: Conversational interface for interacting with dentistry-focused AI models.
-- **OdontoFlix**: A course and lesson player for educational content.
-- **Admin Dashboard**: Management interface for users, certificates, and agents.
-- **Biblioteca de Artefatos**: Sistema de geração e armazenamento de conteúdos educacionais e clínicos (Pesquisas, Flashcards, Laudos, Resumos, etc.) produzidos por IA.
-- **Automated Workflows**: Integration with external services for payments and notifications.
+
+-   **Dashboard**: Central hub for users.
+-   **Chat**: AI-powered assistant with history.
+-   **Library**: Educational resources (OdontoFlix).
+-   **Certificates**: Management and issuance of certificates.
+-   **Settings**: User preferences and profile management.
+
+## Key Technologies
+
+-   **Framework**: Next.js
+-   **Language**: TypeScript
+-   **Database**: PostgreSQL (Supabase)
+-   **Styling**: Tailwind CSS
+-   **State Management**: React Server Components + Client Hooks

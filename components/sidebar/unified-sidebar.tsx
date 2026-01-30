@@ -11,8 +11,6 @@ import {
 } from '@/components/ui/sidebar'
 import { SidebarHeader } from './sidebar-header'
 import { SidebarNav } from './sidebar-nav'
-import { SidebarChats } from './sidebar-chats'
-import { SidebarSearch } from './sidebar-search'
 import { SidebarUser } from './sidebar-user'
 import { NewChatButton } from './new-chat-button'
 import { cn } from '@/lib/utils'
@@ -31,9 +29,6 @@ interface UnifiedSidebarProps {
 
 export function UnifiedSidebar({ user }: UnifiedSidebarProps) {
   const pathname = usePathname()
-  // Show search and history on all dashboard pages, not just chat
-  // This ensures the sidebar doesn't change drastic layout when navigating
-  const showChatFeatures = true; // Always show in UnifiedSidebar which is used in Dashboard
   const { state } = useSidebar()
   const isCollapsed = state === 'collapsed'
 
@@ -42,7 +37,7 @@ export function UnifiedSidebar({ user }: UnifiedSidebarProps) {
       collapsible="icon"
       className={cn(
         'border-r border-sidebar-border',
-        'bg-[var(--sidebar-bg)]'
+        'bg-transparent'
       )}
     >
       {/* Header with Logo - Perplexity style centered when collapsed */}
@@ -60,21 +55,9 @@ export function UnifiedSidebar({ user }: UnifiedSidebarProps) {
         <NewChatButton collapsed={isCollapsed} />
       </div>
 
-      {/* Search (only visible when on chat routes and expanded) */}
-      {showChatFeatures && !isCollapsed && (
-        <div className="px-3 pb-2">
-          <SidebarSearch />
-        </div>
-      )}
-
       <SidebarContent className="sidebar-scrollbar">
         {/* Navigation Section */}
         <SidebarNav />
-
-        {/* Chat History Section (visible on chat routes, only when expanded) */}
-        {showChatFeatures && !isCollapsed && (
-          <SidebarChats userId={user?.id} />
-        )}
       </SidebarContent>
 
       {/* Footer with User Profile - Perplexity style */}

@@ -2,7 +2,7 @@
 
 On-demand expertise for AI agents. Skills are task-specific procedures that get activated when relevant.
 
-> Project: v0-odonto-gpt-ui
+> Project: odontogptweb
 
 ## How Skills Work
 
@@ -26,6 +26,13 @@ On-demand expertise for AI agents. Skills are task-specific procedures that get 
 | [Feature Breakdown](./feature-breakdown/SKILL.md) | Break down features into implementable tasks | P |
 | [Api Design](./api-design/SKILL.md) | Design RESTful APIs following best practices | P, R |
 | [Security Audit](./security-audit/SKILL.md) | Security review checklist for code and infrastructure | R, V |
+
+### Custom Skills
+
+| Skill | Description | Phases |
+|-------|-------------|--------|
+| [ai-sdk](./ai-sdk/SKILL.md) | This skill should be used when building AI features with Vercel AI SDK, using useChat, streamText, or generateObject, or when "AI SDK", "streaming chat", or "structured outputs" are mentioned. | - |
+| [frontend-design](./frontend-design/SKILL.md) | Standardized UI/UX, branding, and design system for Odonto GPT. Contains rules for colors, typography, components, and animations. | P, R, E, V, C |
 
 ## Creating Custom Skills
 

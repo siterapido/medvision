@@ -32,12 +32,9 @@ export const NAV_ITEMS: NavItem[] = [
     { href: '/dashboard/odontoflix', label: 'OdontoFlix', icon: MonitorPlay },
     { href: '/dashboard/odonto-vision', label: 'Odonto Vision', icon: Eye },
     { href: '/dashboard/certificados', label: 'Certificados', icon: FileBadge },
-    { href: '/dashboard/historico', label: 'Histórico', icon: History },
 ]
 
-export const BOTTOM_NAV_ITEMS: NavItem[] = [
-    { href: '/dashboard/notificacoes', label: 'Notificações', icon: Bell },
-]
+export const BOTTOM_NAV_ITEMS: NavItem[] = []
 
 export const ADMIN_NAV_ITEMS: NavItem[] = [
     { href: '/admin', label: 'Visão Geral', icon: LayoutDashboard },

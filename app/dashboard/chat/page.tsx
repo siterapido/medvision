@@ -23,6 +23,7 @@ export default async function ChatPage({
   } = await supabase.auth.getUser()
 
   // Buscar dados de assinatura do perfil
+  let userImage: string | undefined = undefined
   let subscriptionInfo: { isPro: boolean; trialDaysRemaining: number } = {
     isPro: false,
     trialDaysRemaining: 0,
@@ -31,7 +32,7 @@ export default async function ChatPage({
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('plan_type, trial_ends_at')
+      .select('full_name, avatar_url, plan_type, trial_ends_at')
       .eq('id', user.id)
       .single()
 
@@ -39,8 +40,17 @@ export default async function ChatPage({
       const isPro = profile.plan_type && profile.plan_type !== 'free'
       const trialDaysRemaining = isPro ? 0 : getRemainingTrialDays(profile.trial_ends_at)
       subscriptionInfo = { isPro: !!isPro, trialDaysRemaining }
+
+      // Update user image if available in profile
+      if (profile.avatar_url) {
+        userImage = profile.avatar_url
+      }
     }
   }
+
+  // Fallback to user metadata for image
+  const userName = user?.user_metadata?.full_name || user?.user_metadata?.name
+  userImage = userImage || user?.user_metadata?.avatar_url || user?.user_metadata?.picture
 
   let initialMessages: UIMessage[] = []
 
@@ -63,7 +73,8 @@ export default async function ChatPage({
     <ChatWithArtifactPanel
       id={id}
       initialMessages={initialMessages}
-      userName={user?.user_metadata?.full_name || user?.user_metadata?.name}
+      userName={userName}
+      userImage={userImage}
       subscriptionInfo={subscriptionInfo}
     />
   )

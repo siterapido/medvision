@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils'
 import { GlassCard } from '@/components/ui/glass-card'
 import { formatDistanceToNow } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
+import { StreamingText } from '@/components/ui/streaming-text'
 
 interface QuickActionCard {
   title: string
@@ -58,14 +59,14 @@ const quickActions: QuickActionCard[] = [
 ]
 
 // Helper para tradução de tipos de artefatos
-const ARTIFACT_TYPE_LABELS: Record<string, { label: string, icon: any }> = {
-  summary: { label: 'Resumo', icon: FileText },
-  flashcards: { label: 'Flashcards', icon: Brain },
-  exam: { label: 'Simulado', icon: HelpCircle },
-  research: { label: 'Pesquisa', icon: FileSearch },
-  mindmap: { label: 'Mapa Mental', icon: Hash },
-  protocol: { label: 'Protocolo', icon: FileText },
-  checklist: { label: 'Checklist', icon: FileText },
+const ARTIFACT_TYPE_LABELS: Record<string, { label: string, icon: any, article: string }> = {
+  summary: { label: 'Resumo', icon: FileText, article: 'um novo' },
+  flashcards: { label: 'Flashcards', icon: Brain, article: 'novos' },
+  exam: { label: 'Simulado', icon: HelpCircle, article: 'um novo' },
+  research: { label: 'Pesquisa', icon: FileSearch, article: 'uma nova' },
+  mindmap: { label: 'Mapa Mental', icon: Hash, article: 'um novo' },
+  protocol: { label: 'Protocolo', icon: FileText, article: 'um novo' },
+  checklist: { label: 'Checklist', icon: FileText, article: 'um novo' },
 }
 
 export default async function NewDashboardPage() {
@@ -75,8 +76,7 @@ export default async function NewDashboardPage() {
   const firstName = user?.user_metadata?.full_name?.split(' ')[0] ||
     user?.email?.split('@')[0] || 'Doutor(a)'
 
-  const hours = new Date().getHours()
-  const greeting = hours < 12 ? 'Bom dia' : hours < 18 ? 'Boa tarde' : 'Boa noite'
+
 
   // Busca artefatos reais do usuário
   const { data: artifacts = [] } = await supabase
@@ -106,18 +106,30 @@ export default async function NewDashboardPage() {
     completedModules: Math.floor(((progress.progress_percentage || 0) / 100) * (progress.course?.lessons_count || 0))
   } : null
 
+  // Lógica para mensagem de contexto personalizada
+  let contextMessage = `Olá, ${firstName}. `
+
+  if (currentCourse && currentCourse.progress < 100) {
+    contextMessage += `Que tal continuar seus estudos em "${currentCourse.title}"?`
+  } else if (artifacts && artifacts.length > 0) {
+    const type = artifacts[0]?.type || 'summary'
+    const typeInfo = ARTIFACT_TYPE_LABELS[type] || { label: 'arquivo', article: 'um novo' }
+    contextMessage += `Você criou ${typeInfo.article} ${typeInfo.label} recentemente. Vamos revisar?`
+  } else {
+    contextMessage += "Hoje é um ótimo dia para aprofundar seus conhecimentos clínicos."
+  }
+
   return (
     <div className="min-h-screen pb-4 md:pb-10 pt-6 px-4 md:px-8 max-w-6xl mx-auto animate-in fade-in duration-500">
 
       {/* Mobile-First Header */}
       <header className="mb-10 space-y-4 text-center md:text-left">
         <div>
-          <h1 className="text-3xl md:text-4xl font-heading font-medium tracking-tight text-foreground">
-            {greeting}, <span className="text-muted-foreground">{firstName}</span>
-          </h1>
-          <p className="text-muted-foreground mt-2 text-sm md:text-base">
-            O que vamos aprender ou pesquisar hoje?
-          </p>
+          <div className="min-h-[4rem] flex items-center">
+            <h1 className="text-2xl md:text-3xl font-heading font-medium tracking-tight text-foreground max-w-3xl leading-snug">
+              <StreamingText text={contextMessage} speed={30} />
+            </h1>
+          </div>
         </div>
 
         {/* Search Input Fake (Navigation) */}

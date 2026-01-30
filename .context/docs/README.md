@@ -12,44 +12,50 @@ Welcome to the repository knowledge base. Start with the project overview, then 
 - [Tooling & Productivity Guide](./tooling.md)
 
 ## Repository Snapshot
-- `_archived/`
 - `AGENTS.md/`
+- `AI_SDK_MODERNIZATION_SUMMARY.md/`
 - `app/`
 - `CLAUDE.md/`
 - `components/`
 - `components.json/`
 - `COURSE_REFACTOR_SUMMARY.md/`
-- `DEPLOY.md/`
 - `docs/` — Living documentation produced by this tool.
-- `DOCUMENTATION_INDEX.md/`
+- `e2e/`
 - `eslint.config.mjs/`
 - `EXECUTE_THIS_IN_SUPABASE.sql/`
 - `FIX_RLS_POLICIES.sql/`
+- `GEMINI_PDF_PROCESSOR_GUIDE.md/`
+- `hooks/`
+- `IMPLEMENTATION_CHECKLIST_GEMINI.md/`
 - `IMPLEMENTATION_CHECKLIST.md/`
+- `IMPLEMENTATION_SUMMARY_GEMINI.md/`
 - `IMPROVEMENT_PLAN_SUMMARY.md/`
-- `iniciar-odontogpt/`
 - `instrumentation-client.ts/`
 - `instrumentation.ts/`
 - `lib/`
-- `LOCAL_DEVELOPMENT_GUIDE.md/`
-- `MASTER_IMPROVEMENT_PLAN.md/`
-- `middleware.ts/`
+- `lint_output.txt/`
+- `MESSAGE_BLOCKS_SUMMARY.md/`
 - `next-env.d.ts/`
 - `next.config.mjs/`
+- `Odonto Studio e Biblioteca/`
 - `ODONTO_GPT_CONVERSATIONAL_PLAN.md/`
 - `package-lock.json/`
 - `package.json/`
+- `pdf_analysis_20260127_130758.json/`
 - `PLANO_MELHORIAS_2026.md/`
-- `PLANO_MELHORIAS_README.md/`
 - `playwright-report/`
 - `playwright.config.ts/`
 - `postcss.config.mjs/`
 - `PROXIMOS_PASSOS_BUNNY.md/`
+- `proxy.ts/`
 - `public/`
 - `QUICK_FIX_VENDEDOR.md/`
+- `QUICK_START_GEMINI.md/`
+- `QUICK_START.md/`
 - `README.md/`
-- `ROADMAP_VISUAL.md/`
-- `run_backend.sh.bak/`
+- `REFACTOR_MESSAGE_BLOCKS.md/`
+- `reports/`
+- `run-migration.mjs/`
 - `scripts/`
 - `sentry.client.config.ts/`
 - `sentry.edge.config.ts/`
@@ -58,20 +64,25 @@ Welcome to the repository knowledge base. Start with the project overview, then 
 - `styles/`
 - `supabase/`
 - `SUPABASE_SETUP.md/`
+- `test_chat_debug.sh/`
+- `test_chat.sh/`
+- `test_output.txt/`
 - `test-results/`
 - `test-webhook-cakto.sh/`
+- `TESTE_RAG_RESULTADOS.md/`
+- `TESTING_CHECKLIST.md/`
+- `TESTING_MESSAGE_BLOCKS.md/`
 - `tests/` — Automated tests and fixtures.
 - `tests-e2e/`
-- `tmp/`
 - `tsconfig.json/`
 - `tsconfig.test.json/`
 - `tsconfig.test.paths.json/`
 - `tsconfig.tsbuildinfo/`
 - `UI_UX_GUIDE.md/`
-- `v0-odonto-gpt-ui/`
 - `vercel.json/`
 - `WARP.md/`
 - `WEBHOOK_INSTRUCTIONS.md/`
+- `WORKFLOW_SUMMARY.md/`
 
 ## Document Map
 | Guide | File | Primary Inputs |

@@ -52,6 +52,17 @@ export function SidebarNav({ role }: SidebarNavProps) {
     return shortLabels[label] || label
   }
 
+  // Filter out 'Histórico' from main nav on desktop
+  // It should only appear on mobile
+  const { isMobile } = useSidebar()
+
+  const filteredNavItems = mainNavItems.filter(item => {
+    if (item.label === 'Histórico' && !isMobile) {
+      return false
+    }
+    return true
+  })
+
   return (
     <>
       <SidebarGroup>
@@ -62,7 +73,7 @@ export function SidebarNav({ role }: SidebarNavProps) {
         )}
         <SidebarGroupContent>
           <SidebarMenu>
-            {mainNavItems.map((item) => {
+            {filteredNavItems.map((item) => {
               const active = isActive(item.href)
               return (
                 <SidebarMenuItem key={item.href}>

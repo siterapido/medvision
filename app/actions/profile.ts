@@ -43,7 +43,7 @@ export async function updateProfile(data: UpdateProfileData): Promise<ActionResu
     const updateData: Record<string, any> = {}
     if (parsed.data.name !== undefined) updateData.name = parsed.data.name
     // Email update skipped for safety/complexity reasons
-    
+
     if (parsed.data.telefone !== undefined) updateData.telefone = parsed.data.telefone
     if (parsed.data.cro !== undefined) updateData.cro = parsed.data.cro
     if (parsed.data.especialidade !== undefined) updateData.especialidade = parsed.data.especialidade
@@ -59,22 +59,22 @@ export async function updateProfile(data: UpdateProfileData): Promise<ActionResu
       // Check if error is related to column not found if possible, or just retry blindly like users.ts
       const updateDataWithoutPhone = { ...updateData }
       delete updateDataWithoutPhone.telefone
-      
+
       const retryResult = await supabase
         .from("profiles")
         .update(updateDataWithoutPhone)
         .eq("id", user.id)
-      
+
       error = retryResult.error
     }
 
     if (error) {
-        console.error("Error updating profile", error)
-        return { success: false, error: "Erro ao atualizar perfil." }
+      console.error("Error updating profile", error)
+      return { success: false, error: "Erro ao atualizar perfil." }
     }
 
-    revalidatePath("/newdashboard/perfil")
-    revalidatePath("/newdashboard") // Update sidebar avatar/name if needed
+    revalidatePath("/dashboard/perfil")
+    revalidatePath("/dashboard") // Update sidebar avatar/name if needed
     return { success: true }
   } catch (error) {
     console.error("Unexpected error", error)

@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Settings, LogOut, Moon, Sun, Bell, ChevronUp } from 'lucide-react'
+import { Settings, LogOut, Moon, Sun, Bell, ChevronUp, User } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
@@ -18,6 +18,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  useSidebar,
 } from '@/components/ui/sidebar'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
@@ -37,6 +38,7 @@ interface SidebarUserProps {
 export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
+  const { isMobile } = useSidebar()
   const supabase = createClient()
   const [isMounted, setIsMounted] = useState(false)
 
@@ -67,33 +69,11 @@ export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
     .toUpperCase()
     .slice(0, 2) || user?.email?.[0]?.toUpperCase() || '?'
 
+      .slice(0, 2) || user?.email?.[0]?.toUpperCase() || '?'
+
   if (collapsed) {
     return (
       <div className="flex flex-col items-center gap-1">
-        {/* Theme Toggle - Perplexity style */}
-        <Button
-          variant="ghost"
-          onClick={toggleTheme}
-          className="w-full flex flex-col items-center justify-center h-auto py-2 px-1 gap-1 text-[var(--sidebar-text-secondary)] hover:text-[var(--sidebar-text-primary)] hover:bg-sidebar-accent"
-        >
-          {isMounted ? (
-            theme === 'dark' ? (
-              <Sun className="h-5 w-5" />
-            ) : (
-              <Moon className="h-5 w-5" />
-            )
-          ) : (
-            <Moon className="h-5 w-5" />
-          )}
-          <span className="text-[10px] leading-tight">
-            {isMounted ? (
-              theme === 'dark' ? 'Claro' : 'Escuro'
-            ) : (
-              'Tema'
-            )}
-          </span>
-        </Button>
-
         {/* User Avatar with Dropdown - Perplexity style */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -129,17 +109,18 @@ export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
             </div>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
+              <Link href="/dashboard/perfil">
+                <User className="mr-2 h-4 w-4" />
+                Perfil
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
               <Link href="/dashboard/configuracoes">
                 <Settings className="mr-2 h-4 w-4" />
                 Configuracoes
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/notificacoes">
-                <Bell className="mr-2 h-4 w-4" />
-                Notificacoes
-              </Link>
-            </DropdownMenuItem>
+
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" />
@@ -153,30 +134,6 @@ export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
 
   return (
     <SidebarMenu>
-      {/* Theme Toggle Row */}
-      <SidebarMenuItem>
-        <SidebarMenuButton
-          onClick={toggleTheme}
-          className="hover:bg-[var(--sidebar-hover)]"
-        >
-          {isMounted ? (
-            theme === 'dark' ? (
-              <Sun className="h-4 w-4 text-[var(--sidebar-text-secondary)]" />
-            ) : (
-              <Moon className="h-4 w-4 text-[var(--sidebar-text-secondary)]" />
-            )
-          ) : (
-            <Moon className="h-4 w-4 text-[var(--sidebar-text-secondary)]" />
-          )}
-          <span className="text-[var(--sidebar-text-secondary)]">
-            {isMounted ? (
-              theme === 'dark' ? 'Modo claro' : 'Modo escuro'
-            ) : (
-              'Tema'
-            )}
-          </span>
-        </SidebarMenuButton>
-      </SidebarMenuItem>
 
       {/* User Profile Row */}
       <SidebarMenuItem>
@@ -223,17 +180,18 @@ export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
               </div>
             </div>
             <DropdownMenuItem asChild>
+              <Link href="/dashboard/perfil">
+                <User className="mr-2 h-4 w-4" />
+                Perfil
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
               <Link href="/dashboard/configuracoes">
                 <Settings className="mr-2 h-4 w-4" />
                 Configuracoes
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href="/dashboard/notificacoes">
-                <Bell className="mr-2 h-4 w-4" />
-                Notificacoes
-              </Link>
-            </DropdownMenuItem>
+
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleLogout} className="text-destructive focus:text-destructive">
               <LogOut className="mr-2 h-4 w-4" />
