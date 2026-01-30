@@ -81,8 +81,8 @@ async function syncAdminProfile(user: User, currentRole?: string | null): Promis
     const adminClient = createAdminClient()
     const displayName = getProfileNameFallback(user)
 
-    const { error } = await adminClient
-      .from("profiles")
+    const { error } = await (adminClient
+      .from("profiles") as any)
       .upsert(
         {
           id: user.id,

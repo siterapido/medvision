@@ -116,7 +116,7 @@ export function AttendanceForm() {
             trial_started_at: now.toISOString(),
             trial_ends_at: trialEnd.toISOString(),
             trial_used: false,
-            pipeline_stage: "lista_presenca",
+            pipeline_stage: "cadastro",
           })
           .eq("id", data.user.id)
 

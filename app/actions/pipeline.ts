@@ -248,7 +248,7 @@ export async function createFollowup(userId: string, scheduledFor: Date, note: s
   }
 
   const { error } = await supabase
-    .from("pipeline_followups")
+    .from("pipeline_followups" as any)
     .insert({
       user_id: userId,
       scheduled_for: scheduledFor.toISOString(),
@@ -285,7 +285,7 @@ export async function getFollowups(userId: string) {
   }
 
   const { data: followups, error } = await supabase
-    .from("pipeline_followups")
+    .from("pipeline_followups" as any)
     .select("*")
     .eq("user_id", userId)
     .order("scheduled_for", { ascending: true })
@@ -318,7 +318,7 @@ export async function completeFollowup(followupId: string, completed: boolean) {
   }
 
   const { error } = await supabase
-    .from("pipeline_followups")
+    .from("pipeline_followups" as any)
     .update({
       completed,
       completed_at: completed ? new Date().toISOString() : null,
@@ -354,7 +354,7 @@ export async function deleteFollowup(followupId: string) {
   }
 
   const { error } = await supabase
-    .from("pipeline_followups")
+    .from("pipeline_followups" as any)
     .delete()
     .eq("id", followupId)
 
@@ -608,7 +608,7 @@ export async function getLeadDetails(userId: string) {
 
   // Buscar follow-ups
   const { data: followups } = await supabase
-    .from("pipeline_followups")
+    .from("pipeline_followups" as any)
     .select("*")
     .eq("user_id", userId)
     .order("scheduled_for", { ascending: true })

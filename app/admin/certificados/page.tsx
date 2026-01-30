@@ -67,6 +67,7 @@ interface IssuedCertificate {
 
 export default function AdminCertificadosPage() {
     const [requests, setRequests] = useState<CertificateRequest[]>([])
+    const [issuedCerts, setIssuedCerts] = useState<IssuedCertificate[]>([])
     const [templates, setTemplates] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [isIssuing, setIsIssuing] = useState(false)

@@ -14,6 +14,7 @@ import {
   type BulkLessonsData,
   type ReorderLessonsData,
   type MoveLessonData,
+  type LessonMaterialData,
 } from "@/lib/validations/lesson"
 import {
   moduleFormSchema,
@@ -120,7 +121,7 @@ async function syncCourseResourcesForLesson(
 }
 
 async function resolveModuleReference(
-  supabase: ReturnType<typeof createClient>,
+  supabase: SupabaseServerClient,
   courseId: string,
   moduleId: string | undefined,
   moduleTitle: string | undefined,
@@ -297,8 +298,8 @@ export async function createLesson(
     }
 
     // Normalizar video_url: se for string vazia, usar null
-    const normalizedVideoUrl = parsed.data.video_url && parsed.data.video_url.trim() !== "" 
-      ? parsed.data.video_url.trim() 
+    const normalizedVideoUrl = parsed.data.video_url && parsed.data.video_url.trim() !== ""
+      ? parsed.data.video_url.trim()
       : null
 
     const lessonPayload: Record<string, unknown> = {
@@ -352,7 +353,7 @@ export async function createLesson(
 
     if (!syncResult.success) {
       await supabase.from("lessons").delete().eq("id", data.id)
-      return syncResult
+      return { success: false, error: syncResult.error }
     }
 
     // Revalidar paths

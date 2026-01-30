@@ -148,12 +148,6 @@ export function AgentConfigDialog({
                 max_tokens: maxTokens,
                 metadata: {
                     ...currentMetadata,
-                    api_key: apiKey || undefined, // Only save if not empty, or consider saving empty string to clear? 
-                    // Let's save undefined to remove key if empty, or keep empty string if user cleared it.
-                    // Actually, if user clears it, we probably want to remove it.
-                    // If apiKey is empty string, let's treat as "remove/use env var" or just empty.
-                    ...(apiKey ? { api_key: apiKey } : { api_key: null }), // null might not remove key in jsonb, but key with null value.
-                    // A cleaner way for updates:
                     api_key: apiKey || null,
                     base_url: baseURL || null
                 }

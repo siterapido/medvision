@@ -41,19 +41,26 @@ type StatusMessage = {
 export function MaterialsManager({ materials }: MaterialsManagerProps) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
-  const [formState, setFormState] = useState({
+  const [formState, setFormState] = useState<{
+    title: string
+    description: string
+    pages: string
+    tags: string
+    file_url: string
+    resource_type: MaterialFormData["resource_type"]
+  }>({
     title: "",
     description: "",
     pages: "",
     tags: "",
     file_url: "",
-    resource_type: materialResourceOptions[0]?.value ?? "ebook",
+    resource_type: (materialResourceOptions[0]?.value as any) ?? "ebook",
   })
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [status, setStatus] = useState<StatusMessage | null>(null)
 
-  const handleInputChange = (field: keyof typeof formState, value: string) => {
-    setFormState((prev) => ({ ...prev, [field]: value }))
+  const handleInputChange = (field: keyof typeof formState, value: any) => {
+    setFormState((prev) => ({ ...prev, [field]: value } as any))
     setFieldErrors((prev) => {
       const next = { ...prev }
       delete next[field]
@@ -86,9 +93,8 @@ export function MaterialsManager({ materials }: MaterialsManagerProps) {
           pages: "",
           tags: "",
           file_url: "",
-          resource_type: materialResourceOptions[0]?.value ?? "ebook",
+          resource_type: (materialResourceOptions[0]?.value as any) ?? "ebook",
         })
-        setUploadedFileName("")
         router.refresh()
         return
       }
@@ -167,7 +173,7 @@ export function MaterialsManager({ materials }: MaterialsManagerProps) {
                 <label className="text-sm font-semibold text-slate-200">Tipo de material</label>
                 <Select
                   value={formState.resource_type}
-                  onValueChange={(value) => handleInputChange("resource_type", value)}
+                  onValueChange={(value) => handleInputChange("resource_type", value as any)}
                 >
                   <SelectTrigger className="bg-[#16243F] border border-slate-800 text-white">
                     <SelectValue placeholder="Selecione" />

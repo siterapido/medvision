@@ -21,6 +21,8 @@ import { AgentDemoVision } from "@/components/landing/agent-demo-vision"
 import { AgentDemoSummary } from "@/components/landing/agent-demo-summary"
 import { AgentDemoPractice } from "@/components/landing/agent-demo-practice"
 import { AgentDemoWrite } from "@/components/landing/agent-demo-write"
+import { LazyVideoWrapper } from "@/components/video/lazy-video-wrapper"
+import { YouTubePlayer } from "@/components/video/youtube-player"
 
 const FAQSection = dynamic(() => import("@/components/landing/faq-section").then(mod => ({ default: mod.FAQSection })), {
   ssr: false,
@@ -52,7 +54,7 @@ export default function LandingPage() {
           <div className="container mx-auto">
             {/* Logo Mobile */}
             <div className="flex justify-start md:hidden mb-8">
-              <Logo variant="blue" width={140} height={30} />
+              <Logo variant="white" width={140} height={30} />
             </div>
 
             <div className="grid lg:grid-cols-2 gap-12 xl:gap-20 items-center max-w-7xl mx-auto">
@@ -60,7 +62,7 @@ export default function LandingPage() {
               {/* Text Content */}
               <div className="space-y-6 md:space-y-8 text-left order-2 lg:order-1 relative z-10">
                 <div className="hidden lg:flex justify-start mb-6">
-                  <Logo variant="blue" width={160} height={35} />
+                  <Logo variant="white" width={160} height={35} />
                 </div>
 
                 <FadeIn delay={0.1} direction="up">

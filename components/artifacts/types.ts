@@ -5,7 +5,7 @@
  * componentes interativos no chat (codigo, imagens, graficos, etc.)
  */
 
-export type ArtifactKind = 
+export type ArtifactKind =
   | 'code'
   | 'image'
   | 'text'
@@ -15,12 +15,18 @@ export type ArtifactKind =
   | 'summary'
   | 'document'
   | 'diagram'
+  | 'quiz'
+  | 'research'
+  | 'report'
+  | 'vision'
 
 export interface ArtifactBase {
   id: string
   kind: ArtifactKind
   title?: string
   description?: string
+  topic?: string
+  tags?: string[]
   createdAt?: Date
 }
 
@@ -98,7 +104,76 @@ export interface DiagramArtifact extends ArtifactBase {
   svgContent?: string
 }
 
-export type Artifact = 
+export interface QuizArtifact extends ArtifactBase {
+  kind: 'quiz'
+  topic: string
+  specialty?: string
+  questions: {
+    id: string
+    text: string
+    options: {
+      id: string
+      text: string
+      isCorrect: boolean
+    }[]
+    explanation: string
+    difficulty: 'easy' | 'medium' | 'hard'
+  }[]
+}
+
+export interface ResearchArtifact extends ArtifactBase {
+  kind: 'research'
+  query: string
+  content: string
+  sources: {
+    title: string
+    url: string
+    summary?: string
+    authors?: string
+    pubdate?: string
+  }[]
+  methodology?: string
+}
+
+export interface ReportArtifact extends ArtifactBase {
+  kind: 'report'
+  examType: string
+  content: string
+  findings: string[]
+  recommendations: string[]
+  imageUrl?: string
+  quality?: {
+    rating: 'good' | 'adequate' | 'limited'
+    notes?: string
+  }
+}
+
+export interface VisionArtifact extends ArtifactBase {
+  kind: 'vision'
+  imageBase64: string
+  thumbnailBase64?: string
+  analyzedAt: string
+  analysis: {
+    meta?: {
+      imageType?: string
+      quality?: string
+    }
+    findings?: {
+      type: string
+      zone: string
+      level: string
+    }[]
+    report?: {
+      technicalAnalysis?: string
+      detailedFindings?: string
+      diagnosticHypothesis?: string
+      recommendations?: string[]
+    }
+    clinicalAssessment?: string
+  }
+}
+
+export type Artifact =
   | CodeArtifact
   | ImageArtifact
   | TextArtifact
@@ -108,6 +183,10 @@ export type Artifact =
   | SummaryArtifact
   | DocumentArtifact
   | DiagramArtifact
+  | QuizArtifact
+  | ResearchArtifact
+  | ReportArtifact
+  | VisionArtifact
 
 // Simple factory functions for each artifact type
 export function createCodeArtifact(data: Omit<CodeArtifact, 'id' | 'createdAt' | 'kind'> & { id?: string }): CodeArtifact {

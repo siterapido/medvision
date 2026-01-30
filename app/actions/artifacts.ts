@@ -24,7 +24,7 @@ export async function deleteArtifact(id: string, type: ArtifactType) {
 
     try {
         const { error } = await supabase
-            .from(type)
+            .from(type as any)
             .delete()
             .eq("id", id)
             .eq("user_id", user.id)
@@ -55,7 +55,7 @@ export async function saveNote(content: string, originMessageId?: string) {
 
     try {
         const { data, error } = await supabase
-            .from("notes")
+            .from("notes" as any)
             .insert({
                 user_id: user.id,
                 content: content,

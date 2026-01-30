@@ -35,9 +35,14 @@ export async function createCertificateTemplate(
         }
 
         const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: "Usuário não autenticado" }
+        }
 
         // Check permission
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', (await supabase.auth.getUser()).data.user?.id).single()
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
         if (profile?.role !== 'admin') {
             return { success: false, error: "Permissão negada" }
         }
@@ -81,9 +86,14 @@ export async function updateCertificateTemplate(
         }
 
         const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: "Usuário não autenticado" }
+        }
 
         // Check permission
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', (await supabase.auth.getUser()).data.user?.id).single()
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
         if (profile?.role !== 'admin') {
             return { success: false, error: "Permissão negada" }
         }
@@ -118,9 +128,14 @@ export async function issueCertificate(
         if (!parsed.success) return { success: false, error: "Dados inválidos" }
 
         const supabase = await createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+
+        if (!user) {
+            return { success: false, error: "Usuário não autenticado" }
+        }
 
         // Check permission - strictly admin for now
-        const { data: profile } = await supabase.from('profiles').select('role').eq('id', (await supabase.auth.getUser()).data.user?.id).single()
+        const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
         if (profile?.role !== 'admin') {
             return { success: false, error: "Permissão negada" }
         }

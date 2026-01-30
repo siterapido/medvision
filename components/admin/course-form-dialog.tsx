@@ -108,7 +108,7 @@ export function CourseFormDialog({
     field: keyof CourseFormData,
     value: string
   ) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value } as any))
     // Limpar erro do campo quando o usuário começa a digitar
     if (errors[field]) {
       setErrors((prev) => {
@@ -265,7 +265,7 @@ export function CourseFormDialog({
               <Select
                 value={formData.difficulty}
                 onValueChange={(value) =>
-                  handleInputChange("difficulty", value)
+                  handleInputChange("difficulty", value as any)
                 }
               >
                 <SelectTrigger className="bg-[#131D37] border-slate-600 text-white">
@@ -295,7 +295,7 @@ export function CourseFormDialog({
               </Label>
               <Select
                 value={formData.course_type}
-                onValueChange={(value) => handleInputChange("course_type", value)}
+                onValueChange={(value) => handleInputChange("course_type", value as any)}
               >
                 <SelectTrigger className="bg-[#131D37] border-slate-600 text-white">
                   <SelectValue />

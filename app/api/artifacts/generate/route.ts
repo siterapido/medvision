@@ -432,7 +432,7 @@ Retorne um JSON valido conforme o formato especificado.`
       prompt: userPrompt,
       temperature: 0.6,
       maxTokens: 4000,
-    })
+    } as any)
 
     // 5. Parse LLM response
     let parsedContent: any

@@ -1,5 +1,5 @@
 
-import { ChatWithArtifactPanel } from '@/components/chat'
+import { Chat } from '@/components/chat'
 import { getSessionMessages } from '@/app/actions/chat'
 import { createClient } from '@/lib/supabase/server'
 import { getRemainingTrialDays } from '@/lib/trial'
@@ -89,7 +89,7 @@ export default async function ChatPage({
     }
 
     return (
-        <ChatWithArtifactPanel
+        <Chat
             id={id}
             initialMessages={initialMessages}
             userName={userName}

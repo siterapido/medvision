@@ -57,7 +57,7 @@ export default function LandingPage() {
         {/* Navigation */}
         <nav className="fixed top-0 w-full bg-[#FAFAF8]/80 backdrop-blur-md z-40 border-b border-[#0A3D62]/10">
           <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-            <Logo variant="blue" width={140} height={32} />
+            <Logo variant="auto" width={140} height={32} />
             <div className="hidden md:flex items-center gap-8">
               <Link href="#como-funciona" className="text-sm font-medium text-[#0A3D62]/80 hover:text-[#0A3D62] transition-colors">
                 Como Funciona

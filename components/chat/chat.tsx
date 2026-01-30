@@ -21,9 +21,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useSidebar } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 
+import { useChat } from '@ai-sdk/react'
+
+
 interface ChatProps {
   id?: string
-  initialMessages?: UIMessage[]
+  initialMessages?: any[]
   apiEndpoint?: string
   agentId?: string
   userName?: string
@@ -44,22 +47,39 @@ export function Chat({
   const [selectedAgent, setSelectedAgent] = useState(initialAgentId)
   const { revalidateHistory } = useHistoryRevalidation()
   const { toggleSidebar } = useSidebar()
+  const router = useRouter()
 
-  const { messages, sendMessage, status, stop } = useChat<UIMessage>({
+  const { messages, append, status, stop, reload } = useChat({
     id,
-    messages: initialMessages,
-    transport: new DefaultChatTransport({
-      api: apiEndpoint,
-      body: { chatId: id },
-    }),
-  })
+    initialMessages: initialMessages as any,
+    api: apiEndpoint,
+    body: { chatId: id },
+  } as any) as any
+
+  const componentStatus = status
+
+  const sendMessage = (message: any) => {
+    append(message)
+  }
+
+  const handleEditMessage = (id: string, content: string) => {
+    // Placeholder
+  }
+
+  const handleRegenerate = () => {
+    reload()
+  }
+
+  const handleSuggestionClick = (suggestion: string) => {
+    setInput(suggestion)
+  }
 
   const handleSubmit = () => {
     if (!input.trim() || status !== 'ready') return
 
-    sendMessage({
+    append({
       role: 'user',
-      parts: [{ type: 'text', text: input }],
+      content: input,
     })
 
     setInput('')
@@ -105,15 +125,7 @@ export function Chat({
         />
       </div>
 
-      <div className="sticky bottom-0 z-1 mx-auto flex w-full max-w-4xl gap-2 border-t-0 bg-background px-2 pb-3 md:px-4 md:pb-4">
-        <MultimodalInput
-          input={input}
-          setInput={setInput}
-          status={status}
-          stop={stop}
-          onSubmit={handleSubmit}
-        />
-      )}
+
 
       {/* Input container - mobile-first with space for dock */}
       <div

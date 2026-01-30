@@ -169,13 +169,14 @@ async function LessonsContent({ courseId }: { courseId: string }) {
     }
   }
 
-  const lessons = lessonsResult.data || []
+  const lessons = (lessonsResult.data as any[]) || []
   const modulesFromDb = modulesResult.data || []
   const normalizedModulesBase = modulesEnabled
     ? await normalizeModuleOrder(supabase, courseId, modulesFromDb)
     : modulesFromDb
-  const normalizedModules = normalizedModulesBase.map((module) => ({
+  const normalizedModules = normalizedModulesBase.map((module, index) => ({
     ...module,
+    order_index: module.order_index ?? index,
     access_type: module.access_type ?? "free",
   }))
 
@@ -213,13 +214,13 @@ async function LessonsContent({ courseId }: { courseId: string }) {
 
   const modulesWithLessons = moduleIdAvailable
     ? normalizedModules.map((module) => ({
-        ...module,
-        lessons: lessonsWithMaterials.filter((lesson) => lesson.module_id === module.id),
-      }))
+      ...module,
+      lessons: lessonsWithMaterials.filter((lesson) => lesson.module_id === module.id),
+    }))
     : normalizedModules.map((module) => ({
-        ...module,
-        lessons: [],
-      }))
+      ...module,
+      lessons: [],
+    }))
 
   const unassignedLessons = moduleIdAvailable
     ? lessonsWithMaterials.filter((lesson) => !lesson.module_id)
@@ -227,16 +228,16 @@ async function LessonsContent({ courseId }: { courseId: string }) {
 
   const modulesPayload = unassignedLessons.length
     ? [
-        {
-          id: null,
-          title: "Sem módulo",
-          description: "Aulas sem módulo definido",
-          order_index: -1,
-          access_type: "free" as const,
-          lessons: unassignedLessons,
-        },
-        ...modulesWithLessons,
-      ]
+      {
+        id: null,
+        title: "Sem módulo",
+        description: "Aulas sem módulo definido",
+        order_index: -1,
+        access_type: "free" as const,
+        lessons: unassignedLessons,
+      },
+      ...modulesWithLessons,
+    ]
     : modulesWithLessons
 
   return (

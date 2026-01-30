@@ -22,7 +22,7 @@ export function Greeting({ userName }: GreetingProps) {
   // Format display name: "Doutor(a)" or "Doutor(a), FirstName"
   const displayName = 'Doutor(a)'
 
-export function Greeting() {
+
   return (
     <div
       className="mx-auto mt-4 flex size-full max-w-3xl flex-col justify-center px-4 md:mt-16 md:px-8"

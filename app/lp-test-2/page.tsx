@@ -32,6 +32,8 @@ import { AgentDemoPractice } from "@/components/landing/agent-demo-practice"
 import { AgentDemoWrite } from "@/components/landing/agent-demo-write"
 import { AgentDemoFlow } from "@/components/landing/agent-demo-flow"
 import { AgentDemoGPT } from "@/components/landing/agent-demo-gpt"
+import { LazyVideoWrapper } from "@/components/video/lazy-video-wrapper"
+import { YouTubePlayer } from "@/components/video/youtube-player"
 
 const FAQSection = dynamic(() => import("@/components/landing/faq-section").then(mod => ({ default: mod.FAQSection })), {
   ssr: false,
@@ -1056,7 +1058,7 @@ export default function LandingPage() {
           <div className="container mx-auto max-w-6xl">
             <div className="grid md:grid-cols-4 gap-8 mb-12">
               <div className="col-span-2 md:col-span-1 space-y-4">
-                <Logo variant="light" width={140} height={35} />
+                <Logo variant="white" width={140} height={35} />
                 <p className="text-slate-400 text-sm leading-relaxed">
                   Sua equipe de especialistas em odontologia, disponível 24/7 para impulsionar sua carreira e seus estudos.
                 </p>

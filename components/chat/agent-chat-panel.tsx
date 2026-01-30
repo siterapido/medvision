@@ -128,12 +128,10 @@ export function AgentChatPanel({
 
             if (onArtifactCreated && data.id) {
                 onArtifactCreated({
-                    success: true,
-                    artifact: {
-                        id: data.id,
-                        type: "research",
-                        title: data.title
-                    }
+                    id: data.id,
+                    type: "research",
+                    title: data.title || "Pesquisa Salva",
+                    createdAt: new Date()
                 })
             }
 

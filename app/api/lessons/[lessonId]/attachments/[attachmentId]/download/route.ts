@@ -54,8 +54,8 @@ export async function GET(_: Request, { params }: { params: Promise<{ lessonId: 
     }
 
     const admin = createAdminClient()
-    const { data: attRow, error: attErr } = await admin
-      .from("lesson_attachments")
+    const { data: attRow, error: attErr } = await (admin
+      .from("lesson_attachments") as any)
       .select("id, storage_path, file_name")
       .eq("id", attachmentId.data)
       .eq("lesson_id", lessonId.data)

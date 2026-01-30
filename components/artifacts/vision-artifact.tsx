@@ -54,7 +54,7 @@ export function VisionArtifact({ artifact, className }: VisionArtifactProps) {
       content += `**Qualidade:** ${analysis.meta.quality}\n\n`
     }
 
-    if (analysis.findings?.length > 0) {
+    if (analysis.findings && analysis.findings.length > 0) {
       content += '## Principais Achados\n\n'
       analysis.findings.forEach((finding) => {
         content += `- **${finding.type}** - ${finding.zone} (${finding.level})\n`

@@ -101,8 +101,6 @@ export function MultimodalInput({
     return () => clearTimeout(timer)
   }, [])
 
-  const [isListening, setIsListening] = useState(false)
-  const recognitionRef = useRef<any>(null)
 
   const toggleVoiceInput = () => {
     if (isListening) {
@@ -164,6 +162,40 @@ export function MultimodalInput({
     e.preventDefault()
     if (!input.trim() || status !== 'ready') return
     onSubmit()
+  }
+
+
+  const handleFiles = (files: FileList | File[]) => {
+    // Placeholder logic
+    const newAttachments = Array.from(files).map((file) => ({
+      id: Math.random().toString(36).substring(7),
+      file,
+      type: file.type.startsWith('image/') ? 'image' as const : 'document' as const,
+      preview: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+    }))
+    setAttachments((prev) => [...prev, ...newAttachments])
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    if (e.dataTransfer.files) {
+      handleFiles(e.dataTransfer.files)
+    }
+  }
+
+  const removeAttachment = (id: string) => {
+    setAttachments((prev) => prev.filter((a) => a.id !== id))
   }
 
   return (

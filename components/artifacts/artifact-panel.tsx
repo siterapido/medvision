@@ -24,6 +24,7 @@ const artifactKindIcons: Record<ArtifactKind, string> = {
   quiz: '{""}',
   research: '{""}',
   report: '{""}',
+  vision: '{}',
 }
 
 // Display names for artifact kinds
@@ -40,6 +41,7 @@ const artifactKindLabels: Record<ArtifactKind, string> = {
   quiz: 'Quiz',
   research: 'Pesquisa',
   report: 'Laudo',
+  vision: 'Vision',
 }
 
 interface ArtifactPanelProps {
@@ -219,9 +221,9 @@ export function ArtifactPanel({
       {/* Content */}
       <div className="flex-1 overflow-hidden">
         {showHistory ? (
-          <VersionHistory 
-            artifactId={currentArtifact.id} 
-            onClose={() => setShowHistory(false)} 
+          <VersionHistory
+            artifactId={currentArtifact.id}
+            onClose={() => setShowHistory(false)}
           />
         ) : (
           <ScrollArea className="h-full">

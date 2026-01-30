@@ -134,11 +134,10 @@ function SortableLesson({
             <>
               <span>
                 {Math.floor(lesson.duration_minutes / 60) > 0
-                  ? `${Math.floor(lesson.duration_minutes / 60)}h${
-                      lesson.duration_minutes % 60 > 0
-                        ? ` ${lesson.duration_minutes % 60}min`
-                        : ""
-                    }`
+                  ? `${Math.floor(lesson.duration_minutes / 60)}h${lesson.duration_minutes % 60 > 0
+                    ? ` ${lesson.duration_minutes % 60}min`
+                    : ""
+                  }`
                   : `${lesson.duration_minutes}min`}
               </span>
               <span>•</span>
@@ -205,13 +204,12 @@ function DroppableModule({
   return (
     <div
       ref={setNodeRef}
-      className={`space-y-2 min-h-[60px] p-2 rounded-lg border-2 border-dashed transition-colors ${
-        isOver
-          ? "border-cyan-500/50 bg-cyan-500/5"
-          : isEmpty
-            ? "border-slate-700/30 hover:border-slate-700/50"
-            : "border-transparent hover:border-slate-700/30"
-      }`}
+      className={`space-y-2 min-h-[60px] p-2 rounded-lg border-2 border-dashed transition-colors ${isOver
+        ? "border-cyan-500/50 bg-cyan-500/5"
+        : isEmpty
+          ? "border-slate-700/30 hover:border-slate-700/50"
+          : "border-transparent hover:border-slate-700/30"
+        }`}
     >
       {children}
     </div>
@@ -238,7 +236,7 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
   )
   const [reorderingModuleId, setReorderingModuleId] = useState<string | null>(null)
   const [isReorderingModules, startReorderModules] = useTransition()
-  
+
   // Estados para drag-and-drop
   const [localModules, setLocalModules] = useState<ModuleWithLessons[]>(modules)
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
@@ -535,8 +533,8 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
   const allLessonIds = localModules.flatMap((module) => module.lessons.map((lesson) => lesson.id))
   const activeLesson = activeId
     ? localModules
-        .flatMap((module) => module.lessons)
-        .find((lesson) => lesson.id === activeId)
+      .flatMap((module) => module.lessons)
+      .find((lesson) => lesson.id === activeId)
     : null
 
   return (
@@ -547,388 +545,388 @@ export function LessonManager({ courseId, courseTitle, modules, modulesEnabled }
       onDragEnd={handleDragEnd}
     >
       <div className="space-y-6">
-      <Card className="bg-[#131D37] border-slate-700">
-        <CardHeader>
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <CardTitle className="text-white text-2xl">Gerenciar Aulas</CardTitle>
-              <CardDescription className="text-slate-400">
-                Organize módulos e aulas do curso&nbsp;
-                <span className="text-cyan-400">{courseTitle}</span>.
-              </CardDescription>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Button
-                onClick={() => {
-                  if (!isModulesEnabled) return
-                  setEditingModule(null)
-                  setIsModuleDialogOpen(true)
-                }}
-                disabled={!isModulesEnabled}
-                variant="solid"
-                className="bg-cyan-600 hover:bg-cyan-700 text-white"
-                title={!isModulesEnabled ? modulesDisabledTitle : undefined}
-              >
-                <Plus className="h-4 w-4" />
-                Novo módulo
-              </Button>
-              <Button
-                onClick={() => openLessonDialog(activeModuleId)}
-                variant="outline"
-                className="border-cyan-500/60 text-cyan-400 hover:bg-cyan-500/10"
-              >
-                <Plus className="h-4 w-4" />
-                Nova aula
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap items-center gap-3 text-sm">
-            <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/30">
-              {allLessons.length} {allLessons.length === 1 ? "aula" : "aulas"}
-            </Badge>
-            <Badge className="bg-slate-800 text-slate-200 border-slate-700">
-              {moduleCount} {moduleCount === 1 ? "módulo" : "módulos"}
-            </Badge>
-            <Badge className="bg-emerald-700/10 text-emerald-300 border-emerald-500/40">
-              {videoCount} vídeo{videoCount === 1 ? "" : "s"}
-            </Badge>
-            <Badge className="bg-amber-500/10 text-amber-300 border-amber-500/40">
-              {upcomingCount} agendada{upcomingCount === 1 ? "" : "s"}
-            </Badge>
-          </div>
-        </CardContent>
-      </Card>
-
-      {modules.length === 0 ? (
         <Card className="bg-[#131D37] border-slate-700">
-          <CardContent className="py-12 text-center space-y-3">
-            <FileText className="h-12 w-12 text-slate-600 mx-auto" />
-            <p className="text-slate-400">Nenhum módulo ou aula cadastrado ainda.</p>
-            <div className="flex justify-center gap-2">
-              <Button
-                onClick={() => {
-                  setEditingModule(null)
-                  setIsModuleDialogOpen(true)
-                }}
-                className="bg-cyan-600 hover:bg-cyan-700 text-white"
-              >
-                <Plus className="h-4 w-4" />
-                Criar módulo
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => openLessonDialog(null)}
-                className="border-slate-600 text-white hover:bg-slate-800"
-              >
-                Adicionar aula
-              </Button>
+          <CardHeader>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-white text-2xl">Gerenciar Aulas</CardTitle>
+                <CardDescription className="text-slate-400">
+                  Organize módulos e aulas do curso&nbsp;
+                  <span className="text-cyan-400">{courseTitle}</span>.
+                </CardDescription>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={() => {
+                    if (!isModulesEnabled) return
+                    setEditingModule(null)
+                    setIsModuleDialogOpen(true)
+                  }}
+                  disabled={!isModulesEnabled}
+                  variant="blue"
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                  title={!isModulesEnabled ? modulesDisabledTitle : undefined}
+                >
+                  <Plus className="h-4 w-4" />
+                  Novo módulo
+                </Button>
+                <Button
+                  onClick={() => openLessonDialog(activeModuleId)}
+                  variant="outline"
+                  className="border-cyan-500/60 text-cyan-400 hover:bg-cyan-500/10"
+                >
+                  <Plus className="h-4 w-4" />
+                  Nova aula
+                </Button>
+              </div>
             </div>
-            <p className="text-xs text-slate-500">
-              Comece criando um módulo para depois organizar o conteúdo.
-            </p>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap items-center gap-3 text-sm">
+              <Badge className="bg-cyan-500/10 text-cyan-400 border-cyan-500/30">
+                {allLessons.length} {allLessons.length === 1 ? "aula" : "aulas"}
+              </Badge>
+              <Badge className="bg-slate-800 text-slate-200 border-slate-700">
+                {moduleCount} {moduleCount === 1 ? "módulo" : "módulos"}
+              </Badge>
+              <Badge className="bg-emerald-700/10 text-emerald-300 border-emerald-500/40">
+                {videoCount} vídeo{videoCount === 1 ? "" : "s"}
+              </Badge>
+              <Badge className="bg-amber-500/10 text-amber-300 border-amber-500/40">
+                {upcomingCount} agendada{upcomingCount === 1 ? "" : "s"}
+              </Badge>
+            </div>
           </CardContent>
         </Card>
-      ) : (
-        <SortableContext items={allLessonIds} strategy={verticalListSortingStrategy}>
-          <div className="space-y-6">
-            {localModules.map((module) => {
-            const moduleOrderIndex = module.id ? moduleOrderMap.get(module.id) ?? 0 : 0
-            const isFirstModule = module.id ? moduleOrderIndex === 0 : true
-            const isLastModule = module.id ? moduleOrderIndex === reorderableModules.length - 1 : true
-            const isReorderTarget = reorderingModuleId === module.id && isReorderingModules
 
-            return (
-              <Card key={module.id ?? "sem-modulo"} className="bg-[#131D37] border-slate-700">
-                <CardHeader className="flex flex-col gap-3 pb-0">
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <CardTitle className="text-lg text-cyan-400 leading-tight">
-                        {module.title}
-                      </CardTitle>
-                      <CardDescription className="text-slate-500 text-sm">
-                        {module.description || (module.id === null ? "Aulas sem módulo definido" : "Módulo organizado")}
-                      </CardDescription>
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        <Badge
-                          className={
-                            module.access_type === "premium"
-                              ? "bg-amber-500/15 text-amber-200 border-amber-400/40"
-                              : "bg-emerald-500/10 text-emerald-200 border-emerald-400/30"
-                          }
-                        >
-                          {module.access_type === "premium" ? (
-                            <>
-                              <Lock className="mr-1 h-3 w-3" />
-                              Premium
-                            </>
-                          ) : (
-                            "Gratuito"
-                          )}
-                        </Badge>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      {module.id && (
-                        <Badge className="bg-cyan-500/10 text-cyan-200 border-cyan-500/30">
-                          Ordem {moduleOrderIndex + 1}
-                        </Badge>
-                      )}
-                      <Badge className="bg-slate-800 text-slate-200 border-slate-700/50">
-                        {module.lessons.length} {module.lessons.length === 1 ? "aula" : "aulas"}
-                      </Badge>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => openLessonDialog(module.id)}
-                        className="border-slate-600 text-slate-200 hover:bg-slate-800"
-                      >
-                        Adicionar aula
-                      </Button>
-                      {module.id && (
-                        <>
-                          <div className="flex items-center gap-1">
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              aria-label="Mover módulo para cima"
-                              onClick={() => handleReorderModule(module.id, "up")}
-                              disabled={isFirstModule || isReorderingModules}
-                              className="text-slate-400 hover:text-white hover:bg-slate-800"
+        {modules.length === 0 ? (
+          <Card className="bg-[#131D37] border-slate-700">
+            <CardContent className="py-12 text-center space-y-3">
+              <FileText className="h-12 w-12 text-slate-600 mx-auto" />
+              <p className="text-slate-400">Nenhum módulo ou aula cadastrado ainda.</p>
+              <div className="flex justify-center gap-2">
+                <Button
+                  onClick={() => {
+                    setEditingModule(null)
+                    setIsModuleDialogOpen(true)
+                  }}
+                  className="bg-cyan-600 hover:bg-cyan-700 text-white"
+                >
+                  <Plus className="h-4 w-4" />
+                  Criar módulo
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => openLessonDialog(null)}
+                  className="border-slate-600 text-white hover:bg-slate-800"
+                >
+                  Adicionar aula
+                </Button>
+              </div>
+              <p className="text-xs text-slate-500">
+                Comece criando um módulo para depois organizar o conteúdo.
+              </p>
+            </CardContent>
+          </Card>
+        ) : (
+          <SortableContext items={allLessonIds} strategy={verticalListSortingStrategy}>
+            <div className="space-y-6">
+              {localModules.map((module) => {
+                const moduleOrderIndex = module.id ? moduleOrderMap.get(module.id) ?? 0 : 0
+                const isFirstModule = module.id ? moduleOrderIndex === 0 : true
+                const isLastModule = module.id ? moduleOrderIndex === reorderableModules.length - 1 : true
+                const isReorderTarget = reorderingModuleId === module.id && isReorderingModules
+
+                return (
+                  <Card key={module.id ?? "sem-modulo"} className="bg-[#131D37] border-slate-700">
+                    <CardHeader className="flex flex-col gap-3 pb-0">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <CardTitle className="text-lg text-cyan-400 leading-tight">
+                            {module.title}
+                          </CardTitle>
+                          <CardDescription className="text-slate-500 text-sm">
+                            {module.description || (module.id === null ? "Aulas sem módulo definido" : "Módulo organizado")}
+                          </CardDescription>
+                          <div className="mt-2 flex flex-wrap gap-2">
+                            <Badge
+                              className={
+                                module.access_type === "premium"
+                                  ? "bg-amber-500/15 text-amber-200 border-amber-400/40"
+                                  : "bg-emerald-500/10 text-emerald-200 border-emerald-400/30"
+                              }
                             >
-                              {isReorderTarget ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
+                              {module.access_type === "premium" ? (
+                                <>
+                                  <Lock className="mr-1 h-3 w-3" />
+                                  Premium
+                                </>
                               ) : (
-                                <ArrowUp className="h-4 w-4" />
+                                "Gratuito"
                               )}
-                            </Button>
-                            <Button
-                              size="icon"
-                              variant="ghost"
-                              aria-label="Mover módulo para baixo"
-                              onClick={() => handleReorderModule(module.id, "down")}
-                              disabled={isLastModule || isReorderingModules}
-                              className="text-slate-400 hover:text-white hover:bg-slate-800"
-                            >
-                              {isReorderTarget ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                <ArrowDown className="h-4 w-4" />
-                              )}
-                            </Button>
+                            </Badge>
                           </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          {module.id && (
+                            <Badge className="bg-cyan-500/10 text-cyan-200 border-cyan-500/30">
+                              Ordem {moduleOrderIndex + 1}
+                            </Badge>
+                          )}
+                          <Badge className="bg-slate-800 text-slate-200 border-slate-700/50">
+                            {module.lessons.length} {module.lessons.length === 1 ? "aula" : "aulas"}
+                          </Badge>
                           <Button
                             size="sm"
-                            variant="ghost"
-                            onClick={() => {
-                              setEditingModule(module)
-                              setIsModuleDialogOpen(true)
-                            }}
-                            className="text-slate-400 hover:text-white hover:bg-slate-800"
+                            variant="outline"
+                            onClick={() => openLessonDialog(module.id)}
+                            className="border-slate-600 text-slate-200 hover:bg-slate-800"
                           >
-                            <Edit className="h-4 w-4" />
+                            Adicionar aula
                           </Button>
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setModuleDeleteTarget(module)}
-                            className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </>
+                          {module.id && (
+                            <>
+                              <div className="flex items-center gap-1">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  aria-label="Mover módulo para cima"
+                                  onClick={() => handleReorderModule(module.id!, "up")}
+                                  disabled={isFirstModule || isReorderingModules}
+                                  className="text-slate-400 hover:text-white hover:bg-slate-800"
+                                >
+                                  {isReorderTarget ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <ArrowUp className="h-4 w-4" />
+                                  )}
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  aria-label="Mover módulo para baixo"
+                                  onClick={() => handleReorderModule(module.id!, "down")}
+                                  disabled={isLastModule || isReorderingModules}
+                                  className="text-slate-400 hover:text-white hover:bg-slate-800"
+                                >
+                                  {isReorderTarget ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <ArrowDown className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </div>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => {
+                                  setEditingModule(module)
+                                  setIsModuleDialogOpen(true)
+                                }}
+                                className="text-slate-400 hover:text-white hover:bg-slate-800"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => setModuleDeleteTarget(module)}
+                                className="text-red-400 hover:text-red-300 hover:bg-red-500/10"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </CardHeader>
+                    <CardContent>
+                      {module.lessons.length === 0 ? (
+                        <DroppableModule moduleId={module.id} isEmpty={true}>
+                          <div className="flex flex-col items-center justify-center gap-3 border border-dashed border-slate-700 rounded-2xl bg-slate-900/40 p-8 text-center min-h-[120px]">
+                            <p className="text-slate-400">Este módulo ainda não tem aulas.</p>
+                            <Button
+                              variant="outline"
+                              onClick={() => openLessonDialog(module.id)}
+                              className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              Criar primeira aula
+                            </Button>
+                            <p className="text-xs text-slate-500 mt-2">
+                              Arraste aulas aqui para adicionar ao módulo
+                            </p>
+                          </div>
+                        </DroppableModule>
+                      ) : (
+                        <DroppableModule moduleId={module.id} isEmpty={false}>
+                          <SortableContext items={module.lessons.map((l) => l.id)} strategy={verticalListSortingStrategy}>
+                            {module.lessons
+                              .slice()
+                              .sort((a, b) => a.order_index - b.order_index)
+                              .map((lesson, index) => (
+                                <SortableLesson
+                                  key={lesson.id}
+                                  lesson={lesson}
+                                  index={index}
+                                  courseDashboardHref={courseDashboardHref}
+                                  onEdit={() => {
+                                    setEditingLesson(lesson)
+                                    setIsLessonDialogOpen(true)
+                                  }}
+                                  onDelete={() => setDeletingLessonId(lesson.id)}
+                                />
+                              ))}
+                          </SortableContext>
+                        </DroppableModule>
                       )}
-                    </div>
-                  </div>
-                </CardHeader>
-              <CardContent>
-                {module.lessons.length === 0 ? (
-                  <DroppableModule moduleId={module.id} isEmpty={true}>
-                    <div className="flex flex-col items-center justify-center gap-3 border border-dashed border-slate-700 rounded-2xl bg-slate-900/40 p-8 text-center min-h-[120px]">
-                      <p className="text-slate-400">Este módulo ainda não tem aulas.</p>
-                      <Button
-                        variant="outline"
-                        onClick={() => openLessonDialog(module.id)}
-                        className="border-cyan-500/30 text-cyan-400 hover:bg-cyan-500/10"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Criar primeira aula
-                      </Button>
-                      <p className="text-xs text-slate-500 mt-2">
-                        Arraste aulas aqui para adicionar ao módulo
-                      </p>
-                    </div>
-                  </DroppableModule>
-                ) : (
-                  <DroppableModule moduleId={module.id} isEmpty={false}>
-                    <SortableContext items={module.lessons.map((l) => l.id)} strategy={verticalListSortingStrategy}>
-                      {module.lessons
-                        .slice()
-                        .sort((a, b) => a.order_index - b.order_index)
-                        .map((lesson, index) => (
-                          <SortableLesson
-                            key={lesson.id}
-                            lesson={lesson}
-                            index={index}
-                            courseDashboardHref={courseDashboardHref}
-                            onEdit={() => {
-                              setEditingLesson(lesson)
-                              setIsLessonDialogOpen(true)
-                            }}
-                            onDelete={() => setDeletingLessonId(lesson.id)}
-                          />
-                        ))}
-                    </SortableContext>
-                  </DroppableModule>
-                )}
-              </CardContent>
-            </Card>
-            )
-          })}
-          </div>
-        </SortableContext>
-      )}
-
-      <DragOverlay>
-        {activeLesson ? (
-          <div className="flex items-center gap-3 p-4 rounded-lg bg-[#0F192F] border border-cyan-500/50 shadow-lg opacity-90">
-            <GripVertical className="h-5 w-5 text-slate-400" />
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-xs font-semibold text-cyan-400">
-              #
+                    </CardContent>
+                  </Card>
+                )
+              })}
             </div>
-            <div className="flex-1 min-w-0">
-              <h4 className="text-white font-medium truncate">{activeLesson.title}</h4>
-            </div>
-          </div>
-        ) : null}
-      </DragOverlay>
+          </SortableContext>
+        )}
 
-      <LessonFormDialog
-        key={lessonDialogKey}
-        open={isLessonDialogOpen}
-        onOpenChange={(open) => {
-          setIsLessonDialogOpen(open)
-          if (!open) setEditingLesson(null)
-        }}
-        mode={editingLesson ? "edit" : "create"}
-        courseId={courseId}
-        modules={moduleOptions}
-        defaultModuleId={activeModuleId}
-        initialData={
-          editingLesson
-            ? {
+        <DragOverlay>
+          {activeLesson ? (
+            <div className="flex items-center gap-3 p-4 rounded-lg bg-[#0F192F] border border-cyan-500/50 shadow-lg opacity-90">
+              <GripVertical className="h-5 w-5 text-slate-400" />
+              <div className="flex items-center justify-center w-8 h-8 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-xs font-semibold text-cyan-400">
+                #
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-white font-medium truncate">{activeLesson.title}</h4>
+              </div>
+            </div>
+          ) : null}
+        </DragOverlay>
+
+        <LessonFormDialog
+          key={lessonDialogKey}
+          open={isLessonDialogOpen}
+          onOpenChange={(open) => {
+            setIsLessonDialogOpen(open)
+            if (!open) setEditingLesson(null)
+          }}
+          mode={editingLesson ? "edit" : "create"}
+          courseId={courseId}
+          modules={moduleOptions}
+          defaultModuleId={activeModuleId}
+          initialData={
+            editingLesson
+              ? {
                 ...editingLesson,
               }
-            : undefined
-        }
-        onSuccess={() => {
-          setIsLessonDialogOpen(false)
-          setEditingLesson(null)
-          router.refresh()
-        }}
-      />
-
-      {isModulesEnabled && (
-        <ModuleFormDialog
-          key={editingModule?.id ?? "new"}
-          open={isModuleDialogOpen}
-          onOpenChange={(open) => {
-            setIsModuleDialogOpen(open)
-            if (!open) setEditingModule(null)
+              : undefined
+          }
+          onSuccess={() => {
+            setIsLessonDialogOpen(false)
+            setEditingLesson(null)
+            router.refresh()
           }}
-          mode={editingModule ? "edit" : "create"}
-          courseId={courseId}
-          initialData={
-            editingModule
-              ? {
+        />
+
+        {isModulesEnabled && (
+          <ModuleFormDialog
+            key={editingModule?.id ?? "new"}
+            open={isModuleDialogOpen}
+            onOpenChange={(open) => {
+              setIsModuleDialogOpen(open)
+              if (!open) setEditingModule(null)
+            }}
+            mode={editingModule ? "edit" : "create"}
+            courseId={courseId}
+            initialData={
+              editingModule
+                ? {
                   id: editingModule.id ?? undefined,
                   title: editingModule.title,
                   description: editingModule.description,
                   order_index: editingModule.order_index,
                   access_type: editingModule.access_type ?? undefined,
                 }
-              : undefined
-          }
-          onSuccess={() => {
-            setIsModuleDialogOpen(false)
-            setEditingModule(null)
-            router.refresh()
-          }}
-        />
-      )}
+                : undefined
+            }
+            onSuccess={() => {
+              setIsModuleDialogOpen(false)
+              setEditingModule(null)
+              router.refresh()
+            }}
+          />
+        )}
 
-      <AlertDialog
-        open={!!deletingLessonId}
-        onOpenChange={(open) => !open && setDeletingLessonId(null)}
-      >
-        <AlertDialogContent className="bg-[#0F192F] border-slate-700">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Deletar aula?</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
-              Esta ação é permanente e remove o conteúdo da plataforma.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              disabled={isDeletingLesson}
-              className="border-slate-600 text-white hover:bg-slate-800"
-            >
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteLesson}
-              disabled={isDeletingLesson}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {isDeletingLesson ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deletando...
-                </>
-              ) : (
-                "Deletar aula"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <AlertDialog
+          open={!!deletingLessonId}
+          onOpenChange={(open) => !open && setDeletingLessonId(null)}
+        >
+          <AlertDialogContent className="bg-[#0F192F] border-slate-700">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-white">Deletar aula?</AlertDialogTitle>
+              <AlertDialogDescription className="text-slate-400">
+                Esta ação é permanente e remove o conteúdo da plataforma.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                disabled={isDeletingLesson}
+                className="border-slate-600 text-white hover:bg-slate-800"
+              >
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteLesson}
+                disabled={isDeletingLesson}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {isDeletingLesson ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Deletando...
+                  </>
+                ) : (
+                  "Deletar aula"
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
 
-      <AlertDialog
-        open={!!moduleDeleteTarget}
-        onOpenChange={(open) => !open && setModuleDeleteTarget(null)}
-      >
-        <AlertDialogContent className="bg-[#0F192F] border-slate-700">
-          <AlertDialogHeader>
-            <AlertDialogTitle className="text-white">Excluir módulo?</AlertDialogTitle>
-            <AlertDialogDescription className="text-slate-400">
-              O módulo será removido e as aulas ficarão sem associação definida.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel
-              disabled={isDeletingModule}
-              className="border-slate-600 text-white hover:bg-slate-800"
-            >
-              Cancelar
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDeleteModule}
-              disabled={isDeletingModule}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              {isDeletingModule ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Excluindo...
-                </>
-              ) : (
-                "Excluir módulo"
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+        <AlertDialog
+          open={!!moduleDeleteTarget}
+          onOpenChange={(open) => !open && setModuleDeleteTarget(null)}
+        >
+          <AlertDialogContent className="bg-[#0F192F] border-slate-700">
+            <AlertDialogHeader>
+              <AlertDialogTitle className="text-white">Excluir módulo?</AlertDialogTitle>
+              <AlertDialogDescription className="text-slate-400">
+                O módulo será removido e as aulas ficarão sem associação definida.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel
+                disabled={isDeletingModule}
+                className="border-slate-600 text-white hover:bg-slate-800"
+              >
+                Cancelar
+              </AlertDialogCancel>
+              <AlertDialogAction
+                onClick={handleDeleteModule}
+                disabled={isDeletingModule}
+                className="bg-red-600 hover:bg-red-700 text-white"
+              >
+                {isDeletingModule ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Excluindo...
+                  </>
+                ) : (
+                  "Excluir módulo"
+                )}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </DndContext>
   )

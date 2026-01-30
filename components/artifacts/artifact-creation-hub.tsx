@@ -50,7 +50,7 @@ const ArtifactTypeCard = ({ title, description, icon, color, onClick, comingSoon
                         "mb-4 inline-flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md",
                         "group-hover:scale-110 transition-transform duration-500"
                     )}>
-                        {React.cloneElement(icon as React.ReactElement, { className: "h-6 w-6 text-white" })}
+                        {React.cloneElement(icon as React.ReactElement<any>, { className: "h-6 w-6 text-white" })}
                     </div>
 
                     <div className="mb-2 flex items-center gap-2">

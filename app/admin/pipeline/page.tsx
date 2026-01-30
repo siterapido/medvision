@@ -42,7 +42,7 @@ async function TrialPipelineContent() {
     .or(
       "trial_started_at.not.is.null,trial_ends_at.not.is.null,trial_used.eq.true,pipeline_stage.not.is.null"
     )
-    .order("trial_started_at", { ascending: false, nullsLast: true })
+    .order("trial_started_at", { ascending: false, nullsFirst: false })
     .limit(400)
 
   if (error) {
@@ -55,7 +55,12 @@ async function TrialPipelineContent() {
     )
   }
 
-  return <PipelineKanbanBoard leads={leads || []} />
+  const normalizedLeads = (leads || []).map((lead: any) => ({
+    ...lead,
+    assigned_seller: Array.isArray(lead.assigned_seller) ? lead.assigned_seller[0] : lead.assigned_seller,
+  }))
+
+  return <PipelineKanbanBoard leads={normalizedLeads} />
 }
 
 async function ColdLeadsContent() {
@@ -70,7 +75,12 @@ async function ColdLeadsContent() {
     )
   }
 
-  return <ColdLeadsKanbanBoard leads={result.data} />
+  const normalizedLeads = (result.data || []).map((lead: any) => ({
+    ...lead,
+    assigned_seller: Array.isArray(lead.assigned_seller) ? lead.assigned_seller[0] : lead.assigned_seller,
+  }))
+
+  return <ColdLeadsKanbanBoard leads={normalizedLeads} />
 }
 
 function LoadingState() {

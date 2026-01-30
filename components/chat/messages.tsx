@@ -11,12 +11,13 @@ import { useRef, useEffect, useState, useCallback } from 'react'
 import { ArrowDown } from 'lucide-react'
 import { Message, ThinkingMessage } from './message'
 import { Greeting } from './greeting'
+import { cn } from '@/lib/utils'
 
 interface MessagesProps {
   messages: UIMessage[]
   status: 'ready' | 'submitted' | 'streaming' | 'error' // streaming kept for compatibility
   userName?: string
-  onEditMessage?: (messageId: string) => void
+  onEditMessage?: (id: string, content: string) => void
   onRegenerate?: () => void
   agentId?: string
 }
@@ -72,14 +73,6 @@ export function Messages({
             <Greeting userName={userName} />
           )}
 
-          {/* Debug info - remove in production */}
-          {messages.length > 0 && process.env.NODE_ENV === 'development' && (
-            <div className="text-xs text-muted-foreground/50 px-2">
-              {blockState.hasArtifacts && '📄 '}
-              {blockState.hasPendingTools && '⏳ '}
-              Blocos: {blockState.blocksByMessageId.size}
-            </div>
-          )}
 
           {messages.map((message, index) => (
             <Message
@@ -99,11 +92,10 @@ export function Messages({
       {/* Scroll to bottom button */}
       <button
         aria-label="Scroll to bottom"
-        className={`absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full border bg-background p-2 shadow-lg transition-all hover:bg-muted ${
-          isAtBottom
+        className={`absolute bottom-4 left-1/2 z-10 -translate-x-1/2 rounded-full border bg-background p-2 shadow-lg transition-all hover:bg-muted ${isAtBottom
             ? 'pointer-events-none scale-0 opacity-0'
             : 'pointer-events-auto scale-100 opacity-100'
-        }`}
+          }`}
         onClick={() => scrollToBottom('smooth')}
         type="button"
       >

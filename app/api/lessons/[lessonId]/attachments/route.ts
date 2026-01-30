@@ -141,8 +141,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ les
       return NextResponse.json({ error: "Informe um arquivo ou uma URL do Bunny." }, { status: 400 })
     }
 
-    const { data: insertData, error: insertErr } = await admin
-      .from("lesson_attachments")
+    const { data: insertData, error: insertErr } = await (admin
+      .from("lesson_attachments") as any)
       .insert({
         lesson_id: validLessonId.data,
         file_name: fileName,
@@ -221,8 +221,8 @@ export async function GET(_: Request, { params }: { params: Promise<{ lessonId: 
     }
 
     const admin = createAdminClient()
-    const { data: rows, error: listErr } = await admin
-      .from("lesson_attachments")
+    const { data: rows, error: listErr } = await (admin
+      .from("lesson_attachments") as any)
       .select("id, file_name, mime_type, size_bytes, storage_path, created_at")
       .eq("lesson_id", validLessonId.data)
       .order("created_at", { ascending: false })

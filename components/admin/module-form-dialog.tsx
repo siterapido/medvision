@@ -73,10 +73,15 @@ export function ModuleFormDialog({
     }
   }
 
-  const [formData, setFormData] = useState(buildInitialFormData)
+  const [formData, setFormData] = useState<{
+    title: string
+    description: string
+    order_index: string
+    access_type: "free" | "premium"
+  }>(buildInitialFormData as any)
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => ({ ...prev, [field]: value } as any))
     if (errors[field]) {
       setErrors((prev) => {
         const newErrors = { ...prev }

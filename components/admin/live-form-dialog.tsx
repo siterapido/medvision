@@ -185,127 +185,127 @@ export function LiveFormDialog({ open, onOpenChange, mode, initialData }: LiveFo
             </DialogDescription>
           </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {errors.general && (
-            <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{errors.general}</div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="title" className="text-white">Título <span className="text-red-400">*</span></Label>
-            <Input id="title" value={formData.title} onChange={(e) => handleInputChange("title", e.target.value)} placeholder="Ex: Live sobre Protologia" className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500" />
-            {errors.title && <p className="text-sm text-red-400">{errors.title}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description" className="text-white">Descrição</Label>
-            <Textarea id="description" value={formData.description || ""} onChange={(e) => handleInputChange("description", e.target.value)} placeholder="Descreva o conteúdo e objetivos da live..." rows={4} className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500 resize-none" />
-            {errors.description && <p className="text-sm text-red-400">{errors.description}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="live_url" className="text-white">Link da Live</Label>
-            <Input
-              id="live_url"
-              type="url"
-              value={formData.live_url || ""}
-              onChange={(e) => handleInputChange("live_url", e.target.value)}
-              placeholder="https://youtube.com/live/... ou https://zoom.us/j/..."
-              className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500"
-            />
-            <p className="text-xs text-slate-400">URL da plataforma onde a live será transmitida (YouTube, Zoom, etc.)</p>
-            {errors.live_url && <p className="text-sm text-red-400">{errors.live_url}</p>}
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="instructor" className="text-white">Instrutor <span className="text-red-400">*</span></Label>
-              <Input id="instructor" value={formData.instructor_name} onChange={(e) => handleInputChange("instructor_name", e.target.value)} placeholder="Ex: Dr. João Silva" className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500" />
-              {errors.instructor_name && <p className="text-sm text-red-400">{errors.instructor_name}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="start_at" className="text-white">Data/Horário <span className="text-red-400">*</span></Label>
-              <Input id="start_at" type="datetime-local" value={formData.start_at as any} onChange={(e) => handleInputChange("start_at", e.target.value)} className="bg-[#131D37] border-slate-600 text-white" />
-              <p className="text-xs text-slate-400 flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" /> Deve ser uma data futura</p>
-              {errors.start_at && <p className="text-sm text-red-400">{errors.start_at}</p>}
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="duration_minutes" className="text-white">Duração (minutos)</Label>
-              <Input
-                id="duration_minutes"
-                type="number"
-                min={15}
-                max={600}
-                value={formData.duration_minutes}
-                onChange={(e) => handleInputChange("duration_minutes", Number(e.target.value))}
-                className="bg-[#131D37] border-slate-600 text-white"
-              />
-              {errors.duration_minutes && <p className="text-sm text-red-400">{errors.duration_minutes}</p>}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="status" className="text-white">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => handleInputChange("status", value)}>
-                <SelectTrigger className="bg-[#131D37] border-slate-600 text-white"><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-[#131D37] border-slate-600">
-                  <SelectItem value="scheduled" className="text-white">Agendada</SelectItem>
-                  <SelectItem value="live" className="text-white">Ao vivo</SelectItem>
-                  <SelectItem value="completed" className="text-white">Encerrada</SelectItem>
-                </SelectContent>
-              </Select>
-              {errors.status && <p className="text-sm text-red-400">{errors.status}</p>}
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-white flex items-center gap-2">
-              Thumbnail (imagem)
-              <span className="text-xs font-normal text-slate-400 flex items-center gap-1">
-                <Crop className="h-3 w-3" />
-                com ajuste e crop
-              </span>
-            </Label>
-            {thumbnailPreviewUrl && (
-              <div className="relative w-full h-48 overflow-hidden rounded-lg border border-slate-600 bg-slate-900">
-                <Image src={thumbnailPreviewUrl} alt="Preview da thumbnail" fill sizes="(max-width: 640px) 100vw, 480px" className="object-cover" unoptimized />
-              </div>
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {errors.general && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">{errors.general}</div>
             )}
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="image/*"
-              className="hidden"
-              onChange={(event) => {
-                const file = event.target.files?.[0]
-                event.target.value = ""
-                if (file) handleFileSelect(file)
-              }}
-            />
-            <div className="flex flex-wrap gap-3">
-              <Button type="button" variant="outline" className="bg-[#131D37] text-white border-slate-600 hover:border-white" onClick={() => fileInputRef.current?.click()} disabled={uploadingImage}>
-                {uploadingImage ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Enviando imagem</>) : (<><UploadCloud className="mr-2 h-4 w-4" />Enviar imagem</>)}
-              </Button>
-              {thumbnailPreviewUrl && (
-                <Button type="button" variant="ghost" className="border border-white/20 text-white" onClick={handleThumbnailClear} disabled={uploadingImage}>
-                  <X className="mr-2 h-4 w-4" />Remover
-                </Button>
-              )}
-            </div>
-            {errors.thumbnail_url && <p className="text-sm text-red-400">{errors.thumbnail_url}</p>}
-          </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending} className="border-slate-600 text-white hover:bg-slate-700">Cancelar</Button>
-            <Button type="submit" disabled={isPending} className="bg-cyan-600 hover:bg-cyan-700 text-white">
-              {isPending ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />{mode === "create" ? "Criando..." : "Salvando..."}</>) : (mode === "create" ? "Criar Live" : "Salvar Alterações")}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-white">Título <span className="text-red-400">*</span></Label>
+              <Input id="title" value={formData.title} onChange={(e) => handleInputChange("title", e.target.value)} placeholder="Ex: Live sobre Protologia" className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500" />
+              {errors.title && <p className="text-sm text-red-400">{errors.title}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-white">Descrição</Label>
+              <Textarea id="description" value={formData.description || ""} onChange={(e) => handleInputChange("description", e.target.value)} placeholder="Descreva o conteúdo e objetivos da live..." rows={4} className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500 resize-none" />
+              {errors.description && <p className="text-sm text-red-400">{errors.description}</p>}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="live_url" className="text-white">Link da Live</Label>
+              <Input
+                id="live_url"
+                type="url"
+                value={formData.live_url || ""}
+                onChange={(e) => handleInputChange("live_url", e.target.value)}
+                placeholder="https://youtube.com/live/... ou https://zoom.us/j/..."
+                className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500"
+              />
+              <p className="text-xs text-slate-400">URL da plataforma onde a live será transmitida (YouTube, Zoom, etc.)</p>
+              {errors.live_url && <p className="text-sm text-red-400">{errors.live_url}</p>}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="instructor" className="text-white">Instrutor <span className="text-red-400">*</span></Label>
+                <Input id="instructor" value={formData.instructor_name} onChange={(e) => handleInputChange("instructor_name", e.target.value)} placeholder="Ex: Dr. João Silva" className="bg-[#131D37] border-slate-600 text-white placeholder:text-slate-500" />
+                {errors.instructor_name && <p className="text-sm text-red-400">{errors.instructor_name}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="start_at" className="text-white">Data/Horário <span className="text-red-400">*</span></Label>
+                <Input id="start_at" type="datetime-local" value={formData.start_at as any} onChange={(e) => handleInputChange("start_at", e.target.value)} className="bg-[#131D37] border-slate-600 text-white" />
+                <p className="text-xs text-slate-400 flex items-center gap-1"><CalendarClock className="h-3.5 w-3.5" /> Deve ser uma data futura</p>
+                {errors.start_at && <p className="text-sm text-red-400">{errors.start_at}</p>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="duration_minutes" className="text-white">Duração (minutos)</Label>
+                <Input
+                  id="duration_minutes"
+                  type="number"
+                  min={15}
+                  max={600}
+                  value={formData.duration_minutes}
+                  onChange={(e) => handleInputChange("duration_minutes", Number(e.target.value))}
+                  className="bg-[#131D37] border-slate-600 text-white"
+                />
+                {errors.duration_minutes && <p className="text-sm text-red-400">{errors.duration_minutes}</p>}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status" className="text-white">Status</Label>
+                <Select value={formData.status} onValueChange={(value) => handleInputChange("status", value as any)}>
+                  <SelectTrigger className="bg-[#131D37] border-slate-600 text-white"><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-[#131D37] border-slate-600">
+                    <SelectItem value="scheduled" className="text-white">Agendada</SelectItem>
+                    <SelectItem value="live" className="text-white">Ao vivo</SelectItem>
+                    <SelectItem value="completed" className="text-white">Encerrada</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.status && <p className="text-sm text-red-400">{errors.status}</p>}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label className="text-white flex items-center gap-2">
+                Thumbnail (imagem)
+                <span className="text-xs font-normal text-slate-400 flex items-center gap-1">
+                  <Crop className="h-3 w-3" />
+                  com ajuste e crop
+                </span>
+              </Label>
+              {thumbnailPreviewUrl && (
+                <div className="relative w-full h-48 overflow-hidden rounded-lg border border-slate-600 bg-slate-900">
+                  <Image src={thumbnailPreviewUrl} alt="Preview da thumbnail" fill sizes="(max-width: 640px) 100vw, 480px" className="object-cover" unoptimized />
+                </div>
+              )}
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={(event) => {
+                  const file = event.target.files?.[0]
+                  event.target.value = ""
+                  if (file) handleFileSelect(file)
+                }}
+              />
+              <div className="flex flex-wrap gap-3">
+                <Button type="button" variant="outline" className="bg-[#131D37] text-white border-slate-600 hover:border-white" onClick={() => fileInputRef.current?.click()} disabled={uploadingImage}>
+                  {uploadingImage ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />Enviando imagem</>) : (<><UploadCloud className="mr-2 h-4 w-4" />Enviar imagem</>)}
+                </Button>
+                {thumbnailPreviewUrl && (
+                  <Button type="button" variant="ghost" className="border border-white/20 text-white" onClick={handleThumbnailClear} disabled={uploadingImage}>
+                    <X className="mr-2 h-4 w-4" />Remover
+                  </Button>
+                )}
+              </div>
+              {errors.thumbnail_url && <p className="text-sm text-red-400">{errors.thumbnail_url}</p>}
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending} className="border-slate-600 text-white hover:bg-slate-700">Cancelar</Button>
+              <Button type="submit" disabled={isPending} className="bg-cyan-600 hover:bg-cyan-700 text-white">
+                {isPending ? (<><Loader2 className="mr-2 h-4 w-4 animate-spin" />{mode === "create" ? "Criando..." : "Salvando..."}</>) : (mode === "create" ? "Criar Live" : "Salvar Alterações")}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

@@ -30,8 +30,8 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ lessonI
     }
 
     const admin = createAdminClient()
-    const { data: attRow, error: attErr } = await admin
-      .from("lesson_attachments")
+    const { data: attRow, error: attErr } = await (admin
+      .from("lesson_attachments") as any)
       .select("id, storage_path")
       .eq("id", attachmentId.data)
       .eq("lesson_id", lessonId.data)
@@ -50,8 +50,8 @@ export async function DELETE(_: Request, { params }: { params: Promise<{ lessonI
       return NextResponse.json({ error: "Falha ao remover arquivo do storage." }, { status: 500 })
     }
 
-    const { error: delErr } = await admin
-      .from("lesson_attachments")
+    const { error: delErr } = await (admin
+      .from("lesson_attachments") as any)
       .delete()
       .eq("id", attachmentId.data)
       .eq("lesson_id", lessonId.data)

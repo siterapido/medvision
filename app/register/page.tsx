@@ -14,7 +14,7 @@ type RegisterPageProps = {
 }
 
 export default function RegisterPage({ searchParams }: RegisterPageProps) {
-  const resolvedSearchParams = use(searchParams || Promise.resolve({}))
+  const resolvedSearchParams = use(searchParams || Promise.resolve({ trial: undefined })) as { trial?: string }
   const requestedTrial = typeof resolvedSearchParams?.trial === "string"
     ? Number(resolvedSearchParams.trial)
     : undefined
@@ -120,75 +120,75 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
       <div className="relative z-10 h-screen overflow-y-auto overflow-x-hidden scrollbar-visible">
         <div className="min-h-screen flex items-center justify-center py-8 px-4">
           <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-block">
-            <Logo variant="white" width={160} height={35} />
-          </Link>
-        </div>
-
-        {/* Register Card */}
-        <div className="relative">
-          {/* Glow effect behind card */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-[#0891b2]/20 to-[#8b5cf6]/20 rounded-3xl blur-xl opacity-50" />
-
-          <div className="relative bg-[#0F172A]/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-8 shadow-2xl">
-            {/* Header */}
+            {/* Logo */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22d3ee]/10 border border-[#22d3ee]/30 mb-4">
-                <Sparkles className="w-4 h-4 text-[#22d3ee]" />
-                <span className="text-[#22d3ee] text-xs font-semibold">Plataforma de IA</span>
+              <Link href="/" className="inline-block">
+                <Logo variant="white" width={160} height={35} />
+              </Link>
+            </div>
+
+            {/* Register Card */}
+            <div className="relative">
+              {/* Glow effect behind card */}
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#0891b2]/20 to-[#8b5cf6]/20 rounded-3xl blur-xl opacity-50" />
+
+              <div className="relative bg-[#0F172A]/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-8 shadow-2xl">
+                {/* Header */}
+                <div className="text-center mb-8">
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22d3ee]/10 border border-[#22d3ee]/30 mb-4">
+                    <Sparkles className="w-4 h-4 text-[#22d3ee]" />
+                    <span className="text-[#22d3ee] text-xs font-semibold">Plataforma de IA</span>
+                  </div>
+                  <h1 className="text-2xl font-bold text-white mb-2">Crie sua conta</h1>
+                  <p className="text-slate-400 text-sm">Comece sua jornada com IA odontologica</p>
+                </div>
+
+                {/* Form */}
+                <RegisterForm trialDays={trialDays} />
+
+                {/* Divider */}
+                <div className="mt-8 pt-6 border-t border-slate-800">
+                  <p className="text-center text-sm text-slate-400">
+                    Ja tem uma conta?{" "}
+                    <Link
+                      href="/login"
+                      className="text-[#22d3ee] hover:text-[#67e8f9] font-semibold transition-colors"
+                    >
+                      Entrar
+                    </Link>
+                  </p>
+                </div>
               </div>
-              <h1 className="text-2xl font-bold text-white mb-2">Crie sua conta</h1>
-              <p className="text-slate-400 text-sm">Comece sua jornada com IA odontologica</p>
             </div>
 
-            {/* Form */}
-            <RegisterForm trialDays={trialDays} />
-
-            {/* Divider */}
-            <div className="mt-8 pt-6 border-t border-slate-800">
-              <p className="text-center text-sm text-slate-400">
-                Ja tem uma conta?{" "}
-                <Link
-                  href="/login"
-                  className="text-[#22d3ee] hover:text-[#67e8f9] font-semibold transition-colors"
-                >
-                  Entrar
-                </Link>
-              </p>
+            {/* Back to home */}
+            <div className="mt-6 text-center">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-[#22d3ee] transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Voltar para o site
+              </Link>
             </div>
-          </div>
-        </div>
 
-        {/* Back to home */}
-        <div className="mt-6 text-center">
-          <Link
-            href="/"
-            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-[#22d3ee] transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            Voltar para o site
-          </Link>
-        </div>
-
-        {/* Trust indicators */}
-        <div className="mt-8 flex items-center justify-center gap-6 text-xs text-slate-600">
-          <div className="flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5" />
-            <span>Dados seguros</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5" />
-            <span>Acesso 24/7</span>
-          </div>
-          <div className="flex items-center gap-1.5">
-            <Brain className="w-3.5 h-3.5" />
-            <span>IA Especializada</span>
-          </div>
-        </div>
+            {/* Trust indicators */}
+            <div className="mt-8 flex items-center justify-center gap-6 text-xs text-slate-600">
+              <div className="flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5" />
+                <span>Dados seguros</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Zap className="w-3.5 h-3.5" />
+                <span>Acesso 24/7</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Brain className="w-3.5 h-3.5" />
+                <span>IA Especializada</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

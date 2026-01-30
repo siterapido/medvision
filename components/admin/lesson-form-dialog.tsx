@@ -554,7 +554,7 @@ export function LessonFormDialog({
                         <Label className="text-xs text-slate-400">Tipo</Label>
                         <Select
                           value={material.type}
-                          onValueChange={(value) => updateMaterial(material.id, { type: value })}
+                          onValueChange={(value) => updateMaterial(material.id, { type: value as LessonMaterialData["type"] })}
                         >
                           <SelectTrigger className="bg-[#131D37] border-slate-600 text-white">
                             <SelectValue />

@@ -14,10 +14,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const { data: templates, error } = await supabase.from("notification_templates").select("*").order("name");
-  
+  const { data: templates, error } = await (supabase.from("notification_templates") as any).select("*").order("name");
+
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  
+
   return NextResponse.json(templates);
 }
 
@@ -36,20 +36,20 @@ export async function PUT(request: NextRequest) {
   const { id, content, active, subject, channel } = body;
 
   const adminClient = createAdminClient();
-  const { data, error } = await adminClient
-    .from("notification_templates")
-    .update({ 
-      content, 
-      active, 
+  const { data, error } = await (adminClient
+    .from("notification_templates") as any)
+    .update({
+      content,
+      active,
       subject,
       channel,
-      updated_at: new Date().toISOString() 
+      updated_at: new Date().toISOString()
     })
     .eq("id", id)
     .select()
     .single();
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  
+
   return NextResponse.json(data);
 }
