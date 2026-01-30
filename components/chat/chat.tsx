@@ -11,11 +11,13 @@
 import { useState, useCallback, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import { useBlockingChat } from '@/lib/hooks/use-blocking-chat'
 import { useHistoryRevalidation } from '@/lib/chat'
 import { Messages } from './messages'
 import { MultimodalInput } from './multimodal-input'
 import { ToolApprovalDialog } from './tool-approval-dialog'
+import { ThemeToggleCompact } from './theme-toggle-compact'
 
 interface ChatProps {
   id?: string
@@ -28,6 +30,7 @@ interface ChatProps {
   agentId?: string
   userName?: string
   userImage?: string
+  subscriptionInfo?: { isPro: boolean; trialDaysRemaining: number }
 }
 
 export function Chat({
@@ -37,6 +40,7 @@ export function Chat({
   agentId: initialAgentId = 'odonto-gpt',
   userName,
   userImage,
+  subscriptionInfo,
 }: ChatProps) {
   const router = useRouter()
   const [chatId] = useState(() => id || crypto.randomUUID())
@@ -205,14 +209,18 @@ export function Chat({
   }, [status, error, isLoading])
 
   return (
-    <div className="flex h-full min-h-0 min-w-0 flex-col bg-background">
+    <div className="relative flex h-full min-h-0 min-w-0 flex-col bg-background">
+      {/* Header with theme toggle */}
+      <div className="absolute top-0 right-0 z-10 flex items-center justify-end px-4 py-3">
+        <ThemeToggleCompact />
+      </div>
+
       {/* Messages area */}
       <div className="flex-1 overflow-hidden flex flex-col">
         <Messages
           messages={messages as any}
           status={componentStatus}
           userName={userName}
-          onSuggestionClick={handleSuggestionClick}
           onEditMessage={handleEditMessage}
           onRegenerate={handleRegenerate}
           agentId={selectedAgent}
@@ -229,17 +237,26 @@ export function Chat({
         />
       )}
 
-      {/* Input container - mobile-first with safe area for iOS */}
-      <div className="shrink-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 px-2 pb-[env(safe-area-inset-bottom,20px)] pt-2 sm:px-4 sm:pb-6 sm:pt-4">
-        <div className="mx-auto w-full max-w-3xl">
+      {/* Input container - mobile-first with space for dock */}
+      <div
+        className={cn(
+          'shrink-0 px-3 pt-2',
+          // Mobile: espaço para dock abaixo
+          'pb-[calc(12px+64px+env(safe-area-inset-bottom))]',
+          // Desktop: padding normal
+          'sm:pb-6 sm:px-4'
+        )}
+      >
+        <div className="mx-auto max-w-3xl">
           <MultimodalInput
             input={input}
             setInput={setInput}
             status={componentStatus}
             stop={stop}
             onSubmit={handleSubmit}
-            selectedAgent={selectedAgent}
-            onAgentChange={setSelectedAgent}
+            showSuggestions={messages.length === 0}
+            onSuggestionClick={handleSuggestionClick}
+            subscriptionInfo={subscriptionInfo}
           />
         </div>
       </div>

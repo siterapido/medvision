@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, User } from "lucide-react"
 
 import { Button } from "../ui/button"
 import { Logo } from "../logo"
@@ -21,9 +21,14 @@ export function LandingHeader() {
   return (
     <header className={landingHeaderClassName} role="banner">
       <div className="container mx-auto flex items-center justify-between gap-4">
-        <Link href="/" aria-label="Ir para o topo da página" className="flex items-center">
-          <Logo variant="white" width={140} height={38} />
-        </Link>
+        <div className="flex items-center gap-4">
+          <Link href="/login" aria-label="Acessar perfil" className="flex items-center justify-center w-10 h-10 rounded-full bg-white/10 border border-white/20 hover:bg-white/20 transition-all duration-200">
+            <User className="w-5 h-5 text-white" />
+          </Link>
+          <Link href="/" aria-label="Ir para o topo da página" className="flex items-center">
+            <Logo variant="white" width={140} height={38} />
+          </Link>
+        </div>
 
         <nav
           data-testid="landing-nav"

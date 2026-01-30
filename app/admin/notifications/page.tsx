@@ -26,7 +26,7 @@ async function NotificationsContent() {
   // For a real app with many users, this should be a search API, but for now we fetch recent 100.
   const { data: users } = await supabase
     .from("profiles")
-    .select("id, name, email, whatsapp")
+    .select("id, name, email, whatsapp, plan_type, pipeline_stage")
     .order("created_at", { ascending: false })
     .limit(100)
 

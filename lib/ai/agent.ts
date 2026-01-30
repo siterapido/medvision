@@ -20,6 +20,16 @@ const openrouter = createOpenAI({
 })
 
 /**
+ * Contexto do usuário para personalização de respostas
+ */
+export interface UserContext {
+  name?: string | null
+  planType?: string | null
+  trialDaysLeft?: number | null
+  pipelineStage?: string | null
+}
+
+/**
  * Processa uma mensagem de forma síncrona (sem streaming)
  * Ideal para integrações como WhatsApp onde streaming não é suportado
  *
@@ -70,21 +80,45 @@ IMPORTANTE: Você está respondendo via WhatsApp. Mantenha suas respostas concis
  * @param messages - Array de mensagens anteriores
  * @param phone - Número de telefone do usuário
  * @param agentId - ID do agente a ser usado
+ * @param userContext - Contexto do usuário para personalização
  * @returns A resposta gerada pelo agente
  */
 export async function processConversationSync(
   messages: Array<{ role: 'user' | 'assistant'; content: string }>,
   phone: string,
-  agentId: string = 'odonto-gpt'
+  agentId: string = 'odonto-gpt',
+  userContext?: UserContext
 ): Promise<string> {
   try {
     const agentConfig = getAgentConfig(agentId)
 
     console.log(`[Agent] Processing conversation from ${phone}, messages: ${messages.length}`)
 
+    // Construir contexto personalizado se disponível
+    let contextInfo = ''
+    if (userContext) {
+      const parts: string[] = []
+      if (userContext.name) {
+        parts.push(`O usuário se chama ${userContext.name}`)
+      }
+      if (userContext.planType) {
+        parts.push(`Plano: ${userContext.planType}`)
+      }
+      if (userContext.trialDaysLeft !== null && userContext.trialDaysLeft !== undefined) {
+        if (userContext.trialDaysLeft <= 0) {
+          parts.push('O trial expirou')
+        } else if (userContext.trialDaysLeft <= 3) {
+          parts.push(`Restam ${userContext.trialDaysLeft} dias de trial`)
+        }
+      }
+      if (parts.length > 0) {
+        contextInfo = `\n\nCONTEXTO DO USUÁRIO: ${parts.join('. ')}.`
+      }
+    }
+
     const whatsappSystemPrompt = `${agentConfig.system}
 
-IMPORTANTE: Você está respondendo via WhatsApp. Mantenha suas respostas concisas e bem formatadas para leitura em dispositivos móveis.`
+IMPORTANTE: Você está respondendo via WhatsApp. Mantenha suas respostas concisas e bem formatadas para leitura em dispositivos móveis.${contextInfo}`
 
     const result = await generateText({
       model: openrouter(agentConfig.model || MODELS.chat),

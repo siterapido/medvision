@@ -1,37 +1,26 @@
 'use client'
 
 /**
- * Greeting - Restored from commit 3816e13
+ * Greeting - Mobile-First Tech Design System
  *
- * Componente de boas-vindas com visual elegante:
- * - Icone centralizado com gradiente azul e efeito glow
- * - Saudacao "Ola, Doutor(a)"
- * - Sugestoes em scroll horizontal (mobile) ou vertical (desktop)
+ * Componente de boas-vindas minimalista:
+ * - Ícone centralizado com gradiente azul e efeito glow
+ * - Saudação "Olá, Doutor(a)"
+ * - Subtítulo
+ * - Sugestões foram movidas para o input
  */
 
 import { motion, AnimatePresence } from 'motion/react'
 import { Sparkles } from 'lucide-react'
-import { useIsMobile } from '@/lib/hooks/use-mobile'
 import { cn } from '@/lib/utils'
 
 interface GreetingProps {
   userName?: string
-  onSuggestionClick?: (suggestion: string) => void
 }
 
-const SUGGESTIONS = [
-  'Anatomia do primeiro molar',
-  'Preparo cavitario classe I',
-  'Protocolo de anestesia',
-  'Tratamento endodontico',
-]
-
-export function Greeting({ userName, onSuggestionClick }: GreetingProps) {
-  const isMobile = useIsMobile()
+export function Greeting({ userName }: GreetingProps) {
   // Format display name: "Doutor(a)" or "Doutor(a), FirstName"
-  const displayName = userName
-    ? `Doutor(a)`
-    : 'Doutor(a)'
+  const displayName = 'Doutor(a)'
 
   return (
     <div
@@ -72,7 +61,7 @@ export function Greeting({ userName, onSuggestionClick }: GreetingProps) {
           transition={{ delay: 0.1 }}
           className="text-xl md:text-2xl font-heading font-semibold text-foreground"
         >
-          Ola, {displayName}
+          Olá, {displayName}
         </motion.h2>
         <motion.p
           initial={{ y: 10, opacity: 0 }}
@@ -80,46 +69,9 @@ export function Greeting({ userName, onSuggestionClick }: GreetingProps) {
           transition={{ delay: 0.2 }}
           className="text-sm md:text-base text-muted-foreground"
         >
-          Estou pronto para auxiliar em diagnosticos e pesquisas clinicas.
+          Estou pronto para auxiliar em diagnósticos e pesquisas clínicas.
         </motion.p>
       </div>
-
-      {/* Suggestions */}
-      {onSuggestionClick && (
-        <div
-          className={cn(
-            'w-full max-w-[90vw] md:max-w-md',
-            // Mobile: horizontal scroll, Desktop: vertical centered
-            isMobile
-              ? 'flex flex-row overflow-x-auto gap-2 pb-2 scrollbar-hide snap-x'
-              : 'flex flex-col items-center gap-2'
-          )}
-        >
-          {SUGGESTIONS.map((suggestion, index) => (
-            <motion.button
-              key={suggestion}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + index * 0.05 }}
-              onClick={() => onSuggestionClick(suggestion)}
-              className={cn(
-                // Base styles
-                'text-sm text-center rounded-2xl',
-                'bg-card border border-border/50',
-                'hover:bg-muted/50 hover:border-primary/20',
-                'transition-all text-muted-foreground hover:text-foreground',
-                'shadow-sm hover:shadow-md hover:-translate-y-0.5',
-                // Mobile: fixed width with no wrap, Desktop: auto width
-                isMobile
-                  ? 'flex-shrink-0 snap-center px-4 py-2.5 whitespace-nowrap min-w-[180px]'
-                  : 'px-5 py-2.5 w-full'
-              )}
-            >
-              {suggestion}
-            </motion.button>
-          ))}
-        </div>
-      )}
     </div>
   )
 }

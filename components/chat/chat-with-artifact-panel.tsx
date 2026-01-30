@@ -31,6 +31,7 @@ interface ChatWithArtifactPanelProps {
   agentId?: string
   userName?: string
   userImage?: string
+  subscriptionInfo?: { isPro: boolean; trialDaysRemaining: number }
 }
 
 /**
@@ -43,6 +44,7 @@ function ChatWithArtifactPanelInner({
   agentId = 'odonto-gpt',
   userName,
   userImage,
+  subscriptionInfo,
 }: ChatWithArtifactPanelProps) {
   const isMobile = useIsMobile()
   const { isPanelOpen, closePanel, currentArtifact } = useArtifact()
@@ -80,6 +82,7 @@ function ChatWithArtifactPanelInner({
           agentId={agentId}
           userName={userName}
           userImage={userImage}
+          subscriptionInfo={subscriptionInfo}
         />
 
         {/* Mobile Sheet for Artifact */}
@@ -123,6 +126,7 @@ function ChatWithArtifactPanelInner({
           agentId={agentId}
           userName={userName}
           userImage={userImage}
+          subscriptionInfo={subscriptionInfo}
         />
       </ResizablePanel>
 

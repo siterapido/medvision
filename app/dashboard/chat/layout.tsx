@@ -5,7 +5,7 @@ export default async function ChatLayout({
 }) {
   // Chat layout needs full height for proper chat display
   return (
-    <div className="flex flex-col h-full overflow-hidden">
+    <div className="flex flex-col h-full overflow-y-auto md:overflow-hidden">
       {children}
     </div>
   )

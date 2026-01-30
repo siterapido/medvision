@@ -1,6 +1,6 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendZApiText } from "./zapi";
-import { sendEmail } from "./email";
+import { sendZApiText } from "../zapi";
+import { sendEmail } from "../email";
 
 export interface NotificationTemplate {
   id: string;
@@ -93,3 +93,6 @@ export async function sendNotification(
 
   return { success: status === "sent", error: errorMessage };
 }
+
+// Re-export utils for convenience
+export * from "./utils";

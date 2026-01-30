@@ -6,11 +6,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { MessageSquare, History, Settings, TestTube, RefreshCcw, Activity, Inbox } from "lucide-react"
+import { MessageSquare, History, Settings, TestTube, RefreshCcw, Activity, Inbox, Radio } from "lucide-react"
 import { ManualSender } from "./manual-sender"
 import { NotificationHistory } from "./notification-history"
 import { TemplatesManager } from "./templates-manager"
 import { ZApiTestPanel } from "./zapi-test-panel"
+import { BroadcastSender } from "./broadcast-sender"
 import type { NotificationLog, NotificationTemplate } from "./types"
 
 interface Profile {
@@ -18,6 +19,8 @@ interface Profile {
   name: string | null
   email: string | null
   whatsapp: string | null
+  plan_type?: string | null
+  pipeline_stage?: string | null
 }
 
 interface NotificationsWorkspaceProps {
@@ -32,7 +35,7 @@ export function NotificationsWorkspace({
   initialTemplates,
 }: NotificationsWorkspaceProps) {
   const router = useRouter()
-  const [activeTab, setActiveTab] = useState<"manual" | "history" | "templates" | "test">("manual")
+  const [activeTab, setActiveTab] = useState<"manual" | "broadcast" | "history" | "templates" | "test">("manual")
   const [isRefreshing, startRefresh] = useTransition()
 
   const statusCounts = useMemo(() => {
@@ -132,6 +135,9 @@ export function NotificationsWorkspace({
           <Button size="sm" variant={activeTab === "manual" ? "default" : "secondary"} onClick={() => setActiveTab("manual")} className={cn("bg-emerald-600 text-white hover:bg-emerald-700", activeTab !== "manual" && "bg-slate-800 text-slate-200 hover:bg-slate-700") }>
             <MessageSquare className="mr-2 h-4 w-4" /> Novo envio
           </Button>
+          <Button size="sm" variant={activeTab === "broadcast" ? "default" : "ghost"} onClick={() => setActiveTab("broadcast")} className={activeTab === "broadcast" ? "bg-slate-800 text-white" : "text-slate-200 hover:text-white"}>
+            <Radio className="mr-2 h-4 w-4" /> Broadcast
+          </Button>
           <Button size="sm" variant={activeTab === "history" ? "default" : "ghost"} onClick={() => setActiveTab("history")} className={activeTab === "history" ? "bg-slate-800 text-white" : "text-slate-200 hover:text-white"}>
             <History className="mr-2 h-4 w-4" /> Histórico
           </Button>
@@ -155,6 +161,7 @@ export function NotificationsWorkspace({
 
       <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
         {activeTab === "manual" && <ManualSender initialUsers={initialUsers} />}
+        {activeTab === "broadcast" && <BroadcastSender initialUsers={initialUsers} initialTemplates={initialTemplates} />}
         {activeTab === "history" && <NotificationHistory logs={initialLogs} />}
         {activeTab === "templates" && <TemplatesManager initialTemplates={initialTemplates} />}
         {activeTab === "test" && <ZApiTestPanel />}

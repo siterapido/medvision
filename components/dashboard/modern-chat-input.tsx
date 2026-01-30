@@ -103,8 +103,21 @@ export function ModernChatInput({
         <div className="relative w-full max-w-4xl mx-auto px-2 pb-6 md:px-4 md:pb-12">
             <div
                 className={cn(
-                    "relative flex flex-col gap-1 p-2 rounded-[28px] bg-white dark:bg-zinc-900 shadow-[0_8px_30px_rgb(0,0,0,0.04)] ring-1 ring-zinc-200 dark:ring-zinc-800 transition-all duration-500",
-                    "focus-within:ring-zinc-300 dark:focus-within:ring-zinc-700 focus-within:shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
+                    "relative flex flex-col gap-1 p-2 rounded-[28px] transition-all duration-500",
+                    // Base glass effect - high transparency with subtle tint
+                    "bg-white/60 dark:bg-zinc-900/60 backdrop-blur-[20px] saturate-[180%]",
+                    // Multi-layer shadow for depth (liquid glass floating effect)
+                    "shadow-[0_2px_6px_rgba(0,0,0,0.02),0_8px_24px_rgba(0,0,0,0.04),0_20px_48px_rgba(0,0,0,0.06)]",
+                    "dark:shadow-[0_2px_6px_rgba(0,0,0,0.2),0_8px_24px_rgba(0,0,0,0.3),0_20px_48px_rgba(0,0,0,0.4)]",
+                    // Inner glow for glass highlight effect
+                    "before:absolute before:inset-0 before:rounded-[28px] before:bg-gradient-to-b before:from-white/40 before:to-transparent before:dark:from-white/10 before:dark:to-transparent before:pointer-events-none",
+                    // Subtle border with gradient
+                    "ring-1 ring-white/50 dark:ring-white/10",
+                    // Enhanced focus state with liquid glass intensity
+                    "focus-within:bg-white/75 dark:focus-within:bg-zinc-900/75",
+                    "focus-within:backdrop-blur-[24px] focus-within:saturate-[200%]",
+                    "focus-within:ring-white/70 dark:focus-within:ring-white/20",
+                    "focus-within:shadow-[0_2px_8px_rgba(0,0,0,0.03),0_12px_32px_rgba(0,0,0,0.06),0_28px_64px_rgba(0,0,0,0.1)]"
                 )}
             >
                 {/* Top Area: Text input */}
@@ -123,7 +136,7 @@ export function ModernChatInput({
                 {/* Bottom Area: Tools and Agents */}
                 <div className="flex items-center justify-between px-2 pb-1 pt-2">
                     {/* Left: Agent Pill */}
-                    <div className="flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800/50 p-1 rounded-2xl border border-zinc-100 dark:border-zinc-800/50">
+                    <div className="flex items-center gap-1 bg-white/40 dark:bg-zinc-800/40 p-1 rounded-2xl border border-white/30 dark:border-white/10 backdrop-blur-md">
 
                         {/* Desktop: List all agents */}
                         <div className="hidden md:flex items-center gap-1">
@@ -232,7 +245,7 @@ export function ModernChatInput({
                                             initial={{ opacity: 0, scale: 0.95, y: 10 }}
                                             animate={{ opacity: 1, scale: 1, y: 0 }}
                                             exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                                            className="absolute bottom-full right-0 mb-4 p-2 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xl flex flex-col gap-1 min-w-[170px] z-50 overflow-hidden"
+                                            className="absolute bottom-full right-0 mb-4 p-2 rounded-2xl bg-white/70 dark:bg-zinc-900/70 backdrop-blur-[16px] saturate-150 border border-white/40 dark:border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.08)] flex flex-col gap-1 min-w-[170px] z-50 overflow-hidden"
                                         >
                                             <button
                                                 onClick={handleFileClick}
@@ -273,10 +286,10 @@ export function ModernChatInput({
                             onClick={handleSubmit}
                             disabled={isLoading || !(input || "").trim() || !isReady}
                             className={cn(
-                                "flex items-center justify-center shrink-0 h-8 w-8 rounded-xl transition-all duration-300",
+                                "flex items-center justify-center shrink-0 h-8 w-8 rounded-xl transition-all duration-300 backdrop-blur-sm",
                                 (input || "").trim() && isReady
-                                    ? "bg-[#8fb6b9] text-white hover:opacity-90 active:scale-95 shadow-md shadow-[#8fb6b9]/20"
-                                    : "bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed"
+                                    ? "bg-[#8fb6b9]/90 text-white hover:bg-[#8fb6b9] active:scale-95 shadow-[0_2px_8px_rgba(143,182,185,0.3)]"
+                                    : "bg-white/50 dark:bg-zinc-800/50 text-zinc-400 dark:text-zinc-500 cursor-not-allowed border border-white/20 dark:border-white/5"
                             )}
                         >
                             {isLoading ? (

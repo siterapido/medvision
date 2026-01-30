@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Plus } from 'lucide-react'
+import { Plus, User } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
@@ -24,7 +24,16 @@ export function ChatHeader({
         <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex items-center gap-2">
                 <SidebarTrigger className="-ml-1" />
-                <Separator orientation="vertical" className="mr-2 h-4" />
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => router.push('/dashboard')}
+                    className="h-8 w-8 rounded-full lg:hidden"
+                >
+                    <User className="h-4 w-4" />
+                    <span className="sr-only">Perfil</span>
+                </Button>
+                <Separator orientation="vertical" className="mr-2 h-4 lg:hidden" />
 
                 {/* Title or Breadcrumb */}
                 <div className="flex items-center gap-2 text-sm font-medium">

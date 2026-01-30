@@ -1,116 +1,92 @@
 'use client'
 
 /**
- * Floating Navigation Bar - Pill-shaped mobile navigation
+ * Floating Nav Bar - Bottom Dock (Mobile-First Tech Design System)
  *
- * Menu flutuante em formato de pílula com ícones de navegação:
- * - Sparkles (destaque/AI)
- * - Home
- * - Chat (ativo)
- * - Biblioteca
- * - Vision
- * - Menu hamburguer
- *
- * Visível apenas em mobile (<768px)
+ * Dock de navegação fixo no bottom:
+ * - Glass effect com blur
+ * - Safe-area support para iOS
+ * - Ícones com labels minimalistas
+ * - Estado ativo com cyan dot
+ * - Visível apenas em mobile (<768px)
  */
 
-import { Sparkles, Home, MessageCircle, BookOpen, Eye, SlidersHorizontal } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { useSidebar } from '@/components/ui/sidebar'
+import { Home, MessageCircle, BookOpen, Eye, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-
-interface FloatingNavBarProps {
-  className?: string
-}
+import { useSidebar } from '@/components/ui/sidebar'
 
 const navItems = [
-  {
-    icon: Sparkles,
-    href: '/dashboard',
-    label: 'AI',
-    highlight: true, // Special highlight style
-  },
-  {
-    icon: Home,
-    href: '/dashboard',
-    label: 'Home',
-  },
-  {
-    icon: MessageCircle,
-    href: '/dashboard/chat',
-    label: 'Chat',
-  },
-  {
-    icon: BookOpen,
-    href: '/dashboard/biblioteca',
-    label: 'Biblioteca',
-  },
-  {
-    icon: Eye,
-    href: '/dashboard/odonto-vision',
-    label: 'Vision',
-  },
+  { icon: Home, href: '/dashboard', label: 'Home', exact: true },
+  { icon: BookOpen, href: '/dashboard/biblioteca', label: 'Lib' },
+  { icon: MessageCircle, href: '/dashboard/chat', label: 'Chat', isCenter: true },
+  { icon: Eye, href: '/dashboard/odonto-vision', label: 'Vision' },
 ]
 
-export function FloatingNavBar({ className }: FloatingNavBarProps) {
-  const { toggleSidebar } = useSidebar()
+export function FloatingNavBar() {
   const pathname = usePathname()
+  const { toggleSidebar } = useSidebar()
 
-  // Check if current path matches nav item
-  const isActive = (href: string) => {
-    if (href === '/dashboard') {
-      return pathname === '/dashboard' || pathname === '/dashboard/'
-    }
+  const isActive = (href: string, exact?: boolean) => {
+    if (exact) return pathname === href || pathname === href + '/'
     return pathname?.startsWith(href)
   }
 
   return (
     <nav
       className={cn(
-        'fixed top-2 left-1/2 -translate-x-1/2 z-50 md:hidden',
-        'flex items-center gap-0.5 px-1.5 py-1',
-        'bg-white/95 backdrop-blur-xl',
-        'rounded-full shadow-lg shadow-black/5',
-        'border border-gray-100',
-        className
+        'fixed bottom-0 inset-x-0 z-50 md:hidden',
+        'px-3 pb-[env(safe-area-inset-bottom)]'
       )}
     >
-      {navItems.map((item) => {
-        const Icon = item.icon
-        const active = isActive(item.href)
+      <div className={cn(
+        'flex items-center justify-around h-16 px-2',
+        'dock-glass',
+        'rounded-t-[28px]'
+      )}>
+        {navItems.map((item) => {
+          const Icon = item.icon
+          const active = isActive(item.href, item.exact)
+          const isCenter = 'isCenter' in item && item.isCenter
 
-        return (
-          <Link
-            key={item.href + item.label}
-            href={item.href}
-            className={cn(
-              'flex items-center justify-center size-8 rounded-full transition-all',
-              item.highlight && !active && 'text-primary',
-              active && 'bg-primary text-white',
-              !active && !item.highlight && 'text-gray-500 hover:text-gray-900 hover:bg-gray-100'
-            )}
-            aria-label={item.label}
-          >
-            <Icon className="size-4" />
-          </Link>
-        )
-      })}
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={cn(
+                'dock-item relative flex flex-col items-center justify-center',
+                'rounded-xl',
+                isCenter ? 'w-16 h-14 -mt-2' : 'w-14 h-12',
+                active && 'dock-item-active'
+              )}
+            >
+              <Icon
+                className={cn(
+                  'mb-0.5',
+                  isCenter ? 'size-7' : 'size-5'
+                )}
+                strokeWidth={active ? 2.5 : 2}
+              />
+              <span className={cn(
+                'font-medium',
+                isCenter ? 'text-[11px]' : 'text-[10px]'
+              )}>{item.label}</span>
+              {active && (
+                <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-current" />
+              )}
+            </Link>
+          )
+        })}
 
-      {/* Separator */}
-      <div className="w-px h-5 bg-gray-200 mx-0.5" />
-
-      {/* Menu toggle */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggleSidebar}
-        className="size-8 rounded-full text-gray-500 hover:text-gray-900 hover:bg-gray-100"
-        aria-label="Abrir menu"
-      >
-        <SlidersHorizontal className="size-4" />
-      </Button>
+        <button
+          onClick={toggleSidebar}
+          className="dock-item flex flex-col items-center justify-center w-14 h-12 rounded-xl"
+        >
+          <Menu className="size-5 mb-0.5" strokeWidth={2} />
+          <span className="text-[10px] font-medium">Menu</span>
+        </button>
+      </div>
     </nav>
   )
 }

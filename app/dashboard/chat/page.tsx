@@ -2,6 +2,7 @@ import { ChatWithArtifactPanel } from '@/components/chat'
 import { getSessionMessages } from '@/app/actions/chat'
 import { UIMessage } from 'ai'
 import { createClient } from '@/lib/supabase/server'
+import { getRemainingTrialDays } from '@/lib/trial'
 
 export const metadata = {
   title: 'Chat | Odonto GPT',
@@ -20,6 +21,26 @@ export default async function ChatPage({
   const {
     data: { user },
   } = await supabase.auth.getUser()
+
+  // Buscar dados de assinatura do perfil
+  let subscriptionInfo: { isPro: boolean; trialDaysRemaining: number } = {
+    isPro: false,
+    trialDaysRemaining: 0,
+  }
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('plan_type, trial_ends_at')
+      .eq('id', user.id)
+      .single()
+
+    if (profile) {
+      const isPro = profile.plan_type && profile.plan_type !== 'free'
+      const trialDaysRemaining = isPro ? 0 : getRemainingTrialDays(profile.trial_ends_at)
+      subscriptionInfo = { isPro: !!isPro, trialDaysRemaining }
+    }
+  }
 
   let initialMessages: UIMessage[] = []
 
@@ -43,6 +64,7 @@ export default async function ChatPage({
       id={id}
       initialMessages={initialMessages}
       userName={user?.user_metadata?.full_name || user?.user_metadata?.name}
+      subscriptionInfo={subscriptionInfo}
     />
   )
 }

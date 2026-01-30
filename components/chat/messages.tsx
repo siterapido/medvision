@@ -18,7 +18,6 @@ interface MessagesProps {
   messages: UIMessage[]
   status: 'ready' | 'submitted' | 'streaming' | 'error' // streaming kept for compatibility
   userName?: string
-  onSuggestionClick?: (suggestion: string) => void
   onEditMessage?: (messageId: string) => void
   onRegenerate?: () => void
   agentId?: string
@@ -28,7 +27,6 @@ export function Messages({
   messages,
   status,
   userName,
-  onSuggestionClick,
   onEditMessage,
   onRegenerate,
   agentId = 'odonto-gpt',
@@ -100,7 +98,7 @@ export function Messages({
       >
         <div className={cn("mx-auto flex min-w-0 max-w-3xl flex-col gap-6 px-4 py-8 md:px-8", messages.length === 0 && "h-full justify-center")}>
           {messages.length === 0 && (
-            <Greeting userName={userName} onSuggestionClick={onSuggestionClick} />
+            <Greeting userName={userName} />
           )}
 
           {/* Debug info - remove in production */}
@@ -125,7 +123,8 @@ export function Messages({
 
           {status === 'submitted' && <ThinkingMessage agentId={agentId} />}
 
-          <div className="min-h-12 shrink-0" ref={endRef} />
+          {/* Extra space for input + dock on mobile */}
+          <div className="min-h-32 sm:min-h-12 shrink-0" ref={endRef} />
         </div>
       </div>
 

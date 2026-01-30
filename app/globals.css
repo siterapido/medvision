@@ -11,6 +11,32 @@
   --background: #ffffff;
   --foreground: #0f172a;
 
+  /* === VOID GLASS SYSTEM (Light Mode) === */
+  --void: #f8fafc;
+  --void-subtle: #f1f5f9;
+
+  /* Glass - Premium Light Mode */
+  --glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(248, 250, 252, 0.85) 100%);
+  --glass-bg-solid: rgba(255, 255, 255, 0.92);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-border-highlight: rgba(255, 255, 255, 0.8);
+  --glass-blur: 24px;
+  --glass-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.08), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --glass-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+
+  /* Input glow (light) - Premium */
+  --input-glow: rgba(6, 182, 212, 0.12);
+  --input-border-focus: rgba(6, 182, 212, 0.35);
+  --input-shadow-glow: 0 0 0 3px rgba(6, 182, 212, 0.1), 0 4px 24px -4px rgba(6, 182, 212, 0.15);
+
+  /* Dock */
+  --dock-height: 64px;
+  --dock-bg: rgba(248, 250, 252, 0.85);
+  --dock-border: rgba(0, 0, 0, 0.04);
+
+  /* Text tertiary */
+  --text-tertiary: #94a3b8;
+
   /* Primary Accent - Cyan/Teal Tech Feel */
   --primary: #06b6d4;
   /* Cyan 500 */
@@ -83,6 +109,31 @@
   /* Slate 900 - Lighter than before */
   --foreground: #f8fafc;
 
+  /* === VOID GLASS SYSTEM (Dark Mode) === */
+  --void: #020617;
+  --void-subtle: #0a0f1f;
+
+  /* Glass - Premium Dark Mode */
+  --glass-bg: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.85) 100%);
+  --glass-bg-solid: rgba(22, 33, 50, 0.95);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-highlight: rgba(255, 255, 255, 0.12);
+  --glass-blur: 24px;
+  --glass-shadow: 0 4px 32px -4px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --glass-inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+
+  /* Input glow (dark) - THE SIGNATURE */
+  --input-glow: rgba(6, 182, 212, 0.15);
+  --input-border-focus: rgba(6, 182, 212, 0.45);
+  --input-shadow-glow: 0 0 0 3px rgba(6, 182, 212, 0.12), 0 4px 32px -4px rgba(6, 182, 212, 0.25);
+
+  /* Dock */
+  --dock-bg: rgba(15, 23, 42, 0.85);
+  --dock-border: rgba(255, 255, 255, 0.04);
+
+  /* Text tertiary */
+  --text-tertiary: #64748b;
+
   /* Slate 50 */
 
   /* Surface Layers */
@@ -93,10 +144,11 @@
   --surface-300: #334155;
   /* Slate 700 */
 
-  /* Glassmorphism Bases - Adjusted opacity */
+  /* Glassmorphism Bases - Premium Dark */
   --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-bg: rgba(30, 41, 59, 0.7);
-  /* Slate 800 with opacity */
+  --glass-border-highlight: rgba(255, 255, 255, 0.15);
+  --glass-bg: linear-gradient(145deg, rgba(30, 41, 59, 0.85) 0%, rgba(15, 23, 42, 0.9) 100%);
+  --glass-bg-solid: rgba(24, 36, 54, 0.95);
 
   /* Primary Accents */
   --primary: #06b6d4;
@@ -198,6 +250,13 @@
   --color-border-subtle: var(--border-subtle);
   --color-border-strong: var(--border-strong);
   --color-border-overlay: var(--border-overlay);
+
+  /* Void Glass System Theme Tokens */
+  --color-void: var(--void);
+  --color-void-subtle: var(--void-subtle);
+  --color-glass-bg: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
+  --color-text-tertiary: var(--text-tertiary);
 
   /* Radius - system.md spec: sm=6px, md=8px, lg=12px, xl=16px */
   --radius-sm: 6px;
@@ -332,18 +391,88 @@
   animation: shimmer 2s infinite linear;
 }
 
-/* Glassmorphism utilities */
-.glass {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.4);
+/* === VOID GLASS SYSTEM UTILITIES === */
+
+/* Void background */
+.bg-void {
+  background: var(--void);
 }
 
-.dark .glass {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+/* Glass base */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+/* Input luminoso - THE SIGNATURE - Premium Glass */
+.input-glow {
+  background: var(--glass-bg-solid);
+  border: 1px solid var(--glass-border);
+  border-radius: 28px;
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  box-shadow: var(--glass-shadow), var(--glass-inner-shadow);
+  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+/* Top highlight border for depth */
+.input-glow::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(180deg, var(--glass-border-highlight) 0%, transparent 50%);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.input-glow:focus-within {
+  border-color: var(--input-border-focus);
+  box-shadow: var(--input-shadow-glow), var(--glass-inner-shadow);
+}
+
+.input-glow:hover:not(:focus-within) {
+  border-color: var(--glass-border-highlight);
+  box-shadow: var(--glass-shadow), var(--glass-inner-shadow), 0 0 0 1px var(--glass-border);
+}
+
+/* Dock glass */
+.dock-glass {
+  background: var(--dock-bg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-top: 1px solid var(--dock-border);
+}
+
+/* Dock item states */
+.dock-item {
+  color: var(--text-tertiary);
+  transition: color 150ms ease-out, transform 150ms ease-out;
+}
+
+.dock-item:active {
+  transform: scale(0.92);
+}
+
+.dock-item-active {
+  color: var(--brand);
+}
+
+/* Hide scrollbar utility */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
 }
 
 .glass-card {
@@ -621,38 +750,7 @@ input[type="number"]::-webkit-outer-spin-button {
   background: rgba(14, 165, 233, 1);
 }
 
-body.chat-scroll-lock {
-  min-height: 100vh;
-  height: 100vh;
-  overflow: hidden;
-  background: #050d1a;
-}
-
-@supports (height: 100dvh) {
-  body.chat-scroll-lock {
-    min-height: 100dvh;
-    height: 100dvh;
-  }
-}
-
-body.chat-scroll-lock main {
-  overflow: hidden;
-  min-height: 100vh;
-  max-height: 100vh;
-  height: 100vh;
-  padding: 0;
-  padding-inline: 0;
-  background: linear-gradient(180deg, #0F192F 0%, #0B1423 100%);
-}
-
-@supports (height: 100dvh) {
-  body.chat-scroll-lock main {
-    min-height: 100dvh;
-    max-height: 100dvh;
-    height: 100dvh;
-    background: linear-gradient(180deg, #0F192F 0%, #0B1423 100%);
-  }
-}
+/* .chat-scroll-lock removed - dead code that was never used */
 
 :root,
 html {

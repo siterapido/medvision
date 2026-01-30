@@ -7,26 +7,23 @@
  * - Input centralizado e expansivo
  * - Borda arredondada suave (radius ~16px)
  * - Background claro com borda sutil
- * - Agent Switcher integrado (esquerda)
+ * - Badge Pro/Trial (esquerda) - mostra status da assinatura
  * - Botoes de acao organizados (direita)
  * - Texto escuro no tema claro (#0f172a)
  * - Suporte a drag-drop e paste de imagens
  * - Reconhecimento de voz
- * - Mobile: Bottom sheets para agentes e anexos
+ * - Mobile: Bottom sheets para anexos
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { ArrowUpIcon, StopIcon, MicIcon, PaperclipIcon } from './icons'
-import { AgentSwitcher, getAgentPill, AGENT_PILLS } from './agent-switcher'
-import { MobileAgentSelectorSheet } from '@/components/mobile/mobile-agent-selector-sheet'
 import { MobileSourcesSheet } from '@/components/mobile/mobile-sources-sheet'
 import { useIsMobile } from '@/lib/hooks/use-mobile'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { X, ImageIcon, FileIcon, Plus, ChevronDown } from 'lucide-react'
-import { getAgentUI } from '@/lib/ai/agents/ui-config'
+import { X, ImageIcon, FileIcon, Plus, Crown, Clock } from 'lucide-react'
 
 interface Attachment {
   id: string
@@ -35,6 +32,14 @@ interface Attachment {
   type: 'image' | 'document'
 }
 
+// Suggestion chips for empty state
+const SUGGESTIONS = [
+  'Anatomia do 1º molar',
+  'Preparo classe I',
+  'Protocolo anestesia',
+  'Endodontia',
+]
+
 interface MultimodalInputProps {
   input: string
   setInput: (value: string) => void
@@ -42,9 +47,11 @@ interface MultimodalInputProps {
   stop: () => void
   onSubmit: (attachments?: File[]) => void
   className?: string
-  // Agent switching
-  selectedAgent?: string
-  onAgentChange?: (agentId: string) => void
+  // Subscription info
+  subscriptionInfo?: { isPro: boolean; trialDaysRemaining: number }
+  // Suggestions
+  showSuggestions?: boolean
+  onSuggestionClick?: (suggestion: string) => void
 }
 
 export function MultimodalInput({
@@ -54,8 +61,9 @@ export function MultimodalInput({
   stop,
   onSubmit,
   className,
-  selectedAgent = 'odonto-gpt',
-  onAgentChange,
+  subscriptionInfo,
+  showSuggestions = false,
+  onSuggestionClick,
 }: MultimodalInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -66,12 +74,11 @@ export function MultimodalInput({
 
   // Mobile state
   const isMobile = useIsMobile()
-  const [agentSheetOpen, setAgentSheetOpen] = useState(false)
   const [sourcesSheetOpen, setSourcesSheetOpen] = useState(false)
 
   const isLoading = status === 'submitted' || status === 'streaming'
-  const agentConfig = getAgentPill(selectedAgent)
-  const agentUIConfig = getAgentUI(selectedAgent)
+  const isPro = subscriptionInfo?.isPro ?? false
+  const trialDaysRemaining = subscriptionInfo?.trialDaysRemaining ?? 0
 
   // Auto-resize textarea
   const adjustHeight = useCallback(() => {
@@ -248,12 +255,6 @@ export function MultimodalInput({
     setAttachments([])
   }
 
-  const handleAgentChange = (agentId: string) => {
-    if (onAgentChange) {
-      onAgentChange(agentId)
-    }
-  }
-
   return (
     <div className={cn('relative flex w-full flex-col gap-3', className)}>
       {/* Hidden file input */}
@@ -269,61 +270,71 @@ export function MultimodalInput({
         }}
       />
 
-      {/* Mobile Sheets */}
+      {/* Mobile Sheet for sources */}
       {isMobile && (
-        <>
-          <MobileAgentSelectorSheet
-            open={agentSheetOpen}
-            onOpenChange={setAgentSheetOpen}
-            selectedAgent={selectedAgent}
-            onAgentChange={handleAgentChange}
-          />
-          <MobileSourcesSheet
-            open={sourcesSheetOpen}
-            onOpenChange={setSourcesSheetOpen}
-            onFilesSelected={handleFiles}
-          />
-        </>
+        <MobileSourcesSheet
+          open={sourcesSheetOpen}
+          onOpenChange={setSourcesSheetOpen}
+          onFilesSelected={handleFiles}
+        />
       )}
 
-      {/* Main container - Restored Perplexity style with more rounded corners */}
+      {/* Main container - Input Glow Signature */}
       <form
         onSubmit={handleSubmit}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={cn(
+          'input-glow', // THE SIGNATURE
           'relative flex flex-col gap-1 p-2',
-          // More rounded corners like commit 3816e13
+          // Rounded corners
           'rounded-[28px]',
-          'bg-white dark:bg-zinc-900',
-          // Subtle shadow and ring
-          'shadow-[0_8px_30px_rgb(0,0,0,0.04)]',
-          'ring-1 ring-zinc-200 dark:ring-zinc-800',
-          'transition-all duration-500',
-          // Focus state
-          'focus-within:ring-zinc-300 dark:focus-within:ring-zinc-700',
-          'focus-within:shadow-[0_20px_50px_rgba(0,0,0,0.1)]',
           // Drag state
-          isDragging && 'ring-primary ring-dashed bg-primary/5'
+          isDragging && 'border-cyan-500/50 bg-cyan-500/5'
         )}
       >
         {/* Drag overlay */}
         {isDragging && (
-          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-2xl bg-primary/5">
-            <p className="text-sm font-medium text-primary">
+          <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-[28px] bg-primary/10 dark:bg-white/[0.08] backdrop-blur-sm">
+            <p className="text-sm font-medium text-primary dark:text-slate-200">
               Solte os arquivos aqui
             </p>
           </div>
         )}
 
+        {/* Suggestion chips - shown when input is empty */}
+        {!input.trim() && showSuggestions && onSuggestionClick && (
+          <div className="flex gap-2 px-4 pt-3 pb-1 overflow-x-auto scrollbar-hide">
+            {SUGGESTIONS.map((suggestion) => (
+              <button
+                key={suggestion}
+                type="button"
+                onClick={() => onSuggestionClick(suggestion)}
+                className={cn(
+                  'shrink-0 px-3 py-1.5 rounded-full',
+                  'text-xs font-medium',
+                  'bg-white/5 dark:bg-white/[0.06]',
+                  'text-muted-foreground',
+                  'border border-transparent',
+                  'hover:border-cyan-500/30 hover:text-foreground',
+                  'transition-all duration-150',
+                  'active:scale-95'
+                )}
+              >
+                {suggestion}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Attachments preview */}
         {attachments.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2">
+          <div className="mb-3 flex flex-wrap gap-2 px-2">
             {attachments.map((attachment) => (
               <div
                 key={attachment.id}
-                className="group relative flex items-center gap-2 rounded-lg border bg-muted/50 px-3 py-2"
+                className="group relative flex items-center gap-2 rounded-lg border border-zinc-200 dark:border-white/10 bg-zinc-50 dark:bg-white/5 px-3 py-2"
               >
                 {attachment.type === 'image' && attachment.preview ? (
                   <img
@@ -332,17 +343,17 @@ export function MultimodalInput({
                     className="h-8 w-8 rounded object-cover"
                   />
                 ) : attachment.type === 'image' ? (
-                  <ImageIcon className="h-4 w-4 text-muted-foreground" />
+                  <ImageIcon className="h-4 w-4 text-zinc-400 dark:text-slate-400" />
                 ) : (
-                  <FileIcon className="h-4 w-4 text-muted-foreground" />
+                  <FileIcon className="h-4 w-4 text-zinc-400 dark:text-slate-400" />
                 )}
-                <span className="max-w-[120px] truncate text-xs text-foreground">
+                <span className="max-w-[120px] truncate text-xs text-zinc-700 dark:text-slate-200">
                   {attachment.file.name}
                 </span>
                 <button
                   type="button"
                   onClick={() => removeAttachment(attachment.id)}
-                  className="absolute -right-1 -top-1 rounded-full bg-destructive p-0.5 text-destructive-foreground opacity-0 transition-opacity group-hover:opacity-100"
+                  className="absolute -right-1 -top-1 rounded-full bg-red-500 p-0.5 text-white opacity-0 transition-opacity group-hover:opacity-100"
                 >
                   <X className="h-3 w-3" />
                 </button>
@@ -351,7 +362,7 @@ export function MultimodalInput({
           </div>
         )}
 
-        {/* Textarea - Restored style from 3816e13 */}
+        {/* Textarea - Glass-friendly text colors */}
         <div className="px-4 pt-2">
           <Textarea
             ref={textareaRef}
@@ -364,63 +375,54 @@ export function MultimodalInput({
             rows={1}
             className={cn(
               'w-full resize-none bg-transparent py-2 border-0',
-              'text-sm text-zinc-900 dark:text-zinc-100',
-              'outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500',
+              'text-sm text-zinc-900 dark:text-slate-100',
+              'outline-none placeholder:text-zinc-400 dark:placeholder:text-slate-400',
               'max-h-[200px] overflow-y-auto custom-scrollbar leading-relaxed font-sans',
               'focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-offset-0'
             )}
           />
         </div>
 
-        {/* Footer: Agent Switcher + Actions - Restored style from 3816e13 */}
+        {/* Footer: Subscription Badge + Actions */}
         <div className="flex items-center justify-between px-2 pb-1 pt-2">
-          {/* Left side */}
-          {isMobile ? (
-            /* Mobile: Plus button + Agent pill button */
-            <div className="flex items-center gap-1.5">
-              {/* Plus button - opens sources sheet */}
+          {/* Left side: Subscription Badge */}
+          <div className="flex items-center gap-1.5">
+            {/* Plus button - opens sources sheet (mobile only) */}
+            {isMobile && (
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 onClick={() => setSourcesSheetOpen(true)}
                 disabled={isLoading}
-                className="size-9 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                className="size-9 rounded-lg text-zinc-400 dark:text-slate-400 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-zinc-600 dark:hover:text-slate-200"
                 aria-label="Anexar arquivo"
               >
                 <Plus className="size-5" />
               </Button>
+            )}
 
-              {/* Agent pill - opens agent selector sheet */}
-              <button
-                type="button"
-                onClick={() => setAgentSheetOpen(true)}
-                disabled={isLoading}
-                className={cn(
-                  'flex items-center gap-1.5 rounded-lg px-2.5 py-1.5',
-                  'transition-all shadow-sm active:scale-95',
-                  `bg-gradient-to-br ${agentUIConfig.gradient}`
-                )}
-              >
-                {(() => {
-                  const IconComponent = agentUIConfig.icon
-                  return <IconComponent className="size-4 text-white" />
-                })()}
-                <span className="text-sm font-medium text-white">
-                  {agentUIConfig.shortName}
+            {/* Subscription Badge - Minimalista */}
+            {isPro ? (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full border border-primary/30 bg-primary/10">
+                <Crown className="size-3.5 text-primary" />
+                <span className="text-xs font-medium text-primary">Pro</span>
+              </div>
+            ) : trialDaysRemaining > 0 ? (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full border border-primary/30 bg-primary/10">
+                <Clock className="size-3.5 text-primary" />
+                <span className="text-xs font-medium text-primary">
+                  {trialDaysRemaining}d
                 </span>
-                <ChevronDown className="size-3.5 text-white/80" />
-              </button>
-            </div>
-          ) : (
-            /* Desktop: Full Agent Switcher */
-            <AgentSwitcher
-              agents={AGENT_PILLS}
-              selectedAgent={selectedAgent}
-              onAgentChange={handleAgentChange}
-              disabled={isLoading}
-            />
-          )}
+              </div>
+            ) : (
+              <div className="flex items-center gap-1 px-2 py-1 rounded-full border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800">
+                <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                  Expirado
+                </span>
+              </div>
+            )}
+          </div>
 
           {/* Right: Actions */}
           <div className="flex items-center gap-1">
@@ -432,7 +434,7 @@ export function MultimodalInput({
                 size="icon"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={isLoading}
-                className="size-9 rounded-lg text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+                className="size-9 rounded-lg text-zinc-400 dark:text-slate-400 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-zinc-600 dark:hover:text-slate-200"
                 title="Anexar arquivo"
               >
                 <PaperclipIcon size={18} />
@@ -449,8 +451,8 @@ export function MultimodalInput({
               className={cn(
                 'size-9 rounded-lg transition-all duration-200',
                 isListening
-                  ? 'bg-red-500/10 text-red-500 animate-pulse'
-                  : 'text-muted-foreground hover:bg-muted/50 hover:text-foreground'
+                  ? 'bg-red-500/20 text-red-400 animate-pulse'
+                  : 'text-zinc-400 dark:text-slate-400 hover:bg-zinc-100 dark:hover:bg-white/10 hover:text-zinc-600 dark:hover:text-slate-200'
               )}
               title={isListening ? 'Parar gravacao' : 'Entrada de voz'}
             >
@@ -464,12 +466,12 @@ export function MultimodalInput({
                 onClick={stop}
                 className={cn(
                   'flex items-center justify-center shrink-0 h-8 w-8 rounded-xl',
-                  'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400',
-                  'transition-all duration-300 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                  'bg-zinc-100 dark:bg-white/10 text-zinc-600 dark:text-slate-300',
+                  'transition-all duration-300 hover:bg-zinc-200 dark:hover:bg-white/15'
                 )}
                 title="Parar geracao"
               >
-                <div className="h-4 w-4 border-2 border-zinc-400/30 border-t-zinc-600 dark:border-t-zinc-300 rounded-full animate-spin" />
+                <div className="h-4 w-4 border-2 border-zinc-400/30 border-t-zinc-600 dark:border-t-cyan-400 rounded-full animate-spin" />
               </button>
             ) : (
               <button
@@ -478,8 +480,8 @@ export function MultimodalInput({
                 className={cn(
                   'flex items-center justify-center shrink-0 h-8 w-8 rounded-xl transition-all duration-300',
                   (input.trim() || attachments.length > 0)
-                    ? 'bg-[#00A3FF] text-white hover:opacity-90 active:scale-95 shadow-md shadow-[#00A3FF]/20'
-                    : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-400 dark:text-zinc-600 cursor-not-allowed'
+                    ? 'bg-cyan-500 text-white hover:bg-cyan-400 active:scale-95 shadow-md shadow-cyan-500/30'
+                    : 'bg-zinc-100 dark:bg-white/10 text-zinc-400 dark:text-slate-500 cursor-not-allowed'
                 )}
                 title="Enviar mensagem"
               >
