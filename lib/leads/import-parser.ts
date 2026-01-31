@@ -28,19 +28,19 @@ export async function parseFile(file: File): Promise<ParsedSheet> {
   const firstSheetName = workbook.SheetNames[0]
   const worksheet = workbook.Sheets[firstSheetName]
   
-  // Converte para JSON
-  const jsonData = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
+  // Converte para JSON (com header: 1, retorna array de arrays)
+  const jsonData = XLSX.utils.sheet_to_json<unknown[]>(worksheet, {
     header: 1,
     defval: "",
     blankrows: false
   })
-  
+
   if (jsonData.length < 2) {
     throw new Error("Arquivo vazio ou sem dados")
   }
 
   // A primeira linha são os headers
-  const headers = (jsonData[0] as unknown[]).map(h => String(h || "").trim())
+  const headers = jsonData[0].map(h => String(h || "").trim())
   
   // As demais linhas são dados
   const rows: Record<string, string>[] = []
@@ -113,19 +113,21 @@ export function guessColumnMapping(headers: string[]): Partial<ColumnMapping> {
  * Aplica o mapeamento às linhas para gerar o formato ImportLeadRow
  */
 export function applyMapping(rows: Record<string, string>[], mapping: ColumnMapping): ImportLeadRow[] {
-  return rows.map(row => {
+  const result: ImportLeadRow[] = []
+
+  for (const row of rows) {
     // Normaliza telefone
     let phone = ""
     if (mapping.phone && row[mapping.phone]) {
       phone = normalizePhone(row[mapping.phone])
     }
-    
-    // Só retorna se tiver telefone válido (pelo menos 10 dígitos com DDD)
+
+    // Só adiciona se tiver telefone válido (pelo menos 10 dígitos com DDD)
     if (!phone || phone.length < 10) {
-      return null
+      continue
     }
 
-    return {
+    result.push({
       Nome: mapping.name ? row[mapping.name] : undefined,
       Telefone: phone,
       Email: mapping.email ? row[mapping.email] : undefined,
@@ -133,8 +135,10 @@ export function applyMapping(rows: Record<string, string>[], mapping: ColumnMapp
       Observações: mapping.notes ? row[mapping.notes] : undefined,
       Estado: mapping.state ? row[mapping.state] : undefined,
       IES: mapping.ies ? row[mapping.ies] : undefined,
-    }
-  }).filter((r): r is ImportLeadRow => r !== null)
+    })
+  }
+
+  return result
 }
 
 

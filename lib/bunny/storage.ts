@@ -46,11 +46,11 @@ type UploadOptions = {
   cacheControl?: string
 }
 
-async function toBuffer(payload: File | Blob | ArrayBuffer | Buffer | Uint8Array): Promise<Buffer> {
-  if (payload instanceof Buffer) return payload
-  if (payload instanceof ArrayBuffer) return Buffer.from(payload)
-  if (payload instanceof Uint8Array) return Buffer.from(payload)
-  return Buffer.from(await payload.arrayBuffer())
+async function toUint8Array(payload: File | Blob | ArrayBuffer | Buffer | Uint8Array): Promise<Uint8Array> {
+  if (payload instanceof Uint8Array) return payload
+  if (payload instanceof ArrayBuffer) return new Uint8Array(payload)
+  if (typeof Buffer !== 'undefined' && Buffer.isBuffer(payload)) return new Uint8Array(payload)
+  return new Uint8Array(await payload.arrayBuffer())
 }
 
 export async function uploadToBunnyStorage(
@@ -59,16 +59,16 @@ export async function uploadToBunnyStorage(
   options: UploadOptions = {},
 ): Promise<{ path: string; publicUrl: string }> {
   const cfg = ensureConfig()
-  const body = await toBuffer(payload)
+  const body = await toUint8Array(payload)
   const storageUrl = buildStorageUrl(path, cfg)
 
   const res = await fetch(storageUrl, {
     method: "PUT",
-    body,
+    body: body as unknown as BodyInit,
     headers: {
       AccessKey: cfg.apiKey,
       "Content-Type": options.contentType || "application/octet-stream",
-      "Content-Length": body.length.toString(),
+      "Content-Length": body.byteLength.toString(),
       ...(options.cacheControl ? { "Cache-Control": options.cacheControl } : {}),
     },
   })

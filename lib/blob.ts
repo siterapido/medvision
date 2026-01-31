@@ -20,13 +20,13 @@ export async function uploadFile(
   file: File | Blob,
   pathname: string,
   options?: {
-    access?: 'public' | 'private'
+    access?: 'public'
     addRandomSuffix?: boolean
     contentType?: string
   }
 ): Promise<PutBlobResult> {
   const blob = await put(pathname, file, {
-    access: options?.access ?? 'public',
+    access: 'public',
     addRandomSuffix: options?.addRandomSuffix ?? true,
     contentType: options?.contentType,
   })

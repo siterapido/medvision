@@ -28,7 +28,7 @@ export const textHandler: DocumentHandler<TextParams, TextDocument> = {
     return {
       user_id: ctx.userId,
       title: doc.title,
-      type: 'text',
+      type: 'document', // text maps to 'document' in database
       content: {
         content: doc.content,
         format: doc.format,

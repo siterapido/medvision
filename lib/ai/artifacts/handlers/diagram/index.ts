@@ -32,7 +32,7 @@ export const diagramHandler: DocumentHandler<DiagramParams, DiagramDocument> = {
     return {
       user_id: ctx.userId,
       title: doc.title,
-      type: 'diagram',
+      type: 'mindmap', // diagram maps to 'mindmap' in database
       content: {
         diagramType: doc.diagramType,
         mermaidCode: doc.mermaidCode,

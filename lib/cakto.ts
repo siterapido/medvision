@@ -198,5 +198,20 @@ export async function getUserPaymentHistory(
     return { success: false, message: "Erro ao buscar histórico" }
   }
 
-  return { success: true, payments: data ?? [] }
+  // Map and filter out entries with null required fields
+  const payments: PaymentHistoryEntry[] = (data ?? [])
+    .filter((p): p is typeof p & { transaction_id: string; amount: number; currency: string; status: string; created_at: string } =>
+      p.transaction_id != null && p.amount != null && p.currency != null && p.status != null && p.created_at != null
+    )
+    .map((p) => ({
+      transaction_id: p.transaction_id,
+      amount: p.amount,
+      currency: p.currency,
+      status: p.status,
+      payment_method: p.payment_method,
+      webhook_data: p.webhook_data,
+      created_at: p.created_at,
+    }))
+
+  return { success: true, payments }
 }

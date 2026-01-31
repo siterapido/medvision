@@ -10,11 +10,10 @@ import { createAdminClient } from "@/lib/supabase/admin"
 type AnyRecord = Record<string, unknown>
 
 // Helper to bypass Supabase strict typing for untyped tables
-function getTable(supabase: ReturnType<typeof createAdminClient>, table: string) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getTable(supabase: ReturnType<typeof createAdminClient>, table: string): any {
   // Using type assertion to work with untyped Supabase tables
-  return (supabase as { from: (table: string) => unknown }).from(table) as ReturnType<
-    ReturnType<typeof createAdminClient>["from"]
-  >
+  return (supabase as any).from(table)
 }
 
 export interface WhatsAppConversation {

@@ -1,9 +1,10 @@
 import { addDays, differenceInDays, isAfter, isBefore, parseISO } from "date-fns"
 
 export const TRIAL_OPTIONS = [1, 3, 7, 30] as const
-export const DEFAULT_TRIAL_DAYS = 7
 
 export type TrialOption = (typeof TRIAL_OPTIONS)[number]
+
+export const DEFAULT_TRIAL_DAYS: TrialOption = 7
 
 export function normalizeTrialDays(value?: number | null, fallback = DEFAULT_TRIAL_DAYS): TrialOption {
   const parsed = Number(value)

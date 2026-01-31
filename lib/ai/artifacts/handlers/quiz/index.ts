@@ -50,7 +50,7 @@ export const quizHandler: DocumentHandler<QuizParams, QuizDocument> = {
     return {
       user_id: ctx.userId,
       title: doc.title,
-      type: 'quiz',
+      type: 'exam', // quiz maps to 'exam' in database
       content: {
         topic: doc.topic,
         questions: doc.questions,
