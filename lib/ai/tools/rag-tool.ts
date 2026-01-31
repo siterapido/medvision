@@ -30,7 +30,7 @@ export const searchKnowledge = tool({
   - Evidências científicas
 
   Retorna trechos de livros, artigos, protocolos e contexto do aluno com relevância.`,
-  parameters: z.object({
+  inputSchema: z.object({
     query: z
       .string()
       .describe(
@@ -134,7 +134,7 @@ export const searchKnowledge = tool({
 
       if (formattedDocuments.length > 0) {
         responseText += "📚 **Fontes encontradas:**\n";
-        formattedDocuments.forEach((doc) => {
+        formattedDocuments.forEach((doc: { index: number; title: string; source: string; relevance: string; content: string }) => {
           responseText += `\n${doc.index}. **${doc.title}** (${doc.source}) - Relevância: ${doc.relevance}\n`;
           responseText += `   ${doc.content}...\n`;
         });
@@ -142,7 +142,7 @@ export const searchKnowledge = tool({
 
       if (formattedMemories.length > 0) {
         responseText += "\n👤 **Contexto do aluno:**\n";
-        formattedMemories.forEach((mem) => {
+        formattedMemories.forEach((mem: { topic: string; relevance: string; content: string }) => {
           responseText += `\n- **${mem.topic}** (${mem.relevance}): ${mem.content}\n`;
         });
       }

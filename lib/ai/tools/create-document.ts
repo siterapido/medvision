@@ -50,9 +50,9 @@ export const createDocumentTool = tool({
 - text: documentos de texto
 - diagram: diagramas (Mermaid)`,
 
-  parameters: createDocumentSchema,
+  inputSchema: createDocumentSchema,
 
-  execute: async (params: CreateDocumentParams) => {
+  execute: async (params) => {
     const startTime = Date.now()
     const id = generateDocumentId()
     const ctx = getContextSafe()
@@ -89,7 +89,8 @@ export const createDocumentTool = tool({
           })
 
           const adminSupabase = createAdminClient()
-          await adminSupabase.from('artifacts').insert({
+          // Cast needed because ArtifactDBRecord uses Record<string, unknown> but DB expects Json
+          await (adminSupabase.from('artifacts').insert as any)({
             id,
             ...record,
           })

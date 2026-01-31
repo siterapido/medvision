@@ -24,6 +24,25 @@ export const DocumentKinds = [
 export type DocumentKind = (typeof DocumentKinds)[number]
 
 /**
+ * Database artifact types (from Supabase schema)
+ */
+export type DBArticleType = 'chat' | 'document' | 'code' | 'image' | 'research' | 'exam' | 'summary' | 'flashcards' | 'mindmap' | 'report' | 'other'
+
+/**
+ * Map DocumentKind to valid database artifact type
+ */
+export const documentKindToDBType: Record<DocumentKind, DBArticleType> = {
+  summary: 'summary',
+  flashcards: 'flashcards',
+  quiz: 'exam',         // quiz maps to exam in DB
+  research: 'research',
+  report: 'report',
+  code: 'code',
+  text: 'document',     // text maps to document in DB
+  diagram: 'mindmap',   // diagram maps to mindmap in DB
+}
+
+/**
  * Base document structure shared by all kinds
  */
 export interface BaseDocument {
@@ -41,7 +60,7 @@ export interface ArtifactDBRecord {
   id: string
   user_id: string
   title: string
-  type: DocumentKind
+  type: DBArticleType
   content: Record<string, unknown>
   description: string
   ai_context: {

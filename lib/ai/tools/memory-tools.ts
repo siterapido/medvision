@@ -18,7 +18,7 @@ import { getContext } from '../artifacts/context'
 export const rememberFact = tool({
   description:
     'Salva um fato importante sobre o aluno para lembrar em conversas futuras. Use quando descobrir informacoes relevantes como universidade, semestre, area de interesse, dificuldades, ou preferencias de estudo.',
-  parameters: z.object({
+  inputSchema: z.object({
     content: z.string().describe('O fato a ser memorizado (ex: "Aluno estuda na USP, 5o semestre")'),
     topic: z.string().optional().describe('Topico relacionado (ex: "perfil academico", "periodontia")'),
     type: z
@@ -69,7 +69,7 @@ export const rememberFact = tool({
 export const recallMemories = tool({
   description:
     'Busca memorias relevantes sobre o aluno baseado em uma pergunta ou topico. Use para recuperar contexto antes de responder perguntas complexas.',
-  parameters: z.object({
+  inputSchema: z.object({
     query: z.string().describe('O que voce quer lembrar sobre o aluno (ex: "nivel de conhecimento", "area de interesse")'),
     limit: z.number().optional().default(5).describe('Numero maximo de memorias a retornar'),
   }),
@@ -109,7 +109,7 @@ export const recallMemories = tool({
 export const updateStudentProfile = tool({
   description:
     'Atualiza o perfil academico do aluno. Use quando o aluno informar dados como universidade, semestre, especialidade de interesse, ou nivel de conhecimento.',
-  parameters: z.object({
+  inputSchema: z.object({
     university: z.string().optional().describe('Nome da universidade'),
     semester: z.string().optional().describe('Semestre atual (ex: "5o semestre", "Recem-formado")'),
     specialty: z.string().optional().describe('Especialidade de interesse (ex: "Endodontia", "Ortodontia")'),
@@ -180,7 +180,7 @@ export const updateStudentProfile = tool({
 export const getStudentContext = tool({
   description:
     'Obtem o contexto completo do aluno incluindo perfil e memorias relevantes. Use no inicio de conversas ou quando precisar adaptar a resposta ao nivel do aluno.',
-  parameters: z.object({
+  inputSchema: z.object({
     query: z.string().optional().describe('Topico da conversa atual para buscar memorias relevantes'),
   }),
   execute: async ({ query }) => {

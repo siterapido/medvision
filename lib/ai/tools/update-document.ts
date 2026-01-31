@@ -10,9 +10,10 @@ import { z } from 'zod'
 import { createClient } from '@supabase/supabase-js'
 import { getContextSafe } from '@/lib/ai/artifacts'
 import { DocumentKinds, type DocumentKind } from '@/lib/ai/artifacts/handlers'
+import type { Database } from '@/lib/supabase/types'
 
 // Lazy-initialized admin client for persistence (bypasses RLS)
-let adminSupabase: ReturnType<typeof createClient> | null = null
+let adminSupabase: ReturnType<typeof createClient<Database>> | null = null
 
 function getAdminSupabase() {
   if (adminSupabase) return adminSupabase
@@ -21,7 +22,7 @@ function getAdminSupabase() {
   if (!url || !key) {
     throw new Error('Missing Supabase credentials')
   }
-  adminSupabase = createClient(url, key)
+  adminSupabase = createClient<Database>(url, key)
   return adminSupabase
 }
 
@@ -62,7 +63,7 @@ export const updateDocumentTool = tool({
 
   inputSchema: updateDocumentSchema,
 
-  execute: async (params: UpdateDocumentParams) => {
+  execute: async (params) => {
     const ctx = getContextSafe()
     const { id, kind, title, description, content, metadata } = params
 
@@ -107,24 +108,33 @@ export const updateDocumentTool = tool({
       }
 
       if (content) {
-        // Merge content fields
+        // Merge content fields (cast to object as Json can be various types)
+        const existingContent = typeof existingDoc.content === 'object' && existingDoc.content !== null
+          ? existingDoc.content as Record<string, unknown>
+          : {}
         updates.content = {
-          ...existingDoc.content,
+          ...existingContent,
           ...content,
         }
       }
 
       if (metadata) {
-        // Merge metadata
+        // Merge metadata (cast to object as Json can be various types)
+        const existingMetadata = typeof existingDoc.metadata === 'object' && existingDoc.metadata !== null
+          ? existingDoc.metadata as Record<string, unknown>
+          : {}
         updates.metadata = {
-          ...existingDoc.metadata,
+          ...existingMetadata,
           ...metadata,
         }
       }
 
       // Update AI context with current session
+      const existingAiContext = typeof existingDoc.ai_context === 'object' && existingDoc.ai_context !== null
+        ? existingDoc.ai_context as Record<string, unknown>
+        : {}
       updates.ai_context = {
-        ...existingDoc.ai_context,
+        ...existingAiContext,
         lastModifiedAgent: ctx.agentId || 'odonto-gpt',
         lastModifiedSession: ctx.sessionId,
       }

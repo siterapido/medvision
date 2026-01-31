@@ -37,7 +37,7 @@ export async function generateStructuredArtifact<K extends GenerationKind>(
   }
 
   const {
-    model = MODELS.default,
+    model = MODELS.chat,
     temperature = 0.7,
     maxTokens = 4000,
   } = options

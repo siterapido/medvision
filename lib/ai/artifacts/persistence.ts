@@ -4,6 +4,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js';
+import type { Database } from '@/lib/supabase/types';
 import type {
   Artifact,
   SummaryArtifact,
@@ -13,9 +14,17 @@ import type {
   ReportArtifact,
 } from './schemas';
 import { getContext, getContextSafe } from './context';
+import {
+  streamSummary,
+  streamFlashcard,
+  streamQuiz,
+  streamResearch,
+  streamReport,
+  StreamingArtifact,
+} from './streaming';
 
 // Lazy-initialized Supabase client para server-side (service role)
-let supabaseClient: ReturnType<typeof createClient> | null = null;
+let supabaseClient: ReturnType<typeof createClient<Database>> | null = null;
 
 function getSupabase() {
   if (supabaseClient) return supabaseClient;
@@ -24,7 +33,7 @@ function getSupabase() {
   if (!supabaseUrl || !supabaseServiceKey) {
     throw new Error('Missing Supabase credentials');
   }
-  supabaseClient = createClient(supabaseUrl, supabaseServiceKey);
+  supabaseClient = createClient<Database>(supabaseUrl, supabaseServiceKey);
   return supabaseClient;
 }
 
@@ -239,13 +248,13 @@ export async function persistArtifact(artifact: Artifact): Promise<string> {
   try {
     const { data, error } = await supabase
       .from('artifacts')
-      .insert(record)
+      .insert(record as any)
       .select('id')
-      .single();
+      .single() as { data: { id: string } | null; error: any };
 
-    if (error) {
+    if (error || !data) {
       console.error('[persistArtifact] Database error:', error);
-      throw new Error(`Failed to persist artifact: ${error.message}`);
+      throw new Error(`Failed to persist artifact: ${error?.message || 'No data returned'}`);
     }
 
     console.log(`[persistArtifact] Saved artifact ${artifact.type}: ${data.id}`);
@@ -256,18 +265,16 @@ export async function persistArtifact(artifact: Artifact): Promise<string> {
   }
 }
 
+/**
+ * Wrapper que retorna Promise<void> para compatibilidade com StreamingArtifact
+ */
+export async function persistArtifactVoid(artifact: Artifact): Promise<void> {
+  await persistArtifact(artifact);
+}
+
 // ========================================
 // FACTORIES COM AUTO-PERSIST
 // ========================================
-
-import {
-  streamSummary,
-  streamFlashcard,
-  streamQuiz,
-  streamResearch,
-  streamReport,
-  StreamingArtifact,
-} from './streaming';
 
 /**
  * Cria StreamingArtifact para Summary com auto-persist
@@ -275,7 +282,7 @@ import {
 export function createPersistentSummary(
   data: { title: string; topic: string } & Partial<SummaryArtifact>
 ): StreamingArtifact<SummaryArtifact> {
-  return streamSummary(data, persistArtifact);
+  return streamSummary(data, persistArtifactVoid);
 }
 
 /**
@@ -284,7 +291,7 @@ export function createPersistentSummary(
 export function createPersistentFlashcard(
   data: { title: string; topic: string } & Partial<FlashcardArtifact>
 ): StreamingArtifact<FlashcardArtifact> {
-  return streamFlashcard(data, persistArtifact);
+  return streamFlashcard(data, persistArtifactVoid);
 }
 
 /**
@@ -293,7 +300,7 @@ export function createPersistentFlashcard(
 export function createPersistentQuiz(
   data: { title: string; topic: string } & Partial<QuizArtifact>
 ): StreamingArtifact<QuizArtifact> {
-  return streamQuiz(data, persistArtifact);
+  return streamQuiz(data, persistArtifactVoid);
 }
 
 /**
@@ -302,7 +309,7 @@ export function createPersistentQuiz(
 export function createPersistentResearch(
   data: { title: string; query: string } & Partial<ResearchArtifact>
 ): StreamingArtifact<ResearchArtifact> {
-  return streamResearch(data, persistArtifact);
+  return streamResearch(data, persistArtifactVoid);
 }
 
 /**
@@ -311,5 +318,5 @@ export function createPersistentResearch(
 export function createPersistentReport(
   data: { title: string; examType: string } & Partial<ReportArtifact>
 ): StreamingArtifact<ReportArtifact> {
-  return streamReport(data, persistArtifact);
+  return streamReport(data, persistArtifactVoid);
 }

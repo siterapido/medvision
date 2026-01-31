@@ -64,7 +64,7 @@ const setupHandler: CommandHandler = {
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single()
+      .single() as { data: any | null }
 
     const conversationCount = profile?.conversation_count || 0
 
@@ -130,7 +130,7 @@ const styleHandler: CommandHandler = {
         .from('profiles')
         .select('response_preference')
         .eq('id', userId)
-        .single()
+        .single() as { data: any | null }
 
       const currentStyle = profile?.response_preference || 'hybrid'
       const styleNames: Record<string, string> = {

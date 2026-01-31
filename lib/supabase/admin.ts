@@ -1,6 +1,7 @@
 import { createClient } from "@supabase/supabase-js"
+import type { Database } from "./types"
 
-const cachedAdminClients = new Map<string, ReturnType<typeof createClient>>()
+const cachedAdminClients = new Map<string, ReturnType<typeof createClient<Database>>>()
 
 export function createAdminClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim()
@@ -17,7 +18,7 @@ export function createAdminClient() {
   if (!cachedAdminClients.has(serviceRoleKey)) {
     cachedAdminClients.set(
       serviceRoleKey,
-      createClient(supabaseUrl, serviceRoleKey, {
+      createClient<Database>(supabaseUrl, serviceRoleKey, {
         auth: {
           autoRefreshToken: false,
           persistSession: false,

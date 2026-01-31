@@ -94,7 +94,7 @@ export function uiMessageToBlocks(message: UIMessage): MessageBlock[] {
       blocks.push({
         type: 'text',
         content: part.text,
-        role: message.role,
+        role: message.role === 'system' ? 'assistant' : message.role,
       })
       continue
     }
@@ -105,10 +105,10 @@ export function uiMessageToBlocks(message: UIMessage): MessageBlock[] {
       blocks.push({
         type: 'tool',
         toolName,
-        state: part.state || 'done',
-        input: part.input,
-        output: part.output,
-        error: part.error,
+        state: (part as any).state || 'done',
+        input: (part as any).input,
+        output: (part as any).output,
+        error: (part as any).error,
       })
       continue
     }

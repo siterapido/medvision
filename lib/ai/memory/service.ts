@@ -9,6 +9,7 @@
  */
 
 import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/lib/supabase/types'
 import {
   Memory,
   CreateMemoryInput,
@@ -24,7 +25,7 @@ import {
 import { generateEmbedding, formatEmbeddingForPostgres } from './embeddings'
 
 // Lazy-initialized admin client for bypassing RLS
-let adminSupabase: ReturnType<typeof createClient> | null = null
+let adminSupabase: ReturnType<typeof createClient<Database>> | null = null
 
 function getAdminSupabase() {
   if (adminSupabase) {
@@ -40,7 +41,7 @@ function getAdminSupabase() {
     )
   }
 
-  adminSupabase = createClient(url, key)
+  adminSupabase = createClient<Database>(url, key)
   return adminSupabase
 }
 
@@ -99,9 +100,9 @@ export class MemoryService {
         },
       })
 
-      const { data, error } = await adminSupabase
-        .from('agent_memories')
-        .insert(rowData)
+      const { data, error } = await getAdminSupabase()
+        .from('agent_memories' as any)
+        .insert(rowData as any)
         .select()
         .single()
 
@@ -111,7 +112,7 @@ export class MemoryService {
       }
 
       console.log(`[MemoryService] Saved ${input.type} memory for user ${input.userId}`)
-      return rowToMemory(data as AgentMemoryRow)
+      return rowToMemory(data as unknown as AgentMemoryRow)
     } catch (error) {
       console.error('[MemoryService] Error in saveMemory:', error)
       return null
@@ -142,7 +143,7 @@ export class MemoryService {
       }
 
       // Use the search_memories function
-      const { data, error } = await getAdminSupabase().rpc('search_memories', {
+      const { data, error } = await getAdminSupabase().rpc('search_memories' as any, {
         p_user_id: userId,
         p_query_embedding: formatEmbeddingForPostgres(queryEmbedding),
         p_match_threshold: threshold,
@@ -209,7 +210,7 @@ export class MemoryService {
       }
 
       // Use the hybrid_search_memories function
-      const { data, error } = await getAdminSupabase().rpc('hybrid_search_memories', {
+      const { data, error } = await getAdminSupabase().rpc('hybrid_search_memories' as any, {
         p_user_id: userId,
         p_query_embedding: formatEmbeddingForPostgres(queryEmbedding),
         p_query_text: query,
@@ -272,7 +273,7 @@ export class MemoryService {
     const { types = ['long_term', 'fact'], limit = DEFAULT_MEMORY_LIMIT } = options
 
     try {
-      const { data, error } = await getAdminSupabase().rpc('keyword_search_memories', {
+      const { data, error } = await getAdminSupabase().rpc('keyword_search_memories' as any, {
         p_user_id: userId,
         p_query: query,
         p_memory_types: types,
@@ -311,7 +312,7 @@ export class MemoryService {
     limit: number = DEFAULT_MEMORY_LIMIT
   ): Promise<MemorySearchResult[]> {
     try {
-      const { data, error } = await getAdminSupabase().rpc('get_recent_memories', {
+      const { data, error } = await getAdminSupabase().rpc('get_recent_memories' as any, {
         p_user_id: userId,
         p_memory_types: types,
         p_limit: limit,
@@ -346,7 +347,7 @@ export class MemoryService {
   async getUserContext(userId: string, currentQuery?: string): Promise<UserMemoryContext> {
     try {
       // Fetch user profile
-      const { data: profile } = await adminSupabase
+      const { data: profile } = await getAdminSupabase()
         .from('profiles')
         .select('*')
         .eq('id', userId)
@@ -437,7 +438,7 @@ export class MemoryService {
    */
   async cleanupExpiredMemories(): Promise<number> {
     try {
-      const { data, error } = await getAdminSupabase().rpc('cleanup_expired_memories')
+      const { data, error } = await getAdminSupabase().rpc('cleanup_expired_memories' as any)
 
       if (error) {
         console.error('[MemoryService] Cleanup error:', error)
@@ -457,7 +458,7 @@ export class MemoryService {
    */
   async clearUserMemories(userId: string, types?: MemoryType[]): Promise<boolean> {
     try {
-      let query = getAdminSupabase().from('agent_memories').delete().eq('user_id', userId)
+      let query = getAdminSupabase().from('agent_memories' as any).delete().eq('user_id', userId)
 
       if (types && types.length > 0) {
         query = query.in('type', types)
@@ -505,7 +506,7 @@ export class MemoryService {
         return true
       }
 
-      const { error } = await adminSupabase
+      const { error } = await getAdminSupabase()
         .from('profiles')
         .update(dbUpdates)
         .eq('id', userId)
@@ -527,7 +528,7 @@ export class MemoryService {
    */
   async incrementConversationCount(userId: string): Promise<number> {
     try {
-      const { data, error } = await adminSupabase
+      const { data, error } = await getAdminSupabase()
         .from('profiles')
         .select('conversation_count')
         .eq('id', userId)
@@ -538,11 +539,11 @@ export class MemoryService {
         return 0
       }
 
-      const newCount = (data?.conversation_count || 0) + 1
+      const newCount = ((data as any)?.conversation_count || 0) + 1
 
-      await adminSupabase
+      await getAdminSupabase()
         .from('profiles')
-        .update({ conversation_count: newCount })
+        .update({ conversation_count: newCount } as any)
         .eq('id', userId)
 
       return newCount

@@ -3,13 +3,14 @@ import { z } from 'zod'
 import { nanoid } from 'nanoid'
 import { createClient } from '@supabase/supabase-js'
 import { getContextSafe } from '@/lib/ai/artifacts'
+import type { Database } from '@/lib/supabase/types'
 
 // Unified tools (Phase 2)
 export { createDocumentTool } from './create-document'
 export { updateDocumentTool } from './update-document'
 
 // Lazy-initialized admin client para persistência (bypassa RLS)
-let adminSupabase: ReturnType<typeof createClient> | null = null
+let adminSupabase: ReturnType<typeof createClient<Database>> | null = null
 
 function getAdminSupabase() {
   if (adminSupabase) return adminSupabase
@@ -18,7 +19,7 @@ function getAdminSupabase() {
   if (!url || !key) {
     throw new Error('Missing Supabase credentials')
   }
-  adminSupabase = createClient(url, key)
+  adminSupabase = createClient<Database>(url, key)
   return adminSupabase
 }
 
