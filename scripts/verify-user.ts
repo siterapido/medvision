@@ -28,18 +28,7 @@ async function verifyAndResetUser() {
         console.error('Login failed:', error.message);
 
         console.log(`\nAttempting to reset password for ${email} with admin client...`);
-        const { data: updateData, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
-            // We don't have ID, so we need to find it or use updateUser which might need ID.
-            // Wait, listUsers failed before. Let's try getUserByEmail if available or just listUsers again hoping it was transient?
-            // actually admin.updateUserById needs ID. admin.createUser or admin.listUsers.
-            // let's try to just update user by email if possible? No, usually by ID.
-            // Let's try attempting to create the user, if it exists it will fail but maybe give us ID?
-            // Or we can blindly try to update using a different method if possible.
-
-            // Checking if we can just reset password/email without ID? No.
-            // Let's try listUsers again, maybe the error was transient.
-        );
-        // Let's rely on listUsers specifically.
+        // Need to find user ID first before we can update
         const { data: { users }, error: listError } = await supabaseAdmin.auth.admin.listUsers();
         if (listError) {
             console.error("Critical: Could not list users to find ID for password reset.", listError);

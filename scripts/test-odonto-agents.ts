@@ -442,7 +442,7 @@ ${summary.failedTests === 0 ? '✅ TODOS OS TESTES PASSARAM' : `⚠️ ${summary
 `;
 
   for (const toolName of TOOL_NAMES) {
-    const row = [toolName];
+    const row: string[] = [toolName];
     for (const agentId of ['odonto-gpt', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision']) {
       const agent = agentResults.find(a => a.agentId === agentId);
       const hasTool = agent?.toolsAvailable.includes(toolName);

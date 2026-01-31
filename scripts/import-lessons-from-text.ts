@@ -201,6 +201,9 @@ async function importLessons() {
   console.log(`📚 Curso ID: ${COURSE_ID}\n`)
 
   try {
+    if (!supabaseKey || !supabaseUrl) {
+      throw new Error("Supabase credentials not found")
+    }
     // Limpar chave de possíveis quebras de linha ou espaços extras
     const cleanKey = supabaseKey.replace(/\s+/g, "").trim()
     const cleanUrl = supabaseUrl.trim()
