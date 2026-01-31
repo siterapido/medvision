@@ -18,6 +18,8 @@ export interface AgentConfig {
   system: string;
   tools: Record<string, any>;
   model?: string;
+  greetingTitle?: string;
+  greetingDescription?: string;
 }
 
 export const AGENT_CONFIGS: Record<string, AgentConfig> = {

@@ -43,3 +43,15 @@ export const AGENT_UI_CONFIG: Record<string, AgentUIConfig> = {
 export function getAgentUI(agentId: string): AgentUIConfig {
     return AGENT_UI_CONFIG[agentId] || AGENT_UI_CONFIG['default']
 }
+
+import { AGENT_CONFIGS } from './config'
+
+export const AGENTS_UI_LIST = Object.values(AGENT_CONFIGS).map(agent => ({
+    ...agent,
+    ...(AGENT_UI_CONFIG[agent.id] || AGENT_UI_CONFIG['default']),
+    // Default styling properties required by mobile-agent-selector-sheet
+    borderColor: 'border-primary/50',
+    bgColor: 'bg-primary/5',
+    textColor: 'text-primary',
+    isPro: true
+}))

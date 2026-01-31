@@ -71,7 +71,6 @@ Coloque o comando no final da sua resposta, será substituído automaticamente.`
         { role: 'user', content: message }
       ],
       temperature: 0.7,
-      maxTokens: 1000, // Limitar para WhatsApp
     })
 
     console.log(`[Agent] Response generated for ${phone}, length: ${result.text.length}`)
@@ -136,7 +135,6 @@ IMPORTANTE: Você está respondendo via WhatsApp. Mantenha suas respostas concis
       system: whatsappSystemPrompt,
       messages,
       temperature: 0.7,
-      maxTokens: 1000,
     })
 
     return result.text
