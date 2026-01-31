@@ -2,7 +2,8 @@
 
 import { useState, useRef, useEffect } from "react"
 import { useRouter } from "next/navigation"
-import { useChat } from "@ai-sdk/react"
+import { useChat } from '@ai-sdk/react'
+import { DefaultChatTransport } from 'ai'
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -36,13 +37,28 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const [isSaving, setIsSaving] = useState(false)
     const [isSaved, setIsSaved] = useState(false)
+    const [input, setInput] = useState('')
 
-    const { messages, input, handleInputChange, handleSubmit, isLoading, setInput } = useChat({
-        api: "/api/chat",
-        body: {
-            agentId: "odonto-research"
-        }
+    const { messages, sendMessage, status, stop } = useChat({
+        transport: new DefaultChatTransport({
+            api: '/api/chat',
+            body: {
+                agentId: "odonto-research"
+            }
+        })
     })
+
+    const isLoading = status === 'submitted' || status === 'streaming'
+
+    // Helper function to extract text content from UIMessage
+    const getMessageContent = (message: any): string => {
+        if (message.content) return message.content // Old format fallback
+        if (message.parts) {
+            const textParts = message.parts.filter((p: any) => p.type === 'text')
+            return textParts.map((p: any) => p.text).join('')
+        }
+        return ''
+    }
 
     // Auto scroll to bottom
     useEffect(() => {
@@ -52,7 +68,18 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
     const handleKeyDown = (e: React.KeyboardEvent) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault()
-            handleSubmit(e as any)
+            if (input.trim()) {
+                sendMessage({ text: input })
+                setInput('')
+            }
+        }
+    }
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault()
+        if (input.trim()) {
+            sendMessage({ text: input })
+            setInput('')
         }
     }
 
@@ -93,7 +120,7 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
                 })
             }
 
-            const userQuery = messages.find(m => m.role === "user")?.content || "Pesquisa sem título"
+            const userQuery = messages.find(m => m.role === "user")?.parts?.find(p => p.type === 'text')?.text || "Pesquisa sem título"
 
             const response = await fetch("/api/research/save", {
                 method: "POST",
@@ -191,7 +218,7 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
                             {message.role === "user" ? (
                                 <div className="rounded-2xl px-4 py-3 bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-900/20">
                                     <div className="whitespace-pre-wrap text-sm leading-relaxed font-medium">
-                                        {message.content}
+                                        {getMessageContent(message)}
                                     </div>
                                 </div>
                             ) : (
@@ -215,12 +242,12 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
                                         </div>
                                     </CardHeader>
                                     <CardContent className="pt-4 text-slate-300 text-sm leading-relaxed space-y-4">
-                                        {message.content ? (
+                                        {getMessageContent(message) ? (
                                             <MarkdownRenderer
                                                 remarkPlugins={[remarkGfm]}
                                                 components={MarkdownComponents}
                                             >
-                                                {message.content}
+                                                {getMessageContent(message)}
                                             </MarkdownRenderer>
                                         ) : (
                                             <div className="flex items-center gap-2 text-slate-400 italic">
@@ -229,7 +256,7 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
                                             </div>
                                         )}
                                     </CardContent>
-                                    {message.content && !isLoading && (
+                                    {getMessageContent(message) && !isLoading && (
                                         <CardFooter className="bg-slate-900/30 border-t border-slate-700/50 py-3 flex justify-between items-center gap-3">
                                             <div className="flex gap-2">
                                                 <Button
@@ -237,7 +264,7 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
                                                     size="sm"
                                                     className="h-8 text-xs border-slate-700 bg-slate-800/50 text-slate-300 hover:text-white hover:bg-slate-800"
                                                     onClick={() => {
-                                                        navigator.clipboard.writeText(message.content)
+                                                        navigator.clipboard.writeText(getMessageContent(message))
                                                         toast.success("Conteúdo copiado!")
                                                     }}
                                                 >
@@ -249,7 +276,7 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
                                             <Button
                                                 size="sm"
                                                 className="h-8 text-xs bg-cyan-600 hover:bg-cyan-500 text-white shadow-lg shadow-cyan-500/20 transition-all hover:-translate-y-0.5"
-                                                onClick={() => handleManualSave(message.content)}
+                                                onClick={() => handleManualSave(getMessageContent(message))}
                                                 disabled={isSaving || isSaved}
                                             >
                                                 {isSaved ? (
@@ -317,7 +344,7 @@ export function ResearchAgentChat({ userId, onComplete }: ResearchAgentChatProps
                 <form onSubmit={handleSubmit} className="flex gap-2">
                     <Textarea
                         value={input}
-                        onChange={handleInputChange}
+                        onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
                         placeholder="Digite sua pergunta de pesquisa..."
                         className="flex-1 min-h-[44px] max-h-32 resize-none bg-slate-800/50 border-slate-700/50 focus:border-cyan-500/50 text-white placeholder-slate-500"
