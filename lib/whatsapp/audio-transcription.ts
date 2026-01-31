@@ -6,9 +6,17 @@
 
 import OpenAI from "openai"
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
+// Lazy-initialized OpenAI client to avoid build-time errors
+let openaiClient: OpenAI | null = null
+
+function getOpenAI(): OpenAI {
+  if (!openaiClient) {
+    openaiClient = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
+  }
+  return openaiClient
+}
 
 /**
  * Transcreve um arquivo de áudio para texto
@@ -42,7 +50,7 @@ export async function transcribeAudio(audioUrl: string): Promise<string> {
     console.log("[AudioTranscription] Áudio baixado, tamanho:", audioBuffer.byteLength)
 
     // 2. Enviar para Whisper API
-    const transcription = await openai.audio.transcriptions.create({
+    const transcription = await getOpenAI().audio.transcriptions.create({
       file: audioFile,
       model: "whisper-1",
       language: "pt", // Português brasileiro
