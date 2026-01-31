@@ -8,7 +8,10 @@ import {
     Bot,
     FileText,
     Users,
-    Award
+    Award,
+    BookOpen,
+    MonitorPlay,
+    FileBadge
 } from 'lucide-react'
 
 export interface NavItem {
@@ -17,15 +20,35 @@ export interface NavItem {
     icon: any // LucideIcon type is tricky to import sometimes, playing safe
     badge?: number
     shortcut?: string
+    badgeText?: string
+    disabled?: boolean
 }
 
 export const NAV_ITEMS: NavItem[] = [
     { href: '/dashboard', label: 'Início', icon: Home },
     { href: '/dashboard/chat', label: 'Chat', icon: MessageCircle },
-    // { href: '/dashboard/biblioteca', label: 'Biblioteca', icon: BookOpen }, // Disabled
-    // { href: '/dashboard/odontoflix', label: 'OdontoFlix', icon: MonitorPlay }, // Disabled
+    {
+        href: '/dashboard/biblioteca',
+        label: 'Biblioteca',
+        icon: BookOpen,
+        badgeText: 'Em breve',
+        disabled: true
+    },
+    {
+        href: '/dashboard/odontoflix',
+        label: 'OdontoFlix',
+        icon: MonitorPlay,
+        badgeText: 'Em breve',
+        disabled: true
+    },
     { href: '/dashboard/odonto-vision', label: 'Odonto Vision', icon: Eye },
-    { href: '/dashboard/certificados', label: 'Certificados', icon: FileBadge },
+    {
+        href: '/dashboard/certificados',
+        label: 'Certificados',
+        icon: FileBadge,
+        badgeText: 'Em breve',
+        disabled: true
+    },
 ]
 
 export const BOTTOM_NAV_ITEMS: NavItem[] = []

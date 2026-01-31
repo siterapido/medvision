@@ -76,36 +76,63 @@ export function SidebarNav({ role }: SidebarNavProps) {
             {filteredNavItems.map((item) => {
               const active = isActive(item.href)
               return (
+
                 <SidebarMenuItem key={item.href}>
                   <SidebarMenuButton
-                    asChild
+                    asChild={!item.disabled}
                     isActive={active}
                     tooltip={isCollapsed ? undefined : item.label}
                     className={cn(
                       'transition-all duration-200',
                       active && 'bg-[var(--sidebar-active)] text-primary font-medium',
-                      !active && 'hover:bg-[var(--sidebar-hover)]'
+                      !active && !item.disabled && 'hover:bg-[var(--sidebar-hover)]',
+                      item.disabled && 'opacity-60 cursor-not-allowed'
                     )}
                   >
-                    <Link href={item.href}>
-                      <item.icon className={cn(
-                        'shrink-0',
-                        isCollapsed ? 'h-5 w-5' : 'h-4 w-4',
-                        active ? 'text-primary' : 'text-[var(--sidebar-text-secondary)]'
-                      )} />
-                      <span className={cn(
-                        active ? 'text-[var(--sidebar-text-primary)]' : 'text-[var(--sidebar-text-secondary)]',
-                        isCollapsed && 'text-[10px] leading-tight'
-                      )}>
-                        {isCollapsed ? getShortLabel(item.label) : item.label}
-                      </span>
-                      {active && !isCollapsed && (
-                        <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
-                      )}
-                    </Link>
+                    {item.disabled ? (
+                      <div className="flex w-full items-center gap-2">
+                        <item.icon className={cn(
+                          'shrink-0',
+                          isCollapsed ? 'h-5 w-5' : 'h-4 w-4',
+                          'text-[var(--sidebar-text-secondary)]'
+                        )} />
+                        {!isCollapsed && (
+                          <div className="flex flex-1 items-center justify-between overflow-hidden">
+                            <span className={cn(
+                              'text-[var(--sidebar-text-secondary)] truncate'
+                            )}>
+                              {item.label}
+                            </span>
+                            {item.badgeText && (
+                              <span className="ml-2 rounded-full bg-muted px-1.5 py-0.5 text-[10px] uppercase font-bold leading-none tracking-wide text-muted-foreground whitespace-nowrap">
+                                {item.badgeText}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <Link href={item.href}>
+                        <item.icon className={cn(
+                          'shrink-0',
+                          isCollapsed ? 'h-5 w-5' : 'h-4 w-4',
+                          active ? 'text-primary' : 'text-[var(--sidebar-text-secondary)]'
+                        )} />
+                        <span className={cn(
+                          active ? 'text-[var(--sidebar-text-primary)]' : 'text-[var(--sidebar-text-secondary)]',
+                          isCollapsed && 'text-[10px] leading-tight'
+                        )}>
+                          {isCollapsed ? getShortLabel(item.label) : item.label}
+                        </span>
+                        {active && !isCollapsed && (
+                          <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
+                        )}
+                      </Link>
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )
+
             })}
           </SidebarMenu>
         </SidebarGroupContent>
