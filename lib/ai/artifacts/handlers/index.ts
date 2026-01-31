@@ -37,7 +37,6 @@ export const documentHandlers = {
  * Get handler for a specific document kind
  */
 export function getDocumentHandler(kind: DocumentKind) {
-  // @ts-expect-error - handlers map is temporarily restricted
   const handler = documentHandlers[kind]
   if (!handler) {
     throw new Error(`No handler for document kind: ${kind}`)
