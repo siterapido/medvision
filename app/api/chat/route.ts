@@ -2,7 +2,7 @@ import { generateText, convertToModelMessages, UIMessage, generateId } from 'ai'
 import { openrouter } from '@/lib/ai/openrouter'
 import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
 import { createClient } from '@/lib/supabase/server'
-import { createSession, saveMessage, deleteChat } from '@/lib/db/simple-queries'
+import { createSession, saveMessage, deleteChat, updateChatTitle } from '@/lib/db/simple-queries'
 
 export const maxDuration = 60
 
@@ -44,6 +44,26 @@ export async function POST(req: Request) {
     // 4. Salvar resposta do assistente
     if (currentSessionId && result.text) {
       await saveMessage(currentSessionId, 'assistant', result.text)
+
+      // 5. Gerar título (Resumo) se for nova conversa
+      if (!sessionId) {
+        const rawUserText = (uiMessages[uiMessages.length - 1]?.parts?.[0] as any)?.text || ''
+        const userText = rawUserText.substring(0, 1000)
+
+        if (userText) {
+          try {
+            const { text: title } = await generateText({
+              model: openrouter('google/gemini-2.0-flash-001'),
+              prompt: `Gere um título muito curto (3 a 4 palavras) em português para esta conversa baseada na mensagem: "${userText}". Retorne apenas o título, sem aspas.`,
+            })
+            if (title) {
+              await updateChatTitle(currentSessionId, title.trim())
+            }
+          } catch (error) {
+            console.error('Error generating title:', error)
+          }
+        }
+      }
     }
 
     return Response.json({

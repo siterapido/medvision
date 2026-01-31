@@ -114,9 +114,6 @@ export async function saveMessage(sessionId: string, role: string, content: stri
   return data
 }
 
-/**
- * Delete hard (cascade no banco se configurado, ou manual se nao)
- */
 export async function deleteChat(chatId: string, userId: string) {
   const supabase = await createClient()
   const { error } = await supabase
@@ -124,5 +121,14 @@ export async function deleteChat(chatId: string, userId: string) {
     .delete()
     .eq('id', chatId)
     .eq('user_id', userId)
+  return !error
+}
+
+export async function updateChatTitle(chatId: string, title: string) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('agent_sessions')
+    .update({ title })
+    .eq('id', chatId)
   return !error
 }
