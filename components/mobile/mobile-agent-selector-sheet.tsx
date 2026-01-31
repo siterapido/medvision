@@ -73,7 +73,7 @@ export function MobileAgentSelectorSheet({
 }
 
 interface AgentItemProps {
-  agent: AgentUIConfig
+  agent: typeof AGENTS_UI_LIST[number]
   isSelected: boolean
   onSelect: () => void
 }

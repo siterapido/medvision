@@ -197,11 +197,11 @@ export function OdontoChat({ chatId, initialMessages, className }: OdontoChatPro
                       </div>
                     )
                   }
-                  if (part.state === 'output-available' && part.output?.success) {
+                  if (part.state === 'output-available' && (part.output as any)?.success) {
                     return (
                       <div key={index} className="mt-2 p-2 bg-green-50 dark:bg-green-950 rounded border border-green-200 dark:border-green-800">
                         <span className="text-sm text-green-700 dark:text-green-300">
-                          {part.output.message}
+                          {(part.output as any)?.message}
                         </span>
                       </div>
                     )

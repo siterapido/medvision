@@ -10,9 +10,10 @@ interface LogoProps {
    * - 'white': força a versão branca (evita 404 e garante contraste)
    */
   variant?: 'auto' | 'white'
+  iconOnly?: boolean
 }
 
-export function Logo({ width = 120, height = 40, className = '', variant = 'auto' }: LogoProps) {
+export function Logo({ width = 120, height = 40, className = '', variant = 'auto', iconOnly = false }: LogoProps) {
   if (variant === 'white') {
     // Renderiza apenas a versão branca, útil para seções escuras (landing hero/footer)
     return (

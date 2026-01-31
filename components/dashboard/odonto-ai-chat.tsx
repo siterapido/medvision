@@ -113,7 +113,6 @@ export function OdontoAIChat({
     sendMessage,
     status,
     error,
-    reload,
     stop,
     setMessages,
   } = useChat({
@@ -124,8 +123,8 @@ export function OdontoAIChat({
       console.error("[OdontoAIChat] Error:", error)
       toast.error("Erro no chat", { description: error.message })
     },
-    onFinish: (message) => {
-      console.log("[OdontoAIChat] Message complete:", message?.id)
+    onFinish: (result) => {
+      console.log("[OdontoAIChat] Message complete:", result.message?.id)
     },
   })
 
@@ -192,8 +191,9 @@ export function OdontoAIChat({
     parts.forEach((part) => {
       if (part.type === 'text') {
         textParts.push(part.text)
-      } else if (part.type === 'tool-invocation' && part.toolInvocation) {
-        const { toolName, state, result } = part.toolInvocation
+      } else if (part.type === 'tool-invocation') {
+        const toolInvocation = part as any
+        const { toolName, state, result } = toolInvocation
         if (state === 'result' && result) {
           const artifact = toolResultToArtifact(toolName, result)
           if (artifact) {
@@ -223,14 +223,14 @@ export function OdontoAIChat({
   const renderToolStatus = (message: UIMessage) => {
     const parts = message.parts || []
     const pendingTools = parts.filter(
-      (part) => part.type === 'tool-invocation' && part.toolInvocation?.state === 'call'
+      (part) => part.type === 'tool-invocation' && (part as any).state === 'call'
     )
 
     if (pendingTools.length === 0) return null
 
     return pendingTools.map((part, index) => {
-      if (part.type !== 'tool-invocation' || !part.toolInvocation) return null
-      const { toolName, args } = part.toolInvocation
+      if (part.type !== 'tool-invocation') return null
+      const { toolName } = part as any
 
       const toolLabels: Record<string, string> = {
         createSummary: 'Criando resumo...',

@@ -33,7 +33,7 @@ export const YouTubePlayer = memo(function YouTubePlayer({
   const [showControls, setShowControls] = useState(false)
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/${thumbnailQuality}.jpg`
 
@@ -123,7 +123,7 @@ export const YouTubePlayer = memo(function YouTubePlayer({
 
   const handleMouseEnter = useCallback(() => {
     setShowControls(true)
-    clearTimeout(timeoutRef.current)
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
   }, [])
 
   const handleMouseLeave = useCallback(() => {
@@ -144,12 +144,12 @@ export const YouTubePlayer = memo(function YouTubePlayer({
 
       return () => {
         clearTimeout(timer)
-        clearTimeout(timeoutRef.current)
+        if (timeoutRef.current) clearTimeout(timeoutRef.current)
       }
     }
 
     return () => {
-      clearTimeout(timeoutRef.current)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
   }, [autoPlayOnLoad, createIframe])
 
