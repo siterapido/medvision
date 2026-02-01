@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useState } from 'react'
 import {
   AlertDialog,
@@ -25,9 +25,13 @@ import { useHistory, groupChatsByDate } from '@/lib/chat'
 
 export function SidebarHistory({ userId }: { userId: string | undefined }) {
   const { setOpenMobile } = useSidebar()
-  const searchParams = useSearchParams()
-  const id = searchParams.get('id')
+  const pathname = usePathname()
   const router = useRouter()
+
+  // Extract chat id from pathname (format: /dashboard/chat/[id])
+  const id = pathname.startsWith('/dashboard/chat/')
+    ? pathname.split('/dashboard/chat/')[1]?.split('/')[0] || null
+    : null
 
   const {
     chats,

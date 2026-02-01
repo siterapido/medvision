@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { Clock3, Inbox, FlaskConical, Brain, RefreshCw, Lock, CreditCard, Ghost, XCircle } from "lucide-react"
+import { useMemo, useState, useCallback } from "react"
+import { Clock3, Inbox, FlaskConical, Brain, RefreshCw, Lock, CreditCard, Ghost, XCircle, ChevronDown } from "lucide-react"
 import {
   DndContext,
   DragEndEvent,
@@ -14,10 +14,13 @@ import {
 } from "@dnd-kit/core"
 
 import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { getRemainingTrialDays } from "@/lib/trial"
 import { updatePipelineStage } from "@/app/actions/pipeline"
 import { LeadCard } from "./lead-card"
+
+const LEADS_PER_COLUMN = 20
 
 type PipelineLead = {
   id: string
@@ -218,20 +221,25 @@ interface DroppableColumnProps {
   leads: PipelineLeadWithStage[]
   isDragging: boolean
   onStageChange: () => void
+  visibleCount: number
+  hasMore: boolean
+  onLoadMore: () => void
 }
 
-function DroppableColumn({ stage, leads, isDragging, onStageChange }: DroppableColumnProps) {
+function DroppableColumn({ stage, leads, isDragging, onStageChange, visibleCount, hasMore, onLoadMore }: DroppableColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   })
 
   const Icon = stage.icon
+  const visibleLeads = leads.slice(0, visibleCount)
+  const remainingCount = leads.length - visibleCount
 
   return (
     <div
       ref={setNodeRef}
       className={cn(
-        "shrink-0 w-80 lg:w-[350px] flex flex-col rounded-2xl overflow-hidden transition-all duration-300",
+        "shrink-0 w-72 lg:w-[300px] flex flex-col rounded-2xl overflow-hidden transition-all duration-300",
         "bg-card/40 backdrop-blur-md",
         "border border-border/50",
         "group/column hover:bg-card/60",
@@ -240,45 +248,56 @@ function DroppableColumn({ stage, leads, isDragging, onStageChange }: DroppableC
     >
       {/* Column Header */}
       <div className={cn(
-        "flex items-center justify-between px-5 py-4 shrink-0 border-b border-border/40 relative overflow-hidden",
+        "flex items-center justify-between px-4 py-3 shrink-0 border-b border-border/40 relative overflow-hidden",
         "bg-gradient-to-b from-background/50 to-transparent"
       )}>
         {/* Top Color Accent */}
         <div className={cn("absolute top-0 left-0 right-0 h-[2px]", stage.color.replace('border-t-', 'bg-'))} />
 
-        <div className="flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-background/50 border border-border/50 flex items-center justify-center text-lg shadow-sm">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-xl bg-background/50 border border-border/50 flex items-center justify-center text-base shadow-sm">
             {stage.emoji}
           </div>
           <div>
-            <h3 className="text-sm font-heading font-bold text-slate-100 leading-tight tracking-tight">
+            <h3 className="text-xs font-heading font-bold text-slate-100 leading-tight tracking-tight">
               {stage.title}
             </h3>
-            <p className="text-[10px] text-slate-500 font-medium leading-tight mt-0.5">
+            <p className="text-[9px] text-slate-500 font-medium leading-tight mt-0.5">
               {stage.description}
             </p>
           </div>
         </div>
-        <span className="text-[11px] font-bold text-muted-foreground bg-background/50 px-2.5 py-1 rounded-full border border-border/50 shadow-sm min-w-[28px] text-center">
+        <span className="text-[10px] font-bold text-muted-foreground bg-background/50 px-2 py-0.5 rounded-full border border-border/50 shadow-sm min-w-[24px] text-center">
           {leads.length}
         </span>
       </div>
 
       {/* Column Content */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 custom-scrollbar">
-        <div className={cn("space-y-4 min-h-[150px]")}>
-          {leads.map((lead) => (
+      <div className="overflow-y-auto px-2.5 py-3 custom-scrollbar max-h-[calc(100vh-200px)]">
+        <div className={cn("space-y-2 min-h-[100px]")}>
+          {visibleLeads.map((lead) => (
             <LeadCard key={lead.id} lead={lead} onStageChange={onStageChange} />
           ))}
-          {leads.length === 0 && (
-            <div className="flex flex-col items-center justify-center gap-3 py-16 text-center opacity-50 group-hover/column:opacity-80 transition-opacity">
-              <div className="w-12 h-12 rounded-full bg-background/50 flex items-center justify-center border border-border/50">
-                <Icon className="h-5 w-5 text-muted-foreground" />
+          {visibleLeads.length === 0 && (
+            <div className="flex flex-col items-center justify-center gap-2 py-12 text-center opacity-50 group-hover/column:opacity-80 transition-opacity">
+              <div className="w-10 h-10 rounded-full bg-background/50 flex items-center justify-center border border-border/50">
+                <Icon className="h-4 w-4 text-muted-foreground" />
               </div>
-              <p className="text-xs text-muted-foreground font-medium max-w-[120px]">
+              <p className="text-[10px] text-muted-foreground font-medium max-w-[100px]">
                 {isDragging ? "Solte aqui" : "Nenhum lead nesta etapa"}
               </p>
             </div>
+          )}
+          {hasMore && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full mt-2 text-[10px] text-muted-foreground hover:text-foreground h-7"
+              onClick={onLoadMore}
+            >
+              <ChevronDown className="h-3 w-3 mr-1" />
+              Carregar mais ({remainingCount} restantes)
+            </Button>
           )}
         </div>
       </div>
@@ -286,11 +305,21 @@ function DroppableColumn({ stage, leads, isDragging, onStageChange }: DroppableC
   )
 }
 
-export function PipelineKanbanBoard({ leads }: { leads: PipelineLead[] }) {
+export function PipelineKanbanBoard({ leads, totalCount }: { leads: PipelineLead[]; totalCount: number }) {
   const [search, setSearch] = useState("")
   const [refreshKey, setRefreshKey] = useState(0)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [columnPages, setColumnPages] = useState<Record<PipelineStage, number>>({
+    cadastro: 1,
+    primeira_consulta: 1,
+    usou_vision: 1,
+    uso_recorrente: 1,
+    barreira_plano: 1,
+    convertido: 1,
+    risco_churn: 1,
+    perdido: 1,
+  })
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -299,6 +328,13 @@ export function PipelineKanbanBoard({ leads }: { leads: PipelineLead[] }) {
       },
     })
   )
+
+  const loadMoreInColumn = useCallback((stageId: PipelineStage) => {
+    setColumnPages(prev => ({
+      ...prev,
+      [stageId]: prev[stageId] + 1
+    }))
+  }, [])
 
   const { groupedLeads, filteredCount, leadsMap } = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -352,6 +388,21 @@ export function PipelineKanbanBoard({ leads }: { leads: PipelineLead[] }) {
     }
   }, [leads, search, refreshKey])
 
+  // Reset column pages when search changes
+  const handleSearchChange = (value: string) => {
+    setSearch(value)
+    setColumnPages({
+      cadastro: 1,
+      primeira_consulta: 1,
+      usou_vision: 1,
+      uso_recorrente: 1,
+      barreira_plano: 1,
+      convertido: 1,
+      risco_churn: 1,
+      perdido: 1,
+    })
+  }
+
   const handleStageChange = () => {
     setRefreshKey((prev) => prev + 1)
   }
@@ -396,38 +447,49 @@ export function PipelineKanbanBoard({ leads }: { leads: PipelineLead[] }) {
     >
       <div className="flex flex-col h-full bg-background">
         {/* Header */}
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6 px-8 py-6 border-b border-border/40 bg-background/80 backdrop-blur-xl sticky top-0 z-10 supports-[backdrop-filter]:bg-background/60">
-          <div className="flex items-baseline gap-4 w-full md:w-auto">
-            <h2 className="text-2xl font-heading font-bold text-foreground tracking-tight">Pipeline de Conversão</h2>
-            <div className="px-3 py-1 rounded-full bg-muted border border-border text-muted-foreground text-xs font-medium shadow-sm">
-              {filteredCount} leads ativos
+        <div className="flex flex-col md:flex-row items-center justify-between gap-4 px-6 py-4 border-b border-border/40 bg-background/80 backdrop-blur-xl sticky top-0 z-10 supports-[backdrop-filter]:bg-background/60">
+          <div className="flex items-baseline gap-3 w-full md:w-auto">
+            <h2 className="text-xl font-heading font-bold text-foreground tracking-tight">Pipeline de Conversão</h2>
+            <div className="px-2.5 py-0.5 rounded-full bg-muted border border-border text-muted-foreground text-[10px] font-medium shadow-sm">
+              {filteredCount} leads {search && `(de ${totalCount} total)`}
             </div>
           </div>
-          <div className="relative w-full md:w-96 group">
-            <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground group-focus-within:text-primary transition-colors"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            {/* Busca */}
+            <div className="relative w-full md:w-72 group">
+              <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground group-focus-within:text-primary transition-colors"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+              </div>
+              <Input
+                value={search}
+                onChange={(event) => handleSearchChange(event.target.value)}
+                placeholder="Buscar por nome, email, profissão..."
+                className="pl-9 h-9 w-full bg-muted/50 border-border text-foreground placeholder:text-muted-foreground/70 text-xs focus:border-primary/50 focus:ring-2 focus:ring-primary/10 focus:bg-muted transition-all rounded-xl"
+              />
             </div>
-            <Input
-              value={search}
-              onChange={(event) => setSearch(event.target.value)}
-              placeholder="Buscar por nome, email, profissão..."
-              className="pl-10 h-11 w-full bg-muted/50 border-border text-foreground placeholder:text-muted-foreground/70 text-sm focus:border-primary/50 focus:ring-2 focus:ring-primary/10 focus:bg-muted transition-all rounded-xl"
-            />
           </div>
         </div>
 
         {/* Board */}
         <div className="flex-1 overflow-x-auto overflow-y-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-background to-background">
-          <div className="flex flex-row gap-6 p-8 min-w-max h-full items-stretch">
-            {STAGES.map((stage) => (
-              <DroppableColumn
-                key={stage.id}
-                stage={stage}
-                leads={groupedLeads[stage.id] || []}
-                isDragging={isDragging}
-                onStageChange={handleStageChange}
-              />
-            ))}
+          <div className="flex flex-row gap-4 p-6 min-w-max h-full items-stretch">
+            {STAGES.map((stage) => {
+              const stageLeads = groupedLeads[stage.id] || []
+              const visibleCount = columnPages[stage.id] * LEADS_PER_COLUMN
+              const hasMore = stageLeads.length > visibleCount
+              return (
+                <DroppableColumn
+                  key={stage.id}
+                  stage={stage}
+                  leads={stageLeads}
+                  isDragging={isDragging}
+                  onStageChange={handleStageChange}
+                  visibleCount={visibleCount}
+                  hasMore={hasMore}
+                  onLoadMore={() => loadMoreInColumn(stage.id)}
+                />
+              )
+            })}
           </div>
         </div>
       </div>

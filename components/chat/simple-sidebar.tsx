@@ -3,7 +3,7 @@
 import { isToday, isYesterday, subWeeks, subMonths } from 'date-fns'
 import { useState } from 'react'
 import useSWRInfinite from 'swr/infinite'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import {
     SidebarGroup,
     SidebarGroupContent,
@@ -44,8 +44,13 @@ const groupChatsByDate = (chats: any[]) => {
 export function SimpleSidebar({ userId }: { userId: string | undefined }) {
     const { setOpenMobile } = useSidebar()
     const router = useRouter()
-    const searchParams = useSearchParams()
-    const id = searchParams.get('id')
+    const pathname = usePathname()
+
+    // Extract chat id from pathname (format: /dashboard/chat/[id])
+    const id = pathname.startsWith('/dashboard/chat/')
+        ? pathname.split('/dashboard/chat/')[1]?.split('/')[0] || null
+        : null
+
     const [deleteId, setDeleteId] = useState<string | null>(null)
 
     const { data, setSize, size, isLoading, mutate } = useSWRInfinite(

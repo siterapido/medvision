@@ -4,6 +4,9 @@ import { UIMessage } from 'ai'
 import { createClient } from '@/lib/supabase/server'
 import { getRemainingTrialDays } from '@/lib/trial'
 
+// Force dynamic rendering to ensure fresh data on each navigation
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
   title: 'Chat | Odonto GPT',
   description: 'Converse com seu tutor inteligente de Odontologia',
@@ -71,6 +74,7 @@ export default async function ChatPage({
 
   return (
     <Chat
+      key={id || 'new-chat'}
       id={id}
       initialMessages={initialMessages}
       userName={userName}

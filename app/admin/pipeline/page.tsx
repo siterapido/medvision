@@ -5,7 +5,7 @@ import { PipelineKanbanBoard } from "@/components/admin/pipeline/pipeline-kanban
 import { ColdLeadsKanbanBoard } from "@/components/admin/pipeline/cold-leads-kanban-board"
 import { PipelineTabs } from "@/components/admin/pipeline/pipeline-tabs"
 import { createClient } from "@/lib/supabase/server"
-import { getColdLeads } from "@/app/actions/leads"
+import { getColdLeadsWithSellers } from "@/app/actions/leads"
 
 export const metadata = {
   title: "Pipeline de Conversão | Admin",
@@ -29,13 +29,13 @@ async function TrialPipelineContent() {
     )
   }
 
-  const { data: leads, error } = await supabase
+  // Busca todos os leads do pipeline (sem limite artificial)
+  const { data: leads, error, count } = await supabase
     .from("profiles")
     .select(`
       id, name, email, role, trial_started_at, trial_ends_at, trial_used, created_at, pipeline_stage,
-      assigned_to,
-      assigned_seller:profiles!assigned_to(id, name, email)
-    `)
+      assigned_to
+    `, { count: "exact" })
     .neq("role", "admin")
     .neq("role", "vendedor")
     .is("deleted_at", null)
@@ -43,7 +43,19 @@ async function TrialPipelineContent() {
       "trial_started_at.not.is.null,trial_ends_at.not.is.null,trial_used.eq.true,pipeline_stage.not.is.null"
     )
     .order("trial_started_at", { ascending: false, nullsFirst: false })
-    .limit(400)
+
+  // Fetch seller info separately for profiles with assigned_to
+  const assignedToIds = [...new Set((leads || []).filter(l => l.assigned_to).map(l => l.assigned_to))]
+  let sellersMap: Record<string, { id: string; name: string | null; email: string | null }> = {}
+
+  if (assignedToIds.length > 0) {
+    const { data: sellers } = await supabase
+      .from("profiles")
+      .select("id, name, email")
+      .in("id", assignedToIds)
+
+    sellers?.forEach(s => { sellersMap[s.id] = s })
+  }
 
   if (error) {
     console.error("Erro ao buscar leads do pipeline:", error)
@@ -57,19 +69,19 @@ async function TrialPipelineContent() {
 
   const normalizedLeads = (leads || []).map((lead: any) => ({
     ...lead,
-    assigned_seller: Array.isArray(lead.assigned_seller) ? lead.assigned_seller[0] : lead.assigned_seller,
+    assigned_seller: lead.assigned_to ? sellersMap[lead.assigned_to] || null : null,
   }))
 
-  return <PipelineKanbanBoard leads={normalizedLeads} />
+  return <PipelineKanbanBoard leads={normalizedLeads} totalCount={count || normalizedLeads.length} />
 }
 
 async function ColdLeadsContent() {
-  const result = await getColdLeads()
+  const result = await getColdLeadsWithSellers()
 
   if (!result.success) {
     return (
       <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-6 text-red-100">
-        <p className="font-semibold">Não foi possível carregar os leads frios.</p>
+        <p className="font-semibold">Nao foi possivel carregar os leads frios.</p>
         <p className="text-sm text-red-200/80">{result.message}</p>
       </div>
     )

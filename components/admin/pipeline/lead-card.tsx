@@ -184,7 +184,7 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
         ref={setNodeRef}
         style={style}
         className={cn(
-          "group relative flex flex-col gap-3 rounded-xl p-4 transition-all duration-300",
+          "group relative flex flex-col gap-1.5 rounded-xl p-2.5 transition-all duration-300",
           // Base styles - Glassy feel
           "bg-card/40 backdrop-blur-sm border border-border/60 shadow-sm",
           // Hover effects
@@ -199,9 +199,9 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
         onClick={() => !isDragOverlay && setDetailsOpen(true)}
       >
         {/* Header refinado */}
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start justify-between gap-1.5">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1.5">
+            <div className="flex items-center gap-1.5 mb-1">
               <button
                 {...listeners}
                 {...attributes}
@@ -209,10 +209,10 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
                 onClick={(e) => e.stopPropagation()}
                 title="Arraste para mover"
               >
-                <GripVertical className="h-4 w-4" />
+                <GripVertical className="h-3 w-3" />
               </button>
               <span className={cn(
-                "font-semibold text-sm truncate block transition-colors",
+                "font-semibold text-xs truncate block transition-colors",
                 isDragOverlay ? "text-primary" : "text-foreground group-hover:text-foreground"
               )}>
                 {lead.name || "Lead sem nome"}
@@ -221,8 +221,8 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
 
             <div className="flex items-center gap-4 pl-4">
               <div className="flex flex-col gap-0.5">
-                <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground font-medium group-hover:text-muted-foreground/80 transition-colors">
-                  <Mail className="w-3 h-3 opacity-60" />
+                <div className="flex items-center gap-1 text-[9px] text-muted-foreground font-medium group-hover:text-muted-foreground/80 transition-colors">
+                  <Mail className="w-2.5 h-2.5 opacity-60" />
                   <span className="truncate max-w-[140px]">{lead.email}</span>
                 </div>
               </div>
@@ -233,11 +233,11 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
+              className="h-6 w-6 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-all"
               onClick={() => setDetailsOpen(true)}
               title="Expandir detalhes"
             >
-              <Maximize2 className="h-3.5 w-3.5" />
+              <Maximize2 className="h-3 w-3" />
             </Button>
 
             <DropdownMenu>
@@ -245,9 +245,9 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
+                  className="h-6 w-6 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
                 >
-                  <MoreHorizontal className="h-4 w-4" />
+                  <MoreHorizontal className="h-3.5 w-3.5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 bg-card border-border shadow-xl rounded-xl p-1.5">
@@ -305,19 +305,19 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
         </div>
 
         {/* Badges refinados */}
-        <div className="flex flex-wrap gap-1.5 pl-5">
+        <div className="flex flex-wrap gap-1 pl-4">
           {isPaid ? (
-            <Badge variant="secondary" className="h-5 px-2 text-[10px] font-medium bg-violet-500/10 text-violet-300 border border-violet-500/20 rounded-md">
+            <Badge variant="secondary" className="h-4 px-1.5 text-[9px] font-medium bg-violet-500/10 text-violet-300 border border-violet-500/20 rounded-md">
               {lead.plan_type}
             </Badge>
           ) : (
-            <Badge variant="outline" className="h-5 px-2 text-[10px] font-medium border-border text-muted-foreground bg-muted/30 rounded-md">
+            <Badge variant="outline" className="h-4 px-1.5 text-[9px] font-medium border-border text-muted-foreground bg-muted/30 rounded-md">
               Free
             </Badge>
           )}
 
           {lead.profession && (
-            <Badge variant="outline" className="h-5 px-2 text-[10px] font-normal border-border text-muted-foreground bg-muted/30 rounded-md">
+            <Badge variant="outline" className="h-4 px-1.5 text-[9px] font-normal border-border text-muted-foreground bg-muted/30 rounded-md">
               {lead.profession}
             </Badge>
           )}
@@ -326,13 +326,13 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
             <Badge
               variant="outline"
               className={cn(
-                "h-5 px-2 text-[10px] border rounded-md font-medium",
+                "h-4 px-1.5 text-[9px] border rounded-md font-medium",
                 isUrgent
                   ? "bg-rose-500/10 text-rose-400 border-rose-500/30"
                   : "bg-cyan-500/10 text-cyan-400 border-cyan-500/30"
               )}
             >
-              <Clock3 className="w-3 h-3 mr-1 opacity-70" />
+              <Clock3 className="w-2.5 h-2.5 mr-1 opacity-70" />
               {daysRemaining === 0 ? "Expira hoje" : `${daysRemaining}d`}
             </Badge>
           )}
@@ -340,8 +340,8 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
 
         {/* Trial Progress Bar */}
         {trialProgress !== null && (
-          <div className="pl-5 space-y-1.5 mt-1">
-            <div className="h-1 bg-muted rounded-full overflow-hidden">
+          <div className="pl-4 space-y-1 mt-0.5">
+            <div className="h-0.5 bg-muted rounded-full overflow-hidden">
               <div
                 className={cn(
                   "h-full transition-all duration-700 ease-out rounded-full shadow-[0_0_10px_rgba(0,0,0,0.5)]",
@@ -352,7 +352,7 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
                 style={{ width: `${trialProgress}%` }}
               />
             </div>
-            <div className="flex justify-between items-center text-[9px] text-muted-foreground font-medium uppercase tracking-wider">
+            <div className="flex justify-between items-center text-[8px] text-muted-foreground font-medium uppercase tracking-wider">
               <span>Trial</span>
               <span>{daysRemaining !== null ? (daysRemaining === 0 ? "Fim" : `${Math.round(trialProgress)}%`) : "Expirado"}</span>
             </div>
@@ -360,22 +360,22 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
         )}
 
         {/* Footer info (Seller + Age) */}
-        <div className="flex items-center justify-between pl-5 mt-1 pt-2 border-t border-border/40">
+        <div className="flex items-center justify-between pl-4 mt-0.5 pt-1.5 border-t border-border/40">
           {sellerName ? (
-            <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 rounded-full bg-violet-500/10 flex items-center justify-center border border-violet-500/20">
-                <User className="h-2.5 w-2.5 text-violet-400" />
+            <div className="flex items-center gap-1">
+              <div className="w-3.5 h-3.5 rounded-full bg-violet-500/10 flex items-center justify-center border border-violet-500/20">
+                <User className="h-2 w-2 text-violet-400" />
               </div>
-              <span className="text-[10px] font-medium text-violet-300">
+              <span className="text-[9px] font-medium text-violet-300">
                 {sellerName}
               </span>
             </div>
           ) : (
-            <span className="text-[10px] text-muted-foreground font-medium">Sem vendedor</span>
+            <span className="text-[9px] text-muted-foreground font-medium">Sem vendedor</span>
           )}
 
           {ageLabel && (
-            <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
+            <span className="text-[9px] text-muted-foreground font-medium flex items-center gap-1">
               {ageLabel}
             </span>
           )}

@@ -6,6 +6,9 @@ import { getRemainingTrialDays } from '@/lib/trial'
 import { UIMessage } from 'ai'
 import { notFound, redirect } from 'next/navigation'
 
+// Force dynamic rendering to ensure fresh data on each navigation
+export const dynamic = 'force-dynamic'
+
 export const metadata = {
     title: 'Chat | Odonto GPT',
     description: 'Converse com seu tutor inteligente de Odontologia',
@@ -90,6 +93,7 @@ export default async function ChatPage({
 
     return (
         <Chat
+            key={id}
             id={id}
             initialMessages={initialMessages}
             userName={userName}

@@ -545,6 +545,57 @@ export async function getSellers() {
   return { success: true, data: sellers || [] }
 }
 
+/**
+ * Busca o cold lead original que foi convertido para este profile
+ */
+export async function getLinkedLead(userId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: "Usuário não autenticado" }
+  }
+
+  // Verificar role
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (!profile || (profile.role !== "admin" && profile.role !== "vendedor")) {
+    return { success: false, message: "Acesso negado" }
+  }
+
+  // Buscar lead que foi convertido para este usuário
+  const { data: lead, error } = await supabase
+    .from("leads")
+    .select(`
+      id,
+      name,
+      phone,
+      email,
+      status,
+      source,
+      state,
+      ies,
+      sheet_source_name,
+      sheet_source_description,
+      created_at,
+      converted_at,
+      assigned_seller:profiles!leads_assigned_to_fkey(id, name, email)
+    `)
+    .eq("converted_to_user_id", userId)
+    .maybeSingle()
+
+  if (error) {
+    console.error("Erro ao buscar lead vinculado:", error)
+    return { success: false, message: "Erro ao buscar lead vinculado" }
+  }
+
+  return { success: true, data: lead }
+}
+
 export async function getLeadDetails(userId: string) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -564,13 +615,10 @@ export async function getLeadDetails(userId: string) {
     return { success: false, message: "Acesso negado" }
   }
 
-  // Buscar dados do perfil com vendedor atribuído
-  const { data: profile, error: profileError } = await supabase
+  // Buscar dados do perfil
+  const { data: profileData, error: profileError } = await supabase
     .from("profiles")
-    .select(`
-      *,
-      assigned_seller:profiles!assigned_to(id, name, email)
-    `)
+    .select("*")
     .eq("id", userId)
     .single()
 
@@ -578,6 +626,19 @@ export async function getLeadDetails(userId: string) {
     console.error("Erro ao buscar perfil:", profileError)
     return { success: false, message: "Erro ao buscar perfil" }
   }
+
+  // Fetch seller info separately (self-referential join doesn't work well in Supabase)
+  let assigned_seller = null
+  if (profileData.assigned_to) {
+    const { data: sellerData } = await supabase
+      .from("profiles")
+      .select("id, name, email")
+      .eq("id", profileData.assigned_to)
+      .single()
+    assigned_seller = sellerData
+  }
+
+  const profile = { ...profileData, assigned_seller }
 
   // Buscar histórico de pagamentos
   const { data: payments } = await supabase

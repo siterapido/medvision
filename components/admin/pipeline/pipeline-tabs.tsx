@@ -1,10 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { Upload } from "lucide-react"
+import { Upload, BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { ImportLeadsModal } from "./import-leads-modal"
+import { UnifiedFunnelView } from "./unified-funnel-view"
 
 interface PipelineTabsProps {
   coldLeadsTab: React.ReactNode
@@ -12,7 +13,7 @@ interface PipelineTabsProps {
 }
 
 export function PipelineTabs({ coldLeadsTab, trialPipelineTab }: PipelineTabsProps) {
-  const [activeTab, setActiveTab] = useState<"cold" | "trial">("cold")
+  const [activeTab, setActiveTab] = useState<"cold" | "trial" | "funnel">("cold")
   const [importModalOpen, setImportModalOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -22,31 +23,43 @@ export function PipelineTabs({ coldLeadsTab, trialPipelineTab }: PipelineTabsPro
 
   return (
     <>
-      <div className="flex flex-col h-full bg-[#030711]">
+      <div className="flex flex-col h-full bg-background">
         {/* Tabs Header */}
-        <div className="flex items-center justify-between gap-4 px-6 py-3 border-b border-slate-900 bg-slate-950/50">
+        <div className="flex items-center justify-between gap-4 px-6 py-3 border-b border-border bg-card/50">
           <div className="flex items-center gap-1">
             <button
               onClick={() => setActiveTab("cold")}
               className={cn(
-                "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
+                "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
                 activeTab === "cold"
-                  ? "bg-slate-900 text-slate-100 border-b-2 border-cyan-500"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/50"
+                  ? "bg-primary/10 text-primary border border-primary/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
             >
-              Prospecção
+              Prospeccao
             </button>
             <button
               onClick={() => setActiveTab("trial")}
               className={cn(
-                "px-4 py-2 text-sm font-medium rounded-t-lg transition-colors",
+                "px-4 py-2 text-sm font-medium rounded-lg transition-colors",
                 activeTab === "trial"
-                  ? "bg-slate-900 text-slate-100 border-b-2 border-cyan-500"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-slate-900/50"
+                  ? "bg-primary/10 text-primary border border-primary/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
             >
-              Conversão Trial
+              Conversao Trial
+            </button>
+            <button
+              onClick={() => setActiveTab("funnel")}
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2",
+                activeTab === "funnel"
+                  ? "bg-primary/10 text-primary border border-primary/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              )}
+            >
+              <BarChart3 className="w-4 h-4" />
+              Funil Completo
             </button>
           </div>
 
@@ -54,7 +67,7 @@ export function PipelineTabs({ coldLeadsTab, trialPipelineTab }: PipelineTabsPro
             <Button
               onClick={() => setImportModalOpen(true)}
               size="sm"
-              className="bg-gradient-to-r from-primary to-accent hover:from-primary-hover hover:to-accent text-white"
+              className="bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
             >
               <Upload className="h-4 w-4 mr-2" />
               Importar Leads
@@ -64,7 +77,9 @@ export function PipelineTabs({ coldLeadsTab, trialPipelineTab }: PipelineTabsPro
 
         {/* Tab Content */}
         <div className="flex-1 overflow-hidden" key={refreshKey}>
-          {activeTab === "cold" ? coldLeadsTab : trialPipelineTab}
+          {activeTab === "cold" && coldLeadsTab}
+          {activeTab === "trial" && trialPipelineTab}
+          {activeTab === "funnel" && <UnifiedFunnelView />}
         </div>
       </div>
 

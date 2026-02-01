@@ -88,7 +88,7 @@ const PureChatItem = ({
             )}
           >
             <Link
-              href={`/dashboard/chat?id=${chat.id}`}
+              href={`/dashboard/chat/${chat.id}`}
               onClick={() => setOpenMobile(false)}
               className="flex items-center gap-2"
             >

@@ -1,7 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
-import { Clock3, Phone, Mail, MoreHorizontal, Trash2, GripVertical, MapPin, GraduationCap } from "lucide-react"
+import { useMemo, useState, useCallback } from "react"
+import { Clock3, Phone, Mail, MoreHorizontal, Trash2, GripVertical, MapPin, GraduationCap, User, Maximize2, LinkIcon, ChevronDown } from "lucide-react"
 import {
   DndContext,
   DragEndEvent,
@@ -19,6 +19,7 @@ import { ptBR } from "date-fns/locale"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,27 +34,32 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
-import { updateLeadStatus, deleteLead, type Lead, type LeadStatus } from "@/app/actions/leads"
+import { updateLeadStatus, deleteLead, type LeadStatus, type LeadWithSeller, assignSellerToLead } from "@/app/actions/leads"
 import { PipelineFilters, type PipelineFiltersState } from "./pipeline-filters"
 import { BulkActionsBar } from "./bulk-actions-bar"
+import { SellerAssignmentSelect } from "./seller-assignment-select"
+import { UnifiedLeadDialog } from "./unified-lead-dialog"
 
 type StageConfig = {
   id: LeadStatus
   title: string
   color: string
+  icon: string
 }
 
+const LEADS_PER_COLUMN = 20
+
+// New conversion-focused stages (replacing SPIM)
 const STAGES: StageConfig[] = [
-  { id: "novo_lead", title: "Novo Lead", color: "border-t-slate-400" },
-  { id: "situacao", title: "Situação (S)", color: "border-t-cyan-400" },
-  { id: "problema", title: "Problema (P)", color: "border-t-sky-400" },
-  { id: "implicacao", title: "Implicação (I)", color: "border-t-violet-400" },
-  { id: "motivacao", title: "Motivação (M)", color: "border-t-fuchsia-400" },
-  { id: "convertido", title: "Convertido", color: "border-t-green-400" },
-  { id: "nao_convertido", title: "Não Convertido", color: "border-t-red-400" },
+  { id: "novo_lead", title: "Novo Lead", color: "border-t-slate-400", icon: "📥" },
+  { id: "contato_realizado", title: "Contato Realizado", color: "border-t-cyan-400", icon: "📞" },
+  { id: "interessado", title: "Interessado", color: "border-t-purple-400", icon: "🎯" },
+  { id: "aguardando_cadastro", title: "Aguardando Cadastro", color: "border-t-amber-400", icon: "⏳" },
+  { id: "convertido", title: "Convertido", color: "border-t-green-400", icon: "✅" },
+  { id: "descartado", title: "Descartado", color: "border-t-red-400", icon: "❌" },
 ]
 
-type LeadWithStage = Lead & { resolvedStage: LeadStatus }
+type LeadWithStage = LeadWithSeller & { resolvedStage: LeadStatus }
 
 /**
  * Normaliza número de telefone para WhatsApp
@@ -72,15 +78,17 @@ interface ColdLeadCardProps {
   isSelected?: boolean
   onSelect?: (id: string, selected: boolean) => void
   selectionMode?: boolean
+  onOpenDetails?: (leadId: string) => void
 }
 
-function ColdLeadCard({ 
-  lead, 
-  onStageChange, 
+function ColdLeadCard({
+  lead,
+  onStageChange,
   isDragOverlay = false,
   isSelected = false,
   onSelect,
-  selectionMode = false
+  selectionMode = false,
+  onOpenDetails
 }: ColdLeadCardProps) {
   const [isDeleting, setIsDeleting] = useState(false)
 
@@ -99,6 +107,8 @@ function ColdLeadCard({
   const phoneDigits = sanitizePhone(lead.phone)
   const whatsappUrl = phoneDigits ? `https://wa.me/${phoneDigits}` : null
   const isConverted = lead.status === "convertido"
+  const hasConvertedProfile = !!lead.converted_to_user_id
+  const sellerName = lead.assigned_seller?.name || lead.assigned_seller?.email?.split("@")[0]
 
   const handleCheckboxChange = (checked: boolean) => {
     onSelect?.(lead.id, checked)
@@ -108,8 +118,10 @@ function ColdLeadCard({
   const handleCardClick = (e: React.MouseEvent) => {
     if (selectionMode) {
       e.preventDefault()
-      e.stopPropagation() // Impede drag
+      e.stopPropagation()
       onSelect?.(lead.id, !isSelected)
+    } else if (!isDragOverlay) {
+      onOpenDetails?.(lead.id)
     }
   }
 
@@ -136,139 +148,174 @@ function ColdLeadCard({
       style={style}
       onClick={handleCardClick}
       className={cn(
-        "group relative flex flex-col gap-2 rounded-md border border-slate-700 bg-slate-800/60 p-2.5 hover:border-slate-600 transition-all",
-        isDragging && !isDragOverlay && "opacity-50",
-        !isDragOverlay && !selectionMode && "cursor-grab active:cursor-grabbing",
-        isConverted && "border-l-2 border-l-green-400 bg-green-500/10",
+        "group relative flex flex-col gap-1.5 rounded-xl p-2.5 transition-all duration-300",
+        // Base styles
+        "bg-card/40 backdrop-blur-sm border border-border/60 shadow-sm",
+        // Hover effects
+        "hover:bg-card/80 hover:border-border hover:shadow-[0_4px_20px_-2px_rgba(0,0,0,0.5)] hover:-translate-y-0.5",
+        isDragging && !isDragOverlay && "opacity-30 grayscale",
+        isDragOverlay && "rotate-2 scale-105 shadow-2xl shadow-primary/20 border-primary/30 bg-card z-50 cursor-grabbing",
+        !isDragOverlay && !selectionMode && "cursor-pointer active:cursor-grabbing",
+        isConverted && "border-l-2 border-l-green-500 bg-gradient-to-r from-green-500/5 to-transparent",
         isSelected && "ring-1 ring-primary border-primary bg-primary/5"
       )}
     >
       {/* Header */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex-1 min-w-0 flex items-start gap-2">
-          {/* Checkbox para seleção (visível no hover ou quando selecionado) */}
+      <div className="flex items-start justify-between gap-1.5">
+        <div className="flex-1 min-w-0 flex items-start gap-1.5">
+          {/* Checkbox para seleção */}
           <div className={cn(
-            "mt-0.5 transition-opacity duration-200",
-            isSelected || selectionMode ? "opacity-100" : "opacity-0 group-hover:opacity-100",
-            // Em mobile sempre mostra se houver algum selecionado (selectionMode)
-            "lg:opacity-0 lg:group-hover:opacity-100",
-            (isSelected || selectionMode) && "lg:opacity-100"
+            "mt-0.5 transition-opacity duration-200 shrink-0",
+            isSelected || selectionMode ? "opacity-100" : "opacity-0 group-hover:opacity-100"
           )}>
-            <Checkbox 
+            <Checkbox
               checked={isSelected}
               onCheckedChange={handleCheckboxChange}
-              className="border-slate-600 data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+              onClick={(e) => e.stopPropagation()}
+              className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary h-3.5 w-3.5"
             />
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-1.5 mb-0.5">
+            <div className="flex items-center gap-1 mb-0.5">
               {!selectionMode && (
                 <button
                   {...listeners}
                   {...attributes}
-                  className="text-slate-600 hover:text-slate-400 -ml-1 cursor-grab active:cursor-grabbing"
+                  className="text-muted-foreground hover:text-foreground -ml-1 p-0.5 rounded transition-colors opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <GripVertical className="h-3.5 w-3.5" />
+                  <GripVertical className="h-3 w-3" />
                 </button>
               )}
-              <span className="font-medium text-sm text-slate-200 truncate block">
+              <span className={cn(
+                "font-semibold text-xs truncate block transition-colors",
+                isDragOverlay ? "text-primary" : "text-foreground"
+              )}>
                 {lead.name || "Lead sem nome"}
               </span>
-            </div>
-            <div className="flex items-center gap-2 text-[10px] text-slate-500 pl-4">
-              {lead.email && (
-                <>
-                  <Mail className="h-3 w-3" />
-                  <span className="truncate">{lead.email}</span>
-                </>
+              {/* Conversion link indicator */}
+              {hasConvertedProfile && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <LinkIcon className="h-2.5 w-2.5 text-green-400 shrink-0" />
+                    </TooltipTrigger>
+                    <TooltipContent className="text-xs">
+                      Vinculado a um usuario trial
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
-              <span>• {ageLabel}</span>
+            </div>
+            <div className="flex items-center gap-2 pl-3">
+              {lead.email && (
+                <div className="flex items-center gap-1 text-[9px] text-muted-foreground">
+                  <Mail className="w-2.5 h-2.5 opacity-60" />
+                  <span className="truncate max-w-[90px]">{lead.email}</span>
+                </div>
+              )}
+              <span className="text-[9px] text-muted-foreground font-mono">{lead.phone}</span>
             </div>
           </div>
         </div>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 text-slate-400 hover:text-slate-200"
-              disabled={isDeleting}
-            >
-              <MoreHorizontal className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48 bg-slate-800 border-slate-700">
-            {whatsappUrl && (
-              <DropdownMenuItem asChild>
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-xs cursor-pointer flex items-center"
-                >
-                  <Phone className="h-3 w-3 mr-2" />
-                  WhatsApp
-                </a>
+        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-5 w-5 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg"
+            onClick={() => onOpenDetails?.(lead.id)}
+          >
+            <Maximize2 className="h-2.5 w-2.5" />
+          </Button>
+
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-5 w-5 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg"
+                disabled={isDeleting}
+              >
+                <MoreHorizontal className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44 bg-card border-border shadow-xl rounded-xl p-1">
+              {whatsappUrl && (
+                <DropdownMenuItem asChild>
+                  <a
+                    href={whatsappUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[10px] cursor-pointer flex items-center text-emerald-400 hover:bg-emerald-500/10"
+                  >
+                    <Phone className="h-2.5 w-2.5 mr-1.5" />
+                    WhatsApp
+                  </a>
+                </DropdownMenuItem>
+              )}
+              {lead.email && (
+                <DropdownMenuItem asChild>
+                  <a
+                    href={`mailto:${lead.email}`}
+                    className="text-[10px] cursor-pointer flex items-center"
+                  >
+                    <Mail className="h-2.5 w-2.5 mr-1.5" />
+                    Email
+                  </a>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem
+                onClick={() => onOpenDetails?.(lead.id)}
+                className="text-[10px] cursor-pointer"
+              >
+                <Maximize2 className="h-2.5 w-2.5 mr-1.5" />
+                Ver detalhes
               </DropdownMenuItem>
-            )}
-            {lead.email && (
-              <DropdownMenuItem asChild>
-                <a
-                  href={`mailto:${lead.email}`}
-                  className="text-xs cursor-pointer flex items-center"
-                >
-                  <Mail className="h-3 w-3 mr-2" />
-                  Email
-                </a>
+              <DropdownMenuSeparator className="bg-border/50 my-1" />
+              <DropdownMenuItem
+                onClick={handleDelete}
+                className="text-[10px] cursor-pointer text-rose-400 hover:bg-rose-500/10"
+                disabled={isDeleting}
+              >
+                <Trash2 className="h-2.5 w-2.5 mr-1.5" />
+                Excluir
               </DropdownMenuItem>
-            )}
-            <DropdownMenuSeparator className="bg-slate-700" />
-            <DropdownMenuItem
-              onClick={handleDelete}
-              className="text-xs cursor-pointer text-red-400 hover:text-red-300"
-              disabled={isDeleting}
-            >
-              <Trash2 className="h-3 w-3 mr-2" />
-              Excluir
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
       {/* Info Rows */}
-      <div className="space-y-1 pl-4">
-        {(lead.state || lead.ies) && (
-          <div className="flex flex-wrap gap-2 text-[10px] text-slate-400">
-            {lead.state && (
-              <div className="flex items-center gap-1">
-                <MapPin className="h-3 w-3 text-slate-500" />
-                <span>{lead.state}</span>
-              </div>
-            )}
-            {lead.ies && (
-              <div className="flex items-center gap-1">
-                <GraduationCap className="h-3 w-3 text-slate-500" />
-                <span className="truncate max-w-[120px]">{lead.ies}</span>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      {(lead.state || lead.ies) && (
+        <div className="flex flex-wrap gap-1.5 text-[9px] text-muted-foreground pl-4">
+          {lead.state && (
+            <div className="flex items-center gap-1">
+              <MapPin className="h-2.5 w-2.5 opacity-60" />
+              <span>{lead.state}</span>
+            </div>
+          )}
+          {lead.ies && (
+            <div className="flex items-center gap-1">
+              <GraduationCap className="h-2.5 w-2.5 opacity-60" />
+              <span className="truncate max-w-[100px]">{lead.ies}</span>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Badges */}
-      <div className="flex flex-wrap gap-1.5 pl-4 mt-1">
-        <span className="text-[10px] text-slate-400 font-mono">{lead.phone}</span>
+      <div className="flex flex-wrap gap-1 pl-4">
         {lead.source && (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <span className="h-4 px-1.5 text-[9px] font-normal border border-slate-600 text-slate-300 rounded cursor-help">
+                <Badge variant="outline" className="h-4 px-1.5 text-[8px] font-normal border-border bg-muted/30 cursor-help">
                   {lead.source}
-                </span>
+                </Badge>
               </TooltipTrigger>
-              <TooltipContent className="bg-slate-900 border-slate-800 text-xs">
+              <TooltipContent className="text-xs">
                 {lead.sheet_source_name ? (
                   <>
                     <p className="font-semibold">{lead.sheet_source_name}</p>
@@ -282,10 +329,30 @@ function ColdLeadCard({
           </TooltipProvider>
         )}
         {isConverted && (
-          <span className="h-4 px-1.5 text-[9px] font-medium bg-green-400/20 text-green-200 rounded border-0">
+          <Badge className="h-4 px-1.5 text-[8px] font-medium bg-green-500/10 text-green-400 border-green-500/20">
             Convertido
-          </span>
+          </Badge>
         )}
+      </div>
+
+      {/* Footer: Seller + Age */}
+      <div className="flex items-center justify-between pl-4 mt-0.5 pt-1.5 border-t border-border/40">
+        {sellerName ? (
+          <div className="flex items-center gap-1">
+            <div className="w-3.5 h-3.5 rounded-full bg-violet-500/10 flex items-center justify-center border border-violet-500/20">
+              <User className="h-2 w-2 text-violet-400" />
+            </div>
+            <span className="text-[9px] font-medium text-violet-300">
+              {sellerName}
+            </span>
+          </div>
+        ) : (
+          <span className="text-[9px] text-muted-foreground font-medium">Sem vendedor</span>
+        )}
+
+        <span className="text-[9px] text-muted-foreground">
+          {ageLabel}
+        </span>
       </div>
     </div>
   )
@@ -300,22 +367,32 @@ interface DroppableColumnProps {
   onSelectLead: (id: string, selected: boolean) => void
   onSelectAll: (ids: string[], selected: boolean) => void
   selectionMode: boolean
+  onOpenDetails: (leadId: string) => void
+  visibleCount: number
+  hasMore: boolean
+  onLoadMore: () => void
 }
 
-function DroppableColumn({ 
-  stage, 
-  leads, 
-  isDragging, 
+function DroppableColumn({
+  stage,
+  leads,
+  isDragging,
   onStageChange,
   selectedIds,
   onSelectLead,
   onSelectAll,
-  selectionMode
+  selectionMode,
+  onOpenDetails,
+  visibleCount,
+  hasMore,
+  onLoadMore
 }: DroppableColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   })
 
+  const visibleLeads = leads.slice(0, visibleCount)
+  const remainingCount = leads.length - visibleCount
   const columnLeadIds = leads.map(lead => lead.id)
   const allSelected = leads.length > 0 && columnLeadIds.every(id => selectedIds.includes(id))
   const someSelected = columnLeadIds.some(id => selectedIds.includes(id))
@@ -328,58 +405,71 @@ function DroppableColumn({
     <div
       ref={setNodeRef}
       className={cn(
-        "shrink-0 w-72 h-[calc(100vh-140px)] flex flex-col bg-slate-800/40 rounded-lg overflow-hidden transition-colors border-t-2",
+        "shrink-0 w-[300px] flex flex-col bg-card/40 rounded-xl overflow-hidden transition-colors border-t-2 border border-border/30",
         stage.color,
-        isOver && "bg-slate-700/60 ring-1 ring-inset ring-cyan-400/30"
+        isOver && "bg-muted/60 ring-1 ring-inset ring-primary/30"
       )}
     >
       {/* Column Header */}
-      <div className="flex items-center justify-between px-3 py-2.5 shrink-0 bg-slate-700/30 gap-2">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
+      <div className="flex items-center justify-between px-2.5 py-2 shrink-0 bg-muted/30 gap-1.5">
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
           {leads.length > 0 && (
             <div className="relative shrink-0">
               <Checkbox
                 checked={allSelected}
                 onCheckedChange={handleSelectAll}
                 className={cn(
-                  "border-slate-600 data-[state=checked]:bg-primary data-[state=checked]:border-primary",
+                  "border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary h-3.5 w-3.5",
                   someSelected && !allSelected && "bg-primary/30 border-primary"
                 )}
               />
               {someSelected && !allSelected && (
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="h-2 w-2 bg-primary rounded-sm" />
+                  <div className="h-1.5 w-1.5 bg-primary rounded-sm" />
                 </div>
               )}
             </div>
           )}
-          <h3 className="text-xs font-semibold text-slate-200 uppercase tracking-wide truncate">{stage.title}</h3>
+          <span className="text-xs">{stage.icon}</span>
+          <h3 className="text-[10px] font-semibold text-foreground uppercase tracking-wide truncate">{stage.title}</h3>
         </div>
-        <span className="text-[10px] font-medium text-slate-400 bg-slate-800/60 px-1.5 py-0.5 rounded shrink-0">
+        <span className="text-[9px] font-medium text-muted-foreground bg-muted/60 px-1.5 py-0.5 rounded shrink-0">
           {leads.length}
         </span>
       </div>
 
       {/* Column Content */}
-      <div className="flex-1 overflow-y-auto custom-scrollbar">
+      <div className="overflow-y-auto custom-scrollbar max-h-[calc(100vh-200px)]">
         <div className={cn("p-2 space-y-2 min-h-[100px]")}>
-          {leads.map((lead) => (
-            <ColdLeadCard 
-              key={lead.id} 
-              lead={lead} 
-              onStageChange={onStageChange} 
+          {visibleLeads.map((lead) => (
+            <ColdLeadCard
+              key={lead.id}
+              lead={lead}
+              onStageChange={onStageChange}
               isSelected={selectedIds.includes(lead.id)}
               onSelect={onSelectLead}
               selectionMode={selectionMode}
+              onOpenDetails={onOpenDetails}
             />
           ))}
-          {leads.length === 0 && (
-            <div className="flex flex-col items-center justify-center gap-1.5 py-12 text-center opacity-40">
-              <Clock3 className="h-4 w-4 text-slate-600" />
-              <p className="text-[10px] text-slate-500 font-medium">
+          {visibleLeads.length === 0 && (
+            <div className="flex flex-col items-center justify-center gap-1.5 py-10 text-center opacity-40">
+              <Clock3 className="h-3.5 w-3.5 text-muted-foreground" />
+              <p className="text-[9px] text-muted-foreground font-medium">
                 {isDragging ? "Solte aqui" : "Vazio"}
               </p>
             </div>
+          )}
+          {hasMore && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full mt-2 text-[9px] text-muted-foreground hover:text-foreground h-6"
+              onClick={onLoadMore}
+            >
+              <ChevronDown className="h-2.5 w-2.5 mr-1" />
+              Carregar mais ({remainingCount} restantes)
+            </Button>
           )}
         </div>
       </div>
@@ -388,7 +478,7 @@ function DroppableColumn({
 }
 
 interface ColdLeadsKanbanBoardProps {
-  leads: Lead[]
+  leads: LeadWithSeller[]
 }
 
 export function ColdLeadsKanbanBoard({ leads }: ColdLeadsKanbanBoardProps) {
@@ -403,6 +493,25 @@ export function ColdLeadsKanbanBoard({ leads }: ColdLeadsKanbanBoardProps) {
     state: [],
     ies: [],
   })
+  const [columnPages, setColumnPages] = useState<Record<LeadStatus, number>>({
+    novo_lead: 1,
+    contato_realizado: 1,
+    interessado: 1,
+    aguardando_cadastro: 1,
+    convertido: 1,
+    descartado: 1,
+  })
+  // Dialog state
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null)
+  const [selectedLeadName, setSelectedLeadName] = useState<string | null>(null)
+
+  const loadMoreInColumn = useCallback((stageId: LeadStatus) => {
+    setColumnPages(prev => ({
+      ...prev,
+      [stageId]: prev[stageId] + 1
+    }))
+  }, [])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -460,14 +569,14 @@ export function ColdLeadsKanbanBoard({ leads }: ColdLeadsKanbanBoardProps) {
       resolvedStage: lead.status,
     }))
 
+    // New conversion-focused stages
     const grouped: Record<LeadStatus, LeadWithStage[]> = {
       novo_lead: [],
-      situacao: [],
-      problema: [],
-      implicacao: [],
-      motivacao: [],
+      contato_realizado: [],
+      interessado: [],
+      aguardando_cadastro: [],
       convertido: [],
-      nao_convertido: [],
+      descartado: [],
     }
 
     const map: Record<string, LeadWithStage> = {}
@@ -554,6 +663,13 @@ export function ColdLeadsKanbanBoard({ leads }: ColdLeadsKanbanBoardProps) {
     handleStageChange()
   }
 
+  const handleOpenDetails = (leadId: string) => {
+    const lead = leadsMap[leadId]
+    setSelectedLeadId(leadId)
+    setSelectedLeadName(lead?.name || null)
+    setDialogOpen(true)
+  }
+
   const activeLead = activeId ? leadsMap[activeId] : null
   const selectionMode = selectedIds.length > 0
 
@@ -565,21 +681,31 @@ export function ColdLeadsKanbanBoard({ leads }: ColdLeadsKanbanBoardProps) {
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <div className="flex flex-col h-full bg-[#030711]">
-          {/* Minimalist Header */}
-          <div className="flex flex-col gap-4 px-6 py-4 border-b border-slate-900">
-            <div className="flex items-center justify-between gap-4">
-              <div className="flex items-baseline gap-3">
-                <h2 className="text-lg font-medium text-slate-100">Prospecção</h2>
-                <span className="text-xs text-slate-500 font-mono">
+        <div className="flex flex-col h-full bg-background">
+          {/* Header */}
+          <div className="flex flex-col gap-3 px-4 py-3 border-b border-border">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-baseline gap-2">
+                <h2 className="text-base font-medium text-foreground">Prospecção</h2>
+                <span className="text-[10px] text-muted-foreground font-mono px-2 py-0.5 rounded-full bg-muted border border-border">
                   {filteredCount} leads
                 </span>
               </div>
               <Input
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setSearch(event.target.value)
+                  setColumnPages({
+                    novo_lead: 1,
+                    contato_realizado: 1,
+                    interessado: 1,
+                    aguardando_cadastro: 1,
+                    convertido: 1,
+                    descartado: 1,
+                  })
+                }}
                 placeholder="Filtrar (Nome, UF, IES, Origem...)"
-                className="h-8 w-64 bg-slate-950 border-slate-800 text-slate-300 placeholder:text-slate-600 text-xs focus:ring-1 focus:ring-slate-700"
+                className="h-7 w-56 bg-muted/30 border-border text-foreground placeholder:text-muted-foreground text-[10px]"
               />
             </div>
             
@@ -594,19 +720,28 @@ export function ColdLeadsKanbanBoard({ leads }: ColdLeadsKanbanBoardProps) {
           {/* Board */}
           <div className="flex-1 overflow-x-auto">
             <div className="flex flex-row gap-3 p-4 min-w-max h-full items-stretch">
-              {STAGES.map((stage) => (
-                <DroppableColumn
-                  key={stage.id}
-                  stage={stage}
-                  leads={groupedLeads[stage.id] || []}
-                  isDragging={isDragging}
-                  onStageChange={handleStageChange}
-                  selectedIds={selectedIds}
-                  onSelectLead={handleSelectLead}
-                  onSelectAll={handleSelectAll}
-                  selectionMode={selectionMode}
-                />
-              ))}
+              {STAGES.map((stage) => {
+                const stageLeads = groupedLeads[stage.id] || []
+                const visibleCount = columnPages[stage.id] * LEADS_PER_COLUMN
+                const hasMore = stageLeads.length > visibleCount
+                return (
+                  <DroppableColumn
+                    key={stage.id}
+                    stage={stage}
+                    leads={stageLeads}
+                    isDragging={isDragging}
+                    onStageChange={handleStageChange}
+                    selectedIds={selectedIds}
+                    onSelectLead={handleSelectLead}
+                    onSelectAll={handleSelectAll}
+                    selectionMode={selectionMode}
+                    onOpenDetails={handleOpenDetails}
+                    visibleCount={visibleCount}
+                    hasMore={hasMore}
+                    onLoadMore={() => loadMoreInColumn(stage.id)}
+                  />
+                )
+              })}
             </div>
           </div>
         </div>
@@ -614,18 +749,30 @@ export function ColdLeadsKanbanBoard({ leads }: ColdLeadsKanbanBoardProps) {
         <DragOverlay>
           {activeLead ? (
             <div className="opacity-80 rotate-2 cursor-grabbing scale-105">
-              <ColdLeadCard lead={activeLead} isDragOverlay onStageChange={handleStageChange} />
+              <ColdLeadCard lead={activeLead} isDragOverlay onStageChange={handleStageChange} onOpenDetails={handleOpenDetails} />
             </div>
           ) : null}
         </DragOverlay>
       </DndContext>
 
-      <BulkActionsBar 
+      <BulkActionsBar
         selectedCount={selectedIds.length}
         selectedIds={selectedIds}
         onClearSelection={handleClearSelection}
         onActionComplete={handleActionComplete}
       />
+
+      {/* Lead Details Dialog */}
+      {selectedLeadId && (
+        <UnifiedLeadDialog
+          open={dialogOpen}
+          onOpenChange={setDialogOpen}
+          type="cold_lead"
+          id={selectedLeadId}
+          name={selectedLeadName}
+          onStageChange={handleStageChange}
+        />
+      )}
     </>
   )
 }

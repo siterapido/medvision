@@ -167,7 +167,7 @@ export function HistoryList() {
                                     return (
                                         <Link
                                             key={session.id}
-                                            href={`/dashboard/chat?id=${session.id}`}
+                                            href={`/dashboard/chat/${session.id}`}
                                             className="group relative flex flex-col justify-between p-5 rounded-2xl bg-card hover:bg-muted/30 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1"
                                         >
                                             <div className="space-y-4">

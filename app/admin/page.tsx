@@ -45,11 +45,21 @@ export default async function AdminPage() {
   const weekStart = startOfWeek(now, { locale: ptBR }).toISOString()
   const monthStart = startOfMonth(now).toISOString()
 
+  // Helper function para query base de leads do pipeline (mesmos filtros)
+  const pipelineLeadsQuery = () => supabase
+    .from("profiles")
+    .select("*", { count: "exact", head: true })
+    .neq("role", "admin")
+    .neq("role", "vendedor")
+    .is("deleted_at", null)
+    .or("trial_started_at.not.is.null,trial_ends_at.not.is.null,trial_used.eq.true,pipeline_stage.not.is.null")
+
   // Fetch comprehensive stats
   const [
     coursesResult,
     coursesPublishedResult,
     usersResult,
+    usersAllResult,
     usersTodayResult,
     usersWeekResult,
     usersMonthResult,
@@ -67,17 +77,41 @@ export default async function AdminPage() {
     supabase.from("courses").select("*", { count: "exact", head: true }),
     supabase.from("courses").select("*", { count: "exact", head: true }).eq("is_published", true),
 
-    // Users - Total
+    // Users - Leads do Pipeline (mesmos filtros do pipeline)
+    pipelineLeadsQuery(),
+
+    // Users - Total (todos os perfis para referência)
     supabase.from("profiles").select("*", { count: "exact", head: true }),
 
-    // Users - Today
-    supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", todayStart),
+    // Users - Today (leads do pipeline criados hoje)
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .neq("role", "admin")
+      .neq("role", "vendedor")
+      .is("deleted_at", null)
+      .or("trial_started_at.not.is.null,trial_ends_at.not.is.null,trial_used.eq.true,pipeline_stage.not.is.null")
+      .gte("created_at", todayStart),
 
-    // Users - This Week
-    supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", weekStart),
+    // Users - This Week (leads do pipeline criados esta semana)
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .neq("role", "admin")
+      .neq("role", "vendedor")
+      .is("deleted_at", null)
+      .or("trial_started_at.not.is.null,trial_ends_at.not.is.null,trial_used.eq.true,pipeline_stage.not.is.null")
+      .gte("created_at", weekStart),
 
-    // Users - This Month
-    supabase.from("profiles").select("*", { count: "exact", head: true }).gte("created_at", monthStart),
+    // Users - This Month (leads do pipeline criados este mês)
+    supabase
+      .from("profiles")
+      .select("*", { count: "exact", head: true })
+      .neq("role", "admin")
+      .neq("role", "vendedor")
+      .is("deleted_at", null)
+      .or("trial_started_at.not.is.null,trial_ends_at.not.is.null,trial_used.eq.true,pipeline_stage.not.is.null")
+      .gte("created_at", monthStart),
 
     // Lessons
     supabase.from("lessons").select("*", { count: "exact", head: true }),
@@ -100,7 +134,8 @@ export default async function AdminPage() {
   const totalCourses = coursesResult.count || 0
   const publishedCourses = coursesPublishedResult.count || 0
   const draftCourses = totalCourses - publishedCourses
-  const totalUsers = usersResult.count || 0
+  const pipelineLeads = usersResult.count || 0  // Leads ativos no pipeline (mesmos filtros)
+  const totalProfiles = usersAllResult.count || 0  // Total de perfis cadastrados
   const newUsersToday = usersTodayResult.count || 0
   const newUsersWeek = usersWeekResult.count || 0
   const newUsersMonth = usersMonthResult.count || 0
@@ -150,6 +185,10 @@ export default async function AdminPage() {
     supabase
       .from("profiles")
       .select("id, name, email, created_at, plan_type, subscription_status")
+      .neq("role", "admin")
+      .neq("role", "vendedor")
+      .is("deleted_at", null)
+      .or("trial_started_at.not.is.null,trial_ends_at.not.is.null,trial_used.eq.true,pipeline_stage.not.is.null")
       .order("created_at", { ascending: false })
       .limit(10),
   ])
@@ -248,8 +287,9 @@ export default async function AdminPage() {
               <Users className="h-4 w-4" />
             </div>
             <div>
-              <p className="text-[10px] font-medium text-muted-foreground uppercase">Usuários</p>
-              <p className="text-base font-bold text-foreground">{totalUsers}</p>
+              <p className="text-[10px] font-medium text-muted-foreground uppercase">Leads Pipeline</p>
+              <p className="text-base font-bold text-foreground">{pipelineLeads}</p>
+              <p className="text-[10px] text-muted-foreground">{totalProfiles} perfis total</p>
             </div>
           </CardContent>
         </Card>
@@ -285,11 +325,11 @@ export default async function AdminPage() {
         <Card className="border-border bg-card flex flex-col h-[450px]">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div className="space-y-0.5">
-              <CardTitle className="text-lg font-bold">Usuários Recentes</CardTitle>
-              <CardDescription className="text-xs">Últimos cadastros realizados.</CardDescription>
+              <CardTitle className="text-lg font-bold">Leads Recentes</CardTitle>
+              <CardDescription className="text-xs">Últimos leads ativos no pipeline.</CardDescription>
             </div>
             <Button asChild variant="ghost" size="icon" className="h-8 w-8">
-              <Link href="/admin/usuarios">
+              <Link href="/admin/pipeline">
                 <ArrowUpRight className="h-4 w-4" />
               </Link>
             </Button>

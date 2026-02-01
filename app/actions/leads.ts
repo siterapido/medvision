@@ -2,8 +2,10 @@
 
 import { revalidatePath } from "next/cache"
 import { createClient } from "@/lib/supabase/server"
+import { mapLegacyStage, VALID_LEAD_STATUSES, type LeadStatus, type LegacyLeadStatus } from "@/lib/lead-utils"
 
-export type LeadStatus = "novo_lead" | "situacao" | "problema" | "implicacao" | "motivacao" | "convertido" | "nao_convertido"
+// Re-export types from lead-utils for convenience
+export type { LeadStatus, LegacyLeadStatus } from "@/lib/lead-utils"
 
 export type Lead = {
   id: string
@@ -19,8 +21,29 @@ export type Lead = {
   sheet_source_description?: string | null
   converted_at?: string | null
   converted_to_user_id?: string | null
+  assigned_to?: string | null
   created_at: string
   updated_at: string
+}
+
+export type LeadWithSeller = Lead & {
+  assigned_seller?: {
+    id: string
+    name: string | null
+    email: string | null
+  } | null
+}
+
+export type LeadNote = {
+  id: string
+  lead_id: string
+  note: string
+  created_by: string
+  created_at: string
+  creator?: {
+    name: string | null
+    email: string | null
+  } | null
 }
 
 export type ImportLeadRow = {
@@ -316,9 +339,15 @@ export async function updateLeadStatus(leadId: string, status: LeadStatus) {
     return { success: false, message: "Apenas administradores podem atualizar leads" }
   }
 
-  // Validar status
-  if (!["novo_lead", "situacao", "problema", "implicacao", "motivacao", "convertido", "nao_convertido"].includes(status)) {
-    return { success: false, message: "Status inválido" }
+  // Validar status - new conversion-focused stages
+  if (!VALID_LEAD_STATUSES.includes(status)) {
+    // Check if it's a legacy status and map it
+    const mapped = mapLegacyStage(status)
+    if (VALID_LEAD_STATUSES.includes(mapped)) {
+      status = mapped
+    } else {
+      return { success: false, message: "Status inválido" }
+    }
   }
 
   const { error } = await supabase
@@ -506,5 +535,367 @@ export async function deleteLeads(leadIds: string[]) {
 
   revalidatePath("/admin/pipeline")
   return { success: true }
+}
+
+/**
+ * Busca cold leads com informações do vendedor atribuído
+ */
+export async function getColdLeadsWithSellers() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, data: [], message: "Usuário não autenticado" }
+  }
+
+  // Verificar role do usuário
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (!profile || (profile.role !== "admin" && profile.role !== "vendedor")) {
+    return { success: false, data: [], message: "Acesso negado" }
+  }
+
+  // Admins veem todos, vendedores veem apenas os seus
+  let query = supabase
+    .from("leads")
+    .select(`
+      *,
+      assigned_seller:profiles!leads_assigned_to_fkey(id, name, email)
+    `)
+    .order("created_at", { ascending: false })
+
+  if (profile.role === "vendedor") {
+    query = query.eq("assigned_to", user.id)
+  }
+
+  const { data: leads, error } = await query
+
+  if (error) {
+    console.error("Erro ao buscar leads:", error)
+    return { success: false, data: [], message: "Erro ao buscar leads" }
+  }
+
+  return { success: true, data: (leads || []) as LeadWithSeller[] }
+}
+
+/**
+ * Atribui um vendedor a um cold lead
+ */
+export async function assignSellerToLead(leadId: string, sellerId: string | null) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: "Usuário não autenticado" }
+  }
+
+  // Verificar se o usuário é admin
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (profile?.role !== "admin") {
+    return { success: false, message: "Apenas administradores podem atribuir vendedores" }
+  }
+
+  // Se sellerId for fornecido, verificar se é um vendedor válido
+  if (sellerId) {
+    const { data: seller } = await supabase
+      .from("profiles")
+      .select("id, role")
+      .eq("id", sellerId)
+      .single()
+
+    if (!seller) {
+      return { success: false, message: "Vendedor não encontrado" }
+    }
+
+    if (seller.role !== "vendedor" && seller.role !== "admin") {
+      return { success: false, message: "Usuário não é um vendedor" }
+    }
+  }
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ assigned_to: sellerId })
+    .eq("id", leadId)
+
+  if (error) {
+    console.error("Erro ao atribuir vendedor:", error)
+    return { success: false, message: "Erro ao atribuir vendedor" }
+  }
+
+  revalidatePath("/admin/pipeline")
+  return { success: true }
+}
+
+/**
+ * Adiciona uma nota a um cold lead
+ */
+export async function addLeadNote(leadId: string, note: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: "Usuário não autenticado" }
+  }
+
+  // Verificar role do usuário
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (!profile || (profile.role !== "admin" && profile.role !== "vendedor")) {
+    return { success: false, message: "Acesso negado" }
+  }
+
+  if (!note || note.trim().length === 0) {
+    return { success: false, message: "A nota não pode estar vazia" }
+  }
+
+  // Vendedores só podem adicionar notas em seus próprios leads
+  if (profile.role === "vendedor") {
+    const { data: lead } = await supabase
+      .from("leads")
+      .select("assigned_to")
+      .eq("id", leadId)
+      .single()
+
+    if (lead?.assigned_to !== user.id) {
+      return { success: false, message: "Você só pode adicionar notas em seus próprios leads" }
+    }
+  }
+
+  const { error } = await supabase
+    .from("lead_notes")
+    .insert({
+      lead_id: leadId,
+      note: note.trim(),
+      created_by: user.id,
+    })
+
+  if (error) {
+    console.error("Erro ao adicionar nota:", error)
+    return { success: false, message: "Erro ao adicionar nota" }
+  }
+
+  revalidatePath("/admin/pipeline")
+  return { success: true }
+}
+
+/**
+ * Busca notas de um cold lead
+ */
+export async function getLeadNotes(leadId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, data: [], message: "Usuário não autenticado" }
+  }
+
+  // Verificar role do usuário
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (!profile || (profile.role !== "admin" && profile.role !== "vendedor")) {
+    return { success: false, data: [], message: "Acesso negado" }
+  }
+
+  const { data: notes, error } = await supabase
+    .from("lead_notes")
+    .select(`
+      id,
+      lead_id,
+      note,
+      created_by,
+      created_at
+    `)
+    .eq("lead_id", leadId)
+    .order("created_at", { ascending: false })
+
+  if (error) {
+    console.error("Erro ao buscar notas:", error)
+    return { success: false, data: [], message: "Erro ao buscar notas" }
+  }
+
+  if (!notes || notes.length === 0) {
+    return { success: true, data: [] }
+  }
+
+  // Buscar perfis dos criadores das notas
+  const creatorIds = [...new Set(notes.map((note) => note.created_by))]
+  const { data: creators } = await supabase
+    .from("profiles")
+    .select("id, name, email")
+    .in("id", creatorIds)
+
+  // Adicionar informações do criador a cada nota
+  const notesWithCreators = notes.map((note) => ({
+    ...note,
+    creator: creators?.find((creator) => creator.id === note.created_by) || null,
+  }))
+
+  return { success: true, data: notesWithCreators as LeadNote[] }
+}
+
+/**
+ * Deleta uma nota de um cold lead
+ */
+export async function deleteLeadNote(noteId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: "Usuário não autenticado" }
+  }
+
+  // Verificar se o usuário é o autor da nota ou admin
+  const { data: note } = await supabase
+    .from("lead_notes")
+    .select("created_by")
+    .eq("id", noteId)
+    .single()
+
+  if (!note) {
+    return { success: false, message: "Nota não encontrada" }
+  }
+
+  if (note.created_by !== user.id) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", user.id)
+      .single()
+
+    if (profile?.role !== "admin") {
+      return { success: false, message: "Apenas o autor ou admin pode excluir esta nota" }
+    }
+  }
+
+  const { error } = await supabase
+    .from("lead_notes")
+    .delete()
+    .eq("id", noteId)
+
+  if (error) {
+    console.error("Erro ao excluir nota:", error)
+    return { success: false, message: "Erro ao excluir nota" }
+  }
+
+  revalidatePath("/admin/pipeline")
+  return { success: true }
+}
+
+/**
+ * Busca detalhes completos de um cold lead
+ */
+export async function getLeadDetails(leadId: string) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: "Usuário não autenticado" }
+  }
+
+  // Verificar role do usuário
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (!profile || (profile.role !== "admin" && profile.role !== "vendedor")) {
+    return { success: false, message: "Acesso negado" }
+  }
+
+  // Buscar lead com vendedor
+  const { data: lead, error: leadError } = await supabase
+    .from("leads")
+    .select(`
+      *,
+      assigned_seller:profiles!leads_assigned_to_fkey(id, name, email)
+    `)
+    .eq("id", leadId)
+    .single()
+
+  if (leadError) {
+    console.error("Erro ao buscar lead:", leadError)
+    return { success: false, message: "Erro ao buscar lead" }
+  }
+
+  // Vendedores só podem ver seus próprios leads
+  if (profile.role === "vendedor" && lead.assigned_to !== user.id) {
+    return { success: false, message: "Acesso negado a este lead" }
+  }
+
+  // Buscar notas
+  const { data: notes } = await supabase
+    .from("lead_notes")
+    .select(`
+      *,
+      creator:profiles!lead_notes_created_by_fkey(name, email)
+    `)
+    .eq("lead_id", leadId)
+    .order("created_at", { ascending: false })
+
+  // Se o lead foi convertido, buscar o perfil do usuário
+  let convertedProfile = null
+  if (lead.converted_to_user_id) {
+    const { data: profileData } = await supabase
+      .from("profiles")
+      .select("id, name, email, pipeline_stage, created_at, trial_ends_at")
+      .eq("id", lead.converted_to_user_id)
+      .single()
+    convertedProfile = profileData
+  }
+
+  // Construir timeline
+  const timeline = [
+    {
+      id: "created",
+      type: "created",
+      date: lead.created_at,
+      description: "Lead importado",
+      metadata: { source: lead.source, sheet: lead.sheet_source_name },
+    },
+    // Notas
+    ...(notes || []).map((n: any) => ({
+      id: n.id,
+      type: "note",
+      date: n.created_at,
+      description: "Nota adicionada",
+      metadata: { note: n.note, creator: n.creator?.name || n.creator?.email },
+    })),
+    // Conversão
+    ...(lead.converted_at ? [{
+      id: "converted",
+      type: "converted",
+      date: lead.converted_at,
+      description: "Convertido para trial",
+      metadata: { user_id: lead.converted_to_user_id },
+    }] : []),
+  ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+
+  return {
+    success: true,
+    data: {
+      lead,
+      notes: notes || [],
+      convertedProfile,
+      timeline,
+    }
+  }
 }
 
