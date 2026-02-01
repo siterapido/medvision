@@ -3,6 +3,7 @@ import { Loader2 } from "lucide-react"
 
 import { PipelineKanbanBoard } from "@/components/admin/pipeline/pipeline-kanban-board"
 import { ColdLeadsKanbanBoard } from "@/components/admin/pipeline/cold-leads-kanban-board"
+import { Trial7DaysView } from "@/components/admin/pipeline/trial-7-days-view"
 import { PipelineTabs } from "@/components/admin/pipeline/pipeline-tabs"
 import { createClient } from "@/lib/supabase/server"
 import { getColdLeadsWithSellers } from "@/app/actions/leads"
@@ -75,6 +76,67 @@ async function TrialPipelineContent() {
   return <PipelineKanbanBoard leads={normalizedLeads} totalCount={count || normalizedLeads.length} />
 }
 
+async function Trial7DaysContent() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[200px]">
+        <div className="text-center space-y-3">
+          <p className="text-lg font-semibold text-white">Acesso necessario</p>
+          <p className="text-sm text-slate-300">
+            Faca login novamente para acessar a visualizacao.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Fetch trial users (users with trial_started_at)
+  const { data: leads, error } = await supabase
+    .from("profiles")
+    .select(`
+      id, name, email, role, trial_started_at, trial_ends_at, trial_used, created_at, pipeline_stage,
+      plan_type, subscription_status, last_active_at, assigned_to
+    `)
+    .neq("role", "admin")
+    .neq("role", "vendedor")
+    .is("deleted_at", null)
+    .not("trial_started_at", "is", null)
+    .order("trial_started_at", { ascending: false })
+
+  // Fetch seller info separately
+  const assignedToIds = [...new Set((leads || []).filter(l => l.assigned_to).map(l => l.assigned_to))]
+  let sellersMap: Record<string, { id: string; name: string | null; email: string | null }> = {}
+
+  if (assignedToIds.length > 0) {
+    const { data: sellers } = await supabase
+      .from("profiles")
+      .select("id, name, email")
+      .in("id", assignedToIds)
+
+    sellers?.forEach(s => { sellersMap[s.id] = s })
+  }
+
+  if (error) {
+    console.error("Erro ao buscar leads do trial:", error)
+    return (
+      <div className="rounded-xl border border-red-500/40 bg-red-500/10 p-6 text-red-100">
+        <p className="font-semibold">Nao foi possivel carregar a visualizacao.</p>
+        <p className="text-sm text-red-200/80">{error.message}</p>
+      </div>
+    )
+  }
+
+  const normalizedLeads = (leads || []).map((lead: any) => ({
+    ...lead,
+    assigned_seller: lead.assigned_to ? sellersMap[lead.assigned_to] || null : null,
+  }))
+
+  return <Trial7DaysView leads={normalizedLeads} />
+}
+
 async function ColdLeadsContent() {
   const result = await getColdLeadsWithSellers()
 
@@ -118,6 +180,11 @@ export default function AdminPipelinePage() {
         trialPipelineTab={
           <Suspense fallback={<LoadingState />}>
             <TrialPipelineContent />
+          </Suspense>
+        }
+        trial7DaysTab={
+          <Suspense fallback={<LoadingState />}>
+            <Trial7DaysContent />
           </Suspense>
         }
       />

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Upload, BarChart3 } from "lucide-react"
+import { Upload, BarChart3, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { ImportLeadsModal } from "./import-leads-modal"
@@ -10,10 +10,11 @@ import { UnifiedFunnelView } from "./unified-funnel-view"
 interface PipelineTabsProps {
   coldLeadsTab: React.ReactNode
   trialPipelineTab: React.ReactNode
+  trial7DaysTab?: React.ReactNode
 }
 
-export function PipelineTabs({ coldLeadsTab, trialPipelineTab }: PipelineTabsProps) {
-  const [activeTab, setActiveTab] = useState<"cold" | "trial" | "funnel">("cold")
+export function PipelineTabs({ coldLeadsTab, trialPipelineTab, trial7DaysTab }: PipelineTabsProps) {
+  const [activeTab, setActiveTab] = useState<"cold" | "trial" | "trial7days" | "funnel">("cold")
   const [importModalOpen, setImportModalOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -50,6 +51,18 @@ export function PipelineTabs({ coldLeadsTab, trialPipelineTab }: PipelineTabsPro
               Conversao Trial
             </button>
             <button
+              onClick={() => setActiveTab("trial7days")}
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2",
+                activeTab === "trial7days"
+                  ? "bg-primary/10 text-primary border border-primary/20"
+                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+              )}
+            >
+              <Calendar className="w-4 h-4" />
+              Trial 7 Dias
+            </button>
+            <button
               onClick={() => setActiveTab("funnel")}
               className={cn(
                 "px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2",
@@ -79,6 +92,7 @@ export function PipelineTabs({ coldLeadsTab, trialPipelineTab }: PipelineTabsPro
         <div className="flex-1 overflow-hidden" key={refreshKey}>
           {activeTab === "cold" && coldLeadsTab}
           {activeTab === "trial" && trialPipelineTab}
+          {activeTab === "trial7days" && trial7DaysTab}
           {activeTab === "funnel" && <UnifiedFunnelView />}
         </div>
       </div>
