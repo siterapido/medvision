@@ -1,12 +1,14 @@
 "use client"
 
-import { useMemo, useState, useCallback, useEffect } from "react"
+import { useMemo, useState, useCallback } from "react"
 import { Calendar, Clock, ChevronDown, AlertTriangle, CheckCircle2, XCircle } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import { LeadCard } from "./lead-card"
+import { BulkActionsBar } from "./bulk-actions-bar"
 
 const LEADS_PER_COLUMN = 15
 
@@ -164,11 +166,33 @@ interface DayColumnProps {
   visibleCount: number
   hasMore: boolean
   onLoadMore: () => void
+  selectedIds: string[]
+  onSelectLead: (id: string, selected: boolean) => void
+  onSelectAll: (ids: string[], selected: boolean) => void
+  selectionMode: boolean
 }
 
-function DayColumn({ day, leads, onStageChange, visibleCount, hasMore, onLoadMore }: DayColumnProps) {
+function DayColumn({
+  day,
+  leads,
+  onStageChange,
+  visibleCount,
+  hasMore,
+  onLoadMore,
+  selectedIds,
+  onSelectLead,
+  onSelectAll,
+  selectionMode
+}: DayColumnProps) {
   const visibleLeads = leads.slice(0, visibleCount)
   const remainingCount = leads.length - visibleCount
+  const columnLeadIds = leads.map(lead => lead.id)
+  const allSelected = leads.length > 0 && columnLeadIds.every(id => selectedIds.includes(id))
+  const someSelected = columnLeadIds.some(id => selectedIds.includes(id))
+
+  const handleSelectAll = (checked: boolean) => {
+    onSelectAll(columnLeadIds, checked)
+  }
 
   // Calculate stats for the column
   const activeLeads = leads.filter(l => {
@@ -205,6 +229,23 @@ function DayColumn({ day, leads, onStageChange, visibleCount, hasMore, onLoadMor
         <div className={cn("absolute top-0 left-0 right-0 h-[3px]", day.color)} />
 
         <div className="flex items-center gap-2">
+          {leads.length > 0 && (
+            <div className="relative shrink-0">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={handleSelectAll}
+                className={cn(
+                  "border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary h-3.5 w-3.5",
+                  someSelected && !allSelected && "bg-primary/30 border-primary"
+                )}
+              />
+              {someSelected && !allSelected && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="h-1.5 w-1.5 bg-primary rounded-sm" />
+                </div>
+              )}
+            </div>
+          )}
           <div className={cn(
             "w-9 h-9 rounded-xl flex items-center justify-center text-lg shadow-sm",
             "bg-background/50 border border-border/50"
@@ -260,7 +301,13 @@ function DayColumn({ day, leads, onStageChange, visibleCount, hasMore, onLoadMor
                   </div>
                 </div>
               )}
-              <LeadCard lead={lead} onStageChange={onStageChange} />
+              <LeadCard
+                lead={lead}
+                onStageChange={onStageChange}
+                isSelected={selectedIds.includes(lead.id)}
+                onSelect={onSelectLead}
+                selectionMode={selectionMode}
+              />
             </div>
           ))}
           {visibleLeads.length === 0 && (
@@ -302,6 +349,7 @@ function DayColumn({ day, leads, onStageChange, visibleCount, hasMore, onLoadMor
 export function Trial7DaysView({ leads }: { leads: TrialLead[] }) {
   const [search, setSearch] = useState("")
   const [refreshKey, setRefreshKey] = useState(0)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [columnPages, setColumnPages] = useState<Record<string, number>>({
     "1": 1, "2": 1, "3": 1, "4": 1, "5": 1, "6": 1, "7": 1,
     "converted": 1, "expired": 1
@@ -313,6 +361,35 @@ export function Trial7DaysView({ leads }: { leads: TrialLead[] }) {
       [dayId]: prev[dayId] + 1
     }))
   }, [])
+
+  const handleSelectLead = (id: string, selected: boolean) => {
+    if (selected) {
+      setSelectedIds(prev => [...prev, id])
+    } else {
+      setSelectedIds(prev => prev.filter(i => i !== id))
+    }
+  }
+
+  const handleSelectAll = (ids: string[], selected: boolean) => {
+    if (selected) {
+      setSelectedIds(prev => {
+        const newIds = ids.filter(id => !prev.includes(id))
+        return [...prev, ...newIds]
+      })
+    } else {
+      setSelectedIds(prev => prev.filter(id => !ids.includes(id)))
+    }
+  }
+
+  const handleClearSelection = () => {
+    setSelectedIds([])
+  }
+
+  const handleActionComplete = () => {
+    setRefreshKey((prev) => prev + 1)
+  }
+
+  const selectionMode = selectedIds.length > 0
 
   const { groupedLeads, stats } = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
@@ -457,11 +534,24 @@ export function Trial7DaysView({ leads }: { leads: TrialLead[] }) {
                 visibleCount={visibleCount}
                 hasMore={hasMore}
                 onLoadMore={() => loadMoreInColumn(String(day.id))}
+                selectedIds={selectedIds}
+                onSelectLead={handleSelectLead}
+                onSelectAll={handleSelectAll}
+                selectionMode={selectionMode}
               />
             )
           })}
         </div>
       </div>
+
+      <BulkActionsBar
+        selectedCount={selectedIds.length}
+        selectedIds={selectedIds}
+        onClearSelection={handleClearSelection}
+        onActionComplete={handleActionComplete}
+        type="profile"
+        showDelete={false}
+      />
     </div>
   )
 }

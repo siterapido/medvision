@@ -20,6 +20,7 @@ import { useDraggable } from "@dnd-kit/core"
 
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -94,9 +95,19 @@ interface LeadCardProps {
   lead: PipelineLead
   onStageChange?: () => void
   isDragOverlay?: boolean
+  isSelected?: boolean
+  onSelect?: (id: string, selected: boolean) => void
+  selectionMode?: boolean
 }
 
-export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCardProps) {
+export function LeadCard({
+  lead,
+  onStageChange,
+  isDragOverlay = false,
+  isSelected = false,
+  onSelect,
+  selectionMode = false
+}: LeadCardProps) {
   const [detailsOpen, setDetailsOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)
@@ -104,8 +115,22 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
 
   const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
     id: lead.id,
-    disabled: isDragOverlay,
+    disabled: isDragOverlay || selectionMode,
   })
+
+  const handleCheckboxChange = (checked: boolean) => {
+    onSelect?.(lead.id, checked)
+  }
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (selectionMode) {
+      e.preventDefault()
+      e.stopPropagation()
+      onSelect?.(lead.id, !isSelected)
+    } else if (!isDragOverlay) {
+      setDetailsOpen(true)
+    }
+  }
 
   const style = transform
     ? {
@@ -192,16 +217,33 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
           // Dragging state
           isDragging && !isDragOverlay && "opacity-30 grayscale",
           isDragOverlay && "rotate-2 scale-105 shadow-2xl shadow-primary/20 border-primary/30 bg-card z-50 cursor-grabbing",
-          !isDragOverlay && "cursor-pointer active:cursor-grabbing",
+          !isDragOverlay && !selectionMode && "cursor-pointer active:cursor-grabbing",
           // Urgent state
-          isUrgent && "border-l-2 border-l-rose-500 bg-gradient-to-r from-rose-500/5 to-transparent shadow-[inset_0_0_20px_rgba(244,63,94,0.05)]"
+          isUrgent && "border-l-2 border-l-rose-500 bg-gradient-to-r from-rose-500/5 to-transparent shadow-[inset_0_0_20px_rgba(244,63,94,0.05)]",
+          // Selected state
+          isSelected && "ring-1 ring-primary border-primary bg-primary/5"
         )}
-        onClick={() => !isDragOverlay && setDetailsOpen(true)}
+        onClick={handleCardClick}
       >
         {/* Header refinado */}
         <div className="flex items-start justify-between gap-1.5">
-          <div className="flex-1 min-w-0">
+          <div className="flex-1 min-w-0 flex items-start gap-1.5">
+            {/* Checkbox para seleção */}
+            <div className={cn(
+              "mt-0.5 transition-opacity duration-200 shrink-0",
+              isSelected || selectionMode ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+            )}>
+              <Checkbox
+                checked={isSelected}
+                onCheckedChange={handleCheckboxChange}
+                onClick={(e) => e.stopPropagation()}
+                className="border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary h-3.5 w-3.5"
+              />
+            </div>
+
+            <div className="flex-1 min-w-0">
             <div className="flex items-center gap-1.5 mb-1">
+              {!selectionMode && (
               <button
                 {...listeners}
                 {...attributes}
@@ -211,6 +253,7 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
               >
                 <GripVertical className="h-3 w-3" />
               </button>
+              )}
               <span className={cn(
                 "font-semibold text-xs truncate block transition-colors",
                 isDragOverlay ? "text-primary" : "text-foreground group-hover:text-foreground"
@@ -226,6 +269,7 @@ export function LeadCard({ lead, onStageChange, isDragOverlay = false }: LeadCar
                   <span className="truncate max-w-[140px]">{lead.email}</span>
                 </div>
               </div>
+            </div>
             </div>
           </div>
 

@@ -15,10 +15,12 @@ import {
 
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { cn } from "@/lib/utils"
 import { getRemainingTrialDays } from "@/lib/trial"
 import { updatePipelineStage } from "@/app/actions/pipeline"
 import { LeadCard } from "./lead-card"
+import { BulkActionsBar } from "./bulk-actions-bar"
 
 const LEADS_PER_COLUMN = 20
 
@@ -224,9 +226,25 @@ interface DroppableColumnProps {
   visibleCount: number
   hasMore: boolean
   onLoadMore: () => void
+  selectedIds: string[]
+  onSelectLead: (id: string, selected: boolean) => void
+  onSelectAll: (ids: string[], selected: boolean) => void
+  selectionMode: boolean
 }
 
-function DroppableColumn({ stage, leads, isDragging, onStageChange, visibleCount, hasMore, onLoadMore }: DroppableColumnProps) {
+function DroppableColumn({
+  stage,
+  leads,
+  isDragging,
+  onStageChange,
+  visibleCount,
+  hasMore,
+  onLoadMore,
+  selectedIds,
+  onSelectLead,
+  onSelectAll,
+  selectionMode
+}: DroppableColumnProps) {
   const { setNodeRef, isOver } = useDroppable({
     id: stage.id,
   })
@@ -234,6 +252,13 @@ function DroppableColumn({ stage, leads, isDragging, onStageChange, visibleCount
   const Icon = stage.icon
   const visibleLeads = leads.slice(0, visibleCount)
   const remainingCount = leads.length - visibleCount
+  const columnLeadIds = leads.map(lead => lead.id)
+  const allSelected = leads.length > 0 && columnLeadIds.every(id => selectedIds.includes(id))
+  const someSelected = columnLeadIds.some(id => selectedIds.includes(id))
+
+  const handleSelectAll = (checked: boolean) => {
+    onSelectAll(columnLeadIds, checked)
+  }
 
   return (
     <div
@@ -255,6 +280,23 @@ function DroppableColumn({ stage, leads, isDragging, onStageChange, visibleCount
         <div className={cn("absolute top-0 left-0 right-0 h-[2px]", stage.color.replace('border-t-', 'bg-'))} />
 
         <div className="flex items-center gap-2">
+          {leads.length > 0 && (
+            <div className="relative shrink-0">
+              <Checkbox
+                checked={allSelected}
+                onCheckedChange={handleSelectAll}
+                className={cn(
+                  "border-border data-[state=checked]:bg-primary data-[state=checked]:border-primary h-3.5 w-3.5",
+                  someSelected && !allSelected && "bg-primary/30 border-primary"
+                )}
+              />
+              {someSelected && !allSelected && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="h-1.5 w-1.5 bg-primary rounded-sm" />
+                </div>
+              )}
+            </div>
+          )}
           <div className="w-8 h-8 rounded-xl bg-background/50 border border-border/50 flex items-center justify-center text-base shadow-sm">
             {stage.emoji}
           </div>
@@ -276,7 +318,14 @@ function DroppableColumn({ stage, leads, isDragging, onStageChange, visibleCount
       <div className="overflow-y-auto px-2.5 py-3 custom-scrollbar max-h-[calc(100vh-200px)]">
         <div className={cn("space-y-2 min-h-[100px]")}>
           {visibleLeads.map((lead) => (
-            <LeadCard key={lead.id} lead={lead} onStageChange={onStageChange} />
+            <LeadCard
+              key={lead.id}
+              lead={lead}
+              onStageChange={onStageChange}
+              isSelected={selectedIds.includes(lead.id)}
+              onSelect={onSelectLead}
+              selectionMode={selectionMode}
+            />
           ))}
           {visibleLeads.length === 0 && (
             <div className="flex flex-col items-center justify-center gap-2 py-12 text-center opacity-50 group-hover/column:opacity-80 transition-opacity">
@@ -310,6 +359,7 @@ export function PipelineKanbanBoard({ leads, totalCount }: { leads: PipelineLead
   const [refreshKey, setRefreshKey] = useState(0)
   const [activeId, setActiveId] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [columnPages, setColumnPages] = useState<Record<PipelineStage, number>>({
     cadastro: 1,
     primeira_consulta: 1,
@@ -407,7 +457,35 @@ export function PipelineKanbanBoard({ leads, totalCount }: { leads: PipelineLead
     setRefreshKey((prev) => prev + 1)
   }
 
+  const handleSelectLead = (id: string, selected: boolean) => {
+    if (selected) {
+      setSelectedIds(prev => [...prev, id])
+    } else {
+      setSelectedIds(prev => prev.filter(i => i !== id))
+    }
+  }
+
+  const handleSelectAll = (ids: string[], selected: boolean) => {
+    if (selected) {
+      setSelectedIds(prev => {
+        const newIds = ids.filter(id => !prev.includes(id))
+        return [...prev, ...newIds]
+      })
+    } else {
+      setSelectedIds(prev => prev.filter(id => !ids.includes(id)))
+    }
+  }
+
+  const handleClearSelection = () => {
+    setSelectedIds([])
+  }
+
+  const handleActionComplete = () => {
+    handleStageChange()
+  }
+
   const handleDragStart = (event: DragStartEvent) => {
+    if (selectedIds.length > 0) return
     setActiveId(event.active.id as string)
     setIsDragging(true)
   }
@@ -437,8 +515,10 @@ export function PipelineKanbanBoard({ leads, totalCount }: { leads: PipelineLead
   }
 
   const activeLead = activeId ? leadsMap[activeId] : null
+  const selectionMode = selectedIds.length > 0
 
   return (
+    <>
     <DndContext
       sensors={sensors}
       onDragStart={handleDragStart}
@@ -487,6 +567,10 @@ export function PipelineKanbanBoard({ leads, totalCount }: { leads: PipelineLead
                   visibleCount={visibleCount}
                   hasMore={hasMore}
                   onLoadMore={() => loadMoreInColumn(stage.id)}
+                  selectedIds={selectedIds}
+                  onSelectLead={handleSelectLead}
+                  onSelectAll={handleSelectAll}
+                  selectionMode={selectionMode}
                 />
               )
             })}
@@ -502,5 +586,15 @@ export function PipelineKanbanBoard({ leads, totalCount }: { leads: PipelineLead
         ) : null}
       </DragOverlay>
     </DndContext>
+
+    <BulkActionsBar
+      selectedCount={selectedIds.length}
+      selectedIds={selectedIds}
+      onClearSelection={handleClearSelection}
+      onActionComplete={handleActionComplete}
+      type="profile"
+      showDelete={false}
+    />
+    </>
   )
 }

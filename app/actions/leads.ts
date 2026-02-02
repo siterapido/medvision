@@ -801,6 +801,63 @@ export async function deleteLeadNote(noteId: string) {
 }
 
 /**
+ * Atribui um vendedor a múltiplos leads em massa
+ */
+export async function assignSellerToLeads(leadIds: string[], sellerId: string | null) {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  if (!user) {
+    return { success: false, message: "Usuário não autenticado" }
+  }
+
+  // Verificar se o usuário é admin
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single()
+
+  if (profile?.role !== "admin") {
+    return { success: false, message: "Apenas administradores podem atribuir vendedores" }
+  }
+
+  if (!leadIds || leadIds.length === 0) {
+    return { success: false, message: "Nenhum lead selecionado" }
+  }
+
+  // Se sellerId for fornecido, verificar se é um vendedor válido
+  if (sellerId) {
+    const { data: seller } = await supabase
+      .from("profiles")
+      .select("id, role")
+      .eq("id", sellerId)
+      .single()
+
+    if (!seller) {
+      return { success: false, message: "Vendedor não encontrado" }
+    }
+
+    if (seller.role !== "vendedor" && seller.role !== "admin") {
+      return { success: false, message: "Usuário não é um vendedor" }
+    }
+  }
+
+  const { error } = await supabase
+    .from("leads")
+    .update({ assigned_to: sellerId })
+    .in("id", leadIds)
+
+  if (error) {
+    console.error("Erro ao atribuir vendedor em massa:", error)
+    return { success: false, message: "Erro ao atribuir vendedor" }
+  }
+
+  revalidatePath("/admin/pipeline")
+  return { success: true, count: leadIds.length }
+}
+
+/**
  * Busca detalhes completos de um cold lead
  */
 export async function getLeadDetails(leadId: string) {
