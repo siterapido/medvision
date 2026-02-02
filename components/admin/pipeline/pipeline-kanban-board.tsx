@@ -156,10 +156,10 @@ function resolvePipelineStage(lead: PipelineLead): PipelineStage {
   const hasPaidPlan = !!lead.plan_type && lead.plan_type !== "free"
   const hasActiveSubscription =
     !!lead.subscription_status &&
-    !["canceled", "inactive", "trialing", "free"].includes(lead.subscription_status)
+    !["canceled", "inactive", "trialing", "free", "refunded"].includes(lead.subscription_status)
 
-  // 1. Sempre prioriza conversão
-  if (hasPaidPlan || hasActiveSubscription) {
+  // 1. Sempre prioriza conversão - precisa ter plano PAGO e assinatura ativa
+  if (hasPaidPlan && hasActiveSubscription) {
     return "convertido"
   }
 

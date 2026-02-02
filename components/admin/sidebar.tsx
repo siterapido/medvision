@@ -13,6 +13,7 @@ import {
   Bot,
   FileText,
   LayoutDashboard,
+  LayoutGrid,
   LogOut,
   Calendar,
   MessageSquare,
@@ -52,6 +53,7 @@ const allNavigationItems: NavItem[] = [
   { name: "Cadastrar Lives", href: "/admin/lives", icon: Calendar },
   { name: "Notificações", href: "/admin/notifications", icon: MessageSquare },
   { name: "Agentes IA", href: "/admin/agentes", icon: Bot },
+  { name: "Funis", href: "/admin/funnels", icon: LayoutGrid },
   { name: "Pipeline", href: "/admin/pipeline", icon: Workflow },
   { name: "Trials", href: "/admin/trials", icon: Sparkles },
   { name: "Certificados", href: "/admin/certificados", icon: Award },
@@ -60,6 +62,7 @@ const allNavigationItems: NavItem[] = [
 
 const vendedorNavigationItems: NavItem[] = [
   { name: "Visão geral", href: "/admin", icon: LayoutDashboard },
+  { name: "Funis", href: "/admin/funnels", icon: LayoutGrid },
   { name: "Pipeline", href: "/admin/pipeline", icon: Workflow },
 ]
 

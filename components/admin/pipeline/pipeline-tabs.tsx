@@ -1,11 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Upload, BarChart3, Calendar } from "lucide-react"
+import { Upload, Calendar } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { ImportLeadsModal } from "./import-leads-modal"
-import { UnifiedFunnelView } from "./unified-funnel-view"
 
 interface PipelineTabsProps {
   coldLeadsTab: React.ReactNode
@@ -14,7 +13,7 @@ interface PipelineTabsProps {
 }
 
 export function PipelineTabs({ coldLeadsTab, trialPipelineTab, trial7DaysTab }: PipelineTabsProps) {
-  const [activeTab, setActiveTab] = useState<"cold" | "trial" | "trial7days" | "funnel">("cold")
+  const [activeTab, setActiveTab] = useState<"cold" | "trial" | "trial7days">("cold")
   const [importModalOpen, setImportModalOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
 
@@ -62,18 +61,6 @@ export function PipelineTabs({ coldLeadsTab, trialPipelineTab, trial7DaysTab }: 
               <Calendar className="w-4 h-4" />
               Trial 7 Dias
             </button>
-            <button
-              onClick={() => setActiveTab("funnel")}
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2",
-                activeTab === "funnel"
-                  ? "bg-primary/10 text-primary border border-primary/20"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-              )}
-            >
-              <BarChart3 className="w-4 h-4" />
-              Funil Completo
-            </button>
           </div>
 
           {activeTab === "cold" && (
@@ -93,7 +80,6 @@ export function PipelineTabs({ coldLeadsTab, trialPipelineTab, trial7DaysTab }: 
           {activeTab === "cold" && coldLeadsTab}
           {activeTab === "trial" && trialPipelineTab}
           {activeTab === "trial7days" && trial7DaysTab}
-          {activeTab === "funnel" && <UnifiedFunnelView />}
         </div>
       </div>
 

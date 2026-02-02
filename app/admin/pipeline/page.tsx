@@ -30,7 +30,8 @@ async function TrialPipelineContent() {
     )
   }
 
-  // Busca todos os leads do pipeline (sem limite artificial)
+  // Busca leads do pipeline com limite para evitar timeout
+  // After migration 20260202000001, all non-admin/vendedor profiles have trial_started_at populated
   const { data: leads, error, count } = await supabase
     .from("profiles")
     .select(`
@@ -40,9 +41,7 @@ async function TrialPipelineContent() {
     .neq("role", "admin")
     .neq("role", "vendedor")
     .is("deleted_at", null)
-    .or(
-      "trial_started_at.not.is.null,trial_ends_at.not.is.null,trial_used.eq.true,pipeline_stage.not.is.null"
-    )
+    .limit(1000)
     .order("trial_started_at", { ascending: false, nullsFirst: false })
 
   // Fetch seller info separately for profiles with assigned_to
@@ -93,7 +92,7 @@ async function Trial7DaysContent() {
     )
   }
 
-  // Fetch trial users (users with trial_started_at)
+  // Fetch trial users - all non-admin/vendedor profiles have trial_started_at after migration
   const { data: leads, error } = await supabase
     .from("profiles")
     .select(`
@@ -103,7 +102,7 @@ async function Trial7DaysContent() {
     .neq("role", "admin")
     .neq("role", "vendedor")
     .is("deleted_at", null)
-    .not("trial_started_at", "is", null)
+    .limit(1000)
     .order("trial_started_at", { ascending: false })
 
   // Fetch seller info separately

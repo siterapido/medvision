@@ -113,13 +113,15 @@ const TRIAL_DAYS: DayConfig[] = [
 ]
 
 function getTrialDay(lead: TrialLead): TrialDay {
-  // Check if converted
+  // Check if converted - must have PAID plan (not free) AND active subscription
   const hasPaidPlan = !!lead.plan_type && lead.plan_type !== "free"
   const hasActiveSubscription =
     !!lead.subscription_status &&
-    !["canceled", "inactive", "trialing", "free"].includes(lead.subscription_status)
+    !["canceled", "inactive", "trialing", "free", "refunded"].includes(lead.subscription_status)
 
-  if (hasPaidPlan || hasActiveSubscription || lead.pipeline_stage === "convertido") {
+  // Only consider converted if they have a paid plan with active subscription
+  // OR if manually marked as converted in pipeline
+  if ((hasPaidPlan && hasActiveSubscription) || lead.pipeline_stage === "convertido") {
     return "converted"
   }
 
