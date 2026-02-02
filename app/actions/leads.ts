@@ -560,12 +560,14 @@ export async function getColdLeadsWithSellers() {
   }
 
   // Admins veem todos, vendedores veem apenas os seus
+  // Usando range para contornar o limite padrão de 1000 do Supabase
   let query = supabase
     .from("leads")
     .select(`
       *,
-      assigned_seller:profiles!leads_assigned_to_fkey(id, name, email)
+      assigned_seller:profiles!assigned_to(id, name, email)
     `)
+    .range(0, 4999)
     .order("created_at", { ascending: false })
 
   if (profile.role === "vendedor") {

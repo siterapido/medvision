@@ -564,9 +564,10 @@ export function ColdLeadsKanbanBoard({ leads }: ColdLeadsKanbanBoardProps) {
       return true
     })
 
+    // Na prospecção, todos os leads aparecem na coluna "Novo Lead"
     const withStage: LeadWithStage[] = filtered.map((lead) => ({
       ...lead,
-      resolvedStage: lead.status,
+      resolvedStage: "novo_lead" as LeadStatus,
     }))
 
     // New conversion-focused stages
