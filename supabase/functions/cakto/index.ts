@@ -588,6 +588,9 @@ export async function handleCancellation(payload: Record<string, unknown>) {
 
 async function findUser(email: string) {
   if (!email) return null;
+
+  // Busca apenas na tabela profiles
+  // Usuários devem se cadastrar antes de comprar, então sempre terão um profile
   const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('id, email, name, plan_type, subscription_status')
@@ -596,6 +599,7 @@ async function findUser(email: string) {
 
   if (profileError) {
     console.error('Erro ao buscar perfil:', profileError);
+    return null;
   }
 
   if (profile) {
@@ -608,33 +612,8 @@ async function findUser(email: string) {
     };
   }
 
-  try {
-    // Otimização: usar getUserById com filtro por email ao invés de listUsers()
-    // listUsers() carrega TODOS os usuários em memória, causando lentidão
-    const { data: authUsers, error: adminError } = await supabase.auth.admin.listUsers({
-      filter: `email.eq.${email}`,
-      perPage: 1
-    });
-
-    if (adminError) {
-      console.error('Erro ao buscar usuario auth:', adminError);
-      return null;
-    }
-
-    const user = authUsers?.users?.[0];
-    if (!user) return null;
-
-    return {
-      id: user.id,
-      email: user.email ?? email,
-      name: user.user_metadata?.name,
-      planType: planTypes.FREE,
-      subscriptionStatus: subscriptionStatuses.CANCELED
-    };
-  } catch (error) {
-    console.error('Erro ao buscar usuario:', error);
-    return null;
-  }
+  // Usuário não encontrado - deve se cadastrar primeiro
+  return null;
 }
 
 async function updateProfile(userId: string, fields: Record<string, unknown>) {
