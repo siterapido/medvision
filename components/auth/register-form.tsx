@@ -19,9 +19,16 @@ import {
 import { DEFAULT_ROLE, resolveUserRole } from "@/lib/auth/roles"
 import { DEFAULT_TRIAL_DAYS, calculateTrialEndDate, normalizeTrialDays } from "@/lib/trial"
 import { createClient } from "@/lib/supabase/client"
+import { CAKTO_BASIC_ANNUAL_PLAN_ID, CAKTO_PRO_ANNUAL_PLAN_ID } from "@/lib/cakto"
 
 type RegisterFormProps = {
   trialDays?: number
+}
+
+// Mapeamento de planos para IDs da Cakto
+const PLAN_CHECKOUT_MAP: Record<string, { id: string; name: string }> = {
+  basic: { id: CAKTO_BASIC_ANNUAL_PLAN_ID, name: "Plano Basico Anual" },
+  pro: { id: CAKTO_PRO_ANNUAL_PLAN_ID, name: "Plano Pro Anual" },
 }
 
 export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormProps) {
@@ -42,6 +49,11 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
 
   const normalizedTrialDays = normalizeTrialDays(trialDays)
   const trialLabel = `${normalizedTrialDays} dia${normalizedTrialDays > 1 ? "s" : ""}`
+
+  // Verificar se veio de um plano específico
+  const planParam = searchParams.get('plan')
+  const selectedPlan = planParam && PLAN_CHECKOUT_MAP[planParam] ? PLAN_CHECKOUT_MAP[planParam] : null
+  const isCheckoutFlow = !!selectedPlan
 
   // Pré-preencher campos com dados da landing page
   useEffect(() => {
@@ -158,26 +170,42 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
 
         // Se o email foi confirmado automaticamente (depende da configuração do Supabase)
         if (data.user.email_confirmed_at || data.session) {
-          const { data: profileRow, error: profileError } = await supabase
-            .from("profiles")
-            .select("role")
-            .eq("id", data.user.id)
-            .maybeSingle()
+          // Se veio de um plano, redirecionar para o checkout da Cakto
+          if (isCheckoutFlow && selectedPlan) {
+            const checkoutUrl = `https://pay.cakto.com.br/${selectedPlan.id}?email=${encodeURIComponent(email)}`
+            setTimeout(() => {
+              window.location.href = checkoutUrl
+            }, 1500)
+          } else {
+            // Fluxo normal: ir para o dashboard
+            const { data: profileRow, error: profileError } = await supabase
+              .from("profiles")
+              .select("role")
+              .eq("id", data.user.id)
+              .maybeSingle()
 
-          if (profileError) {
-            console.warn("[auth] Could not load profile role after signup", profileError)
+            if (profileError) {
+              console.warn("[auth] Could not load profile role after signup", profileError)
+            }
+
+            const resolvedRole = resolveUserRole(profileRow?.role, data.user)
+            const destination = resolvedRole === "admin" ? "/admin" : "/dashboard"
+
+            setTimeout(() => {
+              router.replace(destination)
+            }, 2000)
           }
-
-          const resolvedRole = resolveUserRole(profileRow?.role, data.user)
-          const destination = resolvedRole === "admin" ? "/admin" : "/dashboard"
-
-          setTimeout(() => {
-            router.replace(destination)
-          }, 2000)
         } else {
+          // Se veio de um plano mas precisa confirmar email, salvar o plano em localStorage
+          if (isCheckoutFlow && selectedPlan) {
+            localStorage.setItem('pendingCheckout', JSON.stringify({
+              planId: selectedPlan.id,
+              email: email
+            }))
+          }
           // Mostrar mensagem de confirmação de email
           setTimeout(() => {
-            router.push("/login")
+            router.push("/login?message=confirm-email")
           }, 3000)
         }
       }
@@ -191,22 +219,40 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
 
-      {/* Trial Banner */}
-      <div className="bg-gradient-to-r from-[#22d3ee]/10 via-[#0891b2]/10 to-[#22d3ee]/10 border border-[#22d3ee]/30 rounded-xl p-4 mb-6 backdrop-blur-sm">
-        <div className="flex items-center gap-3">
-          <div className="bg-gradient-to-br from-[#22d3ee]/20 to-[#0891b2]/20 p-2 rounded-full">
-            <Sparkles className="h-4 w-4 text-[#22d3ee]" />
-          </div>
-          <div>
-            <p className="text-sm font-semibold text-[#22d3ee]">
-              {trialLabel} de acesso gratuito
-            </p>
-            <p className="text-xs text-[#22d3ee]/70">
-              Sem cartao de credito. Acesso completo imediato.
-            </p>
+      {/* Banner - Checkout ou Trial */}
+      {isCheckoutFlow && selectedPlan ? (
+        <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 mb-6 backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 p-2 rounded-full">
+              <Sparkles className="h-4 w-4 text-emerald-400" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-emerald-400">
+                {selectedPlan.name}
+              </p>
+              <p className="text-xs text-emerald-400/70">
+                Crie sua conta para finalizar a compra
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="bg-gradient-to-r from-[#22d3ee]/10 via-[#0891b2]/10 to-[#22d3ee]/10 border border-[#22d3ee]/30 rounded-xl p-4 mb-6 backdrop-blur-sm">
+          <div className="flex items-center gap-3">
+            <div className="bg-gradient-to-br from-[#22d3ee]/20 to-[#0891b2]/20 p-2 rounded-full">
+              <Sparkles className="h-4 w-4 text-[#22d3ee]" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-[#22d3ee]">
+                {trialLabel} de acesso gratuito
+              </p>
+              <p className="text-xs text-[#22d3ee]/70">
+                Sem cartao de credito. Acesso completo imediato.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && (
         <Alert variant="destructive" className="bg-red-500/10 border-red-500/30 text-red-400">
@@ -219,7 +265,10 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
         <Alert className="bg-emerald-500/10 border-emerald-500/30 text-emerald-400">
           <CheckCircle2 className="h-4 w-4" />
           <AlertDescription>
-            Conta criada com sucesso! Verifique seu email para confirmar o cadastro.
+            {isCheckoutFlow
+              ? "Conta criada! Redirecionando para o pagamento..."
+              : "Conta criada com sucesso! Verifique seu email para confirmar o cadastro."
+            }
           </AlertDescription>
         </Alert>
       )}
@@ -375,7 +424,9 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
         style={{
           background: success
             ? 'linear-gradient(135deg, #059669 0%, #0d9488 100%)'
-            : 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
+            : isCheckoutFlow
+              ? 'linear-gradient(135deg, #10B981 0%, #14B8A6 100%)'
+              : 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
         }}
       >
         {isLoading ? (
@@ -386,11 +437,11 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
         ) : success ? (
           <>
             <CheckCircle2 className="h-5 w-5" />
-            Conta criada!
+            {isCheckoutFlow ? "Redirecionando para pagamento..." : "Conta criada!"}
           </>
         ) : (
           <>
-            Comecar teste de {trialLabel}
+            {isCheckoutFlow ? "Criar conta e continuar" : `Comecar teste de ${trialLabel}`}
             <ArrowRight className="h-5 w-5" />
           </>
         )}
