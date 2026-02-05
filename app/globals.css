@@ -7,6 +7,16 @@
 :root {
   /* --- Perplexity-Style Design System --- */
 
+  /* Typography Colors - Orange & White Theme */
+  --typography-heading: #F97316;
+  /* Orange 500 - for headings */
+  --typography-heading-accent: #FB923C;
+  /* Orange 400 - lighter accent */
+  --typography-body: #ffffff;
+  /* White - for body text on dark */
+  --typography-muted: #fafafa;
+  /* Off-white - for secondary text */
+
   /* Base Colors - Deep Space Dark Mode preferred */
   --background: #ffffff;
   --foreground: #0f172a;
@@ -103,6 +113,16 @@
 
 .dark {
   /* --- Dark Mode (Lighter/Legible) --- */
+
+  /* Typography Colors - Orange & White Theme (Dark Mode) */
+  --typography-heading: #F97316;
+  /* Orange 500 - for headings */
+  --typography-heading-accent: #FDBA74;
+  /* Orange 300 - brighter in dark mode */
+  --typography-body: #ffffff;
+  /* White - for body text */
+  --typography-muted: #e5e7eb;
+  /* Gray 200 - for secondary text */
 
   /* Canvas & Surfaces - Adjusted for better legibility */
   --background: #0f172a;
@@ -215,6 +235,12 @@
 }
 
 @theme inline {
+  /* Typography Colors - Orange & White */
+  --color-typography-heading: var(--typography-heading);
+  --color-typography-heading-accent: var(--typography-heading-accent);
+  --color-typography-body: var(--typography-body);
+  --color-typography-muted: var(--typography-muted);
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -320,6 +346,31 @@
 .font-heading {
   font-family: var(--font-heading);
   letter-spacing: -0.02em;
+}
+
+/* Orange & White Typography Utilities */
+.text-heading-orange {
+  color: var(--typography-heading);
+}
+
+.text-heading-accent {
+  color: var(--typography-heading-accent);
+}
+
+.text-body-white {
+  color: var(--typography-body);
+}
+
+.text-body-muted {
+  color: var(--typography-muted);
+}
+
+/* Gradient text with orange */
+.text-gradient-orange {
+  background: linear-gradient(135deg, var(--typography-heading) 0%, var(--typography-heading-accent) 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 /* --- Modern Animations & Effects --- */
