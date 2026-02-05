@@ -727,8 +727,8 @@ export default function PaidLandingPage() {
                         <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-xs font-bold">35% OFF</span>
                       </div>
                       <div className="flex items-baseline justify-center gap-1">
-                        <span className="text-4xl md:text-5xl font-bold text-emerald-400">10x</span>
-                        <span className="text-3xl md:text-4xl font-bold text-emerald-400">R$ 38,70</span>
+                        <span className="text-4xl md:text-5xl font-bold text-emerald-400">12x</span>
+                        <span className="text-3xl md:text-4xl font-bold text-emerald-400">R$ 44,99</span>
                       </div>
                       <p className="text-sm text-slate-400 mt-2">
                         ou <span className="font-semibold text-white">R$ 387</span> a vista
@@ -785,8 +785,8 @@ export default function PaidLandingPage() {
                         <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 text-xs font-bold">25% OFF</span>
                       </div>
                       <div className="flex items-baseline justify-center gap-1">
-                        <span className="text-4xl md:text-5xl font-bold text-purple-400">10x</span>
-                        <span className="text-3xl md:text-4xl font-bold text-purple-400">R$ 59,70</span>
+                        <span className="text-4xl md:text-5xl font-bold text-purple-400">12x</span>
+                        <span className="text-3xl md:text-4xl font-bold text-purple-400">R$ 69,41</span>
                       </div>
                       <p className="text-sm text-slate-400 mt-2">
                         ou <span className="font-semibold text-white">R$ 597</span> a vista
