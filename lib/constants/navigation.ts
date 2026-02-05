@@ -45,9 +45,7 @@ export const NAV_ITEMS: NavItem[] = [
     {
         href: '/dashboard/certificados',
         label: 'Certificados',
-        icon: FileBadge,
-        badgeText: 'Em breve',
-        disabled: true
+        icon: FileBadge
     },
 ]
 

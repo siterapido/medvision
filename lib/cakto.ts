@@ -7,6 +7,16 @@ export const CAKTO_PRO_ANNUAL_PLAN_ID = "76x6iou_751311"
 // Produto vitalício (one-time)
 export const CAKTO_CERTIFICATE_ID = "pi6xasc_754503"
 
+// Curso Consultório do Futuro (20h) com certificado
+export const CAKTO_CONSULTORIO_FUTURO_ID = "pi6xasc_754503"
+export const CONSULTORIO_FUTURO_COURSE = {
+  id: "consultorio-do-futuro",
+  name: "Consultório do Futuro",
+  hours: 20,
+  caktoProductId: CAKTO_CONSULTORIO_FUTURO_ID,
+  checkoutUrl: `https://pay.cakto.com.br/${CAKTO_CONSULTORIO_FUTURO_ID}`,
+}
+
 // Aliases para compatibilidade (deprecated)
 export const CAKTO_ANNUAL_PLAN_ID = CAKTO_BASIC_ANNUAL_PLAN_ID
 export const CAKTO_MONTHLY_PLAN_ID = CAKTO_BASIC_ANNUAL_PLAN_ID // deprecated - sem plano mensal
