@@ -87,7 +87,7 @@ export async function sendNotification(
     channel,
     status,
     content,
-    response_data: responseData,
+    response_data: responseData as Record<string, unknown> | null,
     error_message: errorMessage,
   });
 
