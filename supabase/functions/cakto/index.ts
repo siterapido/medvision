@@ -298,29 +298,61 @@ export async function handlePurchaseApproved(payload: Record<string, unknown>, c
   const isTest = isTestEmail(customerEmail);
   let user = await findUser(customerEmail);
 
-  // Se o usuário não existe, retorna erro - usuário deve se cadastrar antes de comprar
+  // Se o usuário não existe, cria automaticamente com os dados do webhook
   if (!user && !isTest) {
-    await logTransaction({
-      transactionId,
-      eventType: 'user_not_found',
-      customerEmail,
-      customerName,
-      amount,
-      status: 'error',
-      errorMessage: 'USER_NOT_REGISTERED - Usuario deve se cadastrar antes de comprar',
-      webhookPayload: data
-    });
+    try {
+      await logTransaction({
+        transactionId,
+        eventType: 'auto_create_user',
+        customerEmail,
+        customerName,
+        amount,
+        status: 'processing',
+        webhookPayload: data
+      });
 
-    // Retorna 200 para evitar retries do Cakto, mas indica que o usuário não foi encontrado
-    return {
-      success: false,
-      event: 'purchase_approved',
-      transactionId,
-      amount,
-      reason: 'USER_NOT_REGISTERED',
-      message: 'Usuario nao encontrado. O usuario deve se cadastrar em odontogpt.com antes de fazer a compra.',
-      email: customerEmail
-    };
+      user = await createUserAccount({
+        email: customerEmail,
+        name: customerName || customerEmail.split('@')[0],
+        phone: customerPhone || undefined,
+        cpf: customerCpf || undefined
+      });
+
+      await logTransaction({
+        transactionId,
+        eventType: 'auto_create_user',
+        userId: user.id,
+        customerEmail,
+        customerName,
+        amount,
+        status: 'success',
+        webhookPayload: { userId: user.id, autoCreated: true }
+      });
+    } catch (createError) {
+      const errorMsg = createError instanceof Error ? createError.message : 'Erro desconhecido ao criar usuario';
+      console.error('Erro ao criar usuario automaticamente:', createError);
+
+      await logTransaction({
+        transactionId,
+        eventType: 'auto_create_user_failed',
+        customerEmail,
+        customerName,
+        amount,
+        status: 'error',
+        errorMessage: errorMsg,
+        webhookPayload: data
+      });
+
+      return {
+        success: false,
+        event: 'purchase_approved',
+        transactionId,
+        amount,
+        reason: 'AUTO_CREATE_FAILED',
+        message: errorMsg,
+        email: customerEmail
+      };
+    }
   }
 
   if (user) {
