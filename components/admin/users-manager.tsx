@@ -9,6 +9,7 @@ import {
   CheckCircle2,
   Clock,
   CreditCard,
+  Download,
   Edit,
   Filter,
   Loader2,
@@ -803,8 +804,18 @@ export function UsersManager({ users, adminName }: UsersManagerProps) {
 
       {/* Barra de ações */}
       <div className="flex flex-col gap-3 sm:gap-4">
-        {/* Botão criar vendedor */}
-        <div className="flex justify-end">
+        {/* Botões de ação */}
+        <div className="flex justify-end gap-2">
+          <Button
+            onClick={() => {
+              window.location.href = '/api/admin/users/export'
+            }}
+            variant="outline"
+            className="border-slate-600 text-slate-300 hover:text-white hover:bg-slate-700"
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Exportar Planilha
+          </Button>
           <Button
             onClick={() => setCreateVendedorDialogOpen(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white"
