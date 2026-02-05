@@ -192,6 +192,8 @@ async function validateEnv() {
     { name: "BUNNY_STORAGE_API_KEY", required: false },
     { name: "BUNNY_CDN_BASE_URL", required: false },
     { name: "Z_API_INSTANCE_ID", required: false },
+    { name: "Z_API_TOKEN", required: false },
+    { name: "Z_API_CLIENT_TOKEN", required: false },
     { name: "OPENAI_API_KEY", required: false },
   ]
 
@@ -206,6 +208,27 @@ async function validateEnv() {
         log("yellow", `⚠️  ${name} não está definida (opcional)`)
       }
     }
+  }
+
+  // Validação de completude Z-API
+  log("blue", "\n📱 Verificando configuração Z-API (WhatsApp)...")
+  const zapiInstanceId = process.env.Z_API_INSTANCE_ID
+  const zapiToken = process.env.Z_API_TOKEN
+  const zapiClientToken = process.env.Z_API_CLIENT_TOKEN
+  const hasAnyZapi = zapiInstanceId || zapiToken || zapiClientToken
+  const hasAllZapi = zapiInstanceId && zapiToken && zapiClientToken
+
+  if (hasAnyZapi && !hasAllZapi) {
+    log("yellow", "⚠️  Z-API parcialmente configurada:")
+    if (!zapiInstanceId) log("yellow", "   → Z_API_INSTANCE_ID não definida")
+    if (!zapiToken) log("yellow", "   → Z_API_TOKEN não definida")
+    if (!zapiClientToken) log("yellow", "   → Z_API_CLIENT_TOKEN não definida")
+    log("yellow", "   → Todas as 3 variáveis são necessárias para o WhatsApp funcionar")
+    warnings.push("Z-API parcialmente configurada")
+  } else if (hasAllZapi) {
+    log("green", "✅ Z-API (WhatsApp) completamente configurada")
+  } else {
+    log("yellow", "⚠️  Z-API não configurada (integração WhatsApp desabilitada)")
   }
 
   // Resumo

@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Send, Loader2, CheckCircle, XCircle } from "lucide-react"
+import { useState, useEffect, useCallback } from "react"
+import { Send, Loader2, CheckCircle, XCircle, Wifi, WifiOff, RefreshCw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -9,20 +9,50 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { toast } from "sonner"
 
+interface InstanceStatus {
+  configured: boolean
+  connected: boolean
+  smartphoneConnected?: boolean
+  session?: string
+  error?: string
+  checkedAt?: string
+}
+
 export function ZApiTestPanel() {
   const [phone, setPhone] = useState("")
   const [message, setMessage] = useState("Olá! Esta é uma mensagem de teste do OdontoGPT via Z-API.")
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any>(null)
   const [config, setConfig] = useState<any>(null)
+  const [instanceStatus, setInstanceStatus] = useState<InstanceStatus | null>(null)
+  const [checkingStatus, setCheckingStatus] = useState(false)
 
-  // Verificar configuração ao montar
+  // Check configuration on mount
   useEffect(() => {
     fetch("/api/test/zapi")
       .then(res => res.json())
       .then(data => setConfig(data))
       .catch(() => setConfig({ configured: false }))
   }, [])
+
+  // Check instance connection status
+  const checkInstanceStatus = useCallback(async () => {
+    setCheckingStatus(true)
+    try {
+      const res = await fetch("/api/admin/zapi/status")
+      const data = await res.json()
+      setInstanceStatus(data)
+    } catch {
+      setInstanceStatus({ configured: false, connected: false, error: "Falha na verificação" })
+    } finally {
+      setCheckingStatus(false)
+    }
+  }, [])
+
+  // Check status on mount
+  useEffect(() => {
+    checkInstanceStatus()
+  }, [checkInstanceStatus])
 
   async function handleTest() {
     if (!phone || !message) {
@@ -59,6 +89,68 @@ export function ZApiTestPanel() {
 
   return (
     <div className="space-y-6">
+      {/* Instance Connection Status */}
+      <Card className="bg-slate-900 border-slate-800">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-white text-base">Status da Conexão</CardTitle>
+              <CardDescription className="text-slate-400">
+                Status da instância Z-API (WhatsApp)
+              </CardDescription>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={checkInstanceStatus}
+              disabled={checkingStatus}
+              className="text-slate-400 hover:text-white"
+            >
+              <RefreshCw className={`h-4 w-4 ${checkingStatus ? "animate-spin" : ""}`} />
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {instanceStatus ? (
+            <div className="flex items-center gap-4">
+              <div className={`flex items-center gap-2 px-3 py-2 rounded-lg ${
+                instanceStatus.connected
+                  ? "bg-emerald-500/10 text-emerald-500"
+                  : "bg-red-500/10 text-red-500"
+              }`}>
+                {instanceStatus.connected ? (
+                  <Wifi className="h-5 w-5" />
+                ) : (
+                  <WifiOff className="h-5 w-5" />
+                )}
+                <span className="font-medium">
+                  {instanceStatus.connected ? "Conectado" : "Desconectado"}
+                </span>
+              </div>
+              {instanceStatus.smartphoneConnected !== undefined && (
+                <div className="text-sm text-slate-400">
+                  Smartphone: {instanceStatus.smartphoneConnected ? "Conectado" : "Desconectado"}
+                </div>
+              )}
+              {instanceStatus.error && (
+                <div className="text-sm text-red-400">{instanceStatus.error}</div>
+              )}
+              {instanceStatus.checkedAt && (
+                <div className="text-xs text-slate-500 ml-auto">
+                  {new Date(instanceStatus.checkedAt).toLocaleTimeString("pt-BR")}
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-slate-400">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Verificando status...
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Test Message Panel */}
       <Card className="bg-slate-900 border-slate-800">
         <CardHeader>
           <CardTitle className="text-white">Teste Z-API</CardTitle>
@@ -67,7 +159,7 @@ export function ZApiTestPanel() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Status da Configuração */}
+          {/* Configuration Status */}
           {config && (
             <Alert className={config.configured ? "bg-emerald-500/10 border-emerald-500/30" : "bg-red-500/10 border-red-500/30"}>
               <div className="flex items-center gap-2">
@@ -78,8 +170,8 @@ export function ZApiTestPanel() {
                 )}
                 <div className="space-y-1">
                   <AlertDescription className={config.configured ? "text-emerald-500" : "text-red-500"}>
-                    {config.configured 
-                      ? "Z-API configurada corretamente" 
+                    {config.configured
+                      ? "Z-API configurada corretamente"
                       : "Z-API não configurada. Verifique as variáveis de ambiente (INSTANCE_ID, TOKEN e CLIENT_TOKEN)."}
                   </AlertDescription>
                   <p className="text-xs text-slate-400">
@@ -90,7 +182,7 @@ export function ZApiTestPanel() {
             </Alert>
           )}
 
-          {/* Telefone */}
+          {/* Phone */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-300">
               Número de WhatsApp
@@ -106,7 +198,7 @@ export function ZApiTestPanel() {
             </p>
           </div>
 
-          {/* Mensagem */}
+          {/* Message */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-slate-300">Mensagem</label>
             <Textarea
@@ -117,7 +209,7 @@ export function ZApiTestPanel() {
             />
           </div>
 
-          {/* Botão de Envio */}
+          {/* Send Button */}
           <Button
             onClick={handleTest}
             disabled={loading || !phone || !message}
@@ -136,11 +228,11 @@ export function ZApiTestPanel() {
             )}
           </Button>
 
-          {/* Resultado */}
+          {/* Result */}
           {result && (
             <div className={`p-4 rounded-lg border ${
-              result.success 
-                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500" 
+              result.success
+                ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-500"
                 : "bg-red-500/10 border-red-500/30 text-red-500"
             }`}>
               <div className="flex items-start gap-2">

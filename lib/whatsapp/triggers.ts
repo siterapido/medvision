@@ -3,15 +3,20 @@
  * Sends automated messages based on user events and status changes
  */
 
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sendWhatsAppResponse } from './send-response'
+
+type SupabaseAdmin = ReturnType<typeof createAdminClient>
 
 /**
  * Check and send triggers for user events
  * Called periodically by cron job
+ *
+ * Uses createAdminClient (service role) because cron jobs run
+ * without a user session - cookie-based auth won't work here.
  */
 export async function checkAndSendTriggers() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   console.log('[WhatsApp Triggers] Starting trigger check...')
 
@@ -35,7 +40,7 @@ export async function checkAndSendTriggers() {
 /**
  * Trial expiring trigger - 3 days before expiration
  */
-async function checkTrialExpiringTrigger(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function checkTrialExpiringTrigger(supabase: SupabaseAdmin) {
   console.log('[Triggers] Checking trial expiring...')
 
   // Calculate date range: expiring in 3 days
@@ -104,7 +109,7 @@ Dúvidas? É só responder aqui! 😊`
 /**
  * Trial expired trigger - recovery offer
  */
-async function checkTrialExpiredTrigger(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function checkTrialExpiredTrigger(supabase: SupabaseAdmin) {
   console.log('[Triggers] Checking trial expired...')
 
   // Check if last notification was sent less than 7 days ago
@@ -189,7 +194,7 @@ Podemos te ajudar com algo? 📚`
 /**
  * New course published trigger
  */
-async function checkNewCoursesTrigger(supabase: Awaited<ReturnType<typeof createClient>>) {
+async function checkNewCoursesTrigger(supabase: SupabaseAdmin) {
   console.log('[Triggers] Checking new courses...')
 
   // Find courses published in the last 24 hours
