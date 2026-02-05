@@ -1,8 +1,17 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 
-export const CAKTO_ANNUAL_PLAN_ID = "3263gsd_647430"
-export const CAKTO_MONTHLY_PLAN_ID = "6nowfr6_671057"
-const DEFAULT_CAKTO_PRODUCT_ID = CAKTO_ANNUAL_PLAN_ID
+// Planos de assinatura anual
+export const CAKTO_BASIC_ANNUAL_PLAN_ID = "pdjvzs7_751299"
+export const CAKTO_PRO_ANNUAL_PLAN_ID = "76x6iou_751311"
+
+// Produto vitalício (one-time)
+export const CAKTO_CERTIFICATE_ID = "pi6xasc_754503"
+
+// Aliases para compatibilidade (deprecated)
+export const CAKTO_ANNUAL_PLAN_ID = CAKTO_BASIC_ANNUAL_PLAN_ID
+export const CAKTO_MONTHLY_PLAN_ID = CAKTO_BASIC_ANNUAL_PLAN_ID // deprecated - sem plano mensal
+
+const DEFAULT_CAKTO_PRODUCT_ID = CAKTO_PRO_ANNUAL_PLAN_ID
 const PRODUCT_ID_PATTERN = /^[A-Za-z0-9_-]+$/
 
 function extractProductId(input?: string) {

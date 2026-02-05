@@ -25,9 +25,9 @@ async function withCaktoProductId(value: string, fn: () => void | Promise<void>)
 
 describe("generateCheckoutUrl", () => {
   it("extrai ID quando a env usa a URL completa", async () => {
-    await withCaktoProductId("https://pay.cakto.com.br/3263gsd_647430", () => {
+    await withCaktoProductId("https://pay.cakto.com.br/76x6iou_751311", () => {
       const url = generateCheckoutUrl("user@example.com")
-      assert.ok(url.startsWith("https://pay.cakto.com.br/3263gsd_647430?"))
+      assert.ok(url.startsWith("https://pay.cakto.com.br/76x6iou_751311?"))
       assert.ok(url.includes("email=user%40example.com"))
     })
   })

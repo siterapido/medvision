@@ -4,9 +4,19 @@ import { createClient } from 'npm:@supabase/supabase-js@2';
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
 const CAKTO_WEBHOOK_SECRET = Deno.env.get('CAKTO_WEBHOOK_SECRET') ?? '';
-const CAKTO_ANNUAL_PLAN_ID = '3263gsd_647430';
-const CAKTO_MONTHLY_PLAN_ID = '6nowfr6_671057';
-const DEFAULT_CAKTO_PRODUCT_ID = CAKTO_ANNUAL_PLAN_ID;
+
+// Planos de assinatura anual
+const CAKTO_BASIC_ANNUAL_PLAN_ID = 'pdjvzs7_751299';
+const CAKTO_PRO_ANNUAL_PLAN_ID = '76x6iou_751311';
+
+// Produto vitalício (one-time)
+const CAKTO_CERTIFICATE_ID = 'pi6xasc_754503';
+
+// Aliases para compatibilidade
+const CAKTO_ANNUAL_PLAN_ID = CAKTO_BASIC_ANNUAL_PLAN_ID;
+const CAKTO_MONTHLY_PLAN_ID = CAKTO_BASIC_ANNUAL_PLAN_ID; // deprecated
+
+const DEFAULT_CAKTO_PRODUCT_ID = CAKTO_PRO_ANNUAL_PLAN_ID;
 const RAW_CAKTO_PRODUCT_ID = Deno.env.get('CAKTO_PRODUCT_ID') ?? DEFAULT_CAKTO_PRODUCT_ID;
 const APP_URL = Deno.env.get('APP_URL') ?? 'https://odontogpt.com';
 
@@ -47,6 +57,9 @@ const encoder = new TextEncoder();
 const planTypes = {
   FREE: 'free',
   PREMIUM: 'premium',
+  BASIC: 'basic',
+  PRO: 'pro',
+  // Deprecated
   MONTHLY: 'monthly',
   ANNUAL: 'annual'
 } as const;
@@ -120,8 +133,10 @@ serve(async (req) => {
   const productId = String(product?.id || '');
   const shortId = String(product?.short_id || '');
 
-  const validIds = [CAKTO_ANNUAL_PLAN_ID, CAKTO_MONTHLY_PLAN_ID, CAKTO_PRODUCT_ID];
-  let isSubscription = validIds.includes(productId) || validIds.includes(shortId);
+  const subscriptionIds = [CAKTO_BASIC_ANNUAL_PLAN_ID, CAKTO_PRO_ANNUAL_PLAN_ID, CAKTO_PRODUCT_ID];
+  const certificateIds = [CAKTO_CERTIFICATE_ID];
+  let isSubscription = subscriptionIds.includes(productId) || subscriptionIds.includes(shortId);
+  const isCertificate = certificateIds.includes(productId) || certificateIds.includes(shortId);
 
   let courseData: { id: string; title: string } | null = null;
   if (!isSubscription && (productId || shortId)) {
@@ -254,8 +269,9 @@ export async function handlePurchaseApproved(payload: Record<string, unknown>, c
   const product = data.product as Record<string, unknown> | undefined;
   const productId = String(product?.id || product?.short_id || '');
 
-  const isMonthly = productId === CAKTO_MONTHLY_PLAN_ID;
-  const planType = isMonthly ? 'monthly' : 'annual';
+  const isPro = productId === CAKTO_PRO_ANNUAL_PLAN_ID;
+  const isCertificatePurchase = productId === CAKTO_CERTIFICATE_ID;
+  const planType = isPro ? 'pro' : 'basic';
 
   if (await isEventProcessed(transactionId)) {
     return {
@@ -282,39 +298,29 @@ export async function handlePurchaseApproved(payload: Record<string, unknown>, c
   const isTest = isTestEmail(customerEmail);
   let user = await findUser(customerEmail);
 
-  // Se o usuário não existe, criar automaticamente
+  // Se o usuário não existe, retorna erro - usuário deve se cadastrar antes de comprar
   if (!user && !isTest) {
-    try {
-      user = await createUserAccount({
-        email: customerEmail,
-        name: customerName,
-        phone: customerPhone,
-        cpf: customerCpf
-      });
+    await logTransaction({
+      transactionId,
+      eventType: 'user_not_found',
+      customerEmail,
+      customerName,
+      amount,
+      status: 'error',
+      errorMessage: 'USER_NOT_REGISTERED - Usuario deve se cadastrar antes de comprar',
+      webhookPayload: data
+    });
 
-      await logTransaction({
-        transactionId,
-        eventType: 'user_created',
-        userId: user.id,
-        customerEmail,
-        customerName,
-        amount,
-        status: 'success',
-        webhookPayload: { userId: user.id, email: customerEmail }
-      });
-    } catch (error) {
-      await logTransaction({
-        transactionId,
-        eventType: 'user_creation_failed',
-        customerEmail,
-        customerName,
-        amount,
-        status: 'error',
-        errorMessage: error instanceof Error ? error.message : 'Erro desconhecido',
-        webhookPayload: data
-      });
-      throw error;
-    }
+    // Retorna 200 para evitar retries do Cakto, mas indica que o usuário não foi encontrado
+    return {
+      success: false,
+      event: 'purchase_approved',
+      transactionId,
+      amount,
+      reason: 'USER_NOT_REGISTERED',
+      message: 'Usuario nao encontrado. O usuario deve se cadastrar em odontogpt.com antes de fazer a compra.',
+      email: customerEmail
+    };
   }
 
   if (user) {
@@ -348,15 +354,35 @@ export async function handlePurchaseApproved(payload: Record<string, unknown>, c
         webhookData: data
       });
 
+    } else if (isCertificatePurchase) {
+      // É um certificado vitalício
+      await supabase.from('course_purchases').upsert(
+        {
+          user_id: user.id,
+          course_id: 'certificate-consultorio-futuro', // ID fixo do certificado
+          transaction_id: transactionId,
+          amount,
+          status: 'completed',
+          lifetime: true, // Produto vitalício
+          created_at: new Date().toISOString()
+        },
+        { onConflict: 'transaction_id' }
+      );
+
+      await upsertPaymentHistory({
+        userId: user.id,
+        transactionId,
+        amount,
+        currency: String(data.currency || 'BRL'),
+        status: 'completed',
+        paymentMethod,
+        webhookData: data
+      });
     } else {
-      // É uma assinatura
-      // Calcula data de expiração (1 mês ou 1 ano a partir de agora)
+      // É uma assinatura anual (básico ou pro)
+      // Calcula data de expiração (1 ano a partir de agora)
       const expiresAt = new Date();
-      if (planType === 'monthly') {
-        expiresAt.setMonth(expiresAt.getMonth() + 1);
-      } else {
-        expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-      }
+      expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
       await updateProfile(user.id, {
         plan_type: planType,

@@ -347,7 +347,7 @@ describe('Cakto Webhook Improvements', () => {
           },
           product: {
             id: 'prod-123',
-            short_id: '3263gsd_647430'
+            short_id: '76x6iou_751311'
           }
         },
         secret: 'webhook-secret'
@@ -375,20 +375,20 @@ describe('Cakto Webhook Improvements', () => {
     });
 
     it('should handle different product ID formats', () => {
-      const CAKTO_ANNUAL_PLAN_ID = '3263gsd_647430';
-      const CAKTO_MONTHLY_PLAN_ID = '6nowfr6_671057';
+      const CAKTO_BASIC_ANNUAL_PLAN_ID = 'pdjvzs7_751299';
+      const CAKTO_PRO_ANNUAL_PLAN_ID = '76x6iou_751311';
 
       const testCases = [
-        { product: { id: CAKTO_ANNUAL_PLAN_ID }, expected: 'annual' },
-        { product: { short_id: CAKTO_ANNUAL_PLAN_ID }, expected: 'annual' },
-        { product: { id: CAKTO_MONTHLY_PLAN_ID }, expected: 'monthly' },
-        { product: { short_id: CAKTO_MONTHLY_PLAN_ID }, expected: 'monthly' }
+        { product: { id: CAKTO_BASIC_ANNUAL_PLAN_ID }, expected: 'basic' },
+        { product: { short_id: CAKTO_BASIC_ANNUAL_PLAN_ID }, expected: 'basic' },
+        { product: { id: CAKTO_PRO_ANNUAL_PLAN_ID }, expected: 'pro' },
+        { product: { short_id: CAKTO_PRO_ANNUAL_PLAN_ID }, expected: 'pro' }
       ];
 
       testCases.forEach(({ product, expected }) => {
         const productId = product.id || product.short_id;
-        const isMonthly = productId === CAKTO_MONTHLY_PLAN_ID;
-        const planType = isMonthly ? 'monthly' : 'annual';
+        const isPro = productId === CAKTO_PRO_ANNUAL_PLAN_ID;
+        const planType = isPro ? 'pro' : 'basic';
         expect(planType).toBe(expected);
       });
     });

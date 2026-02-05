@@ -1,6 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin"
 
-const DEFAULT_CAKTO_PRODUCT_ID = "3263gsd_647430"
+// Plano Pro Anual como default
+const DEFAULT_CAKTO_PRODUCT_ID = "76x6iou_751311"
 const PRODUCT_ID_PATTERN = /^[A-Za-z0-9_-]+$/
 
 function extractProductId(input?: string) {

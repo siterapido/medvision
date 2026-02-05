@@ -1,7 +1,7 @@
-import { CAKTO_MONTHLY_PLAN_ID, CAKTO_ANNUAL_PLAN_ID } from "@/lib/cakto"
+import { CAKTO_BASIC_ANNUAL_PLAN_ID, CAKTO_PRO_ANNUAL_PLAN_ID, CAKTO_CERTIFICATE_ID } from "@/lib/cakto"
 
 export type Plan = {
-  id: "monthly" | "annual" | "pro"
+  id: "basic" | "pro" | "certificate"
   name: string
   price: string
   originalPrice?: string
@@ -11,6 +11,7 @@ export type Plan = {
   cta: string
   popular: boolean
   caktoId: string
+  lifetime?: boolean
   upsell?: {
     title: string
     price: string
@@ -20,64 +21,59 @@ export type Plan = {
 
 export const plans: Plan[] = [
   {
-    id: "monthly",
-    name: "Mensal Básico",
-    price: "R$ 39,80",
-    originalPrice: "R$ 59,90",
-    period: "/mês",
-    popular: false,
-    caktoId: CAKTO_MONTHLY_PLAN_ID,
-    features: [
-      "Consultor 24/7 no WhatsApp - sem limite de perguntas",
-      "Respostas fundamentadas em literatura científica",
-      "Prescrições com dosagens corretas e protocolos atualizados",
-      "Ajuda em provas, estágios e casos clínicos complexos",
-      "Live exclusiva toda quarta-feira com Q&A",
-    ],
-    cta: "Assinar Plano Mensal",
-  },
-  {
-    id: "annual",
-    name: "Anual Básico",
+    id: "basic",
+    name: "Plano Basico Anual",
     price: "R$ 387",
     originalPrice: "R$ 597",
     period: "/ano",
     popular: true,
-    caktoId: CAKTO_ANNUAL_PLAN_ID,
+    caktoId: CAKTO_BASIC_ANNUAL_PLAN_ID,
     features: [
       "Consultor 24/7 no WhatsApp - sem limite de perguntas",
-      "Respostas fundamentadas em literatura científica",
-      "Prescrições com dosagens corretas e protocolos atualizados",
-      "Ajuda em provas, estágios e casos clínicos complexos",
+      "Respostas fundamentadas em literatura cientifica",
+      "Prescricoes com dosagens corretas e protocolos atualizados",
+      "Ajuda em provas, estagios e casos clinicos complexos",
       "Live exclusiva toda quarta-feira com Q&A",
-      "🎁 Ebook exclusivo: Como Validar Seu Diploma nos EUA",
-      "🎁 Certificado mensal de participação nas lives",
-      "🎁 Acesso prioritário a novas funcionalidades",
     ],
-    cta: "Assinar Plano Anual",
+    cta: "Assinar Plano Basico",
   },
   {
     id: "pro",
-    name: "Odonto Vision Pro",
+    name: "Plano Pro Anual",
     price: "R$ 597",
     originalPrice: "R$ 797",
     period: "/ano",
     popular: false,
-    caktoId: CAKTO_ANNUAL_PLAN_ID,
+    caktoId: CAKTO_PRO_ANNUAL_PLAN_ID,
     features: [
-      "Tudo do Anual Básico",
-      "👁️ Odonto Vision: Análise visual avançada",
-      "📊 Relatórios de evolução de casos",
-      "🎓 Acesso a biblioteca premium de casos clínicos",
-      "🚀 Suporte prioritário",
-      "🎁 Ebook exclusivo: Como Validar Seu Diploma nos EUA",
-      "🎁 Certificado mensal de participação nas lives",
-      "🎁 Acesso prioritário a novas funcionalidades",
+      "Tudo do Plano Basico",
+      "Odonto Vision: Analise visual avancada",
+      "Relatorios de evolucao de casos",
+      "Acesso a biblioteca premium de casos clinicos",
+      "Suporte prioritario",
+      "Ebook exclusivo: Como Validar Seu Diploma nos EUA",
+      "Certificado mensal de participacao nas lives",
+      "Acesso prioritario a novas funcionalidades",
     ],
-    cta: "Assinar Odonto Vision Pro",
+    cta: "Assinar Plano Pro",
     upsell: {
       title: "+ Curso de Farmacologia",
       price: "R$ 367",
     },
+  },
+  {
+    id: "certificate",
+    name: "Certificado - Consultorio do Futuro",
+    price: "R$ 297",
+    period: "vitalicio",
+    popular: false,
+    lifetime: true,
+    caktoId: CAKTO_CERTIFICATE_ID,
+    features: [
+      "Certificado oficial de conclusao",
+      "Acesso vitalicio ao conteudo",
+      "Material complementar exclusivo",
+    ],
+    cta: "Adquirir Certificado",
   },
 ]
