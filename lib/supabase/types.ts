@@ -1210,84 +1210,150 @@ export type Database = {
       profiles: {
         Row: {
           account_source: string | null
+          assigned_to: string | null
           avatar_url: string | null
           company: string | null
+          conversation_count: number | null
           cpf: string | null
           created_at: string
           cro: string | null
+          deleted_at: string | null
+          deleted_by: string | null
           email: string | null
+          engagement_score: number | null
+          especialidade: string | null
           expires_at: string | null
+          funnel_id: string | null
           id: string
           institution: string | null
+          knowledge_gaps: string[] | null
+          last_activity_at: string | null
+          last_active_at: string | null
           last_payment_date: string | null
-          name: string
+          learning_style: string | null
+          mastered_topics: string[] | null
+          name: string | null
+          nome_completo: string | null
           payment_method: string | null
           phone: string | null
+          phone_verified: boolean | null
+          phone_verified_at: string | null
           pipeline_stage: string | null
           plan: string
           plan_type: string | null
           profession: string | null
+          response_preference: string | null
           role: string
+          setup_completed_at: string | null
+          setup_level: string | null
           subscription_status: string | null
+          telefone: string | null
           trial_ends_at: string | null
           trial_started_at: string | null
           trial_used: boolean | null
           updated_at: string
           whatsapp: string | null
+          whatsapp_optin: boolean | null
+          whatsapp_optin_at: string | null
+          whatsapp_optout_at: string | null
         }
         Insert: {
           account_source?: string | null
+          assigned_to?: string | null
           avatar_url?: string | null
           company?: string | null
+          conversation_count?: number | null
           cpf?: string | null
           created_at?: string
           cro?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string | null
+          engagement_score?: number | null
+          especialidade?: string | null
           expires_at?: string | null
+          funnel_id?: string | null
           id: string
           institution?: string | null
+          knowledge_gaps?: string[] | null
+          last_activity_at?: string | null
+          last_active_at?: string | null
           last_payment_date?: string | null
-          name: string
+          learning_style?: string | null
+          mastered_topics?: string[] | null
+          name?: string | null
+          nome_completo?: string | null
           payment_method?: string | null
           phone?: string | null
+          phone_verified?: boolean | null
+          phone_verified_at?: string | null
           pipeline_stage?: string | null
           plan?: string
           plan_type?: string | null
           profession?: string | null
+          response_preference?: string | null
           role?: string
+          setup_completed_at?: string | null
+          setup_level?: string | null
           subscription_status?: string | null
+          telefone?: string | null
           trial_ends_at?: string | null
           trial_started_at?: string | null
           trial_used?: boolean | null
           updated_at?: string
           whatsapp?: string | null
+          whatsapp_optin?: boolean | null
+          whatsapp_optin_at?: string | null
+          whatsapp_optout_at?: string | null
         }
         Update: {
           account_source?: string | null
+          assigned_to?: string | null
           avatar_url?: string | null
           company?: string | null
+          conversation_count?: number | null
           cpf?: string | null
           created_at?: string
           cro?: string | null
+          deleted_at?: string | null
+          deleted_by?: string | null
           email?: string | null
+          engagement_score?: number | null
+          especialidade?: string | null
           expires_at?: string | null
+          funnel_id?: string | null
           id?: string
           institution?: string | null
+          knowledge_gaps?: string[] | null
+          last_activity_at?: string | null
+          last_active_at?: string | null
           last_payment_date?: string | null
-          name?: string
+          learning_style?: string | null
+          mastered_topics?: string[] | null
+          name?: string | null
+          nome_completo?: string | null
           payment_method?: string | null
           phone?: string | null
+          phone_verified?: boolean | null
+          phone_verified_at?: string | null
           pipeline_stage?: string | null
           plan?: string
           plan_type?: string | null
           profession?: string | null
+          response_preference?: string | null
           role?: string
+          setup_completed_at?: string | null
+          setup_level?: string | null
           subscription_status?: string | null
+          telefone?: string | null
           trial_ends_at?: string | null
           trial_started_at?: string | null
           trial_used?: boolean | null
           updated_at?: string
           whatsapp?: string | null
+          whatsapp_optin?: boolean | null
+          whatsapp_optin_at?: string | null
+          whatsapp_optout_at?: string | null
         }
         Relationships: []
       }
