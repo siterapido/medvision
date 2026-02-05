@@ -7,10 +7,15 @@ RED='\033[0;31m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# URL do webhook - API Route do Next.js (recomendado) ou Edge Function
-WEBHOOK_URL="http://localhost:3000/api/webhooks/cakto"
-WEBHOOK_URL_PROD="https://odontogpt.com/api/webhooks/cakto"
-SECRET="25031965-ab73-495c-84c0-affd56d5d531"
+# URL do webhook - Edge Function do Supabase
+WEBHOOK_URL="https://fjcbowphcbnvuowsjvbz.supabase.co/functions/v1/cakto"
+WEBHOOK_URL_LOCAL="http://localhost:54321/functions/v1/cakto"
+SECRET="05cbcfb3-c526-4863-ad12-b2d395035f8b"
+
+# IDs dos produtos Cakto (Nova conta - 2026-02)
+CAKTO_BASIC_ANNUAL_PLAN_ID="pdjvzs7_751299"
+CAKTO_PRO_ANNUAL_PLAN_ID="76x6iou_751311"
+CAKTO_CERTIFICATE_ID="pi6xasc_754503"
 
 echo -e "${BLUE}═══════════════════════════════════════════════════════════${NC}"
 echo -e "${BLUE}  Teste do Webhook Cakto${NC}"
@@ -19,35 +24,35 @@ echo -e "${BLUE}═════════════════════�
 # Payload do webhook (baseado no exemplo fornecido)
 PAYLOAD='{
   "data": {
-    "id": "ef8f3c89-ad6d-406d-85c9-b3407d906fa3",
-    "amount": 90,
+    "id": "test-tx-'"$(date +%s)"'",
+    "amount": 597,
     "status": "paid",
     "paymentMethod": "credit_card",
-    "paidAt": "2025-11-14T12:53:19.513865+00:00",
-    "createdAt": "2025-11-14T12:53:19.513865+00:00",
+    "paidAt": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000000+00:00)"'",
+    "createdAt": "'"$(date -u +%Y-%m-%dT%H:%M:%S.000000+00:00)"'",
     "customer": {
-      "name": "John Doe",
-      "email": "john.doe@example.com",
-      "phone": "34999999999",
+      "name": "Usuario Teste",
+      "email": "teste@odontogpt.com",
+      "phone": "11999999999",
       "docType": "cpf",
       "docNumber": "12345678909"
     },
     "product": {
-      "id": "ff3fdf61-e88f-43b5-982a-32d50f112414",
-      "name": "Plano Anual Pro",
-      "short_id": "AckhQ75"
+      "id": "'"$CAKTO_PRO_ANNUAL_PLAN_ID"'",
+      "name": "Plano Pro Anual",
+      "short_id": "'"$CAKTO_PRO_ANNUAL_PLAN_ID"'"
     },
     "subscription": {
-      "id": "3385bc20-6e05-4db3-a838-d72968d44302",
+      "id": "sub-'"$(date +%s)"'",
       "status": "active",
-      "next_payment_date": "2025-12-14T12:53:19.513865+00:00"
+      "next_payment_date": "'"$(date -u -v+1y +%Y-%m-%dT%H:%M:%S.000000+00:00 2>/dev/null || date -u -d '+1 year' +%Y-%m-%dT%H:%M:%S.000000+00:00)"'"
     }
   },
   "event": "purchase_approved",
   "secret": "'"$SECRET"'"
 }'
 
-echo -e "${YELLOW}Testando local (localhost:3000)${NC}"
+echo -e "${YELLOW}Testando Edge Function Supabase${NC}"
 echo -e "${BLUE}$WEBHOOK_URL${NC}\n"
 
 echo -e "${YELLOW}Payload:${NC}"
@@ -87,16 +92,16 @@ elif [ "$HTTP_CODE" = "404" ]; then
   echo -e "${YELLOW}Resposta:${NC}"
   echo "$BODY" | jq . 2>/dev/null || echo "$BODY"
   echo -e "\n${YELLOW}Dicas:${NC}"
-  echo "1. Verifique se CAKTO_PRODUCT_ID está correto"
-  echo "2. Product ID deve ser: ff3fdf61-e88f-43b5-982a-32d50f112414"
+  echo "1. Verifique se o Product ID está correto"
+  echo "2. IDs válidos: $CAKTO_BASIC_ANNUAL_PLAN_ID, $CAKTO_PRO_ANNUAL_PLAN_ID, $CAKTO_CERTIFICATE_ID"
 elif [ "$HTTP_CODE" = "000" ] || [ -z "$HTTP_CODE" ]; then
   echo -e "${RED}✗ Erro de conexão${NC}"
   echo -e "${YELLOW}Resposta:${NC}"
   echo "$BODY"
   echo -e "\n${YELLOW}Dicas:${NC}"
-  echo "1. Verifique se o servidor está rodando em localhost:3000"
-  echo "2. Execute: npm run dev"
-  echo "3. Para produção, use: $WEBHOOK_URL_PROD"
+  echo "1. Verifique sua conexão com a internet"
+  echo "2. Verifique se a Edge Function está ativa no Supabase"
+  echo "3. URL: $WEBHOOK_URL"
 else
   echo -e "${RED}✗ Erro ${HTTP_CODE}${NC}"
   echo -e "${YELLOW}Resposta:${NC}"
@@ -106,12 +111,18 @@ fi
 echo -e "\n${BLUE}═══════════════════════════════════════════════════════════${NC}\n"
 
 echo -e "${YELLOW}URLs de Webhook:${NC}"
-echo -e "Local:       ${BLUE}$WEBHOOK_URL${NC}"
-echo -e "Produção:    ${BLUE}$WEBHOOK_URL_PROD${NC}\n"
+echo -e "Produção:    ${BLUE}$WEBHOOK_URL${NC}"
+echo -e "Local:       ${BLUE}$WEBHOOK_URL_LOCAL${NC}\n"
 
 echo -e "${YELLOW}Para configurar no Cakto:${NC}"
-echo "1. Acesse https://cakto.com.br/dashboard"
-echo "2. Vá em Configurações > Webhooks"
-echo "3. Configure a URL correta (local ou produção)"
+echo "1. Acesse https://app.cakto.com.br/dashboard/apps"
+echo "2. Vá em Webhook > Adicionar"
+echo "3. URL: $WEBHOOK_URL"
 echo "4. Secret: $SECRET"
-echo "5. Eventos: purchase_approved, refund, subscription_cancelled\n"
+echo "5. Eventos: purchase_approved, refund, subscription_cancelled"
+echo "6. Tipo: Disparo individual\n"
+
+echo -e "${YELLOW}IDs dos Produtos:${NC}"
+echo "Basico Anual:  $CAKTO_BASIC_ANNUAL_PLAN_ID"
+echo "Pro Anual:     $CAKTO_PRO_ANNUAL_PLAN_ID"
+echo "Certificado:   $CAKTO_CERTIFICATE_ID\n"
