@@ -854,7 +854,8 @@ export default function LandingPage() {
                       <span className="text-3xl md:text-4xl font-extrabold text-[#22d3ee]">R$ 387</span>
                       <span className="text-slate-400">/ano</span>
                     </div>
-                    <div className="mt-2 text-xs md:text-sm font-medium text-[#22d3ee]">Economize R$ 210 (R$ 32,25/mês)</div>
+                    <div className="mt-1 text-xs md:text-sm text-slate-300">ou <span className="font-semibold text-white">10x de R$ 38,70</span></div>
+                    <div className="mt-1 text-xs md:text-sm font-medium text-[#22d3ee]">Economize R$ 210 (R$ 32,25/mês)</div>
                   </div>
 
                   <ul className="space-y-3 mb-6 flex-grow relative z-10">
@@ -911,7 +912,8 @@ export default function LandingPage() {
                       <span className="text-3xl md:text-4xl font-extrabold text-purple-400">R$ 597</span>
                       <span className="text-slate-400">/ano</span>
                     </div>
-                    <div className="mt-2 text-xs md:text-sm font-medium text-purple-400">Economize R$ 200 (R$ 49,75/mês)</div>
+                    <div className="mt-1 text-xs md:text-sm text-slate-300">ou <span className="font-semibold text-white">10x de R$ 59,70</span></div>
+                    <div className="mt-1 text-xs md:text-sm font-medium text-purple-400">Economize R$ 200 (R$ 49,75/mês)</div>
                     <div className="mt-3 p-2 bg-purple-900/30 rounded-lg border border-purple-500/30">
                       <p className="text-xs font-semibold text-purple-300">+ Curso de Farmacologia: R$ 367</p>
                       <p className="text-xs text-purple-400 mt-1">Valor total: R$ 964 (economize R$ 567)</p>

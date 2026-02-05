@@ -805,7 +805,10 @@ export default function LandingPage() {
                         <span className="font-['Playfair_Display'] text-5xl font-bold">R$ 387</span>
                         <span className="text-white/60">/ano</span>
                       </div>
-                      <p className="font-['Space_Grotesk'] text-sm text-[#D4A373] font-medium mt-2">
+                      <p className="font-['Space_Grotesk'] text-sm text-white/80 mt-1">
+                        ou <span className="font-semibold">10x de R$ 38,70</span>
+                      </p>
+                      <p className="font-['Space_Grotesk'] text-sm text-[#D4A373] font-medium mt-1">
                         35% OFF • R$ 32,25/mês
                       </p>
                     </div>
@@ -853,7 +856,10 @@ export default function LandingPage() {
                         <span className="font-['Playfair_Display'] text-5xl font-bold text-purple-600">R$ 597</span>
                         <span className="text-purple-600/60">/ano</span>
                       </div>
-                      <p className="font-['Space_Grotesk'] text-sm text-purple-600 font-medium mt-2">
+                      <p className="font-['Space_Grotesk'] text-sm text-purple-600/80 mt-1">
+                        ou <span className="font-semibold">10x de R$ 59,70</span>
+                      </p>
+                      <p className="font-['Space_Grotesk'] text-sm text-purple-600 font-medium mt-1">
                         25% OFF • R$ 49,75/mês
                       </p>
                     </div>

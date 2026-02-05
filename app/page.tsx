@@ -707,6 +707,180 @@ export default function LandingPage() {
 
 
 
+        {/* Pricing Section */}
+        <section id="planos" className="w-full py-20 md:py-32 px-4 md:px-6 relative z-10 overflow-hidden">
+          {/* Background effects */}
+          <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-emerald-500 rounded-full blur-[250px] opacity-[0.03] pointer-events-none" />
+          <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-500 rounded-full blur-[250px] opacity-[0.03] pointer-events-none" />
+
+          <div className="container mx-auto max-w-6xl relative z-10">
+            {/* Header */}
+            <FadeIn direction="up" delay={0.1}>
+              <div className="text-center max-w-3xl mx-auto mb-16">
+                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 mb-6">
+                  <Sparkles className="w-4 h-4 text-emerald-400" />
+                  <span className="text-emerald-400 font-semibold text-sm">Planos e Precos</span>
+                </span>
+                <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-[1.1]">
+                  Invista no Seu<br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
+                    Futuro Profissional
+                  </span>
+                </h2>
+                <p className="text-lg text-slate-400 leading-relaxed">
+                  Escolha o plano ideal para acelerar sua jornada na odontologia
+                </p>
+              </div>
+            </FadeIn>
+
+            {/* Pricing Cards */}
+            <div className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-4xl mx-auto">
+              {/* Plano Basico Anual */}
+              <FadeIn direction="right" delay={0.2}>
+                <div className="group relative h-full">
+                  <div className="absolute -inset-[1px] bg-gradient-to-r from-emerald-400 to-teal-400 rounded-2xl opacity-100" />
+                  <div className="relative h-full bg-[#0F172A] rounded-2xl p-8 flex flex-col">
+                    {/* Popular Badge */}
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="px-4 py-1 rounded-full bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider shadow-lg">
+                        Mais Popular
+                      </span>
+                    </div>
+
+                    {/* Header */}
+                    <div className="text-center mb-6 pt-4">
+                      <h3 className="text-2xl font-bold text-white mb-2">Plano Basico Anual</h3>
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <span className="text-sm text-slate-500 line-through">R$ 597</span>
+                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-xs font-bold">35% OFF</span>
+                      </div>
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className="text-4xl md:text-5xl font-bold text-emerald-400">10x</span>
+                        <span className="text-3xl md:text-4xl font-bold text-emerald-400">R$ 38,70</span>
+                      </div>
+                      <p className="text-sm text-slate-400 mt-2">
+                        ou <span className="font-semibold text-white">R$ 387</span> a vista
+                      </p>
+                      <p className="text-xs text-emerald-400 mt-1">Equivalente a R$ 32,25/mes</p>
+                    </div>
+
+                    {/* Features */}
+                    <ul className="space-y-3 mb-8 flex-grow">
+                      {[
+                        "Consultor 24/7 no WhatsApp - sem limite",
+                        "Respostas fundamentadas em literatura cientifica",
+                        "Prescricoes com dosagens corretas",
+                        "Ajuda em provas, estagios e casos clinicos",
+                        "Live exclusiva toda quarta-feira"
+                      ].map((feature, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <Check className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
+                          <span className="text-sm text-slate-300">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* CTA */}
+                    <Link href="/register?plan=basic" className="block">
+                      <Button
+                        size="lg"
+                        className="w-full rounded-full py-6 text-base font-semibold shadow-[0_10px_40px_rgba(16,185,129,0.3)] border-0 text-white"
+                        style={{
+                          background: 'linear-gradient(135deg, #10B981 0%, #14B8A6 100%)'
+                        }}
+                      >
+                        Assinar Plano Basico
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </FadeIn>
+
+              {/* Plano Pro Anual */}
+              <FadeIn direction="left" delay={0.3}>
+                <div className="group relative h-full">
+                  <div className="absolute -inset-[1px] bg-gradient-to-r from-purple-500 to-violet-500 rounded-2xl opacity-100" />
+                  <div className="relative h-full bg-[#0F172A] rounded-2xl p-8 flex flex-col">
+                    {/* Pro Badge */}
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="px-4 py-1 rounded-full bg-purple-600 text-white text-xs font-bold uppercase tracking-wider shadow-lg">
+                        Completo
+                      </span>
+                    </div>
+
+                    {/* Header */}
+                    <div className="text-center mb-6 pt-4">
+                      <h3 className="text-2xl font-bold text-white mb-2">Plano Pro Anual</h3>
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <span className="text-sm text-slate-500 line-through">R$ 797</span>
+                        <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 text-xs font-bold">25% OFF</span>
+                      </div>
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className="text-4xl md:text-5xl font-bold text-purple-400">10x</span>
+                        <span className="text-3xl md:text-4xl font-bold text-purple-400">R$ 59,70</span>
+                      </div>
+                      <p className="text-sm text-slate-400 mt-2">
+                        ou <span className="font-semibold text-white">R$ 597</span> a vista
+                      </p>
+                      <p className="text-xs text-purple-400 mt-1">Equivalente a R$ 49,75/mes</p>
+                    </div>
+
+                    {/* Features */}
+                    <ul className="space-y-3 mb-8 flex-grow">
+                      {[
+                        "Tudo do Plano Basico",
+                        "Odonto Vision: Analise visual de imagens",
+                        "Biblioteca premium de casos clinicos",
+                        "Suporte prioritario",
+                        "Ebook: Como Validar Diploma nos EUA",
+                        "Certificado mensal de participacao"
+                      ].map((feature, i) => (
+                        <li key={i} className="flex items-start gap-3">
+                          <Check className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" />
+                          <span className="text-sm text-slate-300">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* CTA */}
+                    <Link href="/register?plan=pro" className="block">
+                      <Button
+                        size="lg"
+                        className="w-full rounded-full py-6 text-base font-semibold shadow-[0_10px_40px_rgba(168,85,247,0.3)] border-0 text-white"
+                        style={{
+                          background: 'linear-gradient(135deg, #9333EA 0%, #7C3AED 100%)'
+                        }}
+                      >
+                        Assinar Plano Pro
+                        <ArrowRight className="ml-2 h-5 w-5" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </FadeIn>
+            </div>
+
+            {/* Trust Badges */}
+            <FadeIn direction="up" delay={0.4}>
+              <div className="flex flex-wrap items-center justify-center gap-6 mt-12 text-sm text-slate-500">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-emerald-500" />
+                  <span>Pagamento Seguro</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-emerald-500" />
+                  <span>Acesso imediato</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <span>Garantia de 7 dias</span>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+        </section>
+
         {/* FAQ Section */}
         <FAQSection />
 
