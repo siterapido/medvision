@@ -1,12 +1,16 @@
 {
   "crons": [
     {
+      "path": "/api/cron/update-pipeline",
+      "schedule": "0 10 * * *"
+    },
+    {
       "path": "/api/cron/notifications",
-      "schedule": "0 9 * * *"
+      "schedule": "0 12 * * *"
     },
     {
       "path": "/api/cron/whatsapp-triggers",
-      "schedule": "0 10 * * *"
+      "schedule": "0 13 * * *"
     }
   ]
 }
