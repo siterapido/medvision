@@ -60,6 +60,11 @@ export function SubscriptionModal({ trigger }: SubscriptionModalProps) {
                   </span>
                   <span className="text-sm text-slate-400">{plan.period}</span>
                 </div>
+                {plan.installmentPrice && (
+                  <p className="text-sm text-slate-400">
+                    ou <span className="font-medium text-slate-300">{plan.installmentPrice}</span>
+                  </p>
+                )}
               </div>
 
               <ul className="space-y-2 text-sm text-slate-300 py-2 mb-6 flex-1">
