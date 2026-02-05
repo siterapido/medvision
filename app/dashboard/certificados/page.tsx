@@ -107,12 +107,20 @@ export default function CertificadosPage() {
                             Visualize e baixe seus certificados de conclusão
                         </p>
                     </div>
-                    <Button asChild variant="outline">
-                        <Link href="/consultorio-do-futuro">
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            Obter Novo Certificado
-                        </Link>
-                    </Button>
+                    <div className="flex gap-2">
+                        <Button asChild variant="outline">
+                            <Link href="/palestra-ia">
+                                <Award className="w-4 h-4 mr-2" />
+                                Palestra IA - 20h
+                            </Link>
+                        </Button>
+                        <Button asChild variant="outline">
+                            <Link href="/consultorio-do-futuro">
+                                <ExternalLink className="w-4 h-4 mr-2" />
+                                Obter Novo Certificado
+                            </Link>
+                        </Button>
+                    </div>
                 </div>
 
                 {/* Certificates List */}
