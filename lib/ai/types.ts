@@ -53,6 +53,7 @@ export interface WhatsAppMessage {
 
 /**
  * Tipos para webhooks Z-API
+ * @see https://developer.z-api.io/en/webhooks/on-message-received
  */
 export interface ZApiWebhookMessage {
     phone: string
@@ -62,33 +63,74 @@ export interface ZApiWebhookMessage {
     chatName: string
     senderPhoto?: string
     senderName?: string
+    senderLid?: string
     participantPhone?: string
     messageId: string
     photo?: string
     broadcast: boolean
     isGroup: boolean
+    isNewsletter?: boolean
+    waitingMessage?: boolean
+    isEdit?: boolean
     text?: {
         message: string
+        title?: string
+        description?: string
+        url?: string
+        thumbnailUrl?: string
     }
     image?: {
         imageUrl: string
+        thumbnailUrl?: string
         caption?: string
         mimeType: string
     }
     audio?: {
         audioUrl: string
         mimeType: string
+        ptt?: boolean
+    }
+    video?: {
+        videoUrl: string
+        mimeType: string
+        caption?: string
+        seconds?: number
     }
     document?: {
         documentUrl: string
         mimeType: string
         fileName: string
+        pageCount?: number
     }
+    reaction?: {
+        value: string
+        referencedMessage?: {
+            messageId: string
+            fromMe: boolean
+        }
+    }
+    buttonsResponseMessage?: {
+        buttonId: string
+        message: string
+    }
+    listResponseMessage?: {
+        selectedRowId: string
+        title: string
+        description?: string
+    }
+    notification?: string
 }
+
+export type ZApiWebhookType =
+    | "ReceivedCallback"
+    | "MessageStatusCallback"
+    | "ConnectedCallback"
+    | "DisconnectedCallback"
+    | string
 
 export interface ZApiWebhookPayload {
     instanceId: string
     phone: string
-    type: "ReceivedCallback" | "MessageStatusCallback" | string
+    type: ZApiWebhookType
     body: ZApiWebhookMessage
 }
