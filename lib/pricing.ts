@@ -5,6 +5,7 @@ export type Plan = {
   name: string
   price: string
   originalPrice?: string
+  installmentPrice?: string // Preço em 10x
   period: string
   description?: string
   features: string[]
@@ -25,6 +26,7 @@ export const plans: Plan[] = [
     name: "Plano Basico Anual",
     price: "R$ 387",
     originalPrice: "R$ 597",
+    installmentPrice: "10x de R$ 38,70",
     period: "/ano",
     popular: true,
     caktoId: CAKTO_BASIC_ANNUAL_PLAN_ID,
@@ -42,6 +44,7 @@ export const plans: Plan[] = [
     name: "Plano Pro Anual",
     price: "R$ 597",
     originalPrice: "R$ 797",
+    installmentPrice: "10x de R$ 59,70",
     period: "/ano",
     popular: false,
     caktoId: CAKTO_PRO_ANNUAL_PLAN_ID,
