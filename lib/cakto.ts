@@ -17,6 +17,16 @@ export const CONSULTORIO_FUTURO_COURSE = {
   checkoutUrl: `https://pay.cakto.com.br/${CAKTO_CONSULTORIO_FUTURO_ID}`,
 }
 
+// Evento: Palestra Online – Consultório do Futuro na Odontologia (IA)
+export const PALESTRA_IA_EVENT = {
+  id: "palestra-consultorio-futuro-ia",
+  name: "Palestra Online – Consultório do Futuro na Odontologia (IA)",
+  hours: 20,
+  date: "2026-02-05T23:00:00Z", // 20:00 BRT
+  caktoProductId: CAKTO_CERTIFICATE_ID,
+  checkoutUrl: `https://pay.cakto.com.br/${CAKTO_CERTIFICATE_ID}`,
+}
+
 // Aliases para compatibilidade (deprecated)
 export const CAKTO_ANNUAL_PLAN_ID = CAKTO_BASIC_ANNUAL_PLAN_ID
 export const CAKTO_MONTHLY_PLAN_ID = CAKTO_BASIC_ANNUAL_PLAN_ID // deprecated - sem plano mensal
