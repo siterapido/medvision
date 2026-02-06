@@ -170,11 +170,13 @@ Podemos te ajudar com algo? 📚`
       })
 
       // Update pipeline status if exists
-      await supabase.from('pipeline').upsert({
-        user_id: user.id,
-        stage: 'risco_churn',
-        last_contact_at: new Date().toISOString(),
-      })
+      await supabase
+        .from('profiles')
+        .update({
+          pipeline_stage: 'risco_churn',
+          last_activity_at: new Date().toISOString(),
+        })
+        .eq('id', user.id)
 
       console.log(`[Triggers] Trial expired recovery message sent to ${user.whatsapp}`)
     } catch (error) {
