@@ -87,7 +87,7 @@ export async function sendNotification(
     channel,
     status,
     content,
-    response_data: responseData as Record<string, unknown> | null,
+    response_data: (responseData ?? undefined) as import("@/lib/supabase/types").Json | undefined,
     error_message: errorMessage,
   });
 
