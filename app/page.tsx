@@ -719,7 +719,7 @@ export default function LandingPage() {
               <div className="text-center max-w-3xl mx-auto mb-16">
                 <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 mb-6">
                   <Sparkles className="w-4 h-4 text-emerald-400" />
-                  <span className="text-emerald-400 font-semibold text-sm">Planos e Precos</span>
+                  <span className="text-emerald-400 font-semibold text-sm">Planos Mensais</span>
                 </span>
                 <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 leading-[1.1]">
                   Invista no Seu<br />
@@ -728,14 +728,14 @@ export default function LandingPage() {
                   </span>
                 </h2>
                 <p className="text-lg text-slate-400 leading-relaxed">
-                  Escolha o plano ideal para acelerar sua jornada na odontologia
+                  Escolha o plano ideal para acelerar sua jornada na odontologia. Cancele quando quiser.
                 </p>
               </div>
             </FadeIn>
 
             {/* Pricing Cards */}
             <div className="grid md:grid-cols-2 gap-6 lg:gap-8 max-w-4xl mx-auto">
-              {/* Plano Basico Anual */}
+              {/* Plano Basico Mensal */}
               <FadeIn direction="right" delay={0.2}>
                 <div className="group relative h-full">
                   <div className="absolute -inset-[1px] bg-gradient-to-r from-emerald-400 to-teal-400 rounded-2xl opacity-100" />
@@ -749,19 +749,11 @@ export default function LandingPage() {
 
                     {/* Header */}
                     <div className="text-center mb-6 pt-4">
-                      <h3 className="text-2xl font-bold text-white mb-2">Plano Basico Anual</h3>
-                      <div className="flex items-center justify-center gap-2 mb-2">
-                        <span className="text-sm text-slate-500 line-through">R$ 597</span>
-                        <span className="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 text-xs font-bold">35% OFF</span>
+                      <h3 className="text-2xl font-bold text-white mb-2">Plano Basico</h3>
+                      <div className="flex items-baseline justify-center gap-1 mt-3">
+                        <span className="text-5xl md:text-6xl font-bold text-emerald-400">R$ 39,90</span>
                       </div>
-                      <div className="flex items-baseline justify-center gap-1">
-                        <span className="text-4xl md:text-5xl font-bold text-emerald-400">10x</span>
-                        <span className="text-3xl md:text-4xl font-bold text-emerald-400">R$ 38,70</span>
-                      </div>
-                      <p className="text-sm text-slate-400 mt-2">
-                        ou <span className="font-semibold text-white">R$ 387</span> a vista
-                      </p>
-                      <p className="text-xs text-emerald-400 mt-1">Equivalente a R$ 32,25/mes</p>
+                      <p className="text-sm text-slate-400 mt-2">/mes</p>
                     </div>
 
                     {/* Features */}
@@ -797,7 +789,7 @@ export default function LandingPage() {
                 </div>
               </FadeIn>
 
-              {/* Plano Pro Anual */}
+              {/* Plano Pro Mensal */}
               <FadeIn direction="left" delay={0.3}>
                 <div className="group relative h-full">
                   <div className="absolute -inset-[1px] bg-gradient-to-r from-purple-500 to-violet-500 rounded-2xl opacity-100" />
@@ -811,19 +803,11 @@ export default function LandingPage() {
 
                     {/* Header */}
                     <div className="text-center mb-6 pt-4">
-                      <h3 className="text-2xl font-bold text-white mb-2">Plano Pro Anual</h3>
-                      <div className="flex items-center justify-center gap-2 mb-2">
-                        <span className="text-sm text-slate-500 line-through">R$ 797</span>
-                        <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 text-xs font-bold">25% OFF</span>
+                      <h3 className="text-2xl font-bold text-white mb-2">Plano Pro</h3>
+                      <div className="flex items-baseline justify-center gap-1 mt-3">
+                        <span className="text-5xl md:text-6xl font-bold text-purple-400">R$ 59,90</span>
                       </div>
-                      <div className="flex items-baseline justify-center gap-1">
-                        <span className="text-4xl md:text-5xl font-bold text-purple-400">10x</span>
-                        <span className="text-3xl md:text-4xl font-bold text-purple-400">R$ 59,70</span>
-                      </div>
-                      <p className="text-sm text-slate-400 mt-2">
-                        ou <span className="font-semibold text-white">R$ 597</span> a vista
-                      </p>
-                      <p className="text-xs text-purple-400 mt-1">Equivalente a R$ 49,75/mes</p>
+                      <p className="text-sm text-slate-400 mt-2">/mes</p>
                     </div>
 
                     {/* Features */}
@@ -874,7 +858,7 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  <span>Garantia de 7 dias</span>
+                  <span>Cancele quando quiser</span>
                 </div>
               </div>
             </FadeIn>
