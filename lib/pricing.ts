@@ -1,4 +1,4 @@
-import { CAKTO_BASIC_ANNUAL_PLAN_ID, CAKTO_PRO_ANNUAL_PLAN_ID, CAKTO_CERTIFICATE_ID } from "@/lib/cakto"
+import { CAKTO_BASIC_MONTHLY_PLAN_ID, CAKTO_PRO_MONTHLY_PLAN_ID, CAKTO_CERTIFICATE_ID } from "@/lib/cakto"
 
 export type Plan = {
   id: "basic" | "pro" | "certificate"
@@ -23,13 +23,11 @@ export type Plan = {
 export const plans: Plan[] = [
   {
     id: "basic",
-    name: "Plano Basico Anual",
-    price: "R$ 387",
-    originalPrice: "R$ 597",
-    installmentPrice: "12x de R$ 44,99",
-    period: "/ano",
+    name: "Plano Basico",
+    price: "R$ 39,90",
+    period: "/mes",
     popular: true,
-    caktoId: CAKTO_BASIC_ANNUAL_PLAN_ID,
+    caktoId: CAKTO_BASIC_MONTHLY_PLAN_ID,
     features: [
       "Consultor 24/7 no WhatsApp - sem limite de perguntas",
       "Respostas fundamentadas em literatura cientifica",
@@ -41,13 +39,11 @@ export const plans: Plan[] = [
   },
   {
     id: "pro",
-    name: "Plano Pro Anual",
-    price: "R$ 597",
-    originalPrice: "R$ 797",
-    installmentPrice: "12x de R$ 69,41",
-    period: "/ano",
+    name: "Plano Pro",
+    price: "R$ 59,90",
+    period: "/mes",
     popular: false,
-    caktoId: CAKTO_PRO_ANNUAL_PLAN_ID,
+    caktoId: CAKTO_PRO_MONTHLY_PLAN_ID,
     features: [
       "Tudo do Plano Basico",
       "Odonto Vision: Analise visual avancada",
@@ -59,10 +55,6 @@ export const plans: Plan[] = [
       "Acesso prioritario a novas funcionalidades",
     ],
     cta: "Assinar Plano Pro",
-    upsell: {
-      title: "+ Curso de Farmacologia",
-      price: "R$ 367",
-    },
   },
   {
     id: "certificate",
