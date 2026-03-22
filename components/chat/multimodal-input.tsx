@@ -16,6 +16,7 @@
  */
 
 import { useState, useRef, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { ArrowUpIcon, StopIcon, MicIcon, PaperclipIcon } from './icons'
@@ -79,6 +80,7 @@ export function MultimodalInput({
   const isLoading = status === 'submitted' || status === 'streaming'
   const isPro = subscriptionInfo?.isPro ?? false
   const trialDaysRemaining = subscriptionInfo?.trialDaysRemaining ?? 0
+  const isExpired = !isPro && trialDaysRemaining === 0
 
   // Auto-resize textarea
   const adjustHeight = useCallback(() => {
@@ -325,8 +327,8 @@ export function MultimodalInput({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Envie uma mensagem..."
-            disabled={isLoading}
+            placeholder={isExpired ? "Seu período de teste expirou." : "Envie uma mensagem..."}
+            disabled={isLoading || isExpired}
             rows={1}
             className={cn(
               'w-full resize-none bg-transparent py-2 border-0',
@@ -371,10 +373,22 @@ export function MultimodalInput({
                 </span>
               </div>
             ) : (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800">
-                <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                  Gratuito
-                </span>
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 px-2 py-1 rounded-full border border-red-500/30 bg-red-500/10">
+                  <span className="text-xs font-medium text-red-500">
+                    Expirado
+                  </span>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-7 px-3 text-[10px] font-bold uppercase tracking-wider bg-emerald-500 text-white border-0 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                  asChild
+                >
+                  <Link href="/assinar">
+                    Assinar Agora
+                  </Link>
+                </Button>
               </div>
             )}
           </div>
@@ -431,7 +445,7 @@ export function MultimodalInput({
             ) : (
               <button
                 type="submit"
-                disabled={!input.trim() && attachments.length === 0}
+                disabled={(!input.trim() && attachments.length === 0) || isExpired}
                 className={cn(
                   'flex items-center justify-center shrink-0 h-8 w-8 rounded-xl transition-all duration-300',
                   (input.trim() || attachments.length > 0)
