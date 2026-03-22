@@ -373,7 +373,7 @@ export function MultimodalInput({
             ) : (
               <div className="flex items-center gap-1 px-2 py-1 rounded-full border border-zinc-300 dark:border-zinc-600 bg-zinc-100 dark:bg-zinc-800">
                 <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                  Expirado
+                  Gratuito
                 </span>
               </div>
             )}
