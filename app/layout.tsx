@@ -9,9 +9,6 @@ import EnvWarning from "@/components/env-warning"
 import { SiteFrame } from "@/components/layout/site-frame"
 
 
-// Sentry must be imported in the root layout
-import * as Sentry from "@sentry/nextjs"
-
 // Fontes modernas Perplexity-style
 // Heading - Minimal e geométrico
 const outfit = Outfit({

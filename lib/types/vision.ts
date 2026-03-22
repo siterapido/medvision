@@ -21,11 +21,13 @@ export interface VisionFinding {
     zone: string;
     level: string; // Para display (ex: "Crítico")
     color: string; // Tailwind class (ex: "text-red-500")
+    confidence?: number; // 0-1 confidence score for this finding
 }
 
 export interface VisionMeta {
     imageType: 'Periapical' | 'Panorâmica' | 'Interproximal (Bitewing)' | 'Oclusal' | 'Foto Intraoral' | 'Tomografia' | 'Desconhecido';
     quality: 'Excelente' | 'Boa' | 'Aceitável' | 'Ruim' | 'Inadequada';
+    qualityScore: number; // 0-100 technical quality score (required — matches API Zod schema)
     notes?: string;
 }
 
@@ -41,6 +43,7 @@ export interface VisionAnalysisResult {
     detections: VisionDetection[];
     findings: VisionFinding[];
     report?: VisionReport;
+    precision?: number; // 0-100 overall precision score
     // Legacy fields for compatibility if needed (frontend uses report now)
     clinicalAssessment?: string;
     recommendations?: string[];

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'motion/react'
-import Cropper, { Area } from 'react-easy-crop'
+import ReactCrop, { type Crop as CropType, type PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop'
+import 'react-image-crop/dist/ReactCrop.css'
 import {
     FileUp,
     Search,
@@ -44,7 +45,8 @@ import { ImageOverlay } from '@/components/vision/image-overlay'
 import { QualityFeedback } from '@/components/vision/quality-feedback'
 import { AnnotationToolbar } from '@/components/vision/annotation-toolbar'
 import { AnnotationCanvas } from '@/components/vision/annotation-canvas'
-import { validateImageQuality, ImageQualityResult } from '@/lib/utils/image-quality-validator'
+import { Textarea } from '@/components/ui/textarea'
+import { validateImageQuality, compressImageForAnalysis, ImageQualityResult } from '@/lib/utils/image-quality-validator'
 import { useAnnotations } from '@/lib/hooks/use-annotations'
 import { toast } from 'sonner'
 import { generateVisionPDF } from '@/lib/utils/generate-vision-pdf'
@@ -58,14 +60,17 @@ export default function OdontoVisionPage() {
     const [originalImage, setOriginalImage] = useState<string | null>(null) // Original before crop
     const [progress, setProgress] = useState(0)
     const [analysisResult, setAnalysisResult] = useState<VisionAnalysisResult | null>(null)
+    const [analysisPrecision, setAnalysisPrecision] = useState<number | null>(null)
     const [isFullscreen, setIsFullscreen] = useState(false)
     const [isSaved, setIsSaved] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
+    const [clinicalContext, setClinicalContext] = useState('')
 
     // Crop states
-    const [crop, setCrop] = useState({ x: 0, y: 0 })
+    const [crop, setCrop] = useState<CropType>()
+    const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
     const [zoom, setZoom] = useState(1)
-    const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
+    const cropImgRef = useRef<HTMLImageElement>(null)
 
     // Quality validation state
     const [qualityResult, setQualityResult] = useState<ImageQualityResult | null>(null)
@@ -120,37 +125,41 @@ export default function OdontoVisionPage() {
         return canvas.toDataURL('image/jpeg', 0.7)
     }, [])
 
-    // Save analysis to biblioteca
+    // Internal save implementation — accepts data directly to avoid stale state closures
+    const performSave = useCallback(async (imageSrc: string, analysisData: VisionAnalysisResult, currentAnnotations = annotations) => {
+        const thumbnail = await generateThumbnail(imageSrc)
+        const imageType = analysisData.meta?.imageType || 'Imagem'
+        const date = new Date().toLocaleDateString('pt-BR')
+
+        const content: VisionArtifactContent = {
+            thumbnailBase64: thumbnail,
+            imageBase64: imageSrc,
+            analysis: analysisData,
+            annotations: currentAnnotations,
+            analyzedAt: new Date().toISOString()
+        }
+
+        const response = await fetch('/api/artifacts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title: `Laudo Vision: ${imageType} - ${date}`,
+                description: analysisData.report?.diagnosticHypothesis?.slice(0, 200) || 'Análise de imagem odontológica',
+                type: 'vision',
+                content
+            })
+        })
+
+        if (!response.ok) throw new Error('Falha ao salvar')
+    }, [annotations, generateThumbnail])
+
+    // Manual save triggered by user button
     const saveToLibrary = useCallback(async () => {
-        if (!analysisResult || !image || isSaving) return
+        if (!analysisResult || !image || isSaving || isSaved) return
 
         setIsSaving(true)
         try {
-            const thumbnail = await generateThumbnail(image)
-            const imageType = analysisResult.meta?.imageType || 'Imagem'
-            const date = new Date().toLocaleDateString('pt-BR')
-
-            const content: VisionArtifactContent = {
-                thumbnailBase64: thumbnail,
-                imageBase64: image,
-                analysis: analysisResult,
-                annotations: annotations,
-                analyzedAt: new Date().toISOString()
-            }
-
-            const response = await fetch('/api/artifacts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    title: `Laudo Vision: ${imageType} - ${date}`,
-                    description: analysisResult.report?.diagnosticHypothesis?.slice(0, 200) || 'Análise de imagem odontológica',
-                    type: 'vision',
-                    content
-                })
-            })
-
-            if (!response.ok) throw new Error('Falha ao salvar')
-
+            await performSave(image, analysisResult, annotations)
             setIsSaved(true)
             toast.success('Salvo na biblioteca!', {
                 action: {
@@ -164,7 +173,7 @@ export default function OdontoVisionPage() {
         } finally {
             setIsSaving(false)
         }
-    }, [analysisResult, image, isSaving, generateThumbnail, router])
+    }, [analysisResult, image, isSaving, isSaved, annotations, performSave, router])
 
 
     // Read image file as base64 without compression
@@ -177,58 +186,45 @@ export default function OdontoVisionPage() {
         })
     }
 
-    // Crop callback
-    const onCropComplete = useCallback((_croppedArea: Area, croppedAreaPixels: Area) => {
-        setCroppedAreaPixels(croppedAreaPixels)
-    }, [])
-
-    // Create cropped image from canvas
-    const createCroppedImage = useCallback(async (imageSrc: string, pixelCrop: Area): Promise<string> => {
-        const image = new Image()
-        image.src = imageSrc
-
-        await new Promise((resolve) => {
-            image.onload = resolve
-        })
+    // Create cropped image from canvas using PixelCrop
+    const createCroppedImage = useCallback(async (pixelCrop: PixelCrop): Promise<string> => {
+        const imgEl = cropImgRef.current
+        if (!imgEl) throw new Error('Image ref not available')
 
         const canvas = document.createElement('canvas')
         const ctx = canvas.getContext('2d')
+        if (!ctx) throw new Error('Could not get canvas context')
 
-        if (!ctx) {
-            throw new Error('Could not get canvas context')
-        }
+        // Account for zoom: the displayed image is scaled, so divide pixel coords by zoom
+        const scaleX = imgEl.naturalWidth / (imgEl.width * zoom)
+        const scaleY = imgEl.naturalHeight / (imgEl.height * zoom)
 
-        canvas.width = pixelCrop.width
-        canvas.height = pixelCrop.height
+        const cropX = pixelCrop.x * scaleX
+        const cropY = pixelCrop.y * scaleY
+        const cropW = pixelCrop.width * scaleX
+        const cropH = pixelCrop.height * scaleY
 
-        ctx.drawImage(
-            image,
-            pixelCrop.x,
-            pixelCrop.y,
-            pixelCrop.width,
-            pixelCrop.height,
-            0,
-            0,
-            pixelCrop.width,
-            pixelCrop.height
-        )
+        canvas.width = cropW
+        canvas.height = cropH
+
+        ctx.drawImage(imgEl, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
 
         return canvas.toDataURL('image/jpeg', 0.95)
-    }, [])
+    }, [zoom])
 
     // Handle crop confirmation
     const handleCropConfirm = useCallback(async () => {
-        if (!originalImage || !croppedAreaPixels) return
+        if (!originalImage || !completedCrop || completedCrop.width === 0) return
 
         try {
-            const croppedImage = await createCroppedImage(originalImage, croppedAreaPixels)
+            const croppedImage = await createCroppedImage(completedCrop)
             setImage(croppedImage)
             startAnalysis(croppedImage)
         } catch (error) {
             console.error('Error cropping image:', error)
             toast.error('Erro ao recortar imagem')
         }
-    }, [originalImage, croppedAreaPixels, createCroppedImage])
+    }, [originalImage, completedCrop, createCroppedImage])
 
     // Skip crop and use original
     const handleSkipCrop = useCallback(() => {
@@ -239,7 +235,8 @@ export default function OdontoVisionPage() {
 
     // Reset crop controls
     const resetCrop = useCallback(() => {
-        setCrop({ x: 0, y: 0 })
+        setCrop(undefined)
+        setCompletedCrop(undefined)
         setZoom(1)
     }, [])
 
@@ -247,21 +244,22 @@ export default function OdontoVisionPage() {
         const file = acceptedFiles[0]
         if (file) {
             try {
-                // Read image without compression for maximum quality
+                // Read original image
                 const imageBase64 = await readImageAsBase64(file)
-                setOriginalImage(imageBase64)
-                setImage(imageBase64)
 
-                // Validate image quality
-                setState('VALIDATING')
-                const result = await validateImageQuality(imageBase64)
+                // Compress to max 1280px for faster analysis (keeps quality)
+                const compressed = await compressImageForAnalysis(imageBase64, 1280, 0.88)
+
+                setOriginalImage(compressed)
+                setImage(compressed)
+
+                // Validate image quality — never blocks, warnings shown inline
+                const result = await validateImageQuality(compressed)
                 setQualityResult(result)
 
-                // If perfect quality, skip validation screen
-                if (result.isValid) {
-                    setState('CROP')
-                    resetCrop()
-                }
+                // Always proceed to crop regardless of quality
+                setState('CROP')
+                resetCrop()
             } catch (error) {
                 console.error("Error processing image:", error)
                 toast.error("Erro ao processar imagem. Tente outro arquivo.")
@@ -288,6 +286,7 @@ export default function OdontoVisionPage() {
         setState('ANALYZING')
         setProgress(0)
         setAnalysisResult(null)
+        setAnalysisPrecision(null)
 
         // Simula progresso visual enquanto processa
         const interval = setInterval(() => {
@@ -298,16 +297,37 @@ export default function OdontoVisionPage() {
             const response = await fetch('/api/vision/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: imageData })
+                body: JSON.stringify({ image: imageData, clinicalContext: clinicalContext || undefined })
             })
 
-            if (!response.ok) throw new Error('Falha na análise')
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}))
+                if (response.status === 401) {
+                    router.push('/login')
+                    return
+                }
+                if (response.status === 429) {
+                    const limit = errData?.limit
+                    const used = errData?.used
+                    const limitInfo = limit ? ` (${used}/${limit} hoje)` : ''
+                    throw new Error(errData?.error || `Limite diário atingido${limitInfo}. Faça upgrade para Pro.`)
+                }
+                throw new Error(errData?.error || `HTTP ${response.status}`)
+            }
 
-            const data = await response.json() as VisionAnalysisResult
+            const data = await response.json() as VisionAnalysisResult & { precision?: number }
 
             clearInterval(interval)
             setProgress(100)
             setAnalysisResult(data)
+            setAnalysisPrecision(data.precision ?? null)
+
+            // Auto-save to biblioteca
+            performSave(imageData, data, []).then(() => {
+                setIsSaved(true)
+            }).catch((err) => {
+                console.warn('Auto-save failed:', err)
+            })
 
             // Pequeno delay para mostrar 100%
             setTimeout(() => setState('RESULT'), 500)
@@ -315,7 +335,8 @@ export default function OdontoVisionPage() {
         } catch (error) {
             clearInterval(interval)
             console.error(error)
-            toast.error("Erro ao analisar imagem. Tente novamente.")
+            const msg = error instanceof Error ? error.message : 'Erro desconhecido'
+            toast.error(`Erro ao analisar imagem: ${msg}. Tente novamente.`)
             setState('ERROR')
         }
     }
@@ -332,27 +353,29 @@ export default function OdontoVisionPage() {
         setOriginalImage(null)
         setProgress(0)
         setAnalysisResult(null)
+        setAnalysisPrecision(null)
         setIsSaved(false)
         setIsSaving(false)
         setQualityResult(null)
         setIsAnnotating(false)
+        setClinicalContext('')
         clearAnnotations()
         resetCrop()
     }
 
     return (
-        <div className="min-h-screen pb-20 pt-6 px-4 md:px-8 max-w-6xl mx-auto custom-scrollbar overflow-y-auto">
+        <div className="pb-4 pt-4 px-3 md:pb-20 md:pt-6 md:px-8 max-w-6xl mx-auto">
             {/* Header */}
-            <header className="mb-10 space-y-2">
-                <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
-                        <Scan className="w-6 h-6 text-primary" />
+            <header className="mb-5 md:mb-10 space-y-1.5">
+                <div className="flex items-center gap-2.5">
+                    <div className="p-1.5 md:p-2 rounded-xl bg-primary/10 border border-primary/20">
+                        <Scan className="w-5 h-5 md:w-6 md:h-6 text-primary" />
                     </div>
-                    <h1 className="text-3xl font-heading font-bold tracking-tight text-foreground">
+                    <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight text-foreground">
                         Odonto Vision
                     </h1>
                 </div>
-                <p className="text-muted-foreground text-sm md:text-base max-w-2xl">
+                <p className="text-muted-foreground text-xs md:text-base max-w-2xl">
                     Envie radiografias ou fotos intraorais para uma análise profunda assistida por inteligência artificial.
                 </p>
             </header>
@@ -368,33 +391,59 @@ export default function OdontoVisionPage() {
                             className="w-full"
                         >
                             {state === 'ERROR' && (
-                                <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-center gap-3 text-destructive">
-                                    <AlertTriangle className="w-5 h-5" />
-                                    <p className="text-sm font-medium">Ocorreu um erro ao processar a imagem. Por favor, tente uma imagem mais nítida ou menor.</p>
+                                <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-start gap-3 text-destructive">
+                                    <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                                    <div className="flex-1">
+                                        <p className="text-sm font-medium">Não foi possível completar a análise.</p>
+                                        <p className="text-xs mt-1 opacity-80">Verifique sua conexão e tente novamente. Imagens muito grandes são comprimidas automaticamente — se o problema persistir, tente um arquivo diferente.</p>
+                                    </div>
                                 </div>
                             )}
 
-                            <GlassCard className="p-12 border-dashed border-2 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-primary/40 transition-all duration-500 min-h-[400px]"
+                            <GlassCard className="p-6 md:p-12 border-dashed border-2 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-primary/40 transition-all duration-500 min-h-[260px] md:min-h-[400px]"
                                 {...getRootProps()}
                             >
                                 <input {...getInputProps()} />
-                                <div className="relative mb-6">
+                                <div className="relative mb-4 md:mb-6">
                                     <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <div className="relative h-20 w-20 rounded-2xl bg-muted/50 flex items-center justify-center border border-border/50 group-hover:scale-110 group-hover:border-primary/50 group-hover:bg-primary/5 transition-all duration-500">
-                                        <FileUp className="h-10 w-10 text-muted-foreground group-hover:text-primary transition-colors" />
+                                    <div className="relative h-14 w-14 md:h-20 md:w-20 rounded-2xl bg-muted/50 flex items-center justify-center border border-border/50 group-hover:scale-110 group-hover:border-primary/50 group-hover:bg-primary/5 transition-all duration-500">
+                                        <FileUp className="h-7 w-7 md:h-10 md:w-10 text-muted-foreground group-hover:text-primary transition-colors" />
                                     </div>
                                 </div>
 
-                                <h3 className="text-xl font-medium mb-2 group-hover:text-primary transition-colors">
+                                <h3 className="text-lg md:text-xl font-medium mb-1.5 md:mb-2 group-hover:text-primary transition-colors">
                                     {isDragActive ? 'Solte a imagem agora' : 'Arraste e solte sua imagem'}
                                 </h3>
-                                <p className="text-muted-foreground max-w-xs mx-auto mb-8">
+                                <p className="text-muted-foreground text-sm md:text-base max-w-xs mx-auto mb-5 md:mb-8">
                                     Suporta radiografias periapicais, panorâmicas e fotos clínicas (PNG, JPG).
                                 </p>
 
-                                <Button variant="outline" className="rounded-full px-8 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                                <Button variant="outline" className="rounded-full px-6 md:px-8 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
                                     Selecionar arquivo
                                 </Button>
+                            </GlassCard>
+
+                            {/* Clinical Context */}
+                            <GlassCard className="p-5 mt-6 border-border/40">
+                                <div className="flex items-start gap-3 mb-3">
+                                    <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 shrink-0">
+                                        <FileText className="w-4 h-4 text-primary" />
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-semibold">Contexto Clínico <span className="text-muted-foreground font-normal">(opcional)</span></h4>
+                                        <p className="text-xs text-muted-foreground">Informe queixa principal, histórico ou suspeita — a IA usará isso para personalizar o laudo.</p>
+                                    </div>
+                                </div>
+                                <Textarea
+                                    value={clinicalContext}
+                                    onChange={(e) => setClinicalContext(e.target.value)}
+                                    placeholder="Ex: Paciente com dor ao mastigar no quadrante superior esquerdo. Suspeita de lesão periapical no dente 26."
+                                    className="resize-none text-sm h-20 bg-muted/20 border-border/40 focus:border-primary/50"
+                                    maxLength={500}
+                                />
+                                {clinicalContext.length > 0 && (
+                                    <p className="text-[10px] text-muted-foreground text-right mt-1">{clinicalContext.length}/500</p>
+                                )}
                             </GlassCard>
 
                             {/* Tips Section */}
@@ -448,22 +497,21 @@ export default function OdontoVisionPage() {
                                 </div>
 
                                 {/* Crop Area */}
-                                <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black/90 border border-border/50">
-                                    <Cropper
-                                        image={originalImage}
+                                <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black/90 border border-border/50 flex items-center justify-center [&_.ReactCrop]:max-h-full [&_.ReactCrop]:max-w-full [&_.ReactCrop__crop-selection]:border-primary [&_.ReactCrop__crop-selection]:border-2 [&_.ReactCrop__drag-handle]:bg-primary [&_.ReactCrop__drag-handle]:w-3 [&_.ReactCrop__drag-handle]:h-3 [&_.ReactCrop__drag-handle]:rounded-sm [&_.ReactCrop__rule-of-thirds-vz]:border-white/20 [&_.ReactCrop__rule-of-thirds-hz]:border-white/20">
+                                    <ReactCrop
                                         crop={crop}
-                                        zoom={zoom}
-                                        aspect={undefined}
-                                        onCropChange={setCrop}
-                                        onCropComplete={onCropComplete}
-                                        onZoomChange={setZoom}
-                                        showGrid={true}
-                                        style={{
-                                            containerStyle: {
-                                                backgroundColor: 'rgb(0 0 0 / 0.9)'
-                                            }
-                                        }}
-                                    />
+                                        onChange={(c) => setCrop(c)}
+                                        onComplete={(c) => setCompletedCrop(c)}
+                                        className="max-h-full"
+                                    >
+                                        <img
+                                            ref={cropImgRef}
+                                            src={originalImage}
+                                            alt="Imagem para recorte"
+                                            className="max-h-[60vh] object-contain"
+                                            style={{ transform: `scale(${zoom})`, transformOrigin: 'center' }}
+                                        />
+                                    </ReactCrop>
                                 </div>
 
                                 {/* Zoom Controls */}
@@ -514,6 +562,23 @@ export default function OdontoVisionPage() {
                                     </Button>
                                 </div>
                             </GlassCard>
+
+                            {/* Quality warning banner in crop step */}
+                            {qualityResult && qualityResult.warnings.length > 0 && (
+                                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
+                                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
+                                    <div>
+                                        <p className="text-sm font-medium text-amber-500">
+                                            Imagem com qualidade reduzida — análise será realizada com precisão ajustada
+                                        </p>
+                                        <ul className="mt-1.5 space-y-0.5">
+                                            {qualityResult.warnings.map((w, i) => (
+                                                <li key={i} className="text-xs text-muted-foreground">• {w.message}</li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Tips */}
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -584,6 +649,63 @@ export default function OdontoVisionPage() {
                             animate={{ opacity: 1 }}
                             className="flex flex-col gap-8 max-w-4xl mx-auto"
                         >
+                            {/* Precision/Quality Banner — shown when quality is below threshold */}
+                            {analysisPrecision !== null && analysisPrecision < 80 && (
+                                <div className={cn(
+                                    "p-4 rounded-xl border flex items-start gap-3",
+                                    analysisPrecision >= 60
+                                        ? "bg-amber-500/10 border-amber-500/20"
+                                        : "bg-red-500/10 border-red-500/20"
+                                )}>
+                                    <AlertTriangle className={cn(
+                                        "w-5 h-5 shrink-0 mt-0.5",
+                                        analysisPrecision >= 60 ? "text-amber-500" : "text-red-400"
+                                    )} />
+                                    <div className="flex-1 min-w-0">
+                                        <div className="flex items-center justify-between gap-2 flex-wrap">
+                                            <p className={cn(
+                                                "text-sm font-semibold",
+                                                analysisPrecision >= 60 ? "text-amber-500" : "text-red-400"
+                                            )}>
+                                                Análise realizada com precisão {analysisPrecision >= 60 ? 'limitada' : 'reduzida'} ({analysisPrecision}%)
+                                            </p>
+                                            {analysisResult.meta && (
+                                                <span className={cn(
+                                                    "text-[10px] font-semibold px-2 py-0.5 rounded-full border",
+                                                    analysisPrecision >= 60
+                                                        ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
+                                                        : "bg-red-500/10 text-red-400 border-red-400/30"
+                                                )}>
+                                                    Qualidade: {analysisResult.meta.quality}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            {analysisPrecision < 60
+                                                ? 'A qualidade da imagem está abaixo do recomendado. Os achados são indicativos — confirme com uma imagem de melhor qualidade para diagnóstico definitivo.'
+                                                : 'A qualidade da imagem pode afetar a confiabilidade de alguns achados. Considere repetir com melhor imagem para maior segurança diagnóstica.'}
+                                        </p>
+                                        {analysisResult.meta?.notes && (
+                                            <p className="text-[11px] text-muted-foreground/70 mt-1 italic">{analysisResult.meta.notes}</p>
+                                        )}
+                                        {qualityResult && qualityResult.warnings.length > 0 && (
+                                            <div className="mt-2 flex flex-wrap gap-1">
+                                                {qualityResult.warnings.map((w, i) => (
+                                                    <span key={i} className={cn(
+                                                        "text-[10px] px-1.5 py-0.5 rounded border",
+                                                        analysisPrecision >= 60
+                                                            ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
+                                                            : "bg-red-500/10 text-red-400 border-red-400/20"
+                                                    )}>
+                                                        {w.message}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Image with Detections - Full Width, Larger */}
                             <div className="space-y-4">
                                 <GlassCard className="p-1 overflow-hidden group">
@@ -696,10 +818,25 @@ export default function OdontoVisionPage() {
                                             <h2 className="text-xl font-heading font-bold">Laudo AI</h2>
                                             <p className="text-xs text-muted-foreground">ID: #{Math.random().toString(36).slice(2, 8).toUpperCase()}</p>
                                         </div>
-                                        <div className="flex gap-2">
+                                        <div className="flex flex-wrap gap-2 justify-end">
                                             {analysisResult.meta && (
                                                 <Badge variant="outline" className="text-[10px] h-5 px-1.5">
                                                     {analysisResult.meta.imageType}
+                                                </Badge>
+                                            )}
+                                            {analysisPrecision !== null && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className={cn(
+                                                        'text-[10px] h-5 px-1.5 font-bold',
+                                                        analysisPrecision >= 80
+                                                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
+                                                            : analysisPrecision >= 60
+                                                                ? 'bg-amber-500/10 text-amber-500 border-amber-500/30'
+                                                                : 'bg-red-500/10 text-red-400 border-red-400/30'
+                                                    )}
+                                                >
+                                                    Precisão {analysisPrecision}%
                                                 </Badge>
                                             )}
                                             <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
@@ -721,9 +858,24 @@ export default function OdontoVisionPage() {
                                                             <p className="text-sm font-medium">{finding.type}</p>
                                                             <p className="text-[10px] text-muted-foreground">{finding.zone}</p>
                                                         </div>
-                                                        <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full bg-background/50 border border-border/50", finding.color)}>
-                                                            {finding.level}
-                                                        </span>
+                                                        <div className="flex items-center gap-2">
+                                                            {/* Precision badge per finding */}
+                                                            {finding.confidence !== undefined && (
+                                                                <span className={cn(
+                                                                    'text-[9px] font-semibold px-1.5 py-0.5 rounded-full border',
+                                                                    finding.confidence >= 0.8
+                                                                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                                                        : finding.confidence >= 0.6
+                                                                            ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                                                            : 'bg-red-400/10 text-red-400 border-red-400/20'
+                                                                )}>
+                                                                    {Math.round((finding.confidence as number) * 100)}% conf.
+                                                                </span>
+                                                            )}
+                                                            <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full bg-background/50 border border-border/50", finding.color)}>
+                                                                {finding.level}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 ))}
                                                 {analysisResult.findings.length === 0 && (

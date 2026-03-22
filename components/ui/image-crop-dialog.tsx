@@ -1,7 +1,8 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import Cropper, { Area, Point } from "react-easy-crop"
+import { useState, useCallback, useRef } from "react"
+import ReactCrop, { type Crop, type PixelCrop } from "react-image-crop"
+import "react-image-crop/dist/ReactCrop.css"
 import {
   Dialog,
   DialogContent,
@@ -27,10 +28,10 @@ interface ImageCropDialogProps {
  * Cria uma imagem cortada a partir da área selecionada
  */
 async function getCroppedImg(
-  imageSrc: string,
-  pixelCrop: Area
+  imgEl: HTMLImageElement,
+  pixelCrop: PixelCrop,
+  zoom: number
 ): Promise<Blob> {
-  const image = await createImage(imageSrc)
   const canvas = document.createElement("canvas")
   const ctx = canvas.getContext("2d")
 
@@ -38,20 +39,18 @@ async function getCroppedImg(
     throw new Error("Não foi possível obter contexto do canvas")
   }
 
-  canvas.width = pixelCrop.width
-  canvas.height = pixelCrop.height
+  const scaleX = imgEl.naturalWidth / (imgEl.width * zoom)
+  const scaleY = imgEl.naturalHeight / (imgEl.height * zoom)
 
-  ctx.drawImage(
-    image,
-    pixelCrop.x,
-    pixelCrop.y,
-    pixelCrop.width,
-    pixelCrop.height,
-    0,
-    0,
-    pixelCrop.width,
-    pixelCrop.height
-  )
+  const cropX = pixelCrop.x * scaleX
+  const cropY = pixelCrop.y * scaleY
+  const cropW = pixelCrop.width * scaleX
+  const cropH = pixelCrop.height * scaleY
+
+  canvas.width = cropW
+  canvas.height = cropH
+
+  ctx.drawImage(imgEl, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
 
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {
@@ -64,18 +63,6 @@ async function getCroppedImg(
   })
 }
 
-/**
- * Cria elemento de imagem a partir de URL
- */
-function createImage(url: string): Promise<HTMLImageElement> {
-  return new Promise((resolve, reject) => {
-    const image = new Image()
-    image.addEventListener("load", () => resolve(image))
-    image.addEventListener("error", (error) => reject(error))
-    image.src = url
-  })
-}
-
 export function ImageCropDialog({
   open,
   onOpenChange,
@@ -84,27 +71,21 @@ export function ImageCropDialog({
   aspect = 16 / 9,
   isProcessing = false,
 }: ImageCropDialogProps) {
-  const [crop, setCrop] = useState<Point>({ x: 0, y: 0 })
+  const [crop, setCrop] = useState<Crop>()
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
   const [zoom, setZoom] = useState(1)
-  const [croppedAreaPixels, setCroppedAreaPixels] = useState<Area | null>(null)
-
-  const onCropAreaComplete = useCallback(
-    (_croppedArea: Area, croppedAreaPixels: Area) => {
-      setCroppedAreaPixels(croppedAreaPixels)
-    },
-    []
-  )
+  const imgRef = useRef<HTMLImageElement>(null)
 
   const handleConfirm = useCallback(async () => {
-    if (!croppedAreaPixels) return
+    if (!completedCrop || !imgRef.current) return
 
     try {
-      const croppedBlob = await getCroppedImg(imageSrc, croppedAreaPixels)
+      const croppedBlob = await getCroppedImg(imgRef.current, completedCrop, zoom)
       onCropComplete(croppedBlob)
     } catch (error) {
       console.error("Erro ao cortar imagem:", error)
     }
-  }, [imageSrc, croppedAreaPixels, onCropComplete])
+  }, [completedCrop, zoom, onCropComplete])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -120,26 +101,22 @@ export function ImageCropDialog({
 
         <div className="space-y-6">
           {/* Área de crop */}
-          <div className="relative h-[400px] w-full bg-slate-900 rounded-lg overflow-hidden">
-            <Cropper
-              image={imageSrc}
+          <div className="relative h-[400px] w-full bg-slate-900 rounded-lg overflow-hidden flex items-center justify-center [&_.ReactCrop__crop-selection]:border-cyan-500 [&_.ReactCrop__crop-selection]:border-2 [&_.ReactCrop__drag-handle]:bg-cyan-500 [&_.ReactCrop__drag-handle]:w-3 [&_.ReactCrop__drag-handle]:h-3">
+            <ReactCrop
               crop={crop}
-              zoom={zoom}
+              onChange={(c) => setCrop(c)}
+              onComplete={(c) => setCompletedCrop(c)}
               aspect={aspect}
-              onCropChange={setCrop}
-              onZoomChange={setZoom}
-              onCropComplete={onCropAreaComplete}
-              objectFit="contain"
-              style={{
-                containerStyle: {
-                  backgroundColor: "#0f172a",
-                },
-                cropAreaStyle: {
-                  border: "2px solid #06b6d4",
-                  boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.5)",
-                },
-              }}
-            />
+              className="max-h-full"
+            >
+              <img
+                ref={imgRef}
+                src={imageSrc}
+                alt="Imagem para corte"
+                className="max-h-[380px] object-contain"
+                style={{ transform: `scale(${zoom})`, transformOrigin: 'center' }}
+              />
+            </ReactCrop>
           </div>
 
           {/* Controle de zoom */}
@@ -178,7 +155,7 @@ export function ImageCropDialog({
           <Button
             type="button"
             onClick={handleConfirm}
-            disabled={isProcessing || !croppedAreaPixels}
+            disabled={isProcessing || !completedCrop}
             className="bg-cyan-600 hover:bg-cyan-700 text-white"
           >
             {isProcessing ? (
@@ -195,7 +172,3 @@ export function ImageCropDialog({
     </Dialog>
   )
 }
-
-
-
-

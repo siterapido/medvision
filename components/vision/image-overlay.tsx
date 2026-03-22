@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { VisionDetection, VisionAnnotation, AnnotationColor } from '@/lib/types/vision'
 import { cn } from '@/lib/utils'
@@ -9,6 +9,7 @@ interface ImageOverlayProps {
     src: string
     detections: VisionDetection[]
     annotations?: VisionAnnotation[]
+    showArrows?: boolean
     className?: string
 }
 
@@ -19,7 +20,85 @@ const colorMap: Record<AnnotationColor, string> = {
     white: '#ffffff'
 }
 
-export function ImageOverlay({ src, detections, annotations = [], className }: ImageOverlayProps) {
+const severityColorHex: Record<string, string> = {
+    critical: '#ef4444',
+    moderate: '#f59e0b',
+    normal: '#3b82f6',
+}
+
+interface LabelPosition {
+    x: number // percentage 0-100
+    y: number // percentage 0-100
+    arrowToX: number // point on box edge
+    arrowToY: number
+}
+
+/**
+ * Compute label positions outside the detection box with collision avoidance.
+ */
+function computeLabelPositions(detections: VisionDetection[]): Map<string, LabelPosition> {
+    const positions = new Map<string, LabelPosition>()
+    const LABEL_HEIGHT = 4 // approximate label height in % units
+    const LABEL_GAP = 1.5
+    const ARROW_OFFSET = 3 // offset from box edge
+
+    // Sort by ymin to process top-to-bottom
+    const sorted = [...detections].sort((a, b) => a.box.ymin - b.box.ymin)
+    const usedYRanges: { y: number; height: number }[] = []
+
+    for (const det of sorted) {
+        const boxCenterX = (det.box.xmin + det.box.xmax) / 2
+        const boxCenterY = (det.box.ymin + det.box.ymax) / 2
+
+        // Determine label placement: above or below the box
+        let labelY: number
+        let arrowToY: number
+
+        if (det.box.ymin > 18) {
+            // Place above
+            labelY = det.box.ymin - ARROW_OFFSET - LABEL_HEIGHT
+            arrowToY = det.box.ymin
+        } else {
+            // Place below
+            labelY = det.box.ymax + ARROW_OFFSET
+            arrowToY = det.box.ymax
+        }
+
+        // Determine X: offset away from center to reduce overlap
+        let labelX: number
+        if (boxCenterX < 40) {
+            // Box on left side, place label to the right
+            labelX = Math.min(det.box.xmax + 2, 70)
+        } else if (boxCenterX > 60) {
+            // Box on right side, place label to the left
+            labelX = Math.max(det.box.xmin - 25, 2)
+        } else {
+            // Center - place above/below aligned
+            labelX = Math.max(2, Math.min(boxCenterX - 10, 70))
+        }
+
+        // Collision avoidance with previously placed labels
+        for (const used of usedYRanges) {
+            if (Math.abs(labelY - used.y) < LABEL_HEIGHT + LABEL_GAP) {
+                labelY = used.y + used.height + LABEL_GAP
+            }
+        }
+
+        // Clamp to bounds
+        labelY = Math.max(1, Math.min(labelY, 92))
+        labelX = Math.max(1, Math.min(labelX, 75))
+
+        // Arrow target: nearest box edge point
+        const arrowToX = boxCenterX
+
+        usedYRanges.push({ y: labelY, height: LABEL_HEIGHT })
+        positions.set(det.id, { x: labelX, y: labelY, arrowToX, arrowToY })
+    }
+
+    return positions
+}
+
+export function ImageOverlay({ src, detections, annotations = [], showArrows = true, className }: ImageOverlayProps) {
     const [hoveredId, setHoveredId] = useState<string | null>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -33,6 +112,9 @@ export function ImageOverlay({ src, detections, annotations = [], className }: I
             default: return { border: 'border-gray-500', bg: 'bg-gray-500/20', text: 'bg-gray-500', shadow: 'shadow-gray-500/50' }
         }
     }
+
+    // Compute label positions with collision avoidance
+    const labelPositions = useMemo(() => computeLabelPositions(detections), [detections])
 
     // Update size when container changes
     useEffect(() => {
@@ -49,7 +131,7 @@ export function ImageOverlay({ src, detections, annotations = [], className }: I
         return () => window.removeEventListener('resize', updateSize)
     }, [])
 
-    // Draw annotations on canvas
+    // Draw user annotations on canvas
     useEffect(() => {
         const canvas = canvasRef.current
         if (!canvas || size.width === 0 || annotations.length === 0) return
@@ -150,8 +232,6 @@ export function ImageOverlay({ src, detections, annotations = [], className }: I
                         const colors = getColor(det.severity)
                         const isHovered = hoveredId === det.id
 
-                        // Convert coordinates to percentages
-                        // box: [ymin, xmin, ymax, xmax] 0-100
                         const top = `${det.box.ymin}%`
                         const left = `${det.box.xmin}%`
                         const width = `${det.box.xmax - det.box.xmin}%`
@@ -179,21 +259,111 @@ export function ImageOverlay({ src, detections, annotations = [], className }: I
                                 <div className={cn("absolute -top-1 -right-1 w-2 h-2 border-t-2 border-r-2", colors.border)} />
                                 <div className={cn("absolute -bottom-1 -left-1 w-2 h-2 border-b-2 border-l-2", colors.border)} />
                                 <div className={cn("absolute -bottom-1 -right-1 w-2 h-2 border-b-2 border-r-2", colors.border)} />
-
-                                {/* Floating Label */}
-                                <div className={cn(
-                                    "absolute -top-7 left-0 px-2 py-0.5 rounded text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap shadow-sm transition-all duration-300",
-                                    colors.text,
-                                    (isHovered || det.severity === 'critical') ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-                                )}>
-                                    {det.label}
-                                    {isHovered && <span className="ml-1 opacity-80 font-normal">| {Math.round(det.confidence * 100)}%</span>}
-                                </div>
                             </motion.div>
                         )
                     })}
                 </AnimatePresence>
             </div>
+
+            {/* SVG Arrow lines layer */}
+            {showArrows && detections.length > 0 && (
+                <svg
+                    className="absolute inset-0 w-full h-full pointer-events-none z-20"
+                    viewBox="0 0 100 100"
+                    preserveAspectRatio="none"
+                >
+                    <defs>
+                        {detections.map((det) => {
+                            const color = severityColorHex[det.severity] || '#9ca3af'
+                            return (
+                                <marker
+                                    key={`arrow-${det.id}`}
+                                    id={`arrowhead-${det.id}`}
+                                    markerWidth="3"
+                                    markerHeight="2.5"
+                                    refX="2.8"
+                                    refY="1.25"
+                                    orient="auto"
+                                >
+                                    <polygon
+                                        points="0 0, 3 1.25, 0 2.5"
+                                        fill={color}
+                                    />
+                                </marker>
+                            )
+                        })}
+                    </defs>
+                    {detections.map((det, i) => {
+                        const pos = labelPositions.get(det.id)
+                        if (!pos) return null
+
+                        const color = severityColorHex[det.severity] || '#9ca3af'
+                        // Arrow start: from label center bottom/top
+                        const labelCenterX = pos.x + 10 // approximate label half-width in %
+                        const isAbove = pos.y < det.box.ymin
+                        const arrowStartY = isAbove ? pos.y + 3.5 : pos.y
+                        const arrowEndY = pos.arrowToY
+
+                        return (
+                            <motion.line
+                                key={`line-${det.id}`}
+                                x1={labelCenterX}
+                                y1={arrowStartY}
+                                x2={pos.arrowToX}
+                                y2={arrowEndY}
+                                stroke={color}
+                                strokeWidth="0.4"
+                                strokeDasharray="1 0.5"
+                                markerEnd={`url(#arrowhead-${det.id})`}
+                                initial={{ pathLength: 0, opacity: 0 }}
+                                animate={{ pathLength: 1, opacity: 0.9 }}
+                                transition={{ duration: 0.6, delay: 0.4 + i * 0.15 }}
+                            />
+                        )
+                    })}
+                </svg>
+            )}
+
+            {/* Floating labels layer (outside boxes, with arrows) */}
+            {showArrows && (
+                <div className="absolute inset-0 pointer-events-none z-30">
+                    <AnimatePresence>
+                        {detections.map((det, i) => {
+                            const pos = labelPositions.get(det.id)
+                            if (!pos) return null
+
+                            const colors = getColor(det.severity)
+                            const isHovered = hoveredId === det.id
+
+                            return (
+                                <motion.div
+                                    key={`label-${det.id}`}
+                                    initial={{ opacity: 0, y: 4 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0, y: 4 }}
+                                    transition={{ duration: 0.4, delay: 0.3 + i * 0.1 }}
+                                    className={cn(
+                                        "absolute px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap shadow-lg pointer-events-auto cursor-default",
+                                        colors.text,
+                                        isHovered ? "ring-1 ring-white/60 scale-105" : ""
+                                    )}
+                                    style={{
+                                        left: `${pos.x}%`,
+                                        top: `${pos.y}%`,
+                                    }}
+                                    onMouseEnter={() => setHoveredId(det.id)}
+                                    onMouseLeave={() => setHoveredId(null)}
+                                >
+                                    {det.label}
+                                    <span className="ml-1.5 opacity-75 font-normal text-[9px]">
+                                        {Math.round(det.confidence * 100)}%
+                                    </span>
+                                </motion.div>
+                            )
+                        })}
+                    </AnimatePresence>
+                </div>
+            )}
         </div>
     )
 }
