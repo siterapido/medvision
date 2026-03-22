@@ -1,12 +1,16 @@
 import { createServerClient } from "@supabase/ssr"
 import { cookies } from "next/headers"
+import { cache } from "react"
 
 /**
  * Especially important if using Fluid compute: Don't put this client in a
  * global variable. Always create a new client within each function when using
  * it.
+ * 
+ * We use React's cache() to ensure that the same client is reused within a single
+ * request, which reduces the number of calls to Supabase Auth (mitigating rate limits).
  */
-export async function createClient() {
+export const createClient = cache(async () => {
   const cookieStore = await cookies()
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
@@ -35,4 +39,17 @@ export async function createClient() {
       },
     },
   })
-}
+})
+
+/**
+ * Get the current authenticated user with request-level caching.
+ * Prevents redundant calls to Supabase Auth during a single page render.
+ */
+export const getUser = cache(async () => {
+  const supabase = await createClient()
+  const { data: { user }, error } = await supabase.auth.getUser()
+  if (error || !user) return null
+  return user
+})
+
+
