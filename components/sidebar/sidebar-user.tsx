@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Settings, LogOut, Moon, Sun, Bell, ChevronUp, User } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { createClient } from '@/lib/supabase/client'
-import { isTrialExpired } from '@/lib/trial'
+import { isTrialExpired, getRemainingTrialDays } from '@/lib/trial'
 import { toast } from 'sonner'
 import { useEffect, useState } from 'react'
 import {
@@ -157,10 +157,10 @@ export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
                 </span>
                 <span className="text-xs text-[var(--sidebar-text-tertiary)] truncate">
                   {user?.plan_type === 'premium' 
-                    ? 'Premium' 
-                    : isTrialExpired(user?.trial_ends_at) 
-                      ? 'Trial Expirado' 
-                      : 'Plano Gratuito'}
+                    ? 'Premium Pro' 
+                    : !isTrialExpired(user?.trial_ends_at) 
+                      ? `${getRemainingTrialDays(user?.trial_ends_at)} dias de teste`
+                      : 'Plano Basic'}
                 </span>
               </div>
               <ChevronUp className="h-4 w-4 text-[var(--sidebar-text-tertiary)]" />

@@ -4,8 +4,6 @@ import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
 import { createClient } from '@/lib/supabase/server'
 import { createSession, saveMessage, deleteChat, updateChatTitle } from '@/lib/db/simple-queries'
 
-import { isTrialExpired } from '@/lib/trial'
-
 export const maxDuration = 60
 
 export async function POST(req: Request) {
@@ -13,23 +11,6 @@ export async function POST(req: Request) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
-
-    // Verificar trial/assinatura
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('plan_type, trial_ends_at')
-      .eq('id', user.id)
-      .single()
-
-    const isPro = profile?.plan_type && profile.plan_type !== 'free'
-    const expired = isTrialExpired(profile?.trial_ends_at)
-
-    if (!isPro && expired) {
-      return Response.json(
-        { error: 'Seu período de teste expirou. Por favor, assine um plano para continuar.' },
-        { status: 403 }
-      )
-    }
 
     const { messages: uiMessages, agentId = 'odonto-gpt', sessionId } = await req.json()
     let currentSessionId = sessionId

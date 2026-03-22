@@ -19,12 +19,12 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
+import { X, ImageIcon, FileIcon, Plus, Crown, Clock, Sparkles } from 'lucide-react'
 import { ArrowUpIcon, StopIcon, MicIcon, PaperclipIcon } from './icons'
 import { MobileSourcesSheet } from '@/components/mobile/mobile-sources-sheet'
 import { useIsMobile } from '@/lib/hooks/use-mobile'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
-import { X, ImageIcon, FileIcon, Plus, Crown, Clock } from 'lucide-react'
 
 interface Attachment {
   id: string
@@ -80,7 +80,6 @@ export function MultimodalInput({
   const isLoading = status === 'submitted' || status === 'streaming'
   const isPro = subscriptionInfo?.isPro ?? false
   const trialDaysRemaining = subscriptionInfo?.trialDaysRemaining ?? 0
-  const isExpired = !isPro && trialDaysRemaining === 0
 
   // Auto-resize textarea
   const adjustHeight = useCallback(() => {
@@ -327,8 +326,8 @@ export function MultimodalInput({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder={isExpired ? "Seu período de teste expirou." : "Envie uma mensagem..."}
-            disabled={isLoading || isExpired}
+            placeholder="Envie uma mensagem..."
+            disabled={isLoading}
             rows={1}
             className={cn(
               'w-full resize-none bg-transparent py-2 border-0',
@@ -361,34 +360,22 @@ export function MultimodalInput({
 
             {/* Subscription Badge - Minimalista */}
             {isPro ? (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full border border-primary/30 bg-primary/10">
-                <Crown className="size-3.5 text-primary" />
-                <span className="text-xs font-medium text-primary">Pro</span>
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-sky-500/30 bg-sky-500/10 shadow-[0_0_15px_rgba(14,165,233,0.15)] backdrop-blur-sm">
+                <Crown className="size-3.5 text-sky-500 fill-sky-500/20" />
+                <span className="text-[11px] font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider">Premium Pro</span>
               </div>
             ) : trialDaysRemaining > 0 ? (
-              <div className="flex items-center gap-1 px-2 py-1 rounded-full border border-primary/30 bg-primary/10">
-                <Clock className="size-3.5 text-primary" />
-                <span className="text-xs font-medium text-primary">
-                  {trialDaysRemaining}d
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-amber-500/30 bg-amber-500/10 shadow-[0_0_15px_rgba(245,158,11,0.15)] backdrop-blur-sm transition-all duration-300">
+                <Sparkles className="size-3.5 text-amber-500 animate-pulse fill-amber-500/20" />
+                <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 uppercase tracking-wider">
+                  {trialDaysRemaining} dias de teste
                 </span>
               </div>
             ) : (
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1 px-2 py-1 rounded-full border border-red-500/30 bg-red-500/10">
-                  <span className="text-xs font-medium text-red-500">
-                    Expirado
-                  </span>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-7 px-3 text-[10px] font-bold uppercase tracking-wider bg-emerald-500 text-white border-0 hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
-                  asChild
-                >
-                  <Link href="/assinar">
-                    Assinar Agora
-                  </Link>
-                </Button>
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-full border border-zinc-500/30 bg-zinc-500/10 backdrop-blur-sm">
+                <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">
+                  Plano Basic
+                </span>
               </div>
             )}
           </div>
@@ -445,7 +432,7 @@ export function MultimodalInput({
             ) : (
               <button
                 type="submit"
-                disabled={(!input.trim() && attachments.length === 0) || isExpired}
+                disabled={!input.trim() && attachments.length === 0}
                 className={cn(
                   'flex items-center justify-center shrink-0 h-8 w-8 rounded-xl transition-all duration-300',
                   (input.trim() || attachments.length > 0)

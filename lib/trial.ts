@@ -39,7 +39,8 @@ export function getRemainingTrialDays(endsAt: string | Date | null | undefined):
   
   if (isBefore(end, now)) return 0
   
- return differenceInDays(end, now)
+  const days = differenceInDays(end, now)
+  return days === 0 ? 1 : days
 }
 
 /**
