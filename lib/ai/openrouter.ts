@@ -1,14 +1,18 @@
 /**
  * OpenRouter Provider Configuration
- * 
+ *
  * Utiliza o @ai-sdk/openai com baseURL customizado para OpenRouter.
  * Isso permite acesso a centenas de modelos via uma única API.
+ *
+ * IMPORTANTE: Em AI SDK v6, o provider padrão do OpenAI usa a Responses API,
+ * que não é suportada pelo OpenRouter. Usamos `.chat()` para forçar a
+ * Chat Completions API.
  */
 
 import { createOpenAI } from '@ai-sdk/openai'
 
-// Criar provider OpenRouter usando a compatibilidade OpenAI
-export const openrouter = createOpenAI({
+// Provider base (não exportar diretamente - usa Responses API por padrão)
+const openrouterProvider = createOpenAI({
   name: 'openrouter',
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY,
@@ -17,6 +21,12 @@ export const openrouter = createOpenAI({
     'X-Title': 'OdontoGPT',
   },
 })
+
+/**
+ * OpenRouter model factory — always uses Chat Completions API.
+ * Usage: openrouter('google/gemini-2.0-flash-001')
+ */
+export const openrouter = (modelId: string) => openrouterProvider.chat(modelId)
 
 // Modelos disponíveis via OpenRouter (versões pagas - mais estáveis)
 export const MODELS = {
@@ -39,7 +49,7 @@ export const MODELS = {
 export type ModelId = typeof MODELS[keyof typeof MODELS]
 
 /**
- * Cria um modelo OpenRouter com o ID especificado
+ * Cria um modelo OpenRouter com o ID especificado (Chat Completions API)
  */
 export function createModel(modelId: ModelId | string) {
   return openrouter(modelId)

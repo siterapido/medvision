@@ -1,22 +1,19 @@
 'use client'
 
 /**
- * Chat - Vercel Chat SDK Pattern
- * 
+ * Chat - Vercel Chat SDK Pattern (AI SDK v6)
+ *
  * Componente principal de chat seguindo o padrão oficial da Vercel.
  * Usa useChat do @ai-sdk/react com DefaultChatTransport.
  */
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { toast } from 'sonner'
+import { DefaultChatTransport } from 'ai'
 import { History } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { useBlockingChat } from '@/lib/hooks/use-blocking-chat'
-import { useHistoryRevalidation } from '@/lib/chat'
 import { Messages } from './messages'
 import { MultimodalInput } from './multimodal-input'
-import { ToolApprovalDialog } from './tool-approval-dialog'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useSidebar } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
@@ -45,45 +42,53 @@ export function Chat({
 }: ChatProps) {
   const [input, setInput] = useState('')
   const [selectedAgent, setSelectedAgent] = useState(initialAgentId)
-  const { revalidateHistory } = useHistoryRevalidation()
   const { toggleSidebar } = useSidebar()
   const router = useRouter()
 
-  const { messages, append, status, stop, reload } = useChat({
-    id,
-    initialMessages: initialMessages as any,
-    api: apiEndpoint,
-    body: { chatId: id },
-  } as any) as any
+  const transport = useMemo(
+    () => new DefaultChatTransport({ api: apiEndpoint, body: { sessionId: id } }),
+    [apiEndpoint, id]
+  )
+
+  // Build useChat options — only include `id` when defined to prevent
+  // the hook from recreating the Chat instance on every render
+  // (useChat checks `"id" in options` and compares with the internal generated id)
+  const useChatOptions = useMemo(() => {
+    const opts: Record<string, unknown> = {
+      messages: initialMessages,
+      transport,
+    }
+    if (id !== undefined) {
+      opts.id = id
+    }
+    return opts
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, transport])
+
+  const { messages, sendMessage, status, stop, regenerate, error } = useChat(useChatOptions as any)
 
   const componentStatus = status
-
-  const sendMessage = (message: any) => {
-    append(message)
-  }
 
   const handleEditMessage = (id: string, content: string) => {
     // Placeholder
   }
 
   const handleRegenerate = () => {
-    reload()
+    regenerate()
   }
 
   const handleSuggestionClick = (suggestion: string) => {
     setInput(suggestion)
   }
 
-  const handleSubmit = () => {
-    if (!input.trim() || status !== 'ready') return
+  const handleSubmit = async () => {
+    if (!input.trim() || status === 'submitted' || status === 'streaming') return
 
-    append({
-      role: 'user',
-      content: input,
-    })
-
+    const text = input
     setInput('')
+    sendMessage({ text })
   }
+
 
   return (
     <div className="relative flex h-full min-h-0 min-w-0 flex-col bg-background">
