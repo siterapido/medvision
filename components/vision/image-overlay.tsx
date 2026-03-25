@@ -1,8 +1,9 @@
 "use client"
 
-import { useState, useRef, useEffect, useMemo } from 'react'
+import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { VisionDetection, VisionAnnotation, AnnotationColor } from '@/lib/types/vision'
+import { DetectionPopover } from '@/components/vision/detection-popover'
 import { cn } from '@/lib/utils'
 
 interface ImageOverlayProps {
@@ -10,6 +11,7 @@ interface ImageOverlayProps {
     detections: VisionDetection[]
     annotations?: VisionAnnotation[]
     showArrows?: boolean
+    showHeatmap?: boolean
     className?: string
 }
 
@@ -67,13 +69,10 @@ function computeLabelPositions(detections: VisionDetection[]): Map<string, Label
         // Determine X: offset away from center to reduce overlap
         let labelX: number
         if (boxCenterX < 40) {
-            // Box on left side, place label to the right
             labelX = Math.min(det.box.xmax + 2, 70)
         } else if (boxCenterX > 60) {
-            // Box on right side, place label to the left
             labelX = Math.max(det.box.xmin - 25, 2)
         } else {
-            // Center - place above/below aligned
             labelX = Math.max(2, Math.min(boxCenterX - 10, 70))
         }
 
@@ -88,7 +87,6 @@ function computeLabelPositions(detections: VisionDetection[]): Map<string, Label
         labelY = Math.max(1, Math.min(labelY, 92))
         labelX = Math.max(1, Math.min(labelX, 75))
 
-        // Arrow target: nearest box edge point
         const arrowToX = boxCenterX
 
         usedYRanges.push({ y: labelY, height: LABEL_HEIGHT })
@@ -98,8 +96,9 @@ function computeLabelPositions(detections: VisionDetection[]): Map<string, Label
     return positions
 }
 
-export function ImageOverlay({ src, detections, annotations = [], showArrows = true, className }: ImageOverlayProps) {
+export function ImageOverlay({ src, detections, annotations = [], showArrows = true, showHeatmap = false, className }: ImageOverlayProps) {
     const [hoveredId, setHoveredId] = useState<string | null>(null)
+    const [selectedId, setSelectedId] = useState<string | null>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const [size, setSize] = useState({ width: 0, height: 0 })
@@ -113,7 +112,6 @@ export function ImageOverlay({ src, detections, annotations = [], showArrows = t
         }
     }
 
-    // Compute label positions with collision avoidance
     const labelPositions = useMemo(() => computeLabelPositions(detections), [detections])
 
     // Update size when container changes
@@ -127,9 +125,26 @@ export function ImageOverlay({ src, detections, annotations = [], showArrows = t
             }
         }
         updateSize()
-        window.addEventListener('resize', updateSize)
-        return () => window.removeEventListener('resize', updateSize)
+        const observer = new ResizeObserver(updateSize)
+        if (containerRef.current) observer.observe(containerRef.current)
+        return () => observer.disconnect()
     }, [])
+
+    // Escape key closes popover
+    useEffect(() => {
+        const handleKey = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') setSelectedId(null)
+        }
+        window.addEventListener('keydown', handleKey)
+        return () => window.removeEventListener('keydown', handleKey)
+    }, [])
+
+    const handleDetectionClick = useCallback((id: string, e: React.MouseEvent) => {
+        e.stopPropagation()
+        setSelectedId(prev => prev === id ? null : id)
+    }, [])
+
+    const closePopover = useCallback(() => setSelectedId(null), [])
 
     // Draw user annotations on canvas
     useEffect(() => {
@@ -207,6 +222,43 @@ export function ImageOverlay({ src, detections, annotations = [], showArrows = t
         }
     }, [annotations, size])
 
+    // Get the selected detection and its label position for the popover
+    const selectedDetection = selectedId ? detections.find(d => d.id === selectedId) : null
+    const selectedLabelPos = selectedId ? labelPositions.get(selectedId) : null
+
+    // Generate heatmap data based on detections
+    const heatmapData = useMemo(() => {
+        if (!showHeatmap || detections.length === 0) return null
+        
+        const gridSize = 20
+        const grid: number[][] = Array(gridSize).fill(null).map(() => Array(gridSize).fill(0))
+        
+        detections.forEach(det => {
+            const severityWeight = det.severity === 'critical' ? 1.0 
+                : det.severity === 'moderate' ? 0.6 
+                : 0.3
+            const confidenceWeight = det.confidence ?? 0.8
+            
+            const startX = Math.floor((det.box.xmin / 100) * gridSize)
+            const endX = Math.ceil((det.box.xmax / 100) * gridSize)
+            const startY = Math.floor((det.box.ymin / 100) * gridSize)
+            const endY = Math.ceil((det.box.ymax / 100) * gridSize)
+            
+            for (let x = startX; x < endX && x < gridSize; x++) {
+                for (let y = startY; y < endY && y < gridSize; y++) {
+                    const distFromCenter = Math.sqrt(
+                        Math.pow((x - (startX + endX) / 2) / ((endX - startX) || 1), 2) +
+                        Math.pow((y - (startY + endY) / 2) / ((endY - startY) || 1), 2)
+                    )
+                    const falloff = Math.max(0, 1 - distFromCenter * 0.5)
+                    grid[y][x] += severityWeight * confidenceWeight * falloff
+                }
+            }
+        })
+        
+        return grid
+    }, [detections, showHeatmap])
+
     return (
         <div ref={containerRef} className={cn("relative w-full h-full group select-none", className)}>
             <img
@@ -214,6 +266,32 @@ export function ImageOverlay({ src, detections, annotations = [], showArrows = t
                 alt="Analyzed"
                 className="w-full h-full object-contain pointer-events-none"
             />
+
+            {/* Heatmap layer */}
+            {heatmapData && (
+                <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                    {heatmapData.map((row, y) => (
+                        row.map((value, x) => {
+                            if (value < 0.1) return null
+                            const opacity = Math.min(value * 0.4, 0.7)
+                            return (
+                                <div
+                                    key={`${x}-${y}`}
+                                    className="absolute"
+                                    style={{
+                                        left: `${(x / 20) * 100}%`,
+                                        top: `${(y / 20) * 100}%`,
+                                        width: '5%',
+                                        height: '5%',
+                                        backgroundColor: `rgba(239, 68, 68, ${opacity})`,
+                                        borderRadius: '2px',
+                                    }}
+                                />
+                            )
+                        })
+                    ))}
+                </div>
+            )}
 
             {/* Annotations canvas */}
             {annotations.length > 0 && size.width > 0 && (
@@ -231,6 +309,7 @@ export function ImageOverlay({ src, detections, annotations = [], showArrows = t
                     {detections.map((det) => {
                         const colors = getColor(det.severity)
                         const isHovered = hoveredId === det.id
+                        const isSelected = selectedId === det.id
 
                         const top = `${det.box.ymin}%`
                         const left = `${det.box.xmin}%`
@@ -248,11 +327,12 @@ export function ImageOverlay({ src, detections, annotations = [], showArrows = t
                                     "absolute border-2 cursor-pointer transition-all duration-300 z-10",
                                     colors.border,
                                     colors.bg,
-                                    isHovered ? "z-50 shadow-[0_0_20px_rgba(0,0,0,0.3)] ring-2 ring-white/50" : ""
+                                    (isHovered || isSelected) ? "z-50 shadow-[0_0_20px_rgba(0,0,0,0.3)] ring-2 ring-white/50" : ""
                                 )}
                                 style={{ top, left, width, height }}
                                 onMouseEnter={() => setHoveredId(det.id)}
                                 onMouseLeave={() => setHoveredId(null)}
+                                onClick={(e) => handleDetectionClick(det.id, e)}
                             >
                                 {/* corner markers */}
                                 <div className={cn("absolute -top-1 -left-1 w-2 h-2 border-t-2 border-l-2", colors.border)} />
@@ -298,7 +378,6 @@ export function ImageOverlay({ src, detections, annotations = [], showArrows = t
                         if (!pos) return null
 
                         const color = severityColorHex[det.severity] || '#9ca3af'
-                        // Arrow start: from label center bottom/top
                         const labelCenterX = pos.x + 10 // approximate label half-width in %
                         const isAbove = pos.y < det.box.ymin
                         const arrowStartY = isAbove ? pos.y + 3.5 : pos.y
@@ -334,6 +413,7 @@ export function ImageOverlay({ src, detections, annotations = [], showArrows = t
 
                             const colors = getColor(det.severity)
                             const isHovered = hoveredId === det.id
+                            const isSelected = selectedId === det.id
 
                             return (
                                 <motion.div
@@ -343,9 +423,9 @@ export function ImageOverlay({ src, detections, annotations = [], showArrows = t
                                     exit={{ opacity: 0, y: 4 }}
                                     transition={{ duration: 0.4, delay: 0.3 + i * 0.1 }}
                                     className={cn(
-                                        "absolute px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap shadow-lg pointer-events-auto cursor-default",
+                                        "absolute px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap shadow-lg pointer-events-auto cursor-pointer select-none",
                                         colors.text,
-                                        isHovered ? "ring-1 ring-white/60 scale-105" : ""
+                                        (isHovered || isSelected) ? "ring-2 ring-white/80 scale-105" : ""
                                     )}
                                     style={{
                                         left: `${pos.x}%`,
@@ -353,17 +433,44 @@ export function ImageOverlay({ src, detections, annotations = [], showArrows = t
                                     }}
                                     onMouseEnter={() => setHoveredId(det.id)}
                                     onMouseLeave={() => setHoveredId(null)}
+                                    onClick={(e) => handleDetectionClick(det.id, e)}
+                                    title="Clique para mais detalhes"
                                 >
                                     {det.label}
                                     <span className="ml-1.5 opacity-75 font-normal text-[9px]">
                                         {Math.round(det.confidence * 100)}%
                                     </span>
+                                    {/* Small indicator that it's clickable */}
+                                    <span className="ml-1 opacity-60 text-[8px]">ⓘ</span>
                                 </motion.div>
                             )
                         })}
                     </AnimatePresence>
                 </div>
             )}
+
+            {/* Detection Popover */}
+            <AnimatePresence>
+                {selectedDetection && selectedLabelPos && size.width > 0 && (
+                    <motion.div
+                        key={`popover-${selectedDetection.id}`}
+                        initial={{ opacity: 0, scale: 0.92 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.92 }}
+                        transition={{ duration: 0.15 }}
+                        className="absolute inset-0 z-40 pointer-events-none"
+                    >
+                        <div className="pointer-events-auto w-full h-full">
+                            <DetectionPopover
+                                detection={selectedDetection}
+                                anchorPercent={{ x: selectedLabelPos.x, y: selectedLabelPos.y }}
+                                containerSize={size}
+                                onClose={closePopover}
+                            />
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     )
 }

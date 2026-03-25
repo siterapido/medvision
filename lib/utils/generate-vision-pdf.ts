@@ -1,12 +1,13 @@
 import { jsPDF } from 'jspdf'
-import { VisionAnalysisResult } from '@/lib/types/vision'
+import { VisionAnalysisResult, VisionRefinement } from '@/lib/types/vision'
 
 interface GeneratePDFOptions {
   analysisResult: VisionAnalysisResult
   imageBase64: string
+  refinements?: VisionRefinement[]
 }
 
-export async function generateVisionPDF({ analysisResult, imageBase64 }: GeneratePDFOptions): Promise<void> {
+export async function generateVisionPDF({ analysisResult, imageBase64, refinements = [] }: GeneratePDFOptions): Promise<void> {
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -89,7 +90,7 @@ export async function generateVisionPDF({ analysisResult, imageBase64 }: Generat
     }
   }
 
-  // Section: Principais Achados
+  // Section: Principais Achados (with CID-10 and tooth number)
   if (analysisResult.findings && analysisResult.findings.length > 0) {
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
     doc.rect(margin, yPosition, 4, 8, 'F')
@@ -102,18 +103,28 @@ export async function generateVisionPDF({ analysisResult, imageBase64 }: Generat
     doc.setFont('helvetica', 'normal')
     doc.setFontSize(10)
 
-    analysisResult.findings.forEach((finding) => {
+    analysisResult.findings.forEach((finding, idx) => {
       // Check if we need a new page
       if (yPosition > pageHeight - 40) {
         doc.addPage()
         yPosition = margin
       }
 
+      const matchedDet = analysisResult.detections[idx]
+      let findingText = `• ${finding.type}`
+      if (matchedDet?.toothNumber) {
+        findingText += ` (Dente ${matchedDet.toothNumber})`
+      }
+      if (matchedDet?.cidCode) {
+        findingText += ` - CID-10: ${matchedDet.cidCode}`
+      }
+
       doc.setFillColor(248, 248, 248)
       doc.roundedRect(margin, yPosition, contentWidth, 12, 2, 2, 'F')
 
       doc.setTextColor(textColor[0], textColor[1], textColor[2])
-      doc.text(`• ${finding.type}`, margin + 4, yPosition + 7)
+      doc.setFontSize(9)
+      doc.text(findingText, margin + 4, yPosition + 7)
 
       doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2])
       doc.setFontSize(8)
@@ -198,6 +209,82 @@ export async function generateVisionPDF({ analysisResult, imageBase64 }: Generat
     yPosition += diagHeight + 10
   }
 
+  // Section: Diagnóstico Diferencial
+  if (analysisResult.report?.differentialDiagnosis) {
+    if (yPosition > pageHeight - 60) {
+      doc.addPage()
+      yPosition = margin
+    }
+
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
+    doc.rect(margin, yPosition, 4, 8, 'F')
+    doc.setTextColor(textColor[0], textColor[1], textColor[2])
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text('DIAGNÓSTICO DIFERENCIAL', margin + 8, yPosition + 6)
+    yPosition += 12
+
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(10)
+    doc.setTextColor(textColor[0], textColor[1], textColor[2])
+    yPosition = addWrappedText(analysisResult.report.differentialDiagnosis, margin, yPosition, contentWidth)
+    yPosition += 10
+  }
+
+  // Section: Per-Tooth Breakdown Table
+  if (analysisResult.report?.perToothBreakdown && analysisResult.report.perToothBreakdown.length > 0) {
+    if (yPosition > pageHeight - 80) {
+      doc.addPage()
+      yPosition = margin
+    }
+
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
+    doc.rect(margin, yPosition, 4, 8, 'F')
+    doc.setTextColor(textColor[0], textColor[1], textColor[2])
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text('ACHADOS POR DENTE (NOTAÇÃO FDI)', margin + 8, yPosition + 6)
+    yPosition += 14
+
+    // Table header
+    doc.setFillColor(240, 240, 240)
+    doc.rect(margin, yPosition, contentWidth, 8, 'F')
+    doc.setTextColor(textColor[0], textColor[1], textColor[2])
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Dente', margin + 3, yPosition + 5.5)
+    doc.text('Achado', margin + 25, yPosition + 5.5)
+    doc.text('CID-10', margin + 110, yPosition + 5.5)
+    doc.text('Severidade', margin + 140, yPosition + 5.5)
+    yPosition += 10
+
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+
+    analysisResult.report.perToothBreakdown.forEach((item) => {
+      if (yPosition > pageHeight - 30) {
+        doc.addPage()
+        yPosition = margin
+      }
+
+      doc.setFillColor(250, 250, 250)
+      doc.rect(margin, yPosition, contentWidth, 8, 'F')
+      doc.setTextColor(textColor[0], textColor[1], textColor[2])
+      doc.setFont('helvetica', 'bold')
+      doc.text(item.tooth, margin + 3, yPosition + 5.5)
+      doc.setFont('helvetica', 'normal')
+      const findingsText = item.findings.length > 60 ? item.findings.slice(0, 60) + '...' : item.findings
+      doc.text(findingsText, margin + 25, yPosition + 5.5)
+      doc.setFont('helvetica', 'bold')
+      doc.text(item.cidCode || '—', margin + 110, yPosition + 5.5)
+      doc.setFont('helvetica', 'normal')
+      doc.text(item.severity || 'N/A', margin + 140, yPosition + 5.5)
+      yPosition += 10
+    })
+
+    yPosition += 5
+  }
+
   // Section: Conduta Recomendada
   if (analysisResult.report?.recommendations && analysisResult.report.recommendations.length > 0) {
     if (yPosition > pageHeight - 60) {
@@ -227,6 +314,106 @@ export async function generateVisionPDF({ analysisResult, imageBase64 }: Generat
       doc.setTextColor(textColor[0], textColor[1], textColor[2])
       yPosition = addWrappedText(rec, margin + 8, yPosition, contentWidth - 8)
       yPosition += 4
+    })
+  }
+
+  // Section: Refinamentos (if any)
+  if (refinements.length > 0) {
+    doc.addPage()
+    yPosition = margin
+
+    // Header for refinements section
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
+    doc.rect(0, 0, pageWidth, 25, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(16)
+    doc.setFont('helvetica', 'bold')
+    doc.text('REFINAMENTOS DE REGIÃO', margin, 16)
+    yPosition = 35
+
+    refinements.forEach((ref, idx) => {
+      if (yPosition > pageHeight - 60) {
+        doc.addPage()
+        yPosition = margin
+      }
+
+      // Refinement header
+      doc.setFillColor(240, 240, 240)
+      doc.rect(margin, yPosition, contentWidth, 10, 'F')
+      doc.setTextColor(textColor[0], textColor[1], textColor[2])
+      doc.setFontSize(12)
+      doc.setFont('helvetica', 'bold')
+      doc.text(`Refinamento #${idx + 1}`, margin + 3, yPosition + 7)
+      doc.setFontSize(9)
+      doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2])
+      doc.text(`Data: ${new Date(ref.analyzedAt).toLocaleString('pt-BR')}`, margin + contentWidth - 60, yPosition + 7)
+      yPosition += 14
+
+      // Add region thumbnail
+      try {
+        const thumbWidth = 50
+        const thumbHeight = 35
+        doc.addImage(ref.regionImageBase64, 'JPEG', margin, yPosition, thumbWidth, thumbHeight)
+        
+        // Add detection info
+        doc.setTextColor(textColor[0], textColor[1], textColor[2])
+        doc.setFontSize(10)
+        doc.setFont('helvetica', 'bold')
+        doc.text(`${ref.analysis.detections.length} achados identificados`, margin + thumbWidth + 5, yPosition + 8)
+        
+        if (ref.analysis.detections.length > 0) {
+          doc.setFont('helvetica', 'normal')
+          doc.setFontSize(8)
+          const findingsList = ref.analysis.detections.slice(0, 4).map(d => d.label).join(', ')
+          doc.text(findingsList, margin + thumbWidth + 5, yPosition + 15)
+        }
+        yPosition += thumbHeight + 15
+      } catch (e) {
+        console.error('Error adding refinement thumbnail:', e)
+        yPosition += 10
+      }
+
+      // Add refined findings
+      if (ref.analysis.findings && ref.analysis.findings.length > 0) {
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(10)
+        doc.text('Achados Refinados:', margin, yPosition)
+        yPosition += 6
+
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(9)
+        ref.analysis.findings.forEach((f, fIdx) => {
+          if (yPosition > pageHeight - 20) {
+            doc.addPage()
+            yPosition = margin
+          }
+          const det = ref.analysis.detections[fIdx]
+          let text = `${fIdx + 1}. ${f.type}`
+          if (det?.toothNumber) text += ` (Dente ${det.toothNumber})`
+          if (det?.cidCode) text += ` - ${det.cidCode}`
+          doc.text(text, margin + 3, yPosition)
+          yPosition += 5
+        })
+        yPosition += 5
+      }
+
+      // Add diagnostic hypothesis if available
+      if (ref.analysis.report?.diagnosticHypothesis) {
+        if (yPosition > pageHeight - 30) {
+          doc.addPage()
+          yPosition = margin
+        }
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(9)
+        doc.text('Hipótese Diagnóstica:', margin, yPosition)
+        yPosition += 5
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(8)
+        yPosition = addWrappedText(ref.analysis.report.diagnosticHypothesis, margin, yPosition, contentWidth - 5, 4)
+        yPosition += 10
+      }
+
+      yPosition += 5
     })
   }
 

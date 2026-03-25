@@ -36,8 +36,12 @@ export const MODELS = {
   // Pesquisa - Perplexity Sonar
   research: 'perplexity/sonar',
 
-  // Visão - para análise de imagens radiográficas
-  vision: 'openai/gpt-4o',
+  // Visão - Gemini 3.1 Pro para análise de imagens radiográficas
+  vision: 'google/gemini-3.1-pro-preview',
+
+  // Fallbacks Gemini para visão (fallback chain)
+  visionFallback1: 'google/gemini-3-pro-preview',
+  visionFallback2: 'google/gemini-2.5-pro',
 
   // Escrita - para geração de conteúdo
   writer: 'anthropic/claude-3-haiku',

@@ -14,6 +14,13 @@ export interface VisionDetection {
     box: BoundingBox;
     severity: SeverityLevel;
     description?: string;
+    // Enhanced fields (optional for backward compatibility)
+    toothNumber?: string;           // FDI notation e.g. "26", "11-13"
+    cidCode?: string;               // CID-10 code e.g. "K02.1"
+    differentialDiagnosis?: string[]; // 2-3 diagnostic alternatives
+    clinicalSignificance?: 'alta' | 'media' | 'baixa';
+    recommendedActions?: string[];  // per-detection next steps
+    detailedDescription?: string;   // longer technical description
 }
 
 export interface VisionFinding {
@@ -31,11 +38,28 @@ export interface VisionMeta {
     notes?: string;
 }
 
+export interface VisionPerToothBreakdown {
+    tooth: string;       // FDI notation e.g. "26", "41-42"
+    findings: string;    // description of findings for this tooth
+    cidCode?: string;    // CID-10 code if applicable
+    severity?: SeverityLevel;
+}
+
 export interface VisionReport {
     technicalAnalysis: string;
     detailedFindings: string;
     diagnosticHypothesis: string;
     recommendations: string[];
+    // Enhanced fields (optional for backward compatibility)
+    perToothBreakdown?: VisionPerToothBreakdown[];
+    differentialDiagnosis?: string;
+}
+
+export interface VisionRefinement {
+    regionBox: BoundingBox;          // the selected region in the original image (0-100 coords)
+    regionImageBase64: string;       // cropped region image
+    analysis: VisionAnalysisResult;  // refined analysis result for this region
+    analyzedAt: string;              // ISO timestamp
 }
 
 export interface VisionAnalysisResult {
@@ -44,6 +68,7 @@ export interface VisionAnalysisResult {
     findings: VisionFinding[];
     report?: VisionReport;
     precision?: number; // 0-100 overall precision score
+    refinements?: VisionRefinement[];
     // Legacy fields for compatibility if needed (frontend uses report now)
     clinicalAssessment?: string;
     recommendations?: string[];
@@ -70,4 +95,5 @@ export interface VisionArtifactContent {
     analysis: VisionAnalysisResult;
     annotations?: VisionAnnotation[];
     analyzedAt: string;
+    refinements?: VisionRefinement[];
 }

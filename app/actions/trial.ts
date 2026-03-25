@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache"
 
-import { createClient } from "@/lib/supabase/server"
+import { createClient, getUser } from "@/lib/supabase/server"
+
 import {
   DEFAULT_TRIAL_DAYS,
   calculateTrialEndDate,
@@ -19,12 +20,14 @@ type StartTrialOptions = {
 
 export async function startTrial(options?: StartTrialOptions) {
   const shouldRevalidate = options?.shouldRevalidate ?? true
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  const user = await getUser()
 
   if (!user) {
     return { success: false, message: "Usuário não autenticado" }
   }
+
+  const supabase = await createClient()
+
 
   // Verificar se já usou o trial e buscar pipeline_stage atual
   const { data: profile } = await supabase
@@ -83,10 +86,11 @@ export async function startTrial(options?: StartTrialOptions) {
 }
 
 export async function getTrialStatus() {
+  const user = await getUser()
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
 
   if (!user) {
+
     return { 
       isActive: false, 
       isExpired: false, 

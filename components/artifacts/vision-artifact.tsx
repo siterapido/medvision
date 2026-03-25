@@ -13,9 +13,14 @@ import {
   FileText,
   CheckCircle2,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   AlertCircle,
   Maximize2,
-  Printer
+  Printer,
+  Tag,
+  GitBranch,
+  Microscope,
 } from 'lucide-react'
 import type { VisionArtifact as VisionArtifactType } from './types'
 import { Button } from '@/components/ui/button'
@@ -33,8 +38,9 @@ export function VisionArtifact({ artifact, className }: VisionArtifactProps) {
   const [copied, setCopied] = useState(false)
   const [isExpanded, setIsExpanded] = useState(false)
   const [isImageExpanded, setIsImageExpanded] = useState(false)
+  const [expandedRefinement, setExpandedRefinement] = useState<number | null>(null)
 
-  const { analysis, imageBase64, thumbnailBase64, analyzedAt } = artifact
+  const { analysis, imageBase64, thumbnailBase64, analyzedAt, refinements = [] } = artifact
 
   const reportId = artifact.id?.slice(0, 8).toUpperCase() || Math.random().toString(36).slice(2, 8).toUpperCase()
   const formattedDate = new Date(analyzedAt).toLocaleDateString('pt-BR', {
@@ -56,8 +62,22 @@ export function VisionArtifact({ artifact, className }: VisionArtifactProps) {
 
     if (analysis.findings && analysis.findings.length > 0) {
       content += '## Principais Achados\n\n'
-      analysis.findings.forEach((finding) => {
-        content += `- **${finding.type}** - ${finding.zone} (${finding.level})\n`
+      analysis.findings.forEach((finding, idx) => {
+        const det = analysis.detections?.[idx]
+        let findingText = `- **${finding.type}** - ${finding.zone} (${finding.level})`
+        if (det?.toothNumber) findingText += ` [Dente ${det.toothNumber}]`
+        if (det?.cidCode) findingText += ` [CID-10: ${det.cidCode}]`
+        content += findingText + '\n'
+      })
+      content += '\n'
+    }
+
+    if (analysis.report?.perToothBreakdown && analysis.report.perToothBreakdown.length > 0) {
+      content += '## Achados por Dente (Notação FDI)\n\n'
+      content += '| Dente | Achado | CID-10 | Severidade |\n'
+      content += '|-------|---------|--------|------------|\n'
+      analysis.report.perToothBreakdown.forEach((item) => {
+        content += `| ${item.tooth} | ${item.findings} | ${item.cidCode || '—'} | ${item.severity || 'N/A'} |\n`
       })
       content += '\n'
     }
@@ -77,10 +97,36 @@ export function VisionArtifact({ artifact, className }: VisionArtifactProps) {
       content += analysis.report.diagnosticHypothesis + '\n\n'
     }
 
+    if (analysis.report?.differentialDiagnosis) {
+      content += '## Diagnóstico Diferencial\n\n'
+      content += analysis.report.differentialDiagnosis + '\n\n'
+    }
+
     if (analysis.report?.recommendations && analysis.report.recommendations.length > 0) {
       content += '## Conduta Recomendada\n\n'
       analysis.report.recommendations.forEach((rec, i) => {
         content += `${i + 1}. ${rec}\n`
+      })
+    }
+
+    if (refinements.length > 0) {
+      content += '\n## Refinamentos de Região\n\n'
+      refinements.forEach((ref, idx) => {
+        content += `### Refinamento #${idx + 1}\n`
+        content += `Data: ${new Date(ref.analyzedAt).toLocaleString('pt-BR')}\n`
+        if (ref.analysis.detections && ref.analysis.detections.length > 0) {
+          content += 'Achados:\n'
+          ref.analysis.detections.forEach((det, dIdx) => {
+            let text = `  ${dIdx + 1}. ${det.label}`
+            if (det.toothNumber) text += ` (Dente ${det.toothNumber})`
+            if (det.cidCode) text += ` - ${det.cidCode}`
+            content += text + '\n'
+          })
+        }
+        if (ref.analysis.report?.diagnosticHypothesis) {
+          content += `Hipótese: ${ref.analysis.report.diagnosticHypothesis}\n`
+        }
+        content += '\n'
       })
     }
 
@@ -124,6 +170,22 @@ export function VisionArtifact({ artifact, className }: VisionArtifactProps) {
       return 'bg-amber-500/10 text-amber-500 border-amber-500/30'
     }
     return 'bg-red-500/10 text-red-500 border-red-500/30'
+  }
+
+  const getSeverityBadge = (severity?: string) => {
+    switch (severity) {
+      case 'critical': return 'text-red-500 bg-red-500/10 border-red-500/30'
+      case 'moderate': return 'text-amber-500 bg-amber-500/10 border-amber-500/30'
+      default: return 'text-blue-500 bg-blue-500/10 border-blue-500/30'
+    }
+  }
+
+  const getSeverityLabel = (severity?: string) => {
+    switch (severity) {
+      case 'critical': return 'Crítico'
+      case 'moderate': return 'Moderado'
+      default: return 'Normal'
+    }
   }
 
   return (
@@ -299,6 +361,134 @@ export function VisionArtifact({ artifact, className }: VisionArtifactProps) {
                 </li>
               ))}
             </ul>
+          </div>
+        )}
+
+        {/* Per-Tooth Breakdown */}
+        {analysis.report?.perToothBreakdown && analysis.report.perToothBreakdown.length > 0 && (
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1 h-5 rounded-full bg-primary" />
+              <Tag className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">
+                Achados por Dente (Notação FDI)
+              </h3>
+            </div>
+            <div className="overflow-x-auto rounded-lg border border-border/30">
+              <table className="w-full text-xs">
+                <thead>
+                  <tr className="bg-muted/30 border-b border-border/30">
+                    <th className="text-left px-3 py-2 font-semibold text-muted-foreground">Dente</th>
+                    <th className="text-left px-3 py-2 font-semibold text-muted-foreground">Achado</th>
+                    <th className="text-left px-3 py-2 font-semibold text-muted-foreground">CID-10</th>
+                    <th className="text-left px-3 py-2 font-semibold text-muted-foreground">Severidade</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {analysis.report.perToothBreakdown.map((item, i) => (
+                    <tr key={i} className="border-b border-border/20 hover:bg-muted/20">
+                      <td className="px-3 py-2 font-bold text-primary">{item.tooth}</td>
+                      <td className="px-3 py-2 text-foreground/80">{item.findings}</td>
+                      <td className="px-3 py-2 font-mono text-muted-foreground">{item.cidCode || '—'}</td>
+                      <td className="px-3 py-2">
+                        {item.severity && (
+                          <Badge variant="outline" className={cn('text-[9px] h-4 px-1', getSeverityBadge(item.severity))}>
+                            {getSeverityLabel(item.severity)}
+                          </Badge>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {/* Differential Diagnosis (report level) */}
+        {analysis.report?.differentialDiagnosis && (
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1 h-5 rounded-full bg-primary" />
+              <GitBranch className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">
+                Diagnóstico Diferencial
+              </h3>
+            </div>
+            <p className="text-sm text-foreground/80 leading-relaxed bg-muted/20 p-3 rounded-lg border border-border/30 whitespace-pre-line">
+              {analysis.report.differentialDiagnosis}
+            </p>
+          </div>
+        )}
+
+        {/* Refinements */}
+        {refinements.length > 0 && (
+          <div className="p-4 border-b border-border">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1 h-5 rounded-full bg-primary" />
+              <Microscope className="h-4 w-4 text-muted-foreground" />
+              <h3 className="text-sm font-bold uppercase tracking-wide text-foreground">
+                Refinamentos de Região ({refinements.length})
+              </h3>
+            </div>
+            <div className="space-y-2">
+              {refinements.map((ref, idx) => (
+                <div key={idx} className="rounded-lg border border-border/30 overflow-hidden">
+                  <button
+                    className="w-full p-3 flex items-center gap-3 hover:bg-muted/20 transition-colors text-left"
+                    onClick={() => setExpandedRefinement(prev => prev === idx ? null : idx)}
+                  >
+                    <div className="w-12 h-12 rounded overflow-hidden border border-border/50 bg-black/5 shrink-0">
+                      <img
+                        src={ref.regionImageBase64}
+                        alt="Região refinada"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold">Refinamento #{idx + 1}</p>
+                      <p className="text-[11px] text-muted-foreground">
+                        {ref.analysis.detections?.length || 0} achados • {new Date(ref.analyzedAt).toLocaleString('pt-BR')}
+                      </p>
+                    </div>
+                    {expandedRefinement === idx
+                      ? <ChevronUp className="w-4 h-4 text-muted-foreground shrink-0" />
+                      : <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+                    }
+                  </button>
+                  {expandedRefinement === idx && ref.analysis.detections && ref.analysis.detections.length > 0 && (
+                    <div className="px-3 pb-3 border-t border-border/30 space-y-2 pt-2">
+                      {ref.analysis.detections.map((det, dIdx) => (
+                        <div key={dIdx} className="p-2 rounded bg-muted/20 border border-border/20 flex items-center justify-between">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <p className="text-xs font-medium">{det.label}</p>
+                            {det.toothNumber && (
+                              <Badge variant="outline" className="text-[9px] h-4 px-1">
+                                Dente {det.toothNumber}
+                              </Badge>
+                            )}
+                            {det.cidCode && (
+                              <Badge variant="outline" className="text-[9px] h-4 px-1 font-mono">
+                                {det.cidCode}
+                              </Badge>
+                            )}
+                          </div>
+                          <Badge variant="outline" className={cn('text-[9px] h-4 px-1', getSeverityBadge(det.severity))}>
+                            {getSeverityLabel(det.severity)}
+                          </Badge>
+                        </div>
+                      ))}
+                      {ref.analysis.report?.diagnosticHypothesis && (
+                        <div className="mt-2 p-2 rounded bg-primary/5 border border-primary/20">
+                          <p className="text-[10px] font-semibold text-muted-foreground mb-1">Hipótese Diagnóstica</p>
+                          <p className="text-xs text-primary/80">{ref.analysis.report.diagnosticHypothesis}</p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

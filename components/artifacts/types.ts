@@ -157,7 +157,20 @@ export interface VisionArtifact extends ArtifactBase {
     meta?: {
       imageType?: string
       quality?: string
+      qualityScore?: number
     }
+    detections?: {
+      id: string
+      label: string
+      confidence: number
+      severity: string
+      toothNumber?: string
+      cidCode?: string
+      differentialDiagnosis?: string[]
+      clinicalSignificance?: 'alta' | 'media' | 'baixa'
+      recommendedActions?: string[]
+      detailedDescription?: string
+    }[]
     findings?: {
       type: string
       zone: string
@@ -168,9 +181,23 @@ export interface VisionArtifact extends ArtifactBase {
       detailedFindings?: string
       diagnosticHypothesis?: string
       recommendations?: string[]
+      perToothBreakdown?: {
+        tooth: string
+        findings: string
+        cidCode?: string
+        severity?: string
+      }[]
+      differentialDiagnosis?: string
     }
+    precision?: number
     clinicalAssessment?: string
   }
+  refinements?: {
+    regionBox: { ymin: number; xmin: number; ymax: number; xmax: number }
+    regionImageBase64: string
+    analysis: VisionArtifact['analysis']
+    analyzedAt: string
+  }[]
 }
 
 export type Artifact =

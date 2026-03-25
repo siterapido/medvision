@@ -24,8 +24,22 @@
 npm-debug.log*
 yarn-debug.log*
 ts-debug.log*
+*.log
+*_output.txt
 
 # local env files
 .env*.local
 .env
 tsconfig.tsbuildinfo
+
+# reports and test results
+/playwright-report
+/test-results
+/reports
+
+# local data and backups
+/Odonto Studio e Biblioteca
+/Planilhas de Leads
+/iniciar-odontogpt
+/leads
+.env.local

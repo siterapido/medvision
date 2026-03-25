@@ -1,7 +1,7 @@
 import type React from "react"
 import { redirect } from "next/navigation"
 import { cookies } from "next/headers"
-import { createClient } from "@/lib/supabase/server"
+import { createClient, getUser } from "@/lib/supabase/server"
 import { UnifiedSidebar } from "@/components/sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { DashboardShell } from "@/components/layout/dashboard-shell"
@@ -12,14 +12,13 @@ export default async function NewDashboardLayout({
   children: React.ReactNode
 }) {
   const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+  const user = await getUser()
 
-  if (error || !user) {
+  if (!user) {
     redirect("/login")
   }
+
+
 
   // Read sidebar state from cookies
   const cookieStore = await cookies()

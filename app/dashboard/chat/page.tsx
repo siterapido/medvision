@@ -1,7 +1,8 @@
 import { Chat } from '@/components/chat'
 import { getSessionMessages } from '@/app/actions/chat'
 import { UIMessage } from 'ai'
-import { createClient } from '@/lib/supabase/server'
+import { createClient, getUser } from '@/lib/supabase/server'
+
 import { getRemainingTrialDays } from '@/lib/trial'
 
 // Force dynamic rendering to ensure fresh data on each navigation
@@ -21,9 +22,8 @@ export default async function ChatPage({
   const id = resolvedSearchParams.id
 
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getUser()
+
 
   // Buscar dados de assinatura do perfil
   let userImage: string | undefined = undefined

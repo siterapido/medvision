@@ -3,7 +3,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'motion/react'
-import ReactCrop, { type Crop as CropType, type PixelCrop, centerCrop, makeAspectCrop } from 'react-image-crop'
+import ReactCrop, { type Crop as CropType, type PixelCrop } from 'react-image-crop'
 import 'react-image-crop/dist/ReactCrop.css'
 import {
     FileUp,
@@ -29,7 +29,12 @@ import {
     X,
     Save,
     ExternalLink,
-    Pencil
+    Pencil,
+    GitBranch,
+    Tag,
+    ChevronDown,
+    ChevronUp,
+    Microscope,
 } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { GlassCard } from '@/components/ui/glass-card'
@@ -40,11 +45,12 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
-import { VisionAnalysisResult, VisionArtifactContent } from '@/lib/types/vision'
+import { VisionAnalysisResult, VisionArtifactContent, VisionRefinement, BoundingBox } from '@/lib/types/vision'
 import { ImageOverlay } from '@/components/vision/image-overlay'
 import { QualityFeedback } from '@/components/vision/quality-feedback'
 import { AnnotationToolbar } from '@/components/vision/annotation-toolbar'
 import { AnnotationCanvas } from '@/components/vision/annotation-canvas'
+import { RegionSelector } from '@/components/vision/region-selector'
 import { Textarea } from '@/components/ui/textarea'
 import { validateImageQuality, compressImageForAnalysis, ImageQualityResult } from '@/lib/utils/image-quality-validator'
 import { useAnnotations } from '@/lib/hooks/use-annotations'
@@ -56,13 +62,18 @@ type VisionState = 'UPLOAD' | 'VALIDATING' | 'CROP' | 'ANALYZING' | 'RESULT' | '
 export default function OdontoVisionPage() {
     const router = useRouter()
     const [state, setState] = useState<VisionState>('UPLOAD')
-    const [image, setImage] = useState<string | null>(null) // Base64
-    const [originalImage, setOriginalImage] = useState<string | null>(null) // Original before crop
+    const [image, setImage] = useState<string | null>(null)
+    const [originalImage, setOriginalImage] = useState<string | null>(null)
     const [progress, setProgress] = useState(0)
     const [analysisResult, setAnalysisResult] = useState<VisionAnalysisResult | null>(null)
     const [analysisPrecision, setAnalysisPrecision] = useState<number | null>(null)
     const [isFullscreen, setIsFullscreen] = useState(false)
+    const [isPresentationMode, setIsPresentationMode] = useState(false)
+    const [showHeatmap, setShowHeatmap] = useState(false)
     const [isSaved, setIsSaved] = useState(false)
+    const [isComparing, setIsComparing] = useState(false)
+    const [comparisonItems, setComparisonItems] = useState<VisionAnalysisResult[]>([])
+    const [previousAnalyses, setPreviousAnalyses] = useState<{id: string; title: string; date: string; content: any}[]>([])
     const [isSaving, setIsSaving] = useState(false)
     const [clinicalContext, setClinicalContext] = useState('')
 
@@ -94,8 +105,13 @@ export default function OdontoVisionPage() {
         undo,
         redo,
         clear: clearAnnotations,
-        setAnnotations
     } = useAnnotations()
+
+    // Refinement state
+    const [isSelectingRegion, setIsSelectingRegion] = useState(false)
+    const [refinements, setRefinements] = useState<VisionRefinement[]>([])
+    const [isRefining, setIsRefining] = useState(false)
+    const [expandedRefinement, setExpandedRefinement] = useState<number | null>(null)
 
     // Generate thumbnail from image
     const generateThumbnail = useCallback(async (imageSrc: string, size: number = 200): Promise<string> => {
@@ -107,26 +123,24 @@ export default function OdontoVisionPage() {
         const ctx = canvas.getContext('2d')
         if (!ctx) throw new Error('Could not get canvas context')
 
-        // Calculate aspect ratio
         const aspectRatio = img.width / img.height
         let width = size
         let height = size
-
-        if (aspectRatio > 1) {
-            height = size / aspectRatio
-        } else {
-            width = size * aspectRatio
-        }
+        if (aspectRatio > 1) { height = size / aspectRatio } else { width = size * aspectRatio }
 
         canvas.width = width
         canvas.height = height
         ctx.drawImage(img, 0, 0, width, height)
-
         return canvas.toDataURL('image/jpeg', 0.7)
     }, [])
 
-    // Internal save implementation — accepts data directly to avoid stale state closures
-    const performSave = useCallback(async (imageSrc: string, analysisData: VisionAnalysisResult, currentAnnotations = annotations) => {
+    // Internal save implementation
+    const performSave = useCallback(async (
+        imageSrc: string,
+        analysisData: VisionAnalysisResult,
+        currentAnnotations = annotations,
+        currentRefinements: VisionRefinement[] = []
+    ) => {
         const thumbnail = await generateThumbnail(imageSrc)
         const imageType = analysisData.meta?.imageType || 'Imagem'
         const date = new Date().toLocaleDateString('pt-BR')
@@ -136,7 +150,8 @@ export default function OdontoVisionPage() {
             imageBase64: imageSrc,
             analysis: analysisData,
             annotations: currentAnnotations,
-            analyzedAt: new Date().toISOString()
+            analyzedAt: new Date().toISOString(),
+            refinements: currentRefinements,
         }
 
         const response = await fetch('/api/artifacts', {
@@ -159,7 +174,7 @@ export default function OdontoVisionPage() {
 
         setIsSaving(true)
         try {
-            await performSave(image, analysisResult, annotations)
+            await performSave(image, analysisResult, annotations, refinements)
             setIsSaved(true)
             toast.success('Salvo na biblioteca!', {
                 action: {
@@ -173,10 +188,8 @@ export default function OdontoVisionPage() {
         } finally {
             setIsSaving(false)
         }
-    }, [analysisResult, image, isSaving, isSaved, annotations, performSave, router])
+    }, [analysisResult, image, isSaving, isSaved, annotations, refinements, performSave, router])
 
-
-    // Read image file as base64 without compression
     const readImageAsBase64 = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader()
@@ -186,7 +199,6 @@ export default function OdontoVisionPage() {
         })
     }
 
-    // Create cropped image from canvas using PixelCrop
     const createCroppedImage = useCallback(async (pixelCrop: PixelCrop): Promise<string> => {
         const imgEl = cropImgRef.current
         if (!imgEl) throw new Error('Image ref not available')
@@ -195,7 +207,6 @@ export default function OdontoVisionPage() {
         const ctx = canvas.getContext('2d')
         if (!ctx) throw new Error('Could not get canvas context')
 
-        // Account for zoom: the displayed image is scaled, so divide pixel coords by zoom
         const scaleX = imgEl.naturalWidth / (imgEl.width * zoom)
         const scaleY = imgEl.naturalHeight / (imgEl.height * zoom)
 
@@ -206,16 +217,33 @@ export default function OdontoVisionPage() {
 
         canvas.width = cropW
         canvas.height = cropH
-
         ctx.drawImage(imgEl, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
-
         return canvas.toDataURL('image/jpeg', 0.95)
     }, [zoom])
 
-    // Handle crop confirmation
+    // Crop a region from an existing base64 image by percentage coords
+    const cropRegionFromImage = useCallback(async (imageSrc: string, box: BoundingBox): Promise<string> => {
+        const img = new Image()
+        img.src = imageSrc
+        await new Promise((resolve) => { img.onload = resolve })
+
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (!ctx) throw new Error('Could not get canvas context')
+
+        const cropX = (box.xmin / 100) * img.naturalWidth
+        const cropY = (box.ymin / 100) * img.naturalHeight
+        const cropW = ((box.xmax - box.xmin) / 100) * img.naturalWidth
+        const cropH = ((box.ymax - box.ymin) / 100) * img.naturalHeight
+
+        canvas.width = cropW
+        canvas.height = cropH
+        ctx.drawImage(img, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
+        return canvas.toDataURL('image/jpeg', 0.92)
+    }, [])
+
     const handleCropConfirm = useCallback(async () => {
         if (!originalImage || !completedCrop || completedCrop.width === 0) return
-
         try {
             const croppedImage = await createCroppedImage(completedCrop)
             setImage(croppedImage)
@@ -226,14 +254,12 @@ export default function OdontoVisionPage() {
         }
     }, [originalImage, completedCrop, createCroppedImage])
 
-    // Skip crop and use original
     const handleSkipCrop = useCallback(() => {
         if (!originalImage) return
         setImage(originalImage)
         startAnalysis(originalImage)
     }, [originalImage])
 
-    // Reset crop controls
     const resetCrop = useCallback(() => {
         setCrop(undefined)
         setCompletedCrop(undefined)
@@ -244,20 +270,12 @@ export default function OdontoVisionPage() {
         const file = acceptedFiles[0]
         if (file) {
             try {
-                // Read original image
                 const imageBase64 = await readImageAsBase64(file)
-
-                // Compress to max 1280px for faster analysis (keeps quality)
                 const compressed = await compressImageForAnalysis(imageBase64, 1280, 0.88)
-
                 setOriginalImage(compressed)
                 setImage(compressed)
-
-                // Validate image quality — never blocks, warnings shown inline
                 const result = await validateImageQuality(compressed)
                 setQualityResult(result)
-
-                // Always proceed to crop regardless of quality
                 setState('CROP')
                 resetCrop()
             } catch (error) {
@@ -268,13 +286,11 @@ export default function OdontoVisionPage() {
         }
     }, [resetCrop])
 
-    // Handle proceeding after validation
     const handleValidationProceed = useCallback(() => {
         setState('CROP')
         resetCrop()
     }, [resetCrop])
 
-    // Handle canceling validation (go back to upload)
     const handleValidationCancel = useCallback(() => {
         setOriginalImage(null)
         setImage(null)
@@ -288,7 +304,6 @@ export default function OdontoVisionPage() {
         setAnalysisResult(null)
         setAnalysisPrecision(null)
 
-        // Simula progresso visual enquanto processa
         const interval = setInterval(() => {
             setProgress((prev) => (prev < 90 ? prev + 5 : prev))
         }, 300)
@@ -302,10 +317,7 @@ export default function OdontoVisionPage() {
 
             if (!response.ok) {
                 const errData = await response.json().catch(() => ({}))
-                if (response.status === 401) {
-                    router.push('/login')
-                    return
-                }
+                if (response.status === 401) { router.push('/login'); return }
                 if (response.status === 429) {
                     const limit = errData?.limit
                     const used = errData?.used
@@ -316,20 +328,17 @@ export default function OdontoVisionPage() {
             }
 
             const data = await response.json() as VisionAnalysisResult & { precision?: number }
-
             clearInterval(interval)
             setProgress(100)
             setAnalysisResult(data)
             setAnalysisPrecision(data.precision ?? null)
 
-            // Auto-save to biblioteca
             performSave(imageData, data, []).then(() => {
                 setIsSaved(true)
             }).catch((err) => {
                 console.warn('Auto-save failed:', err)
             })
 
-            // Pequeno delay para mostrar 100%
             setTimeout(() => setState('RESULT'), 500)
 
         } catch (error) {
@@ -340,6 +349,66 @@ export default function OdontoVisionPage() {
             setState('ERROR')
         }
     }
+
+    // Handle region refinement
+    const handleRegionSelected = useCallback(async (box: BoundingBox) => {
+        if (!image || !analysisResult) return
+
+        setIsSelectingRegion(false)
+        setIsRefining(true)
+
+        try {
+            const regionImage = await cropRegionFromImage(image, box)
+
+            // Build summary of original analysis for context
+            const findingsSummary = analysisResult.findings.map(f => `${f.type} (${f.level})`).join(', ') || 'Nenhum achado relevante'
+            const originalAnalysisSummary = `Tipo: ${analysisResult.meta?.imageType || 'N/A'}. Achados: ${findingsSummary}. Hipótese: ${analysisResult.report?.diagnosticHypothesis?.slice(0, 200) || 'N/A'}`
+
+            const response = await fetch('/api/vision/analyze', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    image: regionImage,
+                    clinicalContext: clinicalContext || undefined,
+                    mode: 'refine',
+                    originalAnalysisSummary,
+                })
+            })
+
+            if (!response.ok) {
+                const errData = await response.json().catch(() => ({}))
+                throw new Error(errData?.error || `HTTP ${response.status}`)
+            }
+
+            const refinedData = await response.json() as VisionAnalysisResult & { precision?: number }
+
+            const newRefinement: VisionRefinement = {
+                regionBox: box,
+                regionImageBase64: regionImage,
+                analysis: refinedData,
+                analyzedAt: new Date().toISOString(),
+            }
+
+            setRefinements(prev => {
+                const updated = [...prev, newRefinement]
+                setExpandedRefinement(updated.length - 1) // auto-expand the new one
+                return updated
+            })
+            toast.success('Região re-analisada com sucesso!')
+
+        } catch (error) {
+            console.error('Refinement error:', error)
+            const msg = error instanceof Error ? error.message : 'Erro desconhecido'
+            toast.error(`Erro ao refinar região: ${msg}`)
+        } finally {
+            setIsRefining(false)
+        }
+    }, [image, analysisResult, clinicalContext, cropRegionFromImage])
+
+    const removeRefinement = useCallback((index: number) => {
+        setRefinements(prev => prev.filter((_, i) => i !== index))
+        setExpandedRefinement(prev => prev === index ? null : prev !== null && prev > index ? prev - 1 : prev)
+    }, [])
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
@@ -358,9 +427,28 @@ export default function OdontoVisionPage() {
         setIsSaving(false)
         setQualityResult(null)
         setIsAnnotating(false)
+        setIsSelectingRegion(false)
+        setRefinements([])
+        setExpandedRefinement(null)
         setClinicalContext('')
         clearAnnotations()
         resetCrop()
+    }
+
+    const getSeverityBadge = (severity?: string) => {
+        switch (severity) {
+            case 'critical': return 'text-red-500 bg-red-500/10 border-red-500/30'
+            case 'moderate': return 'text-amber-500 bg-amber-500/10 border-amber-500/30'
+            default: return 'text-blue-500 bg-blue-500/10 border-blue-500/30'
+        }
+    }
+
+    const getSeverityLabel = (severity?: string) => {
+        switch (severity) {
+            case 'critical': return 'Crítico'
+            case 'moderate': return 'Moderado'
+            default: return 'Normal'
+        }
     }
 
     return (
@@ -382,6 +470,7 @@ export default function OdontoVisionPage() {
 
             <div className="grid grid-cols-1 gap-8">
                 <AnimatePresence mode="wait">
+                    {/* ─── UPLOAD / ERROR ─── */}
                     {(state === 'UPLOAD' || state === 'ERROR') && (
                         <motion.div
                             key="upload"
@@ -395,7 +484,7 @@ export default function OdontoVisionPage() {
                                     <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
                                     <div className="flex-1">
                                         <p className="text-sm font-medium">Não foi possível completar a análise.</p>
-                                        <p className="text-xs mt-1 opacity-80">Verifique sua conexão e tente novamente. Imagens muito grandes são comprimidas automaticamente — se o problema persistir, tente um arquivo diferente.</p>
+                                        <p className="text-xs mt-1 opacity-80">Verifique sua conexão e tente novamente.</p>
                                     </div>
                                 </div>
                             )}
@@ -410,14 +499,12 @@ export default function OdontoVisionPage() {
                                         <FileUp className="h-7 w-7 md:h-10 md:w-10 text-muted-foreground group-hover:text-primary transition-colors" />
                                     </div>
                                 </div>
-
                                 <h3 className="text-lg md:text-xl font-medium mb-1.5 md:mb-2 group-hover:text-primary transition-colors">
                                     {isDragActive ? 'Solte a imagem agora' : 'Arraste e solte sua imagem'}
                                 </h3>
                                 <p className="text-muted-foreground text-sm md:text-base max-w-xs mx-auto mb-5 md:mb-8">
                                     Suporta radiografias periapicais, panorâmicas e fotos clínicas (PNG, JPG).
                                 </p>
-
                                 <Button variant="outline" className="rounded-full px-6 md:px-8 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
                                     Selecionar arquivo
                                 </Button>
@@ -465,6 +552,7 @@ export default function OdontoVisionPage() {
                         </motion.div>
                     )}
 
+                    {/* ─── VALIDATING ─── */}
                     {state === 'VALIDATING' && originalImage && qualityResult && (
                         <QualityFeedback
                             result={qualityResult}
@@ -474,6 +562,7 @@ export default function OdontoVisionPage() {
                         />
                     )}
 
+                    {/* ─── CROP ─── */}
                     {state === 'CROP' && originalImage && (
                         <motion.div
                             key="crop"
@@ -496,8 +585,7 @@ export default function OdontoVisionPage() {
                                     <Badge variant="outline" className="text-xs">Opcional</Badge>
                                 </div>
 
-                                {/* Crop Area */}
-                                <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black/90 border border-border/50 flex items-center justify-center [&_.ReactCrop]:max-h-full [&_.ReactCrop]:max-w-full [&_.ReactCrop__crop-selection]:border-primary [&_.ReactCrop__crop-selection]:border-2 [&_.ReactCrop__drag-handle]:bg-primary [&_.ReactCrop__drag-handle]:w-3 [&_.ReactCrop__drag-handle]:h-3 [&_.ReactCrop__drag-handle]:rounded-sm [&_.ReactCrop__rule-of-thirds-vz]:border-white/20 [&_.ReactCrop__rule-of-thirds-hz]:border-white/20">
+                                <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black/90 border border-border/50 flex items-center justify-center [&_.ReactCrop]:max-h-full [&_.ReactCrop]:max-w-full [&_.ReactCrop__crop-selection]:border-primary [&_.ReactCrop__crop-selection]:border-2 [&_.ReactCrop__drag-handle]:bg-primary [&_.ReactCrop__drag-handle]:w-3 [&_.ReactCrop__drag-handle]:h-3 [&_.ReactCrop__drag-handle]:rounded-sm">
                                     <ReactCrop
                                         crop={crop}
                                         onChange={(c) => setCrop(c)}
@@ -514,7 +602,6 @@ export default function OdontoVisionPage() {
                                     </ReactCrop>
                                 </div>
 
-                                {/* Zoom Controls */}
                                 <div className="mt-6 space-y-4">
                                     <div className="flex items-center gap-4">
                                         <ZoomOut className="w-4 h-4 text-muted-foreground" />
@@ -543,34 +630,21 @@ export default function OdontoVisionPage() {
                                     </div>
                                 </div>
 
-                                {/* Action Buttons */}
                                 <div className="flex gap-4 mt-6 pt-4 border-t border-border/30">
-                                    <Button
-                                        variant="outline"
-                                        className="flex-1 h-12 rounded-xl gap-2"
-                                        onClick={handleSkipCrop}
-                                    >
-                                        <X className="w-4 h-4" />
-                                        Pular Recorte
+                                    <Button variant="outline" className="flex-1 h-12 rounded-xl gap-2" onClick={handleSkipCrop}>
+                                        <X className="w-4 h-4" /> Pular Recorte
                                     </Button>
-                                    <Button
-                                        className="flex-1 h-12 rounded-xl gap-2 bg-primary hover:bg-primary/90"
-                                        onClick={handleCropConfirm}
-                                    >
-                                        <Check className="w-4 h-4" />
-                                        Confirmar e Analisar
+                                    <Button className="flex-1 h-12 rounded-xl gap-2 bg-primary hover:bg-primary/90" onClick={handleCropConfirm}>
+                                        <Check className="w-4 h-4" /> Confirmar e Analisar
                                     </Button>
                                 </div>
                             </GlassCard>
 
-                            {/* Quality warning banner in crop step */}
                             {qualityResult && qualityResult.warnings.length > 0 && (
                                 <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
                                     <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                                     <div>
-                                        <p className="text-sm font-medium text-amber-500">
-                                            Imagem com qualidade reduzida — análise será realizada com precisão ajustada
-                                        </p>
+                                        <p className="text-sm font-medium text-amber-500">Imagem com qualidade reduzida</p>
                                         <ul className="mt-1.5 space-y-0.5">
                                             {qualityResult.warnings.map((w, i) => (
                                                 <li key={i} className="text-xs text-muted-foreground">• {w.message}</li>
@@ -579,27 +653,10 @@ export default function OdontoVisionPage() {
                                     </div>
                                 </div>
                             )}
-
-                            {/* Tips */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <GlassCard className="p-4 flex gap-4 items-start bg-muted/20 border-border/30">
-                                    <Crop className="w-5 h-5 text-primary shrink-0" />
-                                    <div>
-                                        <h4 className="text-sm font-semibold">Área de Interesse</h4>
-                                        <p className="text-xs text-muted-foreground leading-relaxed">Recorte para focar em uma região específica da radiografia.</p>
-                                    </div>
-                                </GlassCard>
-                                <GlassCard className="p-4 flex gap-4 items-start bg-muted/20 border-border/30">
-                                    <ZoomIn className="w-5 h-5 text-primary shrink-0" />
-                                    <div>
-                                        <h4 className="text-sm font-semibold">Zoom Preciso</h4>
-                                        <p className="text-xs text-muted-foreground leading-relaxed">Use o zoom para ampliar e selecionar áreas menores com precisão.</p>
-                                    </div>
-                                </GlassCard>
-                            </div>
                         </motion.div>
                     )}
 
+                    {/* ─── ANALYZING ─── */}
                     {state === 'ANALYZING' && (
                         <motion.div
                             key="analyzing"
@@ -610,14 +667,11 @@ export default function OdontoVisionPage() {
                         >
                             <div className="relative w-full max-w-xl aspect-video rounded-3xl overflow-hidden border border-border/50 shadow-2xl bg-black/40">
                                 {image && <img src={image} className="w-full h-full object-cover opacity-60 grayscale" alt="Analyzing" />}
-
-                                {/* Scanning Line Effect */}
                                 <motion.div
                                     className="absolute left-0 right-0 h-1 bg-primary/60 shadow-[0_0_15px_rgba(var(--primary-rgb),0.8)] z-10"
                                     animate={{ top: ['0%', '100%', '0%'] }}
                                     transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
                                 />
-
                                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[2px]">
                                     <div className="bg-background/80 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 shadow-xl flex flex-col items-center gap-4">
                                         <Loader2 className="w-8 h-8 text-primary animate-spin" />
@@ -642,6 +696,7 @@ export default function OdontoVisionPage() {
                         </motion.div>
                     )}
 
+                    {/* ─── RESULT ─── */}
                     {state === 'RESULT' && analysisResult && (
                         <motion.div
                             key="result"
@@ -649,66 +704,36 @@ export default function OdontoVisionPage() {
                             animate={{ opacity: 1 }}
                             className="flex flex-col gap-8 max-w-4xl mx-auto"
                         >
-                            {/* Precision/Quality Banner — shown when quality is below threshold */}
+                            {/* Precision/Quality Banner */}
                             {analysisPrecision !== null && analysisPrecision < 80 && (
                                 <div className={cn(
                                     "p-4 rounded-xl border flex items-start gap-3",
-                                    analysisPrecision >= 60
-                                        ? "bg-amber-500/10 border-amber-500/20"
-                                        : "bg-red-500/10 border-red-500/20"
+                                    analysisPrecision >= 60 ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20"
                                 )}>
-                                    <AlertTriangle className={cn(
-                                        "w-5 h-5 shrink-0 mt-0.5",
-                                        analysisPrecision >= 60 ? "text-amber-500" : "text-red-400"
-                                    )} />
+                                    <AlertTriangle className={cn("w-5 h-5 shrink-0 mt-0.5", analysisPrecision >= 60 ? "text-amber-500" : "text-red-400")} />
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center justify-between gap-2 flex-wrap">
-                                            <p className={cn(
-                                                "text-sm font-semibold",
-                                                analysisPrecision >= 60 ? "text-amber-500" : "text-red-400"
-                                            )}>
-                                                Análise realizada com precisão {analysisPrecision >= 60 ? 'limitada' : 'reduzida'} ({analysisPrecision}%)
+                                            <p className={cn("text-sm font-semibold", analysisPrecision >= 60 ? "text-amber-500" : "text-red-400")}>
+                                                Análise com precisão {analysisPrecision >= 60 ? 'limitada' : 'reduzida'} ({analysisPrecision}%)
                                             </p>
                                             {analysisResult.meta && (
-                                                <span className={cn(
-                                                    "text-[10px] font-semibold px-2 py-0.5 rounded-full border",
-                                                    analysisPrecision >= 60
-                                                        ? "bg-amber-500/10 text-amber-500 border-amber-500/30"
-                                                        : "bg-red-500/10 text-red-400 border-red-400/30"
-                                                )}>
+                                                <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full border", analysisPrecision >= 60 ? "bg-amber-500/10 text-amber-500 border-amber-500/30" : "bg-red-500/10 text-red-400 border-red-400/30")}>
                                                     Qualidade: {analysisResult.meta.quality}
                                                 </span>
                                             )}
                                         </div>
                                         <p className="text-xs text-muted-foreground mt-1">
                                             {analysisPrecision < 60
-                                                ? 'A qualidade da imagem está abaixo do recomendado. Os achados são indicativos — confirme com uma imagem de melhor qualidade para diagnóstico definitivo.'
-                                                : 'A qualidade da imagem pode afetar a confiabilidade de alguns achados. Considere repetir com melhor imagem para maior segurança diagnóstica.'}
+                                                ? 'A qualidade da imagem está abaixo do recomendado. Confirme com uma imagem de melhor qualidade.'
+                                                : 'A qualidade pode afetar a confiabilidade de alguns achados.'}
                                         </p>
-                                        {analysisResult.meta?.notes && (
-                                            <p className="text-[11px] text-muted-foreground/70 mt-1 italic">{analysisResult.meta.notes}</p>
-                                        )}
-                                        {qualityResult && qualityResult.warnings.length > 0 && (
-                                            <div className="mt-2 flex flex-wrap gap-1">
-                                                {qualityResult.warnings.map((w, i) => (
-                                                    <span key={i} className={cn(
-                                                        "text-[10px] px-1.5 py-0.5 rounded border",
-                                                        analysisPrecision >= 60
-                                                            ? "bg-amber-500/10 text-amber-500 border-amber-500/20"
-                                                            : "bg-red-500/10 text-red-400 border-red-400/20"
-                                                    )}>
-                                                        {w.message}
-                                                    </span>
-                                                ))}
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Image with Detections - Full Width, Larger */}
+                            {/* Image with Detections */}
                             <div className="space-y-4">
-                                <GlassCard className="p-1 overflow-hidden group">
+                                <GlassCard className="p-1 overflow-hidden">
                                     <div
                                         className="relative aspect-[4/3] rounded-lg overflow-hidden border border-border/50 bg-black/5"
                                         ref={(el) => {
@@ -718,17 +743,17 @@ export default function OdontoVisionPage() {
                                         }}
                                     >
                                         <div className="absolute inset-0 flex items-center justify-center">
-                                            {/* Implementação do Overlay Real */}
                                             {image && (
                                                 <ImageOverlay
                                                     src={image}
                                                     detections={analysisResult.detections}
                                                     annotations={annotations}
+                                                    showHeatmap={showHeatmap}
                                                 />
                                             )}
                                         </div>
 
-                                        {/* Annotation Canvas Overlay */}
+                                        {/* Annotation Canvas */}
                                         {isAnnotating && imageSize.width > 0 && (
                                             <>
                                                 <div className="absolute inset-0">
@@ -746,7 +771,6 @@ export default function OdontoVisionPage() {
                                                         onCancelDrawing={cancelAnnotation}
                                                     />
                                                 </div>
-
                                                 <AnnotationToolbar
                                                     activeTool={activeTool}
                                                     activeColor={activeColor}
@@ -762,22 +786,84 @@ export default function OdontoVisionPage() {
                                             </>
                                         )}
 
+                                        {/* Region Selector */}
+                                        {isSelectingRegion && !isAnnotating && (
+                                            <RegionSelector
+                                                onRegionSelected={handleRegionSelected}
+                                                onCancel={() => setIsSelectingRegion(false)}
+                                            />
+                                        )}
+
+                                        {/* Refining overlay */}
+                                        {isRefining && (
+                                            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+                                                <div className="bg-background/90 backdrop-blur-md px-6 py-4 rounded-2xl border border-border shadow-xl flex flex-col items-center gap-3">
+                                                    <Loader2 className="w-7 h-7 text-primary animate-spin" />
+                                                    <div className="text-center">
+                                                        <p className="font-bold text-sm">Re-analisando Região</p>
+                                                        <p className="text-xs text-muted-foreground">Análise focada em andamento...</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
                                         {/* Action buttons */}
-                                        {!isAnnotating && (
-                                            <div className="absolute bottom-4 right-4 flex gap-2 pointer-events-none">
+                                        {!isAnnotating && !isSelectingRegion && !isRefining && (
+                                            <div className="absolute bottom-4 right-4 flex gap-2">
                                                 <Button
                                                     size="icon"
                                                     variant="secondary"
-                                                    className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full pointer-events-auto"
+                                                    className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full"
                                                     onClick={() => setIsAnnotating(true)}
+                                                    title="Anotar"
                                                 >
                                                     <Pencil className="w-4 h-4" />
                                                 </Button>
                                                 <Button
                                                     size="icon"
                                                     variant="secondary"
-                                                    className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full pointer-events-auto"
+                                                    className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full"
+                                                    onClick={() => setIsSelectingRegion(true)}
+                                                    title="Refinar região"
+                                                >
+                                                    <Microscope className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="secondary"
+                                                    className={cn(
+                                                        "bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full",
+                                                        showHeatmap && "bg-red-500/50 border-red-500/50"
+                                                    )}
+                                                    onClick={() => setShowHeatmap(!showHeatmap)}
+                                                    title="Mapa de calor"
+                                                >
+                                                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill={showHeatmap ? "#ef4444" : "none"} />
+                                                        <circle cx="12" cy="12" r="4" fill={showHeatmap ? "#fca5a5" : "none"} />
+                                                    </svg>
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="secondary"
+                                                    className={cn(
+                                                        "bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full",
+                                                        isPresentationMode && "bg-primary/70 border-primary"
+                                                    )}
+                                                    onClick={() => setIsPresentationMode(!isPresentationMode)}
+                                                    title="Modo apresentação (paciente)"
+                                                >
+                                                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                        <rect x="2" y="3" width="20" height="14" rx="2" />
+                                                        <path d="M8 21h8M12 17v4" />
+                                                    </svg>
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="secondary"
+                                                    className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full"
                                                     onClick={() => setIsFullscreen(true)}
+                                                    title="Tela cheia"
                                                 >
                                                     <Maximize2 className="w-4 h-4" />
                                                 </Button>
@@ -786,37 +872,75 @@ export default function OdontoVisionPage() {
                                     </div>
                                 </GlassCard>
 
-                                <div className="flex flex-wrap gap-4">
+                                {/* Tip for clickable balloons */}
+                                {analysisResult.detections.length > 0 && (
+                                    <p className="text-[11px] text-muted-foreground text-center flex items-center justify-center gap-1.5">
+                                        <Info className="w-3 h-3" />
+                                        Clique nos balões de detecção para ver detalhes técnicos completos
+                                    </p>
+                                )}
+
+                                <div className="flex flex-wrap gap-3">
                                     <Button variant="outline" className="flex-1 rounded-xl h-12 gap-2" onClick={reset}>
                                         <RefreshCcw className="w-4 h-4" /> Analisar Outra
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1 rounded-xl h-12 gap-2"
+                                        onClick={() => setIsSelectingRegion(true)}
+                                        disabled={isRefining || isAnnotating || isSelectingRegion}
+                                    >
+                                        <Microscope className="w-4 h-4" /> Refinar Região
+                                    </Button>
+                                    <Button
+                                        variant="outline"
+                                        className="flex-1 rounded-xl h-12 gap-2"
+                                        onClick={async () => {
+                                            setIsComparing(true)
+                                            try {
+                                                const res = await fetch('/api/artifacts?type=vision&limit=20')
+                                                const data = await res.json()
+                                                if (data.items) {
+                                                    setPreviousAnalyses(data.items.map((item: any) => ({
+                                                        id: item.id,
+                                                        title: item.title,
+                                                        date: new Date(item.createdAt).toLocaleDateString('pt-BR'),
+                                                        content: item.content
+                                                    })))
+                                                }
+                                            } catch (e) {
+                                                console.error('Error loading previous analyses:', e)
+                                            }
+                                        }}
+                                    >
+                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+                                            <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+                                        </svg> Comparar
                                     </Button>
                                     <Button
                                         className="flex-1 rounded-xl h-12 gap-2 bg-primary hover:bg-primary/90"
                                         onClick={() => {
                                             if (analysisResult && image) {
                                                 toast.promise(
-                                                    generateVisionPDF({ analysisResult, imageBase64: image }),
-                                                    {
-                                                        loading: 'Gerando PDF...',
-                                                        success: 'PDF gerado com sucesso!',
-                                                        error: 'Erro ao gerar PDF'
-                                                    }
+                                                    generateVisionPDF({ analysisResult, imageBase64: image, refinements }),
+                                                    { loading: 'Gerando PDF...', success: 'PDF gerado!', error: 'Erro ao gerar PDF' }
                                                 )
                                             }
                                         }}
                                     >
-                                        <Download className="w-4 h-4" /> Exportar Laudo (PDF)
+                                        <Download className="w-4 h-4" /> Exportar PDF
                                     </Button>
                                 </div>
                             </div>
 
-                            {/* Laudo / Findings - Below Image */}
+                            {/* ─── LAUDO ─── */}
                             <div className="space-y-6">
                                 <GlassCard className="p-6 flex flex-col">
                                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/30">
                                         <div>
                                             <h2 className="text-xl font-heading font-bold">Laudo AI</h2>
-                                            <p className="text-xs text-muted-foreground">ID: #{Math.random().toString(36).slice(2, 8).toUpperCase()}</p>
+                                            <p className="text-xs text-muted-foreground">OdontoVision AI Engine v4.2</p>
                                         </div>
                                         <div className="flex flex-wrap gap-2 justify-end">
                                             {analysisResult.meta && (
@@ -827,64 +951,107 @@ export default function OdontoVisionPage() {
                                             {analysisPrecision !== null && (
                                                 <Badge
                                                     variant="outline"
-                                                    className={cn(
-                                                        'text-[10px] h-5 px-1.5 font-bold',
-                                                        analysisPrecision >= 80
-                                                            ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
-                                                            : analysisPrecision >= 60
-                                                                ? 'bg-amber-500/10 text-amber-500 border-amber-500/30'
+                                                    className={cn('text-[10px] h-5 px-1.5 font-bold',
+                                                        analysisPrecision >= 80 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
+                                                            : analysisPrecision >= 60 ? 'bg-amber-500/10 text-amber-500 border-amber-500/30'
                                                                 : 'bg-red-500/10 text-red-400 border-red-400/30'
                                                     )}
                                                 >
                                                     Precisão {analysisPrecision}%
                                                 </Badge>
                                             )}
-                                            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
-                                                Concluído
-                                            </Badge>
+                                            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">Concluído</Badge>
                                         </div>
                                     </div>
 
                                     <div className="flex-1 space-y-6">
-                                        {/* Findings List - Quick View */}
+                                        {/* Principais Achados */}
                                         <section className="space-y-3">
                                             <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                                                 <AlertCircle className="w-3 h-3" /> Principais Achados
                                             </h4>
                                             <div className="space-y-2">
-                                                {analysisResult.findings.map((finding, i) => (
-                                                    <div key={i} className="p-3 rounded-lg bg-muted/30 border border-border/30 flex items-center justify-between hover:bg-muted/50 transition-colors">
-                                                        <div className="space-y-0.5">
-                                                            <p className="text-sm font-medium">{finding.type}</p>
-                                                            <p className="text-[10px] text-muted-foreground">{finding.zone}</p>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            {/* Precision badge per finding */}
-                                                            {finding.confidence !== undefined && (
-                                                                <span className={cn(
-                                                                    'text-[9px] font-semibold px-1.5 py-0.5 rounded-full border',
-                                                                    finding.confidence >= 0.8
-                                                                        ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
-                                                                        : finding.confidence >= 0.6
-                                                                            ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
-                                                                            : 'bg-red-400/10 text-red-400 border-red-400/20'
-                                                                )}>
-                                                                    {Math.round((finding.confidence as number) * 100)}% conf.
+                                                {analysisResult.findings.map((finding, i) => {
+                                                    const matchedDet = analysisResult.detections[i]
+                                                    return (
+                                                        <div key={i} className="p-3 rounded-lg bg-muted/30 border border-border/30 flex items-center justify-between hover:bg-muted/50 transition-colors">
+                                                            <div className="space-y-0.5 min-w-0">
+                                                                <div className="flex items-center gap-1.5 flex-wrap">
+                                                                    <p className="text-sm font-medium">{finding.type}</p>
+                                                                    {matchedDet?.toothNumber && (
+                                                                        <Badge variant="outline" className="text-[9px] h-4 px-1 font-normal">
+                                                                            Dente {matchedDet.toothNumber}
+                                                                        </Badge>
+                                                                    )}
+                                                                    {matchedDet?.cidCode && (
+                                                                        <Badge variant="outline" className="text-[9px] h-4 px-1 font-mono font-normal">
+                                                                            {matchedDet.cidCode}
+                                                                        </Badge>
+                                                                    )}
+                                                                </div>
+                                                                <p className="text-[10px] text-muted-foreground truncate">{finding.zone}</p>
+                                                            </div>
+                                                            <div className="flex items-center gap-2 shrink-0 ml-2">
+                                                                {finding.confidence !== undefined && (
+                                                                    <span className={cn('text-[9px] font-semibold px-1.5 py-0.5 rounded-full border',
+                                                                        finding.confidence >= 0.8 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                                                            : finding.confidence >= 0.6 ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
+                                                                                : 'bg-red-400/10 text-red-400 border-red-400/20'
+                                                                    )}>
+                                                                        {Math.round((finding.confidence as number) * 100)}% conf.
+                                                                    </span>
+                                                                )}
+                                                                <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full bg-background/50 border border-border/50", finding.color)}>
+                                                                    {finding.level}
                                                                 </span>
-                                                            )}
-                                                            <span className={cn("text-[10px] font-bold px-2 py-0.5 rounded-full bg-background/50 border border-border/50", finding.color)}>
-                                                                {finding.level}
-                                                            </span>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                ))}
+                                                    )
+                                                })}
                                                 {analysisResult.findings.length === 0 && (
                                                     <p className="text-sm text-muted-foreground italic pl-2">Nenhum achado crítico detectado.</p>
                                                 )}
                                             </div>
                                         </section>
 
-                                        {/* Detailed Report Sections */}
+                                        {/* Per-Tooth Breakdown */}
+                                        {analysisResult.report?.perToothBreakdown && analysisResult.report.perToothBreakdown.length > 0 && (
+                                            <section className="space-y-3">
+                                                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                                    <Tag className="w-3 h-3" /> Achados por Dente (Notação FDI)
+                                                </h4>
+                                                <div className="overflow-x-auto rounded-lg border border-border/30">
+                                                    <table className="w-full text-xs">
+                                                        <thead>
+                                                            <tr className="bg-muted/30 border-b border-border/30">
+                                                                <th className="text-left px-3 py-2 font-semibold text-muted-foreground">Dente</th>
+                                                                <th className="text-left px-3 py-2 font-semibold text-muted-foreground">Achado</th>
+                                                                <th className="text-left px-3 py-2 font-semibold text-muted-foreground">CID-10</th>
+                                                                <th className="text-left px-3 py-2 font-semibold text-muted-foreground">Severidade</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {analysisResult.report.perToothBreakdown.map((item, i) => (
+                                                                <tr key={i} className="border-b border-border/20 hover:bg-muted/20 transition-colors">
+                                                                    <td className="px-3 py-2 font-bold text-primary">{item.tooth}</td>
+                                                                    <td className="px-3 py-2 text-foreground/80">{item.findings}</td>
+                                                                    <td className="px-3 py-2 font-mono text-muted-foreground">{item.cidCode || '—'}</td>
+                                                                    <td className="px-3 py-2">
+                                                                        {item.severity && (
+                                                                            <Badge variant="outline" className={cn('text-[9px] h-4 px-1', getSeverityBadge(item.severity))}>
+                                                                                {getSeverityLabel(item.severity)}
+                                                                            </Badge>
+                                                                        )}
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </section>
+                                        )}
+
+                                        {/* Report Sections */}
                                         {analysisResult.report && (
                                             <>
                                                 <section className="space-y-2">
@@ -914,6 +1081,18 @@ export default function OdontoVisionPage() {
                                                     </div>
                                                 </section>
 
+                                                {/* Differential Diagnosis */}
+                                                {analysisResult.report.differentialDiagnosis && (
+                                                    <section className="space-y-2">
+                                                        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                                            <GitBranch className="w-3 h-3" /> Diagnóstico Diferencial
+                                                        </h4>
+                                                        <div className="text-sm text-foreground/80 leading-relaxed bg-muted/10 p-3 rounded-lg border border-border/10 whitespace-pre-line">
+                                                            {analysisResult.report.differentialDiagnosis}
+                                                        </div>
+                                                    </section>
+                                                )}
+
                                                 <section className="space-y-3">
                                                     <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
                                                         <CheckCircle2 className="w-3 h-3" /> Conduta Recomendada
@@ -930,7 +1109,7 @@ export default function OdontoVisionPage() {
                                             </>
                                         )}
 
-                                        {/* Legacy/Fallback Display if Report is missing */}
+                                        {/* Legacy fallback */}
                                         {!analysisResult.report && analysisResult.clinicalAssessment && (
                                             <section className="space-y-3">
                                                 <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
@@ -945,46 +1124,174 @@ export default function OdontoVisionPage() {
 
                                     <div className="mt-6 pt-4 border-t border-border/30 flex items-center justify-between gap-3">
                                         <div className="flex items-center gap-3">
-                                            <img src="https://ui-avatars.com/api/?name=IA&background=0284c7&color=fff" className="w-10 h-10 rounded-full border border-primary/20" alt="IA signature" />
+                                            <img src="https://ui-avatars.com/api/?name=IA&background=0284c7&color=fff" className="w-10 h-10 rounded-full border border-primary/20" alt="IA" />
                                             <div>
                                                 <p className="text-sm font-bold">OdontoVision AI</p>
                                                 <p className="text-[10px] text-muted-foreground">CRM Virtual: 0001-AI</p>
                                             </div>
                                         </div>
                                         {isSaved ? (
-                                            <Button
-                                                size="sm"
-                                                variant="outline"
-                                                className="h-8 text-xs gap-1 text-green-600 border-green-600/30 hover:bg-green-500/10"
-                                                onClick={() => router.push('/dashboard/biblioteca')}
-                                            >
+                                            <Button size="sm" variant="outline" className="h-8 text-xs gap-1 text-green-600 border-green-600/30 hover:bg-green-500/10" onClick={() => router.push('/dashboard/biblioteca')}>
                                                 <ExternalLink className="w-3 h-3" /> Ver na Biblioteca
                                             </Button>
                                         ) : (
-                                            <Button
-                                                size="sm"
-                                                variant="ghost"
-                                                className="h-8 text-xs gap-1"
-                                                onClick={saveToLibrary}
-                                                disabled={isSaving}
-                                            >
-                                                {isSaving ? (
-                                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                                ) : (
-                                                    <Save className="w-3 h-3" />
-                                                )}
+                                            <Button size="sm" variant="ghost" className="h-8 text-xs gap-1" onClick={saveToLibrary} disabled={isSaving}>
+                                                {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
                                                 {isSaving ? 'Salvando...' : 'Salvar na Biblioteca'}
                                             </Button>
                                         )}
                                     </div>
                                 </GlassCard>
+
+                                {/* ─── REFINAMENTOS ─── */}
+                                {refinements.length > 0 && (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-1 h-5 rounded-full bg-primary" />
+                                            <h3 className="text-sm font-bold uppercase tracking-wide">
+                                                Refinamentos de Região ({refinements.length})
+                                            </h3>
+                                        </div>
+
+                                        {refinements.map((ref, idx) => (
+                                            <GlassCard key={idx} className="overflow-hidden">
+                                                <button
+                                                    className="w-full p-4 flex items-center gap-4 hover:bg-muted/20 transition-colors text-left"
+                                                    onClick={() => setExpandedRefinement(prev => prev === idx ? null : idx)}
+                                                >
+                                                    {/* Thumbnail */}
+                                                    <div className="w-16 h-16 rounded-lg overflow-hidden border border-border/50 bg-black/5 shrink-0">
+                                                        <img
+                                                            src={ref.regionImageBase64}
+                                                            alt="Região refinada"
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    </div>
+
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-sm font-semibold">Refinamento #{idx + 1}</p>
+                                                        <p className="text-[11px] text-muted-foreground mt-0.5">
+                                                            {ref.analysis.detections.length} achados • {new Date(ref.analyzedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                                        </p>
+                                                        {ref.analysis.detections.length > 0 && (
+                                                            <div className="flex flex-wrap gap-1 mt-1.5">
+                                                                {ref.analysis.detections.slice(0, 3).map((d, i) => (
+                                                                    <Badge key={i} variant="outline" className={cn('text-[9px] h-4 px-1', getSeverityBadge(d.severity))}>
+                                                                        {d.label}
+                                                                    </Badge>
+                                                                ))}
+                                                                {ref.analysis.detections.length > 3 && (
+                                                                    <Badge variant="outline" className="text-[9px] h-4 px-1">
+                                                                        +{ref.analysis.detections.length - 3}
+                                                                    </Badge>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2 shrink-0">
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                                                            onClick={(e) => { e.stopPropagation(); removeRefinement(idx) }}
+                                                            title="Remover refinamento"
+                                                        >
+                                                            <X className="w-3 h-3" />
+                                                        </Button>
+                                                        {expandedRefinement === idx
+                                                            ? <ChevronUp className="w-4 h-4 text-muted-foreground" />
+                                                            : <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                                                        }
+                                                    </div>
+                                                </button>
+
+                                                {/* Expanded content */}
+                                                <AnimatePresence>
+                                                    {expandedRefinement === idx && (
+                                                        <motion.div
+                                                            initial={{ height: 0, opacity: 0 }}
+                                                            animate={{ height: 'auto', opacity: 1 }}
+                                                            exit={{ height: 0, opacity: 0 }}
+                                                            transition={{ duration: 0.2 }}
+                                                            className="overflow-hidden"
+                                                        >
+                                                            <div className="px-4 pb-4 pt-2 border-t border-border/30 space-y-4">
+                                                                {/* Region image with detections */}
+                                                                <div className="rounded-lg overflow-hidden border border-border/50 bg-black/5 max-h-48 flex items-center justify-center">
+                                                                    <ImageOverlay
+                                                                        src={ref.regionImageBase64}
+                                                                        detections={ref.analysis.detections}
+                                                                        className="max-h-48"
+                                                                    />
+                                                                </div>
+
+                                                                {/* Refined findings */}
+                                                                {ref.analysis.findings.length > 0 && (
+                                                                    <div className="space-y-2">
+                                                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide">Achados Refinados</p>
+                                                                        {ref.analysis.findings.map((f, i) => {
+                                                                            const det = ref.analysis.detections[i]
+                                                                            return (
+                                                                                <div key={i} className="p-2.5 rounded-lg bg-muted/20 border border-border/20 flex items-center justify-between">
+                                                                                    <div>
+                                                                                        <div className="flex items-center gap-1.5">
+                                                                                            <p className="text-xs font-medium">{f.type}</p>
+                                                                                            {det?.toothNumber && (
+                                                                                                <Badge variant="outline" className="text-[9px] h-4 px-1">
+                                                                                                    {det.toothNumber}
+                                                                                                </Badge>
+                                                                                            )}
+                                                                                            {det?.cidCode && (
+                                                                                                <Badge variant="outline" className="text-[9px] h-4 px-1 font-mono">
+                                                                                                    {det.cidCode}
+                                                                                                </Badge>
+                                                                                            )}
+                                                                                        </div>
+                                                                                        <p className="text-[10px] text-muted-foreground mt-0.5">{f.zone}</p>
+                                                                                    </div>
+                                                                                    <Badge variant="outline" className={cn('text-[9px] h-4 px-1', f.color.replace('text-', 'text-').replace('-500', '-500'))}>
+                                                                                        {f.level}
+                                                                                    </Badge>
+                                                                                </div>
+                                                                            )
+                                                                        })}
+                                                                    </div>
+                                                                )}
+
+                                                                {/* Refined report */}
+                                                                {ref.analysis.report?.detailedFindings && (
+                                                                    <div>
+                                                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Análise Detalhada da Região</p>
+                                                                        <p className="text-xs text-foreground/80 leading-relaxed bg-muted/10 p-2.5 rounded-lg border border-border/10 whitespace-pre-line">
+                                                                            {ref.analysis.report.detailedFindings}
+                                                                        </p>
+                                                                    </div>
+                                                                )}
+
+                                                                {ref.analysis.report?.diagnosticHypothesis && (
+                                                                    <div>
+                                                                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide mb-1">Hipótese Diagnóstica</p>
+                                                                        <p className="text-xs font-medium text-primary/80 leading-relaxed bg-primary/5 p-2.5 rounded-lg border border-primary/10">
+                                                                            {ref.analysis.report.diagnosticHypothesis}
+                                                                        </p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </GlassCard>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         </motion.div>
                     )}
                 </AnimatePresence>
             </div>
 
-            {/* Fullscreen Image Modal */}
+            {/* Fullscreen Modal */}
             <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
                 <DialogContent
                     className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 bg-black/95 border-white/10 overflow-hidden [&>button]:text-white [&>button]:hover:bg-white/20"
@@ -1005,37 +1312,155 @@ export default function OdontoVisionPage() {
                 </DialogContent>
             </Dialog>
 
+            {/* Comparison Modal */}
+            <Dialog open={isComparing} onOpenChange={setIsComparing}>
+                <DialogContent className="max-w-4xl max-h-[90vh] overflow-auto">
+                    <DialogTitle className="text-lg font-bold flex items-center gap-2">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
+                            <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
+                        </svg>
+                        Comparar Análises
+                    </DialogTitle>
+                    <div className="space-y-4 mt-4">
+                        {previousAnalyses.length === 0 ? (
+                            <p className="text-muted-foreground text-center py-8">
+                                Nenhuma análise anterior encontrada na biblioteca.
+                            </p>
+                        ) : (
+                            <>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <h4 className="font-medium text-sm">Análise Atual</h4>
+                                        <div className="p-3 rounded-lg border bg-muted/30">
+                                            <p className="text-sm font-medium">{analysisResult?.report?.diagnosticHypothesis?.slice(0, 100) || 'Sem hipótese'}...</p>
+                                            <p className="text-xs text-muted-foreground mt-1">{analysisResult?.detections?.length || 0} detecções</p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <h4 className="font-medium text-sm">Selecione uma análise anterior:</h4>
+                                        <div className="max-h-60 overflow-auto space-y-2">
+                                            {previousAnalyses.map((item) => (
+                                                <button
+                                                    key={item.id}
+                                                    className="w-full p-3 rounded-lg border text-left hover:bg-muted/30 transition-colors"
+                                                    onClick={() => {
+                                                        const prevDetections = item.content?.analysis?.detections || []
+                                                        const currentDetections = analysisResult?.detections || []
+                                                        
+                                                        const comparisonTable = (
+                                                            <div className="space-y-4 mt-4">
+                                                                <div className="grid grid-cols-2 gap-4">
+                                                                    <div>
+                                                                        <h4 className="font-medium text-sm mb-2">Análise Atual ({currentDetections.length})</h4>
+                                                                        <div className="space-y-1 max-h-40 overflow-auto">
+                                                                            {currentDetections.map((d: any, i: number) => (
+                                                                                <div key={i} className="text-xs flex items-center gap-2">
+                                                                                    <span className={cn(
+                                                                                        "w-2 h-2 rounded-full",
+                                                                                        d.severity === 'critical' ? 'bg-red-500' : d.severity === 'moderate' ? 'bg-amber-500' : 'bg-blue-500'
+                                                                                    )} />
+                                                                                    <span>{d.label}</span>
+                                                                                    {d.toothNumber && <span className="text-muted-foreground">(Dente {d.toothNumber})</span>}
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div>
+                                                                        <h4 className="font-medium text-sm mb-2">Análise Anterior ({prevDetections.length})</h4>
+                                                                        <div className="space-y-1 max-h-40 overflow-auto">
+                                                                            {prevDetections.map((d: any, i: number) => (
+                                                                                <div key={i} className="text-xs flex items-center gap-2">
+                                                                                    <span className={cn(
+                                                                                        "w-2 h-2 rounded-full",
+                                                                                        d.severity === 'critical' ? 'bg-red-500' : d.severity === 'moderate' ? 'bg-amber-500' : 'bg-blue-500'
+                                                                                    )} />
+                                                                                    <span>{d.label}</span>
+                                                                                    {d.toothNumber && <span className="text-muted-foreground">(Dente {d.toothNumber})</span>}
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="p-3 rounded-lg bg-muted/30 text-xs">
+                                                                    <p className="font-medium mb-1">Resumo Comparativo:</p>
+                                                                    <p className="text-muted-foreground">
+                                                                        {currentDetections.length > prevDetections.length 
+                                                                            ? `+${currentDetections.length - prevDetections.length} novas detecções`
+                                                                            : currentDetections.length < prevDetections.length 
+                                                                                ? `${prevDetections.length - currentDetections.length} detecções a menos`
+                                                                                : 'Mesma quantidade de detecções'}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                        setComparisonItems([item.content.analysis, analysisResult as any])
+                                                        setIsComparing(false)
+                                                    }}
+                                                >
+                                                    <p className="text-sm font-medium truncate">{item.title}</p>
+                                                    <p className="text-xs text-muted-foreground">{item.date}</p>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {comparisonItems.length > 0 && (
+                                    <div className="mt-6 p-4 rounded-lg border">
+                                        <h4 className="font-medium mb-3">Comparação Estrutural</h4>
+                                        {(() => {
+                                            const current = comparisonItems[1]?.detections || []
+                                            const previous = comparisonItems[0]?.detections || []
+                                            
+                                            const currentTeeth = new Set(current.map((d: any) => d.toothNumber).filter(Boolean))
+                                            const previousTeeth = new Set(previous.map((d: any) => d.toothNumber).filter(Boolean))
+                                            
+                                            const newTeeth = [...currentTeeth].filter(t => !previousTeeth.has(t))
+                                            const resolvedTeeth = [...previousTeeth].filter(t => !currentTeeth.has(t))
+                                            const stableTeeth = [...currentTeeth].filter(t => previousTeeth.has(t))
+                                            
+                                            return (
+                                                <div className="space-y-3 text-sm">
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        <div className="p-2 rounded bg-green-500/10 border border-green-500/20">
+                                                            <p className="font-medium text-green-600">{newTeeth.length}</p>
+                                                            <p className="text-xs text-muted-foreground">Novos achados</p>
+                                                        </div>
+                                                        <div className="p-2 rounded bg-amber-500/10 border border-amber-500/20">
+                                                            <p className="font-medium text-amber-600">{stableTeeth.length}</p>
+                                                            <p className="text-xs text-muted-foreground">Estáveis</p>
+                                                        </div>
+                                                        <div className="p-2 rounded bg-blue-500/10 border border-blue-500/20">
+                                                            <p className="font-medium text-blue-600">{resolvedTeeth.length}</p>
+                                                            <p className="text-xs text-muted-foreground">Resolvidos</p>
+                                                        </div>
+                                                    </div>
+                                                    {newTeeth.length > 0 && (
+                                                        <p className="text-xs"><span className="font-medium text-green-600">Novos:</span> Dentes {newTeeth.join(', ')}</p>
+                                                    )}
+                                                    {resolvedTeeth.length > 0 && (
+                                                        <p className="text-xs"><span className="font-medium text-blue-600">Resolvidos:</span> Dentes {resolvedTeeth.join(', ')}</p>
+                                                    )}
+                                                </div>
+                                            )
+                                        })()}
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
+                </DialogContent>
+            </Dialog>
+
             <style jsx global>{`
-        html {
-          scroll-behavior: smooth;
-          overflow: auto;
-        }
-        body {
-          overflow: auto;
-        }
-        ::-webkit-scrollbar {
-          width: 12px;
-        }
-        ::-webkit-scrollbar-track {
-          background: rgba(200, 200, 200, 0.1);
-          border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb {
-          background: rgba(59, 130, 246, 0.7);
-          border-radius: 10px;
-          border: 2px solid transparent;
-          background-clip: content-box;
-          cursor: grab;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-          background: rgba(59, 130, 246, 1);
-          background-clip: content-box;
-          cursor: grabbing;
-        }
-        ::-webkit-scrollbar-thumb:active {
-          background: rgba(29, 78, 216, 1);
-          background-clip: content-box;
-        }
+        html { scroll-behavior: smooth; overflow: auto; }
+        body { overflow: auto; }
+        ::-webkit-scrollbar { width: 12px; }
+        ::-webkit-scrollbar-track { background: rgba(200, 200, 200, 0.1); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.7); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; cursor: grab; }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 1); background-clip: content-box; }
+        ::-webkit-scrollbar-thumb:active { background: rgba(29, 78, 216, 1); background-clip: content-box; }
       `}</style>
         </div>
     )
