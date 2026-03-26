@@ -243,7 +243,15 @@ export default function OdontoVisionPage() {
     }, [])
 
     const handleCropConfirm = useCallback(async () => {
-        if (!originalImage || !completedCrop || completedCrop.width === 0) return
+        if (!originalImage) return
+        
+        // If no valid crop (user didn't draw a selection), skip crop and analyze original
+        if (!completedCrop || completedCrop.width === 0) {
+            setImage(originalImage)
+            startAnalysis(originalImage)
+            return
+        }
+
         try {
             const croppedImage = await createCroppedImage(completedCrop)
             setImage(croppedImage)
