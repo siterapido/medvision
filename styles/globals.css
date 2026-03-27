@@ -184,20 +184,4 @@
   box-shadow: 0 0 30px var(--sidebar-glow-intense, var(--sidebar-glow));
 }
 
-/* Custom scrollbar for sidebar */
-.sidebar-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-
-.sidebar-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.sidebar-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--sidebar-border);
-  border-radius: 2px;
-}
-
-.sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: var(--sidebar-text-tertiary);
-}
+/* Sidebar scrollbar - defined in app/globals.css Modern Scroll System */
