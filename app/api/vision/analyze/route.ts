@@ -17,7 +17,11 @@ const DEFAULT_LIMIT = 5
 
 const DetectionSchema = z.object({
     label: z.string().describe("Nome curto da patologia ou estrutura identificada (ex: 'Cárie', 'Perda Óssea')."),
-    box: z.array(z.number()).length(4).describe("Coordenadas PRECISAS [ymin, xmin, ymax, xmax] normalizadas de 0 a 100, delimitando exatamente a área do achado. Use valores decimais para maior precisão."),
+    box: z.array(z.number().min(0).max(100)).length(4)
+        .refine(b => b[0] < b[2] && b[1] < b[3], {
+            message: "Coordenadas inválidas: ymin deve ser < ymax e xmin deve ser < xmax",
+        })
+        .describe("Coordenadas PRECISAS [ymin, xmin, ymax, xmax] normalizadas de 0 a 100. Cada valor deve ser decimal 0-100. ymin < ymax e xmin < xmax. Delimite EXATAMENTE a área mínima do achado."),
     severity: z.enum(['critical', 'moderate', 'normal']).describe("Nível de severidade do achado."),
     confidence: z.number().min(0).max(1).describe("Grau de confiança do achado de 0 a 1, refletindo a certeza diagnóstica."),
     description: z.string().optional().describe("Breve descrição técnica do achado (1-2 frases)."),
@@ -137,6 +141,37 @@ const DetailedDetectionSchema = z.object({
 
 function sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+/**
+ * Extracts valid JSON from AI response text.
+ * Handles: plain JSON, markdown code blocks, and text surrounding the JSON.
+ */
+function extractJSON(text: string): unknown {
+    let s = text.trim()
+    // Strip markdown code blocks
+    if (s.startsWith('```')) {
+        s = s.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?\s*```$/, '').trim()
+    }
+    // Try direct parse first
+    try { return JSON.parse(s) } catch { /* fall through */ }
+    // Extract first {...} or [...] block from surrounding text
+    const match = s.match(/(\{[\s\S]*\}|\[[\s\S]*\])/)
+    if (match) {
+        try { return JSON.parse(match[1]) } catch { /* fall through */ }
+    }
+    throw new SyntaxError(`Could not extract valid JSON from AI response. Preview: ${s.slice(0, 200)}`)
+}
+
+/**
+ * Sanitizes user-provided clinical context to prevent prompt injection.
+ * Returns a safe string with control characters and backtick sequences removed.
+ */
+function sanitizeClinicalContext(ctx: string): string {
+    return ctx
+        .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')  // strip control chars
+        .replace(/`{3,}/g, '```')                              // collapse excess backticks
+        .slice(0, 1000)                                        // hard length limit
 }
 
 // Fallback chain de modelos Gemini para visão
@@ -267,15 +302,17 @@ I) CISTOS E TUMORES (detectionType: 'cyst' ou 'tumor')
 
 REGRA DE FLEXIBILIDADE: Mesmo que a imagem seja de baixa qualidade, SEMPRE tente gerar achados e laudo. Se a qualidade for ruim, reduza o confidence dos achados proporcionalmente e indique isso no laudo. Nunca recuse analisar uma imagem.
 
-SOBRE AS COORDENADAS (BOX) - EXTREMAMENTE IMPORTANTE:
-- SEMPRE gere detections para cada achado identificado na imagem.
-- Para cada patologia ou achado encontrado, OBRIGATORIAMENTE crie uma entrada em detections.
-- As coordenadas [ymin, xmin, ymax, xmax] devem ser o mais PRECISAS possível, delimitando EXATAMENTE a área do achado na imagem.
-- O bounding box deve ser JUSTO ao redor do achado — não use áreas grandes demais que cubram regiões sem achados.
-- Para dentes individuais, o box deve cobrir apenas aquele dente específico, não o quadrante inteiro.
-- Para lesões periapicais, o box deve cobrir a lesão e o ápice do dente envolvido, não a mandíbula inteira.
-- Se houver múltiplos achados próximos, crie detections SEPARADAS com boxes individuais para cada um.
-- Use valores decimais quando necessário (ex: 23.5) para maior precisão.
+SOBRE AS COORDENADAS (BOX) - REGRAS ABSOLUTAS:
+- Cada bounding box deve ser o MENOR RETÂNGULO POSSÍVEL que contém apenas o achado específico.
+- NÃO use boxes que cobrem múltiplos dentes, quadrantes inteiros ou grandes regiões genéricas.
+- Para dentes individuais: box deve cobrir SOMENTE aquele dente.
+- Para lesões periapicais: box cobre apenas a lesão radiolúcida + ápice imediato, NÃO a mandíbula.
+- Para perda óssea: box na região do septo interproximal afetado, não em toda a arcada.
+- Se dois achados estão no mesmo dente: crie DOIS boxes distintos e precisos para cada um.
+- Use decimais (ex: 23.5) para máxima precisão.
+- Tamanho típico de um box individual: 5–25% da imagem. Boxes acima de 40% serão descartados.
+
+LIMITE DE DETECÇÕES: Retorne no máximo 8 detecções. Priorize por relevância clínica (crítico > moderado > normal). Se houver mais de 8, omita as de menor significância.
 
 REGRA CRÍTICA: Se você descrever um achado no report, DEVE existir uma entrada correspondente em detections.
 
@@ -316,18 +353,23 @@ const JSON_SCHEMA_EXAMPLE = `{
 }`
 
 async function callVisionAI(imageData: string, clinicalContext?: string): Promise<z.infer<typeof VisionSchema>> {
-    const contextSection = clinicalContext?.trim()
-        ? `\n\nCONTEXTO CLÍNICO FORNECIDO PELO PROFISSIONAL:\n${clinicalContext.trim()}\n\nConsidere este contexto ao formular hipóteses diagnósticas e recomendações.`
-        : ''
+    const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
 
     const generateWithModel = async (modelId: string): Promise<z.infer<typeof VisionSchema>> => {
+        const userTextParts: { type: 'text'; text: string }[] = [
+            { type: 'text' as const, text: 'GERE UM LAUDO RADIOGRÁFICO DETALHADO E COMPLETO. Analise esta imagem com máxima precisão técnica. Para cada achado: (1) bounding box preciso e justo, (2) número do dente FDI quando aplicável, (3) código CID-10, (4) diagnóstico diferencial, (5) ações recomendadas específicas. Inclua perToothBreakdown e differentialDiagnosis no report. Responda SOMENTE com o JSON.' },
+        ]
+        if (safeContext) {
+            userTextParts.push({ type: 'text' as const, text: `CONTEXTO CLÍNICO FORNECIDO PELO PROFISSIONAL:\n${safeContext}\n\nConsidere este contexto ao formular hipóteses diagnósticas e recomendações.` })
+        }
+
         const result = await generateText({
             model: openrouter(modelId),
             maxOutputTokens: 8000,
             messages: [
                 {
                     role: 'system' as const,
-                    content: `${SYSTEM_PROMPT_BASE}${contextSection}
+                    content: `${SYSTEM_PROMPT_BASE}
 
 FORMATO DE RESPOSTA: Responda SOMENTE com JSON válido seguindo este schema exato:
 ${JSON_SCHEMA_EXAMPLE}
@@ -337,19 +379,14 @@ NÃO inclua markdown, code blocks, ou texto fora do JSON.`
                 {
                     role: 'user' as const,
                     content: [
-                        { type: 'text' as const, text: 'GERE UM LAUDO RADIOGRÁFICO DETALHADO E COMPLETO. Analise esta imagem com máxima precisão técnica. Para cada achado: (1) bounding box preciso e justo, (2) número do dente FDI quando aplicável, (3) código CID-10, (4) diagnóstico diferencial, (5) ações recomendadas específicas. Inclua perToothBreakdown e differentialDiagnosis no report. Responda SOMENTE com o JSON.' },
+                        ...userTextParts,
                         { type: 'image' as const, image: imageData }
                     ]
                 }
             ]
         })
 
-        let jsonText = result.text.trim()
-        if (jsonText.startsWith('```')) {
-            jsonText = jsonText.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?\s*```$/, '')
-        }
-
-        const parsed = JSON.parse(jsonText)
+        const parsed = extractJSON(result.text)
         const validated = VisionSchema.parse(parsed)
         return validated
     }
@@ -362,18 +399,23 @@ async function callVisionRefinement(
     originalAnalysisSummary: string,
     clinicalContext?: string
 ): Promise<z.infer<typeof VisionSchema>> {
-    const contextSection = clinicalContext?.trim()
-        ? `\n\nCONTEXTO CLÍNICO: ${clinicalContext.trim()}`
-        : ''
+    const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
 
     const generateWithModel = async (modelId: string): Promise<z.infer<typeof VisionSchema>> => {
+        const userTextParts: { type: 'text'; text: string }[] = [
+            { type: 'text' as const, text: 'RE-ANALISE esta região específica com máximo detalhe e precisão. Identifique achados sutis, forneça descrições técnicas aprofundadas, CID-10, diagnósticos diferenciais e ações recomendadas. As coordenadas devem ser relativas a esta imagem recortada. Responda SOMENTE com o JSON.' },
+        ]
+        if (safeContext) {
+            userTextParts.push({ type: 'text' as const, text: `CONTEXTO CLÍNICO: ${safeContext}` })
+        }
+
         const result = await generateText({
             model: openrouter(modelId),
             maxOutputTokens: 6000,
             messages: [
                 {
                     role: 'system' as const,
-                    content: `${SYSTEM_PROMPT_BASE}${contextSection}
+                    content: `${SYSTEM_PROMPT_BASE}
 
 MODO DE REFINAMENTO: Você está re-analisando uma REGIÃO ESPECÍFICA extraída de uma imagem odontológica maior.
 A análise original da imagem completa identificou: ${originalAnalysisSummary}
@@ -393,19 +435,14 @@ NÃO inclua markdown, code blocks, ou texto fora do JSON.`
                 {
                     role: 'user' as const,
                     content: [
-                        { type: 'text' as const, text: 'RE-ANALISE esta região específica com máximo detalhe e precisão. Identifique achados sutis, forneça descrições técnicas aprofundadas, CID-10, diagnósticos diferenciais e ações recomendadas. As coordenadas devem ser relativas a esta imagem recortada. Responda SOMENTE com o JSON.' },
+                        ...userTextParts,
                         { type: 'image' as const, image: regionImageData }
                     ]
                 }
             ]
         })
 
-        let jsonText = result.text.trim()
-        if (jsonText.startsWith('```')) {
-            jsonText = jsonText.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?\s*```$/, '')
-        }
-
-        const parsed = JSON.parse(jsonText)
+        const parsed = extractJSON(result.text)
         const validated = VisionSchema.parse(parsed)
         return validated
     }
@@ -515,18 +552,23 @@ async function callVisionDetection(
     imageData: string,
     clinicalContext?: string
 ): Promise<z.infer<typeof QuickDetectionSchema>> {
-    const contextSection = clinicalContext?.trim()
-        ? `\n\nCONTEXTO CLÍNICO: ${clinicalContext.trim()}`
-        : ''
+    const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
 
     const generateWithModel = async (modelId: string): Promise<z.infer<typeof QuickDetectionSchema>> => {
+        const userTextParts: { type: 'text'; text: string }[] = [
+            { type: 'text' as const, text: 'Realize uma detecção rápida de todas as anomalias nesta imagem radiográfica. Identifique: cáries, perdas ósseas, lesões periapicais, restaurações, anomalias dentárias, etc. Forneça bounding boxes precisos e número do dente FDI quando aplicável.' },
+        ]
+        if (safeContext) {
+            userTextParts.push({ type: 'text' as const, text: `CONTEXTO CLÍNICO: ${safeContext}` })
+        }
+
         const result = await generateText({
             model: openrouter(modelId),
             maxOutputTokens: 4000,
             messages: [
                 {
                     role: 'system' as const,
-                    content: `${QUICK_DETECTION_PROMPT}${contextSection}
+                    content: `${QUICK_DETECTION_PROMPT}
 
 FORMATO: Responda SOMENTE com JSON válido:
 ${QUICK_DETECTION_SCHEMA}`
@@ -534,19 +576,14 @@ ${QUICK_DETECTION_SCHEMA}`
                 {
                     role: 'user' as const,
                     content: [
-                        { type: 'text' as const, text: 'Realize uma detecção rápida de todas as anomalias nesta imagem radiográfica. Identifique: cáries, perdas ósseas, lesões periapicais, restaurações, anomalias dentárias, etc. Forneça bounding boxes precisos e número do dente FDI quando aplicável.' },
+                        ...userTextParts,
                         { type: 'image' as const, image: imageData }
                     ]
                 }
             ]
         })
 
-        let jsonText = result.text.trim()
-        if (jsonText.startsWith('```')) {
-            jsonText = jsonText.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?\s*```$/, '')
-        }
-
-        const parsed = JSON.parse(jsonText)
+        const parsed = extractJSON(result.text)
         const validated = QuickDetectionSchema.parse(parsed)
         return validated
     }
@@ -560,22 +597,27 @@ async function callVisionDetailedAnalysis(
     quickDetections: z.infer<typeof QuickDetectionSchema>['quickDetections'],
     clinicalContext?: string
 ): Promise<z.infer<typeof DetailedDetectionSchema>> {
-    const detectionsSummary = quickDetections.map((d, i) => 
+    const detectionsSummary = quickDetections.map((d, i) =>
         `${i}: ${d.label} (${d.toothNumber || 'N/A'}) - ${d.severity} - confiança ${Math.round(d.confidence * 100)}%`
     ).join('\n')
 
-    const contextSection = clinicalContext?.trim()
-        ? `\n\nCONTEXTO CLÍNICO: ${clinicalContext.trim()}`
-        : ''
+    const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
 
     const generateWithModel = async (modelId: string): Promise<z.infer<typeof DetailedDetectionSchema>> => {
+        const userTextParts: { type: 'text'; text: string }[] = [
+            { type: 'text' as const, text: `Forneça análise detalhada para cada uma das ${quickDetections.length} detecções listadas acima. Para cada uma: CID-10, classificação (Black para cáries, dados periodontais), diagnóstico diferencial, significância clínica, ações recomendadas, e descrição técnica.` },
+        ]
+        if (safeContext) {
+            userTextParts.push({ type: 'text' as const, text: `CONTEXTO CLÍNICO: ${safeContext}` })
+        }
+
         const result = await generateText({
             model: openrouter(modelId),
             maxOutputTokens: 6000,
             messages: [
                 {
                     role: 'system' as const,
-                    content: `${DETAILED_ANALYSIS_PROMPT}${contextSection}
+                    content: `${DETAILED_ANALYSIS_PROMPT}
 
 DETECÇÕES DO ESTÁGIO 1:
 ${detectionsSummary}
@@ -588,19 +630,14 @@ ${DETAILED_ANALYSIS_SCHEMA}`
                 {
                     role: 'user' as const,
                     content: [
-                        { type: 'text' as const, text: `Forneça análise detalhada para cada uma das ${quickDetections.length} detecções listadas acima. Para cada uma: CID-10, classificação (Black para cáries, dados periodontais), diagnóstico diferencial, significância clínica, ações recomendadas, e descrição técnica.` },
+                        ...userTextParts,
                         { type: 'image' as const, image: imageData }
                     ]
                 }
             ]
         })
 
-        let jsonText = result.text.trim()
-        if (jsonText.startsWith('```')) {
-            jsonText = jsonText.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?\s*```$/, '')
-        }
-
-        const parsed = JSON.parse(jsonText)
+        const parsed = extractJSON(result.text)
         const validated = DetailedDetectionSchema.parse(parsed)
         return validated
     }
@@ -632,20 +669,31 @@ async function callTwoStageVisionAnalysis(
     }
 
     console.log('=== ESTÁGIO 2: Análise Detalhada ===')
-    const detailedResult = await callVisionDetailedAnalysis(imageData, quickResult.quickDetections, clinicalContext)
-    console.log(`Estágio 2 concluído: ${detailedResult.detailedAnalysis.length} análises detalhadas`)
+    let detailedAnalysis: z.infer<typeof DetailedDetectionSchema>['detailedAnalysis'] = []
+    try {
+        const detailedResult = await callVisionDetailedAnalysis(imageData, quickResult.quickDetections, clinicalContext)
+        detailedAnalysis = detailedResult.detailedAnalysis
+        console.log(`Estágio 2 concluído: ${detailedAnalysis.length} análises detalhadas`)
+    } catch (err) {
+        console.warn('Estágio 2 falhou, usando apenas resultados do Estágio 1:', err)
+    }
 
-    // Consolidar resultados
+    // Consolidar resultados: match por originalIndex primeiro, fallback por label normalizado
+    const normalizeLabel = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim()
     let detections = quickResult.quickDetections.map((qd, index) => {
-        const detailed = detailedResult.detailedAnalysis.find(d => d.originalIndex === index)
-        
+        const byIndex = detailedAnalysis.find(d => d.originalIndex === index)
+        const byLabel = !byIndex
+            ? detailedAnalysis.find(d => normalizeLabel(d.label ?? '') === normalizeLabel(qd.label))
+            : undefined
+        const detailed = byIndex ?? byLabel
+
         return {
             id: `det-${index}`,
             label: qd.label,
             confidence: qd.confidence,
             box: qd.box,
             severity: qd.severity,
-            toothNumber: qd.toothNumber,
+            toothNumber: qd.toothNumber ?? detailed?.toothNumber,
             cidCode: detailed?.cidCode,
             differentialDiagnosis: detailed?.differentialDiagnosis,
             clinicalSignificance: detailed?.clinicalSignificance,
@@ -767,11 +815,13 @@ function validateAndMergeDetections(detections: DetectionInput[]): DetectionInpu
     if (detections.length === 0) return detections
     
     const validated = detections.map((d, index) => {
+        // Format is [ymin, xmin, ymax, xmax] — extract by index, then sort each axis
+        // so inverted boxes (ymin > ymax) are handled gracefully
         const box: BoundingBox = {
-            ymin: Math.max(0, Math.min(...d.box)),
-            xmin: Math.max(0, Math.min(d.box[1], d.box[3])),
-            ymax: Math.min(100, Math.max(...d.box)),
-            xmax: Math.min(100, Math.max(d.box[1], d.box[3]))
+            ymin: Math.max(0, Math.min(d.box[0] ?? 0, d.box[2] ?? 0)),
+            xmin: Math.max(0, Math.min(d.box[1] ?? 0, d.box[3] ?? 0)),
+            ymax: Math.min(100, Math.max(d.box[0] ?? 0, d.box[2] ?? 0)),
+            xmax: Math.min(100, Math.max(d.box[1] ?? 0, d.box[3] ?? 0)),
         }
         
         let confidence = d.confidence ?? 0.85
@@ -923,18 +973,14 @@ IDIOMA: Português do Brasil. Responda em JSON: {"validations": [{"index": numbe
             ]
         })
         
-        let jsonText = result.text.trim()
-        if (jsonText.startsWith('```')) {
-            jsonText = jsonText.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?\s*```$/, '')
-        }
-        
-        const parsed = JSON.parse(jsonText)
-        const validations = parsed.validations || []
+        type ValidationItem = { index?: number; isValid: boolean; correctedLabel?: string; revisedConfidence?: number }
+        const parsed = extractJSON(result.text) as { validations?: ValidationItem[] }
+        const validations: ValidationItem[] = parsed.validations || []
         
         const validatedDetections = detections.map(d => {
             if (d.severity !== 'critical') return d
             
-            const validation = validations.find((v: { index: number; isValid: boolean; correctedLabel?: string; revisedConfidence?: number }) => 
+            const validation = validations.find(v =>
                 v.index !== undefined && d.id.includes(String(v.index))
             )
             
@@ -964,7 +1010,7 @@ IDIOMA: Português do Brasil. Responda em JSON: {"validations": [{"index": numbe
             return { ...d, _validated: true }
         })
         
-        console.log(`Cross-validation complete: ${validations.filter((v: { isValid: boolean }) => v.isValid).length}/${criticalDetections.length} confirmed`)
+        console.log(`Cross-validation complete: ${validations.filter(v => v.isValid).length}/${criticalDetections.length} confirmed`)
         return validatedDetections
         
     } catch (error) {
@@ -981,19 +1027,10 @@ function mapAnalysisToResponse(analysis: z.infer<typeof VisionSchema>) {
     const overallPrecision = Math.round((qualityScore * 0.4 + avgDetectionConfidence * 100 * 0.6))
 
     const detections = analysis.detections.map((d, i) => {
-        const boxWidth = d.box[3] - d.box[1]
-        const boxHeight = d.box[2] - d.box[0]
-        let confidence = d.confidence ?? 0.85
-
-        if (boxWidth > 50 && boxHeight > 50) {
-            console.warn(`Detection "${d.label}" has oversized box (${boxWidth.toFixed(1)}x${boxHeight.toFixed(1)}%), reducing confidence`)
-            confidence = Math.max(0.1, confidence * 0.8)
-        }
-
         return {
             id: `det-${i}`,
             label: d.label,
-            confidence,
+            confidence: d.confidence ?? 0.85,
             box: {
                 ymin: d.box[0],
                 xmin: d.box[1],

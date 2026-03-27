@@ -45,6 +45,7 @@ import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
+import { getSeverityStyle } from '@/lib/constants/vision'
 import { VisionAnalysisResult, VisionArtifactContent, VisionRefinement, BoundingBox } from '@/lib/types/vision'
 import { ImageOverlay } from '@/components/vision/image-overlay'
 import { QualityFeedback } from '@/components/vision/quality-feedback'
@@ -443,22 +444,6 @@ export default function OdontoVisionPage() {
         resetCrop()
     }
 
-    const getSeverityBadge = (severity?: string) => {
-        switch (severity) {
-            case 'critical': return 'text-red-500 bg-red-500/10 border-red-500/30'
-            case 'moderate': return 'text-amber-500 bg-amber-500/10 border-amber-500/30'
-            default: return 'text-blue-500 bg-blue-500/10 border-blue-500/30'
-        }
-    }
-
-    const getSeverityLabel = (severity?: string) => {
-        switch (severity) {
-            case 'critical': return 'Crítico'
-            case 'moderate': return 'Moderado'
-            default: return 'Normal'
-        }
-    }
-
     return (
         <div className="pb-4 pt-4 px-3 md:pb-20 md:pt-6 md:px-8 max-w-6xl mx-auto">
             {/* Header */}
@@ -712,6 +697,16 @@ export default function OdontoVisionPage() {
                             animate={{ opacity: 1 }}
                             className="flex flex-col gap-8 max-w-4xl mx-auto"
                         >
+                            {/* Quality badge (high precision) */}
+                            {analysisPrecision !== null && analysisPrecision >= 80 && analysisResult.meta && (
+                                <div className="flex items-center justify-end gap-2">
+                                    <span className="text-[10px] text-muted-foreground">Qualidade da imagem:</span>
+                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/30">
+                                        {analysisResult.meta.quality} · {analysisPrecision}%
+                                    </span>
+                                </div>
+                            )}
+
                             {/* Precision/Quality Banner */}
                             {analysisPrecision !== null && analysisPrecision < 80 && (
                                 <div className={cn(
@@ -757,6 +752,7 @@ export default function OdontoVisionPage() {
                                                     detections={analysisResult.detections}
                                                     annotations={annotations}
                                                     showHeatmap={showHeatmap}
+                                                    showConfidenceFilter
                                                 />
                                             )}
                                         </div>
@@ -886,6 +882,17 @@ export default function OdontoVisionPage() {
                                         <Info className="w-3 h-3" />
                                         Clique nos balões de detecção para ver detalhes técnicos completos
                                     </p>
+                                )}
+
+                                {/* No findings state */}
+                                {analysisResult.detections.length === 0 && (
+                                    <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
+                                        <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                                        <div>
+                                            <p className="text-sm font-semibold text-emerald-500">Sem achados significativos</p>
+                                            <p className="text-xs text-muted-foreground mt-0.5">A análise não identificou patologias ou achados com confiança suficiente nesta imagem.</p>
+                                        </div>
+                                    </div>
                                 )}
 
                                 <div className="flex flex-wrap gap-3">
@@ -1046,8 +1053,8 @@ export default function OdontoVisionPage() {
                                                                     <td className="px-3 py-2 font-mono text-muted-foreground">{item.cidCode || '—'}</td>
                                                                     <td className="px-3 py-2">
                                                                         {item.severity && (
-                                                                            <Badge variant="outline" className={cn('text-[9px] h-4 px-1', getSeverityBadge(item.severity))}>
-                                                                                {getSeverityLabel(item.severity)}
+                                                                            <Badge variant="outline" className={cn('text-[9px] h-4 px-1', getSeverityStyle(item.severity).badge)}>
+                                                                                {getSeverityStyle(item.severity).ptLabel}
                                                                             </Badge>
                                                                         )}
                                                                     </td>
@@ -1184,7 +1191,7 @@ export default function OdontoVisionPage() {
                                                         {ref.analysis.detections.length > 0 && (
                                                             <div className="flex flex-wrap gap-1 mt-1.5">
                                                                 {ref.analysis.detections.slice(0, 3).map((d, i) => (
-                                                                    <Badge key={i} variant="outline" className={cn('text-[9px] h-4 px-1', getSeverityBadge(d.severity))}>
+                                                                    <Badge key={i} variant="outline" className={cn('text-[9px] h-4 px-1', getSeverityStyle(d.severity).badge)}>
                                                                         {d.label}
                                                                     </Badge>
                                                                 ))}
@@ -1353,55 +1360,6 @@ export default function OdontoVisionPage() {
                                                     key={item.id}
                                                     className="w-full p-3 rounded-lg border text-left hover:bg-muted/30 transition-colors"
                                                     onClick={() => {
-                                                        const prevDetections = item.content?.analysis?.detections || []
-                                                        const currentDetections = analysisResult?.detections || []
-                                                        
-                                                        const comparisonTable = (
-                                                            <div className="space-y-4 mt-4">
-                                                                <div className="grid grid-cols-2 gap-4">
-                                                                    <div>
-                                                                        <h4 className="font-medium text-sm mb-2">Análise Atual ({currentDetections.length})</h4>
-                                                                        <div className="space-y-1 max-h-40 overflow-auto">
-                                                                            {currentDetections.map((d: any, i: number) => (
-                                                                                <div key={i} className="text-xs flex items-center gap-2">
-                                                                                    <span className={cn(
-                                                                                        "w-2 h-2 rounded-full",
-                                                                                        d.severity === 'critical' ? 'bg-red-500' : d.severity === 'moderate' ? 'bg-amber-500' : 'bg-blue-500'
-                                                                                    )} />
-                                                                                    <span>{d.label}</span>
-                                                                                    {d.toothNumber && <span className="text-muted-foreground">(Dente {d.toothNumber})</span>}
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    </div>
-                                                                    <div>
-                                                                        <h4 className="font-medium text-sm mb-2">Análise Anterior ({prevDetections.length})</h4>
-                                                                        <div className="space-y-1 max-h-40 overflow-auto">
-                                                                            {prevDetections.map((d: any, i: number) => (
-                                                                                <div key={i} className="text-xs flex items-center gap-2">
-                                                                                    <span className={cn(
-                                                                                        "w-2 h-2 rounded-full",
-                                                                                        d.severity === 'critical' ? 'bg-red-500' : d.severity === 'moderate' ? 'bg-amber-500' : 'bg-blue-500'
-                                                                                    )} />
-                                                                                    <span>{d.label}</span>
-                                                                                    {d.toothNumber && <span className="text-muted-foreground">(Dente {d.toothNumber})</span>}
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="p-3 rounded-lg bg-muted/30 text-xs">
-                                                                    <p className="font-medium mb-1">Resumo Comparativo:</p>
-                                                                    <p className="text-muted-foreground">
-                                                                        {currentDetections.length > prevDetections.length 
-                                                                            ? `+${currentDetections.length - prevDetections.length} novas detecções`
-                                                                            : currentDetections.length < prevDetections.length 
-                                                                                ? `${prevDetections.length - currentDetections.length} detecções a menos`
-                                                                                : 'Mesma quantidade de detecções'}
-                                                                    </p>
-                                                                </div>
-                                                            </div>
-                                                        )
                                                         setComparisonItems([item.content.analysis, analysisResult as any])
                                                         setIsComparing(false)
                                                     }}
@@ -1461,15 +1419,7 @@ export default function OdontoVisionPage() {
                 </DialogContent>
             </Dialog>
 
-            <style jsx global>{`
-        html { scroll-behavior: smooth; overflow: auto; }
-        body { overflow: auto; }
-        ::-webkit-scrollbar { width: 12px; }
-        ::-webkit-scrollbar-track { background: rgba(200, 200, 200, 0.1); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb { background: rgba(59, 130, 246, 0.7); border-radius: 10px; border: 2px solid transparent; background-clip: content-box; cursor: grab; }
-        ::-webkit-scrollbar-thumb:hover { background: rgba(59, 130, 246, 1); background-clip: content-box; }
-        ::-webkit-scrollbar-thumb:active { background: rgba(29, 78, 216, 1); background-clip: content-box; }
-      `}</style>
+            {/* Scroll moderno: usar classes CSS de app/globals.css */}
         </div>
     )
 }

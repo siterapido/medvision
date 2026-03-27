@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { VisionDetection, VisionAnnotation, AnnotationColor } from '@/lib/types/vision'
 import { DetectionPopover } from '@/components/vision/detection-popover'
 import { cn } from '@/lib/utils'
+import { getSeverityStyle } from '@/lib/constants/vision'
 
 interface ImageOverlayProps {
     src: string
@@ -12,6 +13,7 @@ interface ImageOverlayProps {
     annotations?: VisionAnnotation[]
     showArrows?: boolean
     showHeatmap?: boolean
+    showConfidenceFilter?: boolean
     className?: string
 }
 
@@ -22,119 +24,195 @@ const colorMap: Record<AnnotationColor, string> = {
     white: '#ffffff'
 }
 
-const severityColorHex: Record<string, string> = {
-    critical: '#ef4444',
-    moderate: '#f59e0b',
-    normal: '#3b82f6',
+interface LabelPosition {
+    x: number // % relative to rendered image (0-100)
+    y: number // % relative to rendered image (0-100)
+    arrowToX: number
+    arrowToY: number
+    estimatedWidth: number
 }
 
-interface LabelPosition {
-    x: number // percentage 0-100
-    y: number // percentage 0-100
-    arrowToX: number // point on box edge
-    arrowToY: number
+/** Rough label width estimate in % of image space. */
+function estimateLabelWidth(label: string): number {
+    // Compact style: ~0.38% per char, clamped 14–36%
+    return Math.min(36, Math.max(14, label.length * 0.38))
 }
 
 /**
- * Compute label positions outside the detection box with collision avoidance.
+ * Compute label positions in image-space (0–100).
+ * All placements are constrained well within the image bounds.
  */
 function computeLabelPositions(detections: VisionDetection[]): Map<string, LabelPosition> {
     const positions = new Map<string, LabelPosition>()
-    const LABEL_HEIGHT = 4 // approximate label height in % units
+    const LABEL_H = 4.5  // label height in image-%
     const LABEL_GAP = 1.5
-    const ARROW_OFFSET = 3 // offset from box edge
+    const ARROW_OFF = 1.5
+    const MARGIN = 2      // keep labels at least 2% from any image edge
 
-    // Sort by ymin to process top-to-bottom
-    const sorted = [...detections].sort((a, b) => a.box.ymin - b.box.ymin)
-    const usedYRanges: { y: number; height: number }[] = []
+    const sorted = [...detections].sort((a, b) => {
+        const order = { critical: 0, moderate: 1, normal: 2 }
+        const diff = (order[a.severity] ?? 3) - (order[b.severity] ?? 3)
+        return diff !== 0 ? diff : a.box.ymin - b.box.ymin
+    })
+
+    const placed: { x: number; y: number; w: number; h: number }[] = []
+
+    const overlaps = (x: number, y: number, w: number) =>
+        placed.some(p =>
+            x < p.x + p.w + 0.5 &&
+            x + w > p.x - 0.5 &&
+            y < p.y + p.h + 0.5 &&
+            y + LABEL_H > p.y - 0.5
+        )
 
     for (const det of sorted) {
-        const boxCenterX = (det.box.xmin + det.box.xmax) / 2
-        const boxCenterY = (det.box.ymin + det.box.ymax) / 2
+        const cx = (det.box.xmin + det.box.xmax) / 2
+        const cy = (det.box.ymin + det.box.ymax) / 2
+        const lw = estimateLabelWidth(det.label)
 
-        // Determine label placement: above or below the box
-        let labelY: number
-        let arrowToY: number
+        // Valid placement range within image bounds
+        const minX = MARGIN
+        const maxX = 100 - MARGIN - lw
+        const minY = MARGIN
+        const maxY = 100 - MARGIN - LABEL_H
 
-        if (det.box.ymin > 18) {
-            // Place above
-            labelY = det.box.ymin - ARROW_OFFSET - LABEL_HEIGHT
-            arrowToY = det.box.ymin
-        } else {
-            // Place below
-            labelY = det.box.ymax + ARROW_OFFSET
-            arrowToY = det.box.ymax
-        }
+        const clampX = (v: number) => Math.max(minX, Math.min(v, maxX))
+        const clampY = (v: number) => Math.max(minY, Math.min(v, maxY))
 
-        // Determine X: offset away from center to reduce overlap
-        let labelX: number
-        if (boxCenterX < 40) {
-            labelX = Math.min(det.box.xmax + 2, 70)
-        } else if (boxCenterX > 60) {
-            labelX = Math.max(det.box.xmin - 25, 2)
-        } else {
-            labelX = Math.max(2, Math.min(boxCenterX - 10, 70))
-        }
+        // Candidate placements: below, above, right, left, bottom-edge, top-edge
+        const candidates: { lx: number; ly: number; ax: number; ay: number }[] = [
+            { lx: cx - lw / 2,              ly: det.box.ymax + ARROW_OFF,             ax: cx,            ay: det.box.ymax },
+            { lx: cx - lw / 2,              ly: det.box.ymin - ARROW_OFF - LABEL_H,   ax: cx,            ay: det.box.ymin },
+            { lx: det.box.xmax + ARROW_OFF, ly: cy - LABEL_H / 2,                     ax: det.box.xmax,  ay: cy },
+            { lx: det.box.xmin - lw - ARROW_OFF, ly: cy - LABEL_H / 2,               ax: det.box.xmin,  ay: cy },
+            { lx: cx - lw / 2,              ly: maxY,                                 ax: cx,            ay: det.box.ymax },
+            { lx: cx - lw / 2,              ly: minY,                                 ax: cx,            ay: det.box.ymin },
+        ]
 
-        // Collision avoidance with previously placed labels
-        for (const used of usedYRanges) {
-            if (Math.abs(labelY - used.y) < LABEL_HEIGHT + LABEL_GAP) {
-                labelY = used.y + used.height + LABEL_GAP
+        let chosen: { lx: number; ly: number; ax: number; ay: number } | null = null
+
+        for (const c of candidates) {
+            const lx = clampX(c.lx)
+            const ly = clampY(c.ly)
+            if (!overlaps(lx, ly, lw)) {
+                chosen = { ...c, lx, ly }
+                break
             }
         }
 
-        // Clamp to bounds
-        labelY = Math.max(1, Math.min(labelY, 92))
-        labelX = Math.max(1, Math.min(labelX, 75))
+        // Fallback: stack below all placed labels
+        if (!chosen) {
+            const bottomY = placed.length > 0
+                ? Math.max(...placed.map(p => p.y + p.h)) + LABEL_GAP
+                : minY
+            chosen = {
+                lx: clampX(cx - lw / 2),
+                ly: clampY(bottomY),
+                ax: cx,
+                ay: det.box.ymax,
+            }
+        }
 
-        const arrowToX = boxCenterX
+        const fx = clampX(chosen.lx)
+        const fy = clampY(chosen.ly)
 
-        usedYRanges.push({ y: labelY, height: LABEL_HEIGHT })
-        positions.set(det.id, { x: labelX, y: labelY, arrowToX, arrowToY })
+        placed.push({ x: fx, y: fy, w: lw, h: LABEL_H })
+        positions.set(det.id, {
+            x: fx,
+            y: fy,
+            arrowToX: chosen.ax,
+            arrowToY: chosen.ay,
+            estimatedWidth: lw,
+        })
     }
 
     return positions
 }
 
-export function ImageOverlay({ src, detections, annotations = [], showArrows = true, showHeatmap = false, className }: ImageOverlayProps) {
+/** Rendered image rect within its container (accounts for object-fit: contain). */
+interface ImgRect { ox: number; oy: number; w: number; h: number }
+
+export function ImageOverlay({
+    src,
+    detections,
+    annotations = [],
+    showArrows = true,
+    showHeatmap = false,
+    showConfidenceFilter = false,
+    className,
+}: ImageOverlayProps) {
     const [hoveredId, setHoveredId] = useState<string | null>(null)
     const [selectedId, setSelectedId] = useState<string | null>(null)
+    const [minConfidence, setMinConfidence] = useState(0)
     const containerRef = useRef<HTMLDivElement>(null)
+    const imgRef = useRef<HTMLImageElement>(null)
     const canvasRef = useRef<HTMLCanvasElement>(null)
-    const [size, setSize] = useState({ width: 0, height: 0 })
+    const [imgRect, setImgRect] = useState<ImgRect>({ ox: 0, oy: 0, w: 0, h: 0 })
 
-    const getColor = (severity: string) => {
-        switch (severity) {
-            case 'critical': return { border: 'border-red-500', bg: 'bg-red-500/20', text: 'bg-red-500', shadow: 'shadow-red-500/50' }
-            case 'moderate': return { border: 'border-amber-500', bg: 'bg-amber-500/20', text: 'bg-amber-500', shadow: 'shadow-amber-500/50' }
-            case 'normal': return { border: 'border-blue-500', bg: 'bg-blue-500/20', text: 'bg-blue-500', shadow: 'shadow-blue-500/50' }
-            default: return { border: 'border-gray-500', bg: 'bg-gray-500/20', text: 'bg-gray-500', shadow: 'shadow-gray-500/50' }
-        }
-    }
-
-    const labelPositions = useMemo(() => computeLabelPositions(detections), [detections])
-
-    // Update size when container changes
-    useEffect(() => {
-        const updateSize = () => {
-            if (containerRef.current) {
-                setSize({
-                    width: containerRef.current.offsetWidth,
-                    height: containerRef.current.offsetHeight
-                })
+    // Deduplicate by label, clamp coords, filter zero-size/oversized boxes, apply confidence threshold
+    const deduplicatedDetections = useMemo(() => {
+        const seen = new Map<string, VisionDetection>()
+        for (const det of detections) {
+            // Clamp all coords to valid image space [0-100]
+            const clamped = {
+                ...det,
+                box: {
+                    xmin: Math.max(0, Math.min(100, det.box.xmin)),
+                    ymin: Math.max(0, Math.min(100, det.box.ymin)),
+                    xmax: Math.max(0, Math.min(100, det.box.xmax)),
+                    ymax: Math.max(0, Math.min(100, det.box.ymax)),
+                }
             }
+            const bw = clamped.box.xmax - clamped.box.xmin
+            const bh = clamped.box.ymax - clamped.box.ymin
+            // Skip zero/near-zero (no box to show) or impossibly large (> 80% of image area)
+            if (bw < 0.5 || bh < 0.5) continue
+            if ((bw * bh) > 80 * 80) continue
+            if (clamped.confidence < minConfidence) continue
+            const key = clamped.label.toLowerCase().replace(/\s+/g, ' ').trim()
+            const existing = seen.get(key)
+            if (!existing || clamped.confidence > existing.confidence) seen.set(key, clamped)
         }
-        updateSize()
-        const observer = new ResizeObserver(updateSize)
+        return Array.from(seen.values())
+    }, [detections, minConfidence])
+
+    const labelPositions = useMemo(() => computeLabelPositions(deduplicatedDetections), [deduplicatedDetections])
+
+    /**
+     * Compute the pixel rect of the rendered image inside the container.
+     * With object-fit: contain, the image is letterboxed — this gives us the
+     * exact offset so all overlays are positioned correctly over the image pixels.
+     */
+    const computeImgRect = useCallback(() => {
+        const img = imgRef.current
+        const container = containerRef.current
+        if (!img || !container) return
+        const nw = img.naturalWidth || img.offsetWidth
+        const nh = img.naturalHeight || img.offsetHeight
+        if (!nw || !nh) return
+        const cw = container.offsetWidth
+        const ch = container.offsetHeight
+        const scale = Math.min(cw / nw, ch / nh)
+        const rw = Math.round(nw * scale)
+        const rh = Math.round(nh * scale)
+        setImgRect({
+            ox: Math.round((cw - rw) / 2),
+            oy: Math.round((ch - rh) / 2),
+            w: rw,
+            h: rh,
+        })
+    }, [])
+
+    // Recompute on container resize
+    useEffect(() => {
+        const observer = new ResizeObserver(computeImgRect)
         if (containerRef.current) observer.observe(containerRef.current)
         return () => observer.disconnect()
-    }, [])
+    }, [computeImgRect])
 
     // Escape key closes popover
     useEffect(() => {
-        const handleKey = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') setSelectedId(null)
-        }
+        const handleKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setSelectedId(null) }
         window.addEventListener('keydown', handleKey)
         return () => window.removeEventListener('keydown', handleKey)
     }, [])
@@ -146,16 +224,13 @@ export function ImageOverlay({ src, detections, annotations = [], showArrows = t
 
     const closePopover = useCallback(() => setSelectedId(null), [])
 
-    // Draw user annotations on canvas
+    // Draw user annotations on canvas (in image space)
     useEffect(() => {
         const canvas = canvasRef.current
-        if (!canvas || size.width === 0 || annotations.length === 0) return
-
+        if (!canvas || imgRect.w === 0 || annotations.length === 0) return
         const ctx = canvas.getContext('2d')
         if (!ctx) return
-
-        ctx.clearRect(0, 0, size.width, size.height)
-
+        ctx.clearRect(0, 0, imgRect.w, imgRect.h)
         for (const annotation of annotations) {
             const color = colorMap[annotation.color]
             ctx.strokeStyle = color
@@ -163,314 +238,323 @@ export function ImageOverlay({ src, detections, annotations = [], showArrows = t
             ctx.lineWidth = 3
             ctx.lineCap = 'round'
             ctx.lineJoin = 'round'
-
             switch (annotation.tool) {
                 case 'pen':
-                    if (annotation.points && annotation.points.length > 0) {
+                    if (annotation.points?.length) {
                         ctx.beginPath()
                         ctx.moveTo(annotation.points[0].x, annotation.points[0].y)
-                        for (let i = 1; i < annotation.points.length; i++) {
-                            ctx.lineTo(annotation.points[i].x, annotation.points[i].y)
-                        }
+                        for (let i = 1; i < annotation.points.length; i++) ctx.lineTo(annotation.points[i].x, annotation.points[i].y)
                         ctx.stroke()
                     }
                     break
-
                 case 'circle':
                     if (annotation.start && annotation.end) {
-                        const radiusX = Math.abs(annotation.end.x - annotation.start.x) / 2
-                        const radiusY = Math.abs(annotation.end.y - annotation.start.y) / 2
-                        const centerX = (annotation.start.x + annotation.end.x) / 2
-                        const centerY = (annotation.start.y + annotation.end.y) / 2
+                        const rx = Math.abs(annotation.end.x - annotation.start.x) / 2
+                        const ry = Math.abs(annotation.end.y - annotation.start.y) / 2
                         ctx.beginPath()
-                        ctx.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, 2 * Math.PI)
+                        ctx.ellipse((annotation.start.x + annotation.end.x) / 2, (annotation.start.y + annotation.end.y) / 2, rx, ry, 0, 0, Math.PI * 2)
                         ctx.stroke()
                     }
                     break
-
                 case 'arrow':
                     if (annotation.start && annotation.end) {
                         const { start, end } = annotation
+                        const angle = Math.atan2(end.y - start.y, end.x - start.x)
+                        const hl = 15
                         ctx.beginPath()
                         ctx.moveTo(start.x, start.y)
                         ctx.lineTo(end.x, end.y)
                         ctx.stroke()
-
-                        const angle = Math.atan2(end.y - start.y, end.x - start.x)
-                        const headLength = 15
                         ctx.beginPath()
                         ctx.moveTo(end.x, end.y)
-                        ctx.lineTo(end.x - headLength * Math.cos(angle - Math.PI / 6), end.y - headLength * Math.sin(angle - Math.PI / 6))
+                        ctx.lineTo(end.x - hl * Math.cos(angle - Math.PI / 6), end.y - hl * Math.sin(angle - Math.PI / 6))
                         ctx.moveTo(end.x, end.y)
-                        ctx.lineTo(end.x - headLength * Math.cos(angle + Math.PI / 6), end.y - headLength * Math.sin(angle + Math.PI / 6))
+                        ctx.lineTo(end.x - hl * Math.cos(angle + Math.PI / 6), end.y - hl * Math.sin(angle + Math.PI / 6))
                         ctx.stroke()
                     }
                     break
-
                 case 'text':
                     if (annotation.start && annotation.text) {
                         ctx.font = 'bold 16px system-ui'
                         const metrics = ctx.measureText(annotation.text)
-                        const padding = 4
-                        ctx.fillStyle = 'rgba(0, 0, 0, 0.7)'
-                        ctx.fillRect(annotation.start.x - padding, annotation.start.y - 16 - padding, metrics.width + padding * 2, 20 + padding * 2)
+                        const p = 4
+                        ctx.fillStyle = 'rgba(0,0,0,0.7)'
+                        ctx.fillRect(annotation.start.x - p, annotation.start.y - 16 - p, metrics.width + p * 2, 20 + p * 2)
                         ctx.fillStyle = color
                         ctx.fillText(annotation.text, annotation.start.x, annotation.start.y)
                     }
                     break
             }
         }
-    }, [annotations, size])
+    }, [annotations, imgRect])
 
-    // Get the selected detection and its label position for the popover
-    const selectedDetection = selectedId ? detections.find(d => d.id === selectedId) : null
+    const selectedDetection = selectedId ? deduplicatedDetections.find(d => d.id === selectedId) : null
     const selectedLabelPos = selectedId ? labelPositions.get(selectedId) : null
 
-    // Generate heatmap data based on detections
+    // Heatmap in image-space %
     const heatmapData = useMemo(() => {
-        if (!showHeatmap || detections.length === 0) return null
-        
+        if (!showHeatmap || deduplicatedDetections.length === 0) return null
         const gridSize = 20
         const grid: number[][] = Array(gridSize).fill(null).map(() => Array(gridSize).fill(0))
-        
-        detections.forEach(det => {
-            const severityWeight = det.severity === 'critical' ? 1.0 
-                : det.severity === 'moderate' ? 0.6 
-                : 0.3
-            const confidenceWeight = det.confidence ?? 0.8
-            
-            const startX = Math.floor((det.box.xmin / 100) * gridSize)
-            const endX = Math.ceil((det.box.xmax / 100) * gridSize)
-            const startY = Math.floor((det.box.ymin / 100) * gridSize)
-            const endY = Math.ceil((det.box.ymax / 100) * gridSize)
-            
-            for (let x = startX; x < endX && x < gridSize; x++) {
-                for (let y = startY; y < endY && y < gridSize; y++) {
-                    const distFromCenter = Math.sqrt(
-                        Math.pow((x - (startX + endX) / 2) / ((endX - startX) || 1), 2) +
-                        Math.pow((y - (startY + endY) / 2) / ((endY - startY) || 1), 2)
+        deduplicatedDetections.forEach(det => {
+            const sw = det.severity === 'critical' ? 1.0 : det.severity === 'moderate' ? 0.6 : 0.3
+            const cw = det.confidence ?? 0.8
+            const sx = Math.floor((det.box.xmin / 100) * gridSize)
+            const ex = Math.ceil((det.box.xmax / 100) * gridSize)
+            const sy = Math.floor((det.box.ymin / 100) * gridSize)
+            const ey = Math.ceil((det.box.ymax / 100) * gridSize)
+            for (let x = sx; x < ex && x < gridSize; x++) {
+                for (let y = sy; y < ey && y < gridSize; y++) {
+                    const d = Math.sqrt(
+                        Math.pow((x - (sx + ex) / 2) / ((ex - sx) || 1), 2) +
+                        Math.pow((y - (sy + ey) / 2) / ((ey - sy) || 1), 2)
                     )
-                    const falloff = Math.max(0, 1 - distFromCenter * 0.5)
-                    grid[y][x] += severityWeight * confidenceWeight * falloff
+                    grid[y][x] += sw * cw * Math.max(0, 1 - d * 0.5)
                 }
             }
         })
-        
         return grid
-    }, [detections, showHeatmap])
+    }, [deduplicatedDetections, showHeatmap])
 
     return (
-        <div ref={containerRef} className={cn("relative w-full h-full group select-none", className)}>
+        <div ref={containerRef} className={cn("relative w-full h-full group select-none overflow-hidden", className)}>
+            {/* Base image — we track it to compute rendered bounds */}
             <img
+                ref={imgRef}
                 src={src}
                 alt="Analyzed"
                 className="w-full h-full object-contain pointer-events-none"
+                onLoad={computeImgRect}
             />
 
-            {/* Heatmap layer */}
-            {heatmapData && (
-                <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                    {heatmapData.map((row, y) => (
-                        row.map((value, x) => {
-                            if (value < 0.1) return null
-                            const opacity = Math.min(value * 0.4, 0.7)
-                            return (
-                                <div
-                                    key={`${x}-${y}`}
-                                    className="absolute"
-                                    style={{
-                                        left: `${(x / 20) * 100}%`,
-                                        top: `${(y / 20) * 100}%`,
-                                        width: '5%',
-                                        height: '5%',
-                                        backgroundColor: `rgba(239, 68, 68, ${opacity})`,
-                                        borderRadius: '2px',
-                                    }}
-                                />
-                            )
-                        })
-                    ))}
+            {/* Confidence threshold slider — always at container top-right */}
+            {showConfidenceFilter && detections.length > 0 && (
+                <div className="absolute top-2 right-2 z-40 flex items-center gap-2 bg-black/60 backdrop-blur-md rounded-lg px-3 py-1.5 pointer-events-auto select-none">
+                    <span className="text-[10px] text-white/70 whitespace-nowrap">Confiança mín.</span>
+                    <input
+                        type="range" min={0} max={0.95} step={0.05} value={minConfidence}
+                        onChange={e => setMinConfidence(Number(e.target.value))}
+                        className="w-20 accent-primary cursor-pointer"
+                        title={`Mínimo: ${Math.round(minConfidence * 100)}%`}
+                    />
+                    <span className="text-[10px] font-mono text-white w-7 text-right">{Math.round(minConfidence * 100)}%</span>
                 </div>
             )}
 
-            {/* Annotations canvas */}
-            {annotations.length > 0 && size.width > 0 && (
-                <canvas
-                    ref={canvasRef}
-                    width={size.width}
-                    height={size.height}
-                    className="absolute inset-0 pointer-events-none"
-                />
-            )}
-
-            {/* Detection boxes layer */}
-            <div className="absolute inset-0">
-                <AnimatePresence>
-                    {detections.map((det) => {
-                        const colors = getColor(det.severity)
-                        const isHovered = hoveredId === det.id
-                        const isSelected = selectedId === det.id
-
-                        const top = `${det.box.ymin}%`
-                        const left = `${det.box.xmin}%`
-                        const width = `${det.box.xmax - det.box.xmin}%`
-                        const height = `${det.box.ymax - det.box.ymin}%`
-
-                        return (
-                            <motion.div
-                                key={det.id}
-                                initial={{ opacity: 0, scale: 0.8 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.8 }}
-                                transition={{ duration: 0.4, delay: 0.2 }}
-                                className={cn(
-                                    "absolute border-2 cursor-pointer transition-all duration-300 z-10",
-                                    colors.border,
-                                    colors.bg,
-                                    (isHovered || isSelected) ? "z-50 shadow-[0_0_20px_rgba(0,0,0,0.3)] ring-2 ring-white/50" : ""
-                                )}
-                                style={{ top, left, width, height }}
-                                onMouseEnter={() => setHoveredId(det.id)}
-                                onMouseLeave={() => setHoveredId(null)}
-                                onClick={(e) => handleDetectionClick(det.id, e)}
-                            >
-                                {/* corner markers */}
-                                <div className={cn("absolute -top-1 -left-1 w-2 h-2 border-t-2 border-l-2", colors.border)} />
-                                <div className={cn("absolute -top-1 -right-1 w-2 h-2 border-t-2 border-r-2", colors.border)} />
-                                <div className={cn("absolute -bottom-1 -left-1 w-2 h-2 border-b-2 border-l-2", colors.border)} />
-                                <div className={cn("absolute -bottom-1 -right-1 w-2 h-2 border-b-2 border-r-2", colors.border)} />
-                            </motion.div>
-                        )
-                    })}
-                </AnimatePresence>
-            </div>
-
-            {/* SVG Arrow lines layer */}
-            {showArrows && detections.length > 0 && (
-                <svg
-                    className="absolute inset-0 w-full h-full pointer-events-none z-20"
-                    viewBox="0 0 100 100"
-                    preserveAspectRatio="none"
+            {/*
+              ─────────────────────────────────────────────────────────────────
+              IMAGE-SPACE OVERLAY WRAPPER
+              Positioned exactly over the rendered image pixels (not the full
+              container). All detection boxes, arrows, labels and annotations
+              live inside here, so their % coords map directly to the image.
+              ─────────────────────────────────────────────────────────────────
+            */}
+            {/* Empty state: all detections filtered by confidence slider */}
+            {detections.length > 0 && deduplicatedDetections.length === 0 && imgRect.w > 0 && (
+                <div
+                    className="absolute flex items-center justify-center pointer-events-none"
+                    style={{ left: imgRect.ox, top: imgRect.oy, width: imgRect.w, height: imgRect.h }}
                 >
-                    <defs>
-                        {detections.map((det) => {
-                            const color = severityColorHex[det.severity] || '#9ca3af'
-                            return (
-                                <marker
-                                    key={`arrow-${det.id}`}
-                                    id={`arrowhead-${det.id}`}
-                                    markerWidth="3"
-                                    markerHeight="2.5"
-                                    refX="2.8"
-                                    refY="1.25"
-                                    orient="auto"
-                                >
-                                    <polygon
-                                        points="0 0, 3 1.25, 0 2.5"
-                                        fill={color}
-                                    />
-                                </marker>
-                            )
-                        })}
-                    </defs>
-                    {detections.map((det, i) => {
-                        const pos = labelPositions.get(det.id)
-                        if (!pos) return null
-
-                        const color = severityColorHex[det.severity] || '#9ca3af'
-                        const labelCenterX = pos.x + 10 // approximate label half-width in %
-                        const isAbove = pos.y < det.box.ymin
-                        const arrowStartY = isAbove ? pos.y + 3.5 : pos.y
-                        const arrowEndY = pos.arrowToY
-
-                        return (
-                            <motion.line
-                                key={`line-${det.id}`}
-                                x1={labelCenterX}
-                                y1={arrowStartY}
-                                x2={pos.arrowToX}
-                                y2={arrowEndY}
-                                stroke={color}
-                                strokeWidth="0.4"
-                                strokeDasharray="1 0.5"
-                                markerEnd={`url(#arrowhead-${det.id})`}
-                                initial={{ pathLength: 0, opacity: 0 }}
-                                animate={{ pathLength: 1, opacity: 0.9 }}
-                                transition={{ duration: 0.6, delay: 0.4 + i * 0.15 }}
-                            />
-                        )
-                    })}
-                </svg>
+                    <div className="bg-black/70 backdrop-blur-md px-4 py-3 rounded-xl text-center space-y-1 border border-white/10">
+                        <p className="text-white text-sm font-semibold">Nenhuma detecção visível</p>
+                        <p className="text-white/60 text-xs">Reduza o limiar de confiança para ver mais resultados</p>
+                    </div>
+                </div>
             )}
 
-            {/* Floating labels layer (outside boxes, with arrows) */}
-            {showArrows && (
-                <div className="absolute inset-0 pointer-events-none z-30">
+            {imgRect.w > 0 && (
+                <div
+                    className="absolute overflow-visible"
+                    style={{
+                        left: imgRect.ox,
+                        top: imgRect.oy,
+                        width: imgRect.w,
+                        height: imgRect.h,
+                        pointerEvents: 'none',
+                    }}
+                >
+                    {/* Heatmap layer */}
+                    {heatmapData && (
+                        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                            {heatmapData.map((row, y) =>
+                                row.map((value, x) => {
+                                    if (value < 0.1) return null
+                                    return (
+                                        <div
+                                            key={`${x}-${y}`}
+                                            className="absolute"
+                                            style={{
+                                                left: `${(x / 20) * 100}%`,
+                                                top: `${(y / 20) * 100}%`,
+                                                width: '5%', height: '5%',
+                                                backgroundColor: `rgba(239,68,68,${Math.min(value * 0.4, 0.7)})`,
+                                                borderRadius: 2,
+                                            }}
+                                        />
+                                    )
+                                })
+                            )}
+                        </div>
+                    )}
+
+                    {/* Annotations canvas */}
+                    {annotations.length > 0 && (
+                        <canvas
+                            ref={canvasRef}
+                            width={imgRect.w}
+                            height={imgRect.h}
+                            className="absolute inset-0 pointer-events-none"
+                        />
+                    )}
+
+                    {/* Detection boxes */}
+                    <div className="absolute inset-0 overflow-hidden">
+                        <AnimatePresence>
+                            {deduplicatedDetections.map((det) => {
+                                const sevStyle = getSeverityStyle(det.severity)
+                                const isHovered = hoveredId === det.id
+                                const isSelected = selectedId === det.id
+                                return (
+                                    <motion.div
+                                        key={det.id}
+                                        initial={{ opacity: 0, scale: 0.8 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        exit={{ opacity: 0, scale: 0.8 }}
+                                        transition={{ duration: 0.4, delay: 0.2 }}
+                                        className={cn(
+                                            "absolute border-2 cursor-pointer transition-all duration-300 z-10",
+                                            sevStyle.border, sevStyle.bg,
+                                            (isHovered || isSelected) ? "z-50 shadow-[0_0_20px_rgba(0,0,0,0.3)] ring-2 ring-white/50" : ""
+                                        )}
+                                        style={{
+                                            top: `${det.box.ymin}%`,
+                                            left: `${det.box.xmin}%`,
+                                            width: `${det.box.xmax - det.box.xmin}%`,
+                                            height: `${det.box.ymax - det.box.ymin}%`,
+                                        }}
+                                        onMouseEnter={() => setHoveredId(det.id)}
+                                        onMouseLeave={() => setHoveredId(null)}
+                                        onClick={(e) => handleDetectionClick(det.id, e)}
+                                        role="button"
+                                        tabIndex={0}
+                                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleDetectionClick(det.id, e as unknown as React.MouseEvent) } }}
+                                    >
+                                        <div className={cn("absolute -top-1 -left-1 w-2 h-2 border-t-2 border-l-2", sevStyle.border)} />
+                                        <div className={cn("absolute -top-1 -right-1 w-2 h-2 border-t-2 border-r-2", sevStyle.border)} />
+                                        <div className={cn("absolute -bottom-1 -left-1 w-2 h-2 border-b-2 border-l-2", sevStyle.border)} />
+                                        <div className={cn("absolute -bottom-1 -right-1 w-2 h-2 border-b-2 border-r-2", sevStyle.border)} />
+                                    </motion.div>
+                                )
+                            })}
+                        </AnimatePresence>
+                    </div>
+
+                    {/* SVG Arrow lines — viewBox 0 0 100 100 = image space */}
+                    {showArrows && deduplicatedDetections.length > 0 && (
+                        <svg
+                            className="absolute inset-0 w-full h-full pointer-events-none z-20"
+                            viewBox="0 0 100 100"
+                            preserveAspectRatio="none"
+                        >
+                            <defs>
+                                {deduplicatedDetections.map((det) => {
+                                    const color = getSeverityStyle(det.severity).hex
+                                    return (
+                                        <marker key={`arrow-${det.id}`} id={`arrowhead-${det.id}`}
+                                            markerWidth="3" markerHeight="2.5" refX="2.8" refY="1.25" orient="auto"
+                                        >
+                                            <polygon points="0 0, 3 1.25, 0 2.5" fill={color} />
+                                        </marker>
+                                    )
+                                })}
+                            </defs>
+                            {deduplicatedDetections.map((det, i) => {
+                                const pos = labelPositions.get(det.id)
+                                if (!pos) return null
+                                const color = getSeverityStyle(det.severity).hex
+                                const labelCx = pos.x + pos.estimatedWidth / 2
+                                const labelCy = pos.y + 2.25
+                                const arrowStartX = pos.arrowToX > labelCx ? pos.x + pos.estimatedWidth : pos.x
+                                const arrowStartY = pos.arrowToY > labelCy ? pos.y + 4.5 : pos.y
+                                return (
+                                    <motion.line
+                                        key={`line-${det.id}`}
+                                        x1={arrowStartX} y1={arrowStartY}
+                                        x2={pos.arrowToX} y2={pos.arrowToY}
+                                        stroke={color} strokeWidth="0.4" strokeDasharray="1 0.5"
+                                        markerEnd={`url(#arrowhead-${det.id})`}
+                                        initial={{ pathLength: 0, opacity: 0 }}
+                                        animate={{ pathLength: 1, opacity: 0.9 }}
+                                        transition={{ duration: 0.6, delay: 0.4 + i * 0.15 }}
+                                    />
+                                )
+                            })}
+                        </svg>
+                    )}
+
+                    {/* Floating labels — compact style */}
+                    {showArrows && (
+                        <div className="absolute inset-0 pointer-events-none z-30 overflow-hidden">
+                            <AnimatePresence>
+                                {deduplicatedDetections.map((det, i) => {
+                                    const pos = labelPositions.get(det.id)
+                                    if (!pos) return null
+                                    const sevStyle = getSeverityStyle(det.severity)
+                                    const isHovered = hoveredId === det.id
+                                    const isSelected = selectedId === det.id
+                                    return (
+                                        <motion.div
+                                            key={`label-${det.id}`}
+                                            initial={{ opacity: 0, y: 3 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0 }}
+                                            transition={{ duration: 0.35, delay: 0.3 + i * 0.08 }}
+                                            className={cn(
+                                                "absolute px-1.5 py-0.5 rounded text-[9px] font-semibold text-white uppercase tracking-normal shadow-md pointer-events-auto cursor-pointer select-none whitespace-nowrap",
+                                                sevStyle.label,
+                                                (isHovered || isSelected) ? "ring-2 ring-white/80 scale-105" : ""
+                                            )}
+                                            style={{ left: `${pos.x}%`, top: `${pos.y}%`, maxWidth: '40%' }}
+                                            onMouseEnter={() => setHoveredId(det.id)}
+                                            onMouseLeave={() => setHoveredId(null)}
+                                            onClick={(e) => handleDetectionClick(det.id, e)}
+                                            title={`${det.label} — ${Math.round(det.confidence * 100)}% — Clique para detalhes`}
+                                        >
+                                            <span className="truncate block" style={{ maxWidth: '100%' }}>
+                                                {det.label}
+                                                <span className="ml-1 opacity-75 font-normal">{Math.round(det.confidence * 100)}%</span>
+                                            </span>
+                                        </motion.div>
+                                    )
+                                })}
+                            </AnimatePresence>
+                        </div>
+                    )}
+
+                    {/* Detection Popover — overflow visible so it can extend past image bounds */}
                     <AnimatePresence>
-                        {detections.map((det, i) => {
-                            const pos = labelPositions.get(det.id)
-                            if (!pos) return null
-
-                            const colors = getColor(det.severity)
-                            const isHovered = hoveredId === det.id
-                            const isSelected = selectedId === det.id
-
-                            return (
-                                <motion.div
-                                    key={`label-${det.id}`}
-                                    initial={{ opacity: 0, y: 4 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 4 }}
-                                    transition={{ duration: 0.4, delay: 0.3 + i * 0.1 }}
-                                    className={cn(
-                                        "absolute px-2 py-1 rounded text-[10px] font-bold text-white uppercase tracking-wider whitespace-nowrap shadow-lg pointer-events-auto cursor-pointer select-none",
-                                        colors.text,
-                                        (isHovered || isSelected) ? "ring-2 ring-white/80 scale-105" : ""
-                                    )}
-                                    style={{
-                                        left: `${pos.x}%`,
-                                        top: `${pos.y}%`,
-                                    }}
-                                    onMouseEnter={() => setHoveredId(det.id)}
-                                    onMouseLeave={() => setHoveredId(null)}
-                                    onClick={(e) => handleDetectionClick(det.id, e)}
-                                    title="Clique para mais detalhes"
-                                >
-                                    {det.label}
-                                    <span className="ml-1.5 opacity-75 font-normal text-[9px]">
-                                        {Math.round(det.confidence * 100)}%
-                                    </span>
-                                    {/* Small indicator that it's clickable */}
-                                    <span className="ml-1 opacity-60 text-[8px]">ⓘ</span>
-                                </motion.div>
-                            )
-                        })}
+                        {selectedDetection && selectedLabelPos && (
+                            <motion.div
+                                key={`popover-${selectedDetection.id}`}
+                                initial={{ opacity: 0, scale: 0.92 }}
+                                animate={{ opacity: 1, scale: 1 }}
+                                exit={{ opacity: 0, scale: 0.92 }}
+                                transition={{ duration: 0.15 }}
+                                className="absolute inset-0 z-40 pointer-events-none overflow-visible"
+                            >
+                                <div className="pointer-events-auto w-full h-full overflow-visible">
+                                    <DetectionPopover
+                                        detection={selectedDetection}
+                                        anchorPercent={{ x: selectedLabelPos.x, y: selectedLabelPos.y }}
+                                        containerSize={{ width: imgRect.w, height: imgRect.h }}
+                                        onClose={closePopover}
+                                    />
+                                </div>
+                            </motion.div>
+                        )}
                     </AnimatePresence>
                 </div>
             )}
-
-            {/* Detection Popover */}
-            <AnimatePresence>
-                {selectedDetection && selectedLabelPos && size.width > 0 && (
-                    <motion.div
-                        key={`popover-${selectedDetection.id}`}
-                        initial={{ opacity: 0, scale: 0.92 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.92 }}
-                        transition={{ duration: 0.15 }}
-                        className="absolute inset-0 z-40 pointer-events-none"
-                    >
-                        <div className="pointer-events-auto w-full h-full">
-                            <DetectionPopover
-                                detection={selectedDetection}
-                                anchorPercent={{ x: selectedLabelPos.x, y: selectedLabelPos.y }}
-                                containerSize={size}
-                                onClose={closePopover}
-                            />
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </div>
     )
 }

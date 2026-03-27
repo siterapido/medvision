@@ -5,13 +5,15 @@
       "name": "Next.js Dev",
       "runtimeExecutable": "/bin/bash",
       "runtimeArgs": ["iniciar-odontogpt/dev.sh"],
-      "port": 3000
+      "port": 3000,
+      "autoPort": false
     },
     {
       "name": "Next.js Start (Production)",
       "runtimeExecutable": "/opt/homebrew/bin/node",
       "runtimeArgs": ["node_modules/.bin/next", "start"],
-      "port": 3000
+      "port": 3000,
+      "autoPort": false
     }
   ]
 }

@@ -6,6 +6,7 @@ import { VisionDetection } from '@/lib/types/vision'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { getSeverityStyle, VisionSeverity } from '@/lib/constants/vision'
 
 interface DetectionPopoverProps {
     detection: VisionDetection
@@ -14,28 +15,10 @@ interface DetectionPopoverProps {
     onClose: () => void
 }
 
-const severityConfig = {
-    critical: {
-        label: 'Crítico',
-        icon: AlertTriangle,
-        classes: 'text-red-500 bg-red-500/10 border-red-500/30',
-        bar: 'bg-red-500',
-        dot: 'bg-red-500',
-    },
-    moderate: {
-        label: 'Moderado',
-        icon: AlertCircle,
-        classes: 'text-amber-500 bg-amber-500/10 border-amber-500/30',
-        bar: 'bg-amber-500',
-        dot: 'bg-amber-500',
-    },
-    normal: {
-        label: 'Normal',
-        icon: CheckCircle,
-        classes: 'text-blue-500 bg-blue-500/10 border-blue-500/30',
-        bar: 'bg-blue-500',
-        dot: 'bg-blue-500',
-    },
+const SEVERITY_ICON: Record<VisionSeverity, React.ElementType> = {
+    critical: AlertTriangle,
+    moderate: AlertCircle,
+    normal: CheckCircle,
 }
 
 const significanceConfig = {
@@ -46,8 +29,10 @@ const significanceConfig = {
 
 export function DetectionPopover({ detection, anchorPercent, containerSize, onClose }: DetectionPopoverProps) {
     const popoverRef = useRef<HTMLDivElement>(null)
-    const severity = severityConfig[detection.severity] || severityConfig.normal
-    const SeverityIcon = severity.icon
+    const sev = detection.severity as VisionSeverity
+    const severityStyle = getSeverityStyle(sev)
+    const SeverityIcon = SEVERITY_ICON[sev] ?? CheckCircle
+    const severityClasses = severityStyle.badge
 
     // Dismiss on Escape key
     useEffect(() => {
@@ -106,10 +91,10 @@ export function DetectionPopover({ detection, anchorPercent, containerSize, onCl
             onClick={(e) => e.stopPropagation()}
         >
             {/* Header */}
-            <div className={cn('px-3 py-2.5 border-b border-border/50 flex items-start justify-between gap-2', severity.classes.split(' ').slice(1).join(' '))}>
+            <div className={cn('px-3 py-2.5 border-b border-border/50 flex items-start justify-between gap-2', severityClasses.split(' ').slice(1).join(' '))}>
                 <div className="flex items-center gap-2 min-w-0">
-                    <SeverityIcon className={cn('w-4 h-4 shrink-0', severity.classes.split(' ')[0])} />
-                    <span className={cn('text-sm font-bold truncate', severity.classes.split(' ')[0])}>
+                    <SeverityIcon className={cn('w-4 h-4 shrink-0', severityClasses.split(' ')[0])} />
+                    <span className={cn('text-sm font-bold truncate', severityClasses.split(' ')[0])}>
                         {detection.label}
                     </span>
                 </div>
@@ -126,8 +111,8 @@ export function DetectionPopover({ detection, anchorPercent, containerSize, onCl
             <div className="px-3 py-2 space-y-2.5 max-h-[320px] overflow-y-auto">
                 {/* Badges row */}
                 <div className="flex flex-wrap gap-1.5">
-                    <Badge variant="outline" className={cn('text-[10px] h-5 px-1.5', severity.classes)}>
-                        {severity.label}
+                    <Badge variant="outline" className={cn('text-[10px] h-5 px-1.5', severityClasses)}>
+                        {severityStyle.ptLabel}
                     </Badge>
                     {detection.toothNumber && (
                         <Badge variant="outline" className="text-[10px] h-5 px-1.5">
@@ -164,30 +149,32 @@ export function DetectionPopover({ detection, anchorPercent, containerSize, onCl
                     </div>
                     <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
                         <div
-                            className={cn('h-full rounded-full transition-all', severity.bar)}
+                            className={cn('h-full rounded-full transition-all', severityStyle.label)}
                             style={{ width: `${confidencePct}%` }}
                         />
                     </div>
                 </div>
 
                 {/* Description */}
-                {(detection.detailedDescription || detection.description) && (
-                    <div className="space-y-0.5">
-                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                            <Stethoscope className="w-3 h-3" /> Descrição Técnica
-                        </p>
+                <div className="space-y-0.5">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                        <Stethoscope className="w-3 h-3" /> Descrição Técnica
+                    </p>
+                    {(detection.detailedDescription || detection.description) ? (
                         <p className="text-xs text-foreground/80 leading-relaxed">
                             {detection.detailedDescription || detection.description}
                         </p>
-                    </div>
-                )}
+                    ) : (
+                        <p className="text-xs text-muted-foreground/60 italic">Sem descrição técnica adicional disponível.</p>
+                    )}
+                </div>
 
                 {/* Differential Diagnosis */}
-                {detection.differentialDiagnosis && detection.differentialDiagnosis.length > 0 && (
-                    <div className="space-y-0.5">
-                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                            <GitBranch className="w-3 h-3" /> Diagnóstico Diferencial
-                        </p>
+                <div className="space-y-0.5">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                        <GitBranch className="w-3 h-3" /> Diagnóstico Diferencial
+                    </p>
+                    {detection.differentialDiagnosis && detection.differentialDiagnosis.length > 0 ? (
                         <ul className="space-y-0.5">
                             {detection.differentialDiagnosis.map((d, i) => (
                                 <li key={i} className="text-xs text-foreground/80 flex items-start gap-1">
@@ -196,15 +183,17 @@ export function DetectionPopover({ detection, anchorPercent, containerSize, onCl
                                 </li>
                             ))}
                         </ul>
-                    </div>
-                )}
+                    ) : (
+                        <p className="text-xs text-muted-foreground/60 italic">Não informado.</p>
+                    )}
+                </div>
 
                 {/* Recommended Actions */}
-                {detection.recommendedActions && detection.recommendedActions.length > 0 && (
-                    <div className="space-y-0.5">
-                        <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
-                            <ListChecks className="w-3 h-3" /> Ações Recomendadas
-                        </p>
+                <div className="space-y-0.5">
+                    <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                        <ListChecks className="w-3 h-3" /> Ações Recomendadas
+                    </p>
+                    {detection.recommendedActions && detection.recommendedActions.length > 0 ? (
                         <ol className="space-y-0.5">
                             {detection.recommendedActions.map((a, i) => (
                                 <li key={i} className="text-xs text-foreground/80 flex items-start gap-1.5">
@@ -213,8 +202,10 @@ export function DetectionPopover({ detection, anchorPercent, containerSize, onCl
                                 </li>
                             ))}
                         </ol>
-                    </div>
-                )}
+                    ) : (
+                        <p className="text-xs text-muted-foreground/60 italic">Nenhuma ação recomendada especificada.</p>
+                    )}
+                </div>
             </div>
         </div>
     )
