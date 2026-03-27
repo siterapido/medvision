@@ -9,6 +9,9 @@ import { setContext, type OdontoContext } from './context';
 /**
  * Inicializa o contexto com dados do usuário
  * SERVER-ONLY: Uses Supabase server client with cookies
+ *
+ * Resiliente a colunas ausentes: tenta buscar os campos completos e faz
+ * fallback para os campos básicos se a migração ainda não foi aplicada.
  */
 export async function initializeContext(
   userId: string,
@@ -17,12 +20,26 @@ export async function initializeContext(
 ): Promise<OdontoContext> {
   const supabase = await createClient();
 
-  // Buscar perfil do usuário
-  const { data: profile } = await supabase
+  // Tenta buscar perfil completo (inclui colunas da migração 20260327000001)
+  let profile: Record<string, any> | null = null;
+
+  const { data: fullProfile, error: fullError } = await supabase
     .from('profiles')
-    .select('name, email, profession, cro, university, semester, specialty_interest, level')
+    .select('name, email, profession, cro, institution, university, semester, specialty_interest, academic_level')
     .eq('id', userId)
     .single();
+
+  if (!fullError) {
+    profile = fullProfile;
+  } else {
+    // Fallback: busca apenas colunas que existem desde o início
+    const { data: basicProfile } = await supabase
+      .from('profiles')
+      .select('name, email, profession, cro, institution')
+      .eq('id', userId)
+      .single();
+    profile = basicProfile;
+  }
 
   const context: OdontoContext = {
     userId,
@@ -32,10 +49,12 @@ export async function initializeContext(
       email: profile?.email || undefined,
       profession: profile?.profession || undefined,
       cro: profile?.cro || undefined,
-      university: profile?.university || undefined,
+      // university: nova coluna (migração 20260327000001), com fallback para 'institution'
+      university: profile?.university || profile?.institution || undefined,
       semester: profile?.semester || undefined,
       specialty: profile?.specialty_interest || undefined,
-      level: profile?.level || undefined,
+      // academic_level: nova coluna da migração 20260327000001
+      level: profile?.academic_level || undefined,
     },
     permissions: ['read', 'write', 'create_artifacts'],
     agentId,

@@ -30,8 +30,11 @@ export const openrouter = (modelId: string) => openrouterProvider.chat(modelId)
 
 // Modelos disponíveis via OpenRouter (versões pagas - mais estáveis)
 export const MODELS = {
-  // Chat principal - Gemini Flash (muito barato: ~$0.075/1M tokens)
-  chat: 'google/gemini-2.0-flash-001',
+  // Chat principal - Gemini 2.5 Pro (modelo avançado, alta inteligência)
+  chat: 'google/gemini-2.5-pro',
+
+  // Títulos de conversa - Gemini Flash (barato, suficiente para 3-4 palavras)
+  titler: 'google/gemini-2.0-flash-001',
 
   // Pesquisa - Perplexity Sonar
   research: 'perplexity/sonar',
@@ -63,7 +66,7 @@ export function createModel(modelId: ModelId | string) {
  * Configuração padrão para chamadas de streaming
  */
 export const DEFAULT_STREAM_CONFIG = {
-  maxDuration: 60, // 60 segundos para Edge Functions
-  temperature: 0.7,
-  maxTokens: 4000,
+  maxDuration: 120, // 120 segundos para respostas detalhadas
+  temperature: 0.65,
+  maxTokens: 8000,
 } as const

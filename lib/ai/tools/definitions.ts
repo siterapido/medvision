@@ -39,7 +39,12 @@ export const askPerplexity = tool({
           messages: [
             {
               role: "system",
-              content: "Voce e um assistente de pesquisa academica para Odonto GPT. Sua tarefa e encontrar artigos cientificos e evidencias clinicas atualizadas. Responda sempre em Portugues (Brasil). Inclua citacoes no corpo do texto. CRITICAL: No final da resposta, crie uma secao '### Fontes' com a lista numerada de URLs usadas."
+              content: `Você é um assistente de pesquisa científica odontológica sênior do Odonto GPT.
+Responda sempre em Português do Brasil com linguagem técnica e precisa.
+Ao citar estudos no texto, use o formato de hyperlink markdown integrado: [Sobrenome et al., Ano](URL_DO_ARTIGO).
+Ao final, inclua obrigatoriamente uma seção "### Referências" com a lista completa no formato:
+[N] Autores. Título do artigo. *Nome do Periódico*, Ano; Vol(N):pp. [Acesso](URL)
+Nunca liste fontes sem link clicável. Priorize estudos com alto nível de evidência (revisões sistemáticas, ECRs).`
             },
             { role: "user", content: query }
           ],
@@ -49,16 +54,16 @@ export const askPerplexity = tool({
 
       if (!response.ok) {
         const errorText = await response.text();
-        return `Error querying Perplexity (Status ${response.status}): ${errorText}`;
+        return `Erro na pesquisa científica (Status ${response.status}): ${errorText}`;
       }
 
       const data = await response.json();
       if (data.choices && data.choices.length > 0) {
         return data.choices[0].message.content;
       }
-      return "Error: No content received from Perplexity API.";
+      return "Nenhum resultado encontrado na pesquisa científica.";
     } catch (error: any) {
-      return `Error querying Perplexity: ${error.message}`;
+      return `Erro ao realizar pesquisa científica: ${error.message}`;
     }
   },
 });
@@ -114,32 +119,47 @@ export const searchPubMed = tool({
 // --- PROFILE TOOLS ---
 
 export const updateUserProfile = tool({
-  description: "Updates the user's profile with academic or professional context gathered during the conversation.",
+  description: "Updates the user's profile with academic or professional context gathered during the conversation. Call this whenever you learn the student's university, semester, specialty interest, or academic level.",
   inputSchema: z.object({
-    userId: z.string(),
-    university: z.string().optional().describe("University name"),
-    semester: z.string().optional().describe("Current semester or 'Graduado'"),
-    specialty_interest: z.string().optional().describe("Area of interest"),
-    level: z.string().optional().describe("Academic level (Graduando, Especialista)"),
+    userId: z.string().describe("The user's ID"),
+    university: z.string().optional().describe("University name where the user studies or graduated"),
+    semester: z.string().optional().describe("Current semester (e.g., '8º Semestre') or status ('Graduado', 'Especializando')"),
+    specialty_interest: z.string().optional().describe("Area of interest (e.g., 'Ortodontia', 'Implantodontia', 'Endodontia')"),
+    academic_level: z.string().optional().describe("Academic level: 'Graduando', 'Profissional', 'Especialista', 'Residente', 'Mestre', 'Doutor'"),
   }),
-  execute: async ({ userId, university, semester, specialty_interest, level }) => {
+  execute: async ({ userId, university, semester, specialty_interest, academic_level }) => {
     const supabase = createSupabaseClient();
 
     const updates: Record<string, string> = {};
     if (university) updates.university = university;
     if (semester) updates.semester = semester;
     if (specialty_interest) updates.specialty_interest = specialty_interest;
-    if (level) updates.level = level;
+    if (academic_level) updates.academic_level = academic_level;
 
-    if (Object.keys(updates).length === 0) return "Nenhuma alteracao para salvar.";
+    if (Object.keys(updates).length === 0) return "Nenhuma informação para salvar.";
 
     const { error } = await supabase
       .from("profiles")
       .update(updates)
       .eq("id", userId);
 
-    if (error) return `Erro ao atualizar perfil: ${error.message}`;
-    return `Perfil atualizado com sucesso! (Contexto salvo)`;
+    if (error) {
+      console.error("[updateUserProfile] Error:", error.message);
+      // Tenta salvar apenas os campos básicos que sempre existem
+      const safeUpdates: Record<string, string> = {};
+      if (specialty_interest) safeUpdates.specialty_interest = specialty_interest;
+      if (Object.keys(safeUpdates).length > 0) {
+        const { error: retryError } = await supabase
+          .from("profiles")
+          .update(safeUpdates)
+          .eq("id", userId);
+        if (!retryError) return "Contexto parcial salvo (execute a migração 20260327000001 para habilitar todos os campos).";
+      }
+      return `Não foi possível salvar o contexto agora (execute a migração de banco de dados). Continuarei usando as informações na conversa.`;
+    }
+
+    const saved = Object.keys(updates).join(", ");
+    return `Contexto do aluno atualizado: ${saved}.`;
   },
 });
 

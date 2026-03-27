@@ -48,6 +48,7 @@ interface MultimodalInputProps {
   stop: () => void
   onSubmit: () => void
   className?: string
+  placeholder?: string
   // Subscription info
   subscriptionInfo?: { isPro: boolean; trialDaysRemaining: number }
   // Suggestions
@@ -62,6 +63,7 @@ export function MultimodalInput({
   stop,
   onSubmit,
   className,
+  placeholder,
   subscriptionInfo,
   showSuggestions = false,
   onSuggestionClick,
@@ -326,7 +328,7 @@ export function MultimodalInput({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Envie uma mensagem..."
+            placeholder={placeholder || "Envie uma mensagem..."}
             disabled={isLoading}
             rows={1}
             className={cn(

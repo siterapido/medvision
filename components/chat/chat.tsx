@@ -7,13 +7,14 @@
  * Usa useChat do @ai-sdk/react com DefaultChatTransport.
  */
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { DefaultChatTransport } from 'ai'
 import { History } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Messages } from './messages'
 import { MultimodalInput } from './multimodal-input'
+import { AgentSwitcher, AGENT_PILLS, getAgentPill } from './agent-switcher'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { useSidebar } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
@@ -45,14 +46,18 @@ export function Chat({
   const { toggleSidebar } = useSidebar()
   const router = useRouter()
 
+  // Ref para agentId evita recriar o transport a cada troca de agente
+  const agentRef = useRef(selectedAgent)
+  useEffect(() => { agentRef.current = selectedAgent }, [selectedAgent])
+
   const transport = useMemo(
-    () => new DefaultChatTransport({ api: apiEndpoint, body: { sessionId: id } }),
+    () => new DefaultChatTransport({
+      api: apiEndpoint,
+      body: () => ({ sessionId: id, agentId: agentRef.current }),
+    }),
     [apiEndpoint, id]
   )
 
-  // Build useChat options — only include `id` when defined to prevent
-  // the hook from recreating the Chat instance on every render
-  // (useChat checks `"id" in options` and compares with the internal generated id)
   const useChatOptions = useMemo(() => {
     const opts: Record<string, unknown> = {
       messages: initialMessages,
@@ -67,10 +72,8 @@ export function Chat({
 
   const { messages, sendMessage, status, stop, regenerate, error } = useChat(useChatOptions as any)
 
-  const componentStatus = status
-
-  const handleEditMessage = (id: string, content: string) => {
-    // Placeholder
+  const handleEditMessage = (_id: string, _content: string) => {
+    // TODO: implement edit
   }
 
   const handleRegenerate = () => {
@@ -81,6 +84,17 @@ export function Chat({
     setInput(suggestion)
   }
 
+  const handleAgentChange = (agentId: string) => {
+    setSelectedAgent(agentId)
+    // Atualiza placeholder do input via agentPill
+    const pill = getAgentPill(agentId)
+    // Focus no input ao trocar agente
+    setTimeout(() => {
+      const textarea = document.querySelector('textarea')
+      if (textarea) textarea.focus()
+    }, 100)
+  }
+
   const handleSubmit = async () => {
     if (!input.trim() || status === 'submitted' || status === 'streaming') return
 
@@ -89,12 +103,13 @@ export function Chat({
     sendMessage({ text })
   }
 
+  const currentPill = getAgentPill(selectedAgent)
 
   return (
     <div className="relative flex h-full min-h-0 min-w-0 flex-col bg-background">
       {/* Header with profile and actions */}
       <div className="absolute top-0 w-full z-10 flex shrink-0 items-center justify-between px-4 py-3 bg-transparent backdrop-blur-sm">
-        {/* Left: User Profile */}
+        {/* Left: User Profile (mobile only) */}
         <div className="flex items-center gap-3 md:hidden">
           <Avatar className="h-8 w-8 transition-transform hover:scale-105">
             <AvatarImage src={userImage} alt={userName || 'User'} />
@@ -104,8 +119,17 @@ export function Chat({
           </Avatar>
         </div>
 
+        {/* Center: Agent Switcher — visível em todas as telas */}
+        <div className="absolute left-1/2 -translate-x-1/2">
+          <AgentSwitcher
+            selectedAgent={selectedAgent}
+            onAgentChange={handleAgentChange}
+            disabled={status === 'submitted' || status === 'streaming'}
+          />
+        </div>
+
         {/* Right: Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-auto">
           <Button
             variant="ghost"
             size="icon"
@@ -122,23 +146,20 @@ export function Chat({
       <div className="flex-1 overflow-hidden flex flex-col pt-14">
         <Messages
           messages={messages as any}
-          status={componentStatus}
+          status={status}
           userName={userName}
           onEditMessage={handleEditMessage}
           onRegenerate={handleRegenerate}
           agentId={selectedAgent}
+          error={error ?? null}
         />
       </div>
 
-
-
-      {/* Input container - mobile-first with space for dock */}
+      {/* Input container */}
       <div
         className={cn(
           'shrink-0 px-3 pt-2',
-          // Mobile: espaço para dock abaixo
           'pb-[calc(12px+64px+env(safe-area-inset-bottom))]',
-          // Desktop: padding normal
           'sm:pb-6 sm:px-4'
         )}
       >
@@ -146,12 +167,13 @@ export function Chat({
           <MultimodalInput
             input={input}
             setInput={setInput}
-            status={componentStatus}
+            status={status}
             stop={stop}
             onSubmit={handleSubmit}
             showSuggestions={messages.length === 0}
             onSuggestionClick={handleSuggestionClick}
             subscriptionInfo={subscriptionInfo}
+            placeholder={currentPill.placeholder}
           />
         </div>
       </div>

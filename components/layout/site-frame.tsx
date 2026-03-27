@@ -28,14 +28,18 @@ export function SiteFrame({ children }: SiteFrameProps) {
 
   return (
     <div className={cn(
-      "app-frame flex min-h-screen flex-col bg-session-landing text-white",
-      showLandingShell && "landing-scroll"
+      "app-frame flex flex-col bg-session-landing text-white",
+      showLandingShell ? "min-h-screen landing-scroll" : "h-screen overflow-hidden"
     )}>
       <div className={cn("flex flex-1", showLandingShell ? "flex-col" : "flex-row overflow-hidden")}>
-        <AppScrollArea className={cn("flex-1", showLandingShell && "landing-scroll")}>
-          {children}
-          {showLandingShell ? <LandingFooter /> : null}
-        </AppScrollArea>
+        {showLandingShell ? (
+          <AppScrollArea className="flex-1 landing-scroll">
+            {children}
+            <LandingFooter />
+          </AppScrollArea>
+        ) : (
+          children
+        )}
       </div>
     </div>
   )

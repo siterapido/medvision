@@ -1,15 +1,10 @@
 'use client'
 
 /**
- * Agent Switcher - Perplexity-style Pills
- *
- * Grupo de pills/chips que permitem trocar entre agentes.
- * Visual inspirado nos "modes" da Perplexity (Search, Pro, Focus).
+ * Agent Switcher - Pills com todos os agentes disponíveis
  */
 
-import {
-  Sparkles
-} from "lucide-react"
+import { Sparkles, FlaskConical, GraduationCap, FileText, ScanEye } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { getAgentUI } from '@/lib/ai/agents/ui-config'
 
@@ -25,11 +20,43 @@ export interface AgentPill {
 export const AGENT_PILLS: AgentPill[] = [
   {
     id: 'odonto-gpt',
-    icon: <Sparkles className="w-4 h-4" />,
+    icon: <Sparkles className="w-3.5 h-3.5" />,
     shortName: 'GPT',
     fullName: 'Odonto GPT',
     placeholder: 'Pergunte sobre odontologia...',
     color: '#00A3FF',
+  },
+  {
+    id: 'odonto-research',
+    icon: <FlaskConical className="w-3.5 h-3.5" />,
+    shortName: 'Pesquisa',
+    fullName: 'Odonto Research',
+    placeholder: 'Pesquise artigos e evidências científicas...',
+    color: '#BF5AF2',
+  },
+  {
+    id: 'odonto-practice',
+    icon: <GraduationCap className="w-3.5 h-3.5" />,
+    shortName: 'Casos',
+    fullName: 'Odonto Practice',
+    placeholder: 'Gere casos clínicos e simulados...',
+    color: '#FF9F0A',
+  },
+  {
+    id: 'odonto-summary',
+    icon: <FileText className="w-3.5 h-3.5" />,
+    shortName: 'Resumo',
+    fullName: 'Odonto Summary',
+    placeholder: 'Crie resumos, flashcards e mapas mentais...',
+    color: '#30D158',
+  },
+  {
+    id: 'odonto-vision',
+    icon: <ScanEye className="w-3.5 h-3.5" />,
+    shortName: 'Visão',
+    fullName: 'Odonto Vision',
+    placeholder: 'Envie uma imagem radiográfica para análise...',
+    color: '#FF6B6B',
   },
 ]
 
@@ -53,12 +80,12 @@ export function AgentSwitcher({
       className={cn(
         'flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800/50 p-1 rounded-2xl',
         'border border-zinc-100 dark:border-zinc-800/50',
+        'overflow-x-auto scrollbar-hide',
         className
       )}
     >
       {agents.map((agent) => {
         const isSelected = selectedAgent === agent.id
-
         const agentUIConfig = getAgentUI(agent.id)
 
         return (
@@ -68,7 +95,7 @@ export function AgentSwitcher({
             onClick={() => onAgentChange(agent.id)}
             disabled={disabled}
             className={cn(
-              'relative flex items-center justify-center h-7 w-7 rounded-xl',
+              'relative flex items-center gap-1.5 px-2.5 h-7 rounded-xl shrink-0',
               'transition-all duration-300',
               'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               'disabled:pointer-events-none disabled:opacity-50',
@@ -85,6 +112,12 @@ export function AgentSwitcher({
               isSelected ? 'scale-100' : 'scale-90'
             )}>
               {agent.icon}
+            </span>
+            <span className={cn(
+              'text-[11px] font-semibold transition-all duration-300 hidden sm:block',
+              isSelected ? 'opacity-100' : 'opacity-70'
+            )}>
+              {agent.shortName}
             </span>
           </button>
         )

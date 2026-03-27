@@ -8,18 +8,20 @@
 
 import type { UIMessage } from 'ai'
 import { useRef, useEffect, useState, useCallback } from 'react'
-import { ArrowDown } from 'lucide-react'
+import { ArrowDown, AlertTriangle, RefreshCw } from 'lucide-react'
 import { Message, ThinkingMessage } from './message'
 import { Greeting } from './greeting'
 import { cn } from '@/lib/utils'
+import { Button } from '@/components/ui/button'
 
 interface MessagesProps {
   messages: UIMessage[]
-  status: 'ready' | 'submitted' | 'streaming' | 'error' // streaming kept for compatibility
+  status: 'ready' | 'submitted' | 'streaming' | 'error'
   userName?: string
   onEditMessage?: (id: string, content: string) => void
   onRegenerate?: () => void
   agentId?: string
+  error?: Error | null
 }
 
 export function Messages({
@@ -29,6 +31,7 @@ export function Messages({
   onEditMessage,
   onRegenerate,
   agentId = 'odonto-gpt',
+  error,
 }: MessagesProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const endRef = useRef<HTMLDivElement>(null)
@@ -83,6 +86,30 @@ export function Messages({
           ))}
 
           {status === 'submitted' && <ThinkingMessage />}
+
+          {/* Error banner */}
+          {status === 'error' && (
+            <div className="flex items-start gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+              <AlertTriangle className="mt-0.5 size-4 shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="font-medium">Ocorreu um erro ao gerar a resposta</p>
+                {error?.message && (
+                  <p className="mt-0.5 text-xs text-destructive/70 break-words">{error.message}</p>
+                )}
+              </div>
+              {onRegenerate && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-7 shrink-0 gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={onRegenerate}
+                >
+                  <RefreshCw className="size-3" />
+                  Tentar novamente
+                </Button>
+              )}
+            </div>
+          )}
 
           {/* Extra space for input + dock on mobile */}
           <div className="min-h-32 sm:min-h-12 shrink-0" ref={endRef} />

@@ -1,10 +1,11 @@
-import { streamText, generateText, convertToModelMessages } from 'ai'
-import { openrouter } from '@/lib/ai/openrouter'
+import { streamText, generateText, convertToModelMessages, stepCountIs } from 'ai'
+import { openrouter, MODELS } from '@/lib/ai/openrouter'
 import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
 import { createClient, getUser } from '@/lib/supabase/server'
 import { createSession, saveMessage, deleteChat, updateChatTitle } from '@/lib/db/simple-queries'
+import { initializeContext } from '@/lib/ai/artifacts/context.server'
 
-export const maxDuration = 60
+export const maxDuration = 120
 
 export async function POST(req: Request) {
   try {
@@ -30,21 +31,43 @@ export async function POST(req: Request) {
       await saveMessage(currentSessionId, 'user', text)
     }
 
-    // 3. Chamar AI com streaming
+    // 3. Inicializar contexto e injetar perfil do aluno no system prompt
     const agentConfig = AGENT_CONFIGS[agentId] || AGENT_CONFIGS['odonto-gpt']
+
+    const odontoCtx = await initializeContext(user.id, currentSessionId || '', agentId)
+    const profile = odontoCtx.userProfile
+
+    const profileLines: string[] = []
+    if (profile.name) profileLines.push(`- Nome: ${profile.name}`)
+    if (profile.university) profileLines.push(`- Universidade: ${profile.university}`)
+    if (profile.semester) profileLines.push(`- Semestre: ${profile.semester}`)
+    if (profile.specialty) profileLines.push(`- Área de interesse: ${profile.specialty}`)
+    if (profile.level) profileLines.push(`- Nível acadêmico: ${profile.level}`)
+
+    const profileSection = profileLines.length > 0
+      ? `\n\n---\n## Contexto do Aluno (use para personalizar respostas)\n${profileLines.join('\n')}\n---`
+      : ''
+
+    const systemWithProfile = agentConfig.system + profileSection
+
+    // 4. Chamar AI com streaming, ferramentas e perfil injetado
     const modelMessages = await convertToModelMessages(uiMessages)
 
     const result = streamText({
-      model: openrouter(agentConfig.model || 'google/gemini-2.0-flash-001'),
-      system: agentConfig.system,
+      model: openrouter(agentConfig.model || MODELS.chat),
+      system: systemWithProfile,
       messages: modelMessages,
-      temperature: 0.4,
+      tools: agentConfig.tools,
+      stopWhen: stepCountIs(5),
+      temperature: 0.65,
+      maxOutputTokens: 8000,
+      timeout: 120000,
       async onFinish({ text }) {
-        // 4. Salvar resposta do assistente
+        // 5. Salvar resposta do assistente
         if (currentSessionId && text) {
           await saveMessage(currentSessionId, 'assistant', text)
 
-          // 5. Gerar título se for nova conversa
+          // 6. Gerar título se for nova conversa (usa modelo barato)
           if (!sessionId) {
             const rawUserText = lastUserMsg?.parts?.[0]?.text ?? lastUserMsg?.content ?? ''
             const userText = (typeof rawUserText === 'string' ? rawUserText : '').substring(0, 1000)
@@ -52,7 +75,7 @@ export async function POST(req: Request) {
             if (userText) {
               try {
                 const { text: title } = await generateText({
-                  model: openrouter('google/gemini-2.0-flash-001'),
+                  model: openrouter(MODELS.titler),
                   prompt: `Gere um título muito curto (3 a 4 palavras) em português para esta conversa baseada na mensagem: "${userText}". Retorne apenas o título, sem aspas.`,
                 })
                 if (title) {
