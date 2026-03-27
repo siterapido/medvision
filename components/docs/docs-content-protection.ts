@@ -2,10 +2,12 @@
 
 export function initDocsProtection() {
   // Desabilita seleção de texto
-  document.documentElement.style.userSelect = 'none'
-  document.documentElement.style.webkitUserSelect = 'none'
-  document.documentElement.style.msUserSelect = 'none'
-  document.documentElement.style.mozUserSelect = 'none'
+  const el = document.documentElement
+  const style = el.style as any
+  style.userSelect = 'none'
+  style.webkitUserSelect = 'none'
+  style.msUserSelect = 'none'
+  style.mozUserSelect = 'none'
 
   // Desabilita drag and drop
   document.addEventListener('dragstart', (e) => e.preventDefault(), false)
@@ -77,8 +79,8 @@ export function initDocsProtection() {
   }, false)
 
   // Desabilita print via @media
-  const style = document.createElement('style')
-  style.innerHTML = `
+  const styleElement = document.createElement('style')
+  styleElement.textContent = `
     @media print {
       body { display: none !important; }
     }
@@ -91,7 +93,7 @@ export function initDocsProtection() {
       -webkit-touch-callout: none !important;
     }
   `
-  document.head.appendChild(style)
+  document.head.appendChild(styleElement)
 
   // Desabilita context menu (clique direito)
   document.addEventListener('contextmenu', (e) => {
