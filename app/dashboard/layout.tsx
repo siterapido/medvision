@@ -5,6 +5,7 @@ import { createClient, getUser } from "@/lib/supabase/server"
 import { UnifiedSidebar } from "@/components/sidebar"
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar"
 import { DashboardShell } from "@/components/layout/dashboard-shell"
+import { DashboardUserProvider } from "@/lib/contexts/dashboard-user-context"
 
 export default async function NewDashboardLayout({
   children,
@@ -43,13 +44,15 @@ export default async function NewDashboardLayout({
   }
 
   return (
-    <SidebarProvider defaultOpen={defaultOpen}>
-      <UnifiedSidebar user={userData} />
-      <SidebarInset>
-        <DashboardShell>
-          {children}
-        </DashboardShell>
-      </SidebarInset>
-    </SidebarProvider>
+    <DashboardUserProvider user={userData}>
+      <SidebarProvider defaultOpen={defaultOpen}>
+        <UnifiedSidebar user={userData} />
+        <SidebarInset>
+          <DashboardShell>
+            {children}
+          </DashboardShell>
+        </SidebarInset>
+      </SidebarProvider>
+    </DashboardUserProvider>
   )
 }

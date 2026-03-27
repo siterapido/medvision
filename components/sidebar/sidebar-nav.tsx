@@ -16,9 +16,10 @@ import { cn } from '@/lib/utils'
 
 interface SidebarNavProps {
   role?: string | null
+  planType?: string | null
 }
 
-export function SidebarNav({ role }: SidebarNavProps) {
+export function SidebarNav({ role, planType }: SidebarNavProps) {
   const pathname = usePathname()
   const { state } = useSidebar()
   const isCollapsed = state === 'collapsed'
@@ -31,8 +32,11 @@ export function SidebarNav({ role }: SidebarNavProps) {
     return false
   }
 
+  const isTrialUser = planType === 'free' || !planType
+
   // Filter out Chat from main nav since we have a dedicated CTA
   const mainNavItems = NAV_ITEMS.filter(item => item.href !== '/dashboard/chat')
+    .filter(item => !(item.hiddenForTrial && isTrialUser))
 
   // Short labels for collapsed state (Perplexity-style)
   const getShortLabel = (label: string) => {

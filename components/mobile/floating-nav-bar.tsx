@@ -16,10 +16,11 @@ import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSidebar } from '@/components/ui/sidebar'
+import { useDashboardUser } from '@/lib/contexts/dashboard-user-context'
 
-const navItems = [
+const allNavItems = [
   { icon: Home, href: '/dashboard', label: 'Home', exact: true },
-  { icon: BookOpen, href: '/dashboard/biblioteca', label: 'Lib' },
+  { icon: BookOpen, href: '/dashboard/biblioteca', label: 'Lib', hiddenForTrial: true },
   { icon: MessageCircle, href: '/dashboard/chat', label: 'Chat', isCenter: true },
   { icon: Eye, href: '/dashboard/odonto-vision', label: 'Vision' },
 ]
@@ -27,6 +28,9 @@ const navItems = [
 export function FloatingNavBar() {
   const pathname = usePathname()
   const { toggleSidebar } = useSidebar()
+  const { isTrialUser } = useDashboardUser()
+
+  const navItems = allNavItems.filter(item => !(item.hiddenForTrial && isTrialUser))
 
   const isActive = (href: string, exact?: boolean) => {
     if (exact) return pathname === href || pathname === href + '/'

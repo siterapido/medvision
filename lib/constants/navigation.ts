@@ -22,6 +22,7 @@ export interface NavItem {
     shortcut?: string
     badgeText?: string
     disabled?: boolean
+    hiddenForTrial?: boolean
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -32,20 +33,23 @@ export const NAV_ITEMS: NavItem[] = [
         label: 'Biblioteca',
         icon: BookOpen,
         badgeText: 'Em breve',
-        disabled: true
+        disabled: true,
+        hiddenForTrial: true,
     },
     {
         href: '/dashboard/odontoflix',
         label: 'OdontoFlix',
         icon: MonitorPlay,
         badgeText: 'Em breve',
-        disabled: true
+        disabled: true,
+        hiddenForTrial: true,
     },
     { href: '/dashboard/odonto-vision', label: 'Odonto Vision', icon: Eye },
     {
         href: '/dashboard/certificados',
         label: 'Certificados',
-        icon: FileBadge
+        icon: FileBadge,
+        hiddenForTrial: true,
     },
 ]
 

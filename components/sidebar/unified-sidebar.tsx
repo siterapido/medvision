@@ -58,7 +58,7 @@ export function UnifiedSidebar({ user }: UnifiedSidebarProps) {
 
       <SidebarContent className="sidebar-scrollbar">
         {/* Navigation Section */}
-        <SidebarNav />
+        <SidebarNav role={user?.role} planType={user?.plan_type} />
         {/* History Section */}
         <SidebarHistory />
       </SidebarContent>
