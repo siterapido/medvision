@@ -386,16 +386,18 @@ export default function DocumentacaoPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {[
                     {
-                      icon: MessageSquare,
-                      name: 'Chat com IA',
+                      icon: Sparkles,
+                      name: 'Odonto GPT Chat',
                       desc: 'Assistente clínico com streaming bidirecional via Vercel AI SDK. Suporte a upload de imagens e documentos.',
                       status: 'Produção',
+                      doc: '/docs/odonto-gpt-chat.md',
                     },
                     {
                       icon: Eye,
-                      name: 'OdontoVision',
+                      name: 'Odonto Vision',
                       desc: 'Análise visual por IA de radiografias e imagens clínicas. Upload direto no chat ou módulo dedicado.',
                       status: 'Produção',
+                      doc: '/docs/odonto-vision.md',
                     },
                     {
                       icon: Search,
@@ -433,7 +435,7 @@ export default function DocumentacaoPage() {
                       desc: '8 estágios comportamentais: cadastro → ativo → trial → convertido → risco_churn → perdido.',
                       status: 'Produção',
                     },
-                  ].map(({ icon: Icon, name, desc, status }) => (
+                  ].map(({ icon: Icon, name, desc, status, doc }) => (
                     <div key={name} className="rounded-xl border border-border/30 bg-muted/5 p-4 space-y-2 hover:bg-muted/10 transition-colors">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
@@ -445,6 +447,16 @@ export default function DocumentacaoPage() {
                         <Badge variant="green">{status}</Badge>
                       </div>
                       <p className="text-xs text-muted-foreground leading-relaxed">{desc}</p>
+                      {doc && (
+                        <a
+                          href={doc}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline mt-1"
+                        >
+                          Ver documentação →
+                        </a>
+                      )}
                     </div>
                   ))}
                 </div>
