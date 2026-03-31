@@ -9,6 +9,13 @@
       "autoPort": false
     },
     {
+      "name": "Next.js Dev (port 3001)",
+      "runtimeExecutable": "/bin/bash",
+      "runtimeArgs": ["iniciar-odontogpt/dev-3001.sh"],
+      "port": 3001,
+      "autoPort": false
+    },
+    {
       "name": "Next.js Start (Production)",
       "runtimeExecutable": "/opt/homebrew/bin/node",
       "runtimeArgs": ["node_modules/.bin/next", "start"],

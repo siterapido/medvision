@@ -18,7 +18,7 @@ export function MobileNav({ user }: { user: any }) {
     // All items we want in the top bar horizontal scroll
     // Prioritize main ones, but maybe we can fit more since they are just icons
     const topBarItems = [
-        ...NAV_ITEMS.filter(i => ['Início', 'Chat', 'Odonto Vision', 'Biblioteca'].includes(i.label)),
+        ...NAV_ITEMS.filter(i => ['Início', 'Chat', 'Radiografia', 'Biblioteca'].includes(i.label)),
         // We can add others if needed, but let's keep the core 4 + Menu for the rest
     ]
 

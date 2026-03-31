@@ -44,7 +44,7 @@ export const NAV_ITEMS: NavItem[] = [
         disabled: true,
         hiddenForTrial: true,
     },
-    { href: '/dashboard/odonto-vision', label: 'Odonto Vision', icon: Eye },
+    { href: '/dashboard/odonto-vision', label: 'Radiografia', icon: Eye },
     {
         href: '/dashboard/certificados',
         label: 'Certificados',

@@ -69,9 +69,16 @@ export interface VisionAnalysisResult {
     report?: VisionReport;
     precision?: number; // 0-100 overall precision score
     refinements?: VisionRefinement[];
+    modelId?: string;   // which model produced this result
+    modelName?: string; // display name of the model
     // Legacy fields for compatibility if needed (frontend uses report now)
     clinicalAssessment?: string;
     recommendations?: string[];
+}
+
+export interface VisionComparisonResult {
+    modelA: { modelId: string; modelName: string; result: VisionAnalysisResult; precision: number | null }
+    modelB: { modelId: string; modelName: string; result: VisionAnalysisResult; precision: number | null }
 }
 
 // Annotation types for user markup

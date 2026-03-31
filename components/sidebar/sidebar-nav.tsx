@@ -44,7 +44,7 @@ export function SidebarNav({ role, planType }: SidebarNavProps) {
       'Início': 'Início',
       'Biblioteca': 'Biblioteca',
       'OdontoFlix': 'Flix',
-      'Odonto Vision': 'Vision',
+      'Radiografia': 'Radiografia',
       'Certificados': 'Certific.',
       'Histórico': 'Histórico',
       'Visão Geral': 'Admin',

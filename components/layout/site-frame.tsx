@@ -13,9 +13,12 @@ interface SiteFrameProps {
   children: React.ReactNode
 }
 
+const AUTH_ROUTES = ["/login", "/register", "/forgot-password", "/reset-password"]
+
 export function SiteFrame({ children }: SiteFrameProps) {
   const pathname = usePathname() ?? "/"
   const showLandingShell = pathname === "/"
+  const isAuthRoute = AUTH_ROUTES.some(r => pathname.startsWith(r))
   const isChatOrArtifactRoute =
     pathname === "/dashboard/chat" ||
     pathname.includes("/dashboard/pesquisas") ||
@@ -25,6 +28,15 @@ export function SiteFrame({ children }: SiteFrameProps) {
     pathname.includes("/dashboard/mindmaps") ||
     pathname.includes("/dashboard/escritor") ||
     pathname.startsWith("/admin")
+
+  // Auth routes: full height, scrollable, no sidebar constraints
+  if (isAuthRoute) {
+    return (
+      <div className="app-frame flex flex-col bg-session-landing text-white min-h-screen overflow-y-auto">
+        {children}
+      </div>
+    )
+  }
 
   return (
     <div className={cn(

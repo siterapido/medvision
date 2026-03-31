@@ -5,7 +5,7 @@ import { Brain, Sparkles, Shield, Zap } from "lucide-react"
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-hidden bg-[#080D19]">
+    <div className="min-h-screen flex items-center justify-center relative overflow-x-hidden bg-[#080D19]">
       {/* ATMOSPHERIC BACKGROUND SYSTEM - Same as Landing Page */}
       <div className="fixed inset-0 z-0 pointer-events-none">
         {/* Base: Pure deep dark with subtle warm undertone */}
@@ -101,11 +101,11 @@ export default function LoginPage() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 w-full max-w-md px-4 py-8">
+      <div className="relative z-10 w-full max-w-md px-4 py-6 sm:py-8">
         {/* Logo */}
-        <div className="text-center mb-8">
+        <div className="text-center mb-6 sm:mb-8">
           <Link href="/" className="inline-block">
-            <Logo variant="white" width={160} height={35} />
+            <Logo variant="white" width={140} height={30} />
           </Link>
         </div>
 
@@ -114,14 +114,14 @@ export default function LoginPage() {
           {/* Glow effect behind card */}
           <div className="absolute -inset-1 bg-gradient-to-r from-[#0891b2]/20 to-[#8b5cf6]/20 rounded-3xl blur-xl opacity-50" />
 
-          <div className="relative bg-[#0F172A]/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-8 shadow-2xl">
+          <div className="relative bg-[#0F172A]/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 sm:p-8 shadow-2xl">
             {/* Header */}
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22d3ee]/10 border border-[#22d3ee]/30 mb-4">
+            <div className="text-center mb-6 sm:mb-8">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22d3ee]/10 border border-[#22d3ee]/30 mb-3 sm:mb-4">
                 <Sparkles className="w-4 h-4 text-[#22d3ee]" />
                 <span className="text-[#22d3ee] text-xs font-semibold">Plataforma de IA</span>
               </div>
-              <h1 className="text-2xl font-bold text-white mb-2">Bem-vindo de volta</h1>
+              <h1 className="text-xl sm:text-2xl font-bold text-white mb-1.5 sm:mb-2">Bem-vindo de volta</h1>
               <p className="text-slate-400 text-sm">Entre para acessar sua conta</p>
             </div>
 
@@ -129,7 +129,7 @@ export default function LoginPage() {
             <LoginForm />
 
             {/* Divider */}
-            <div className="mt-8 pt-6 border-t border-slate-800">
+            <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-slate-800">
               <p className="text-center text-sm text-slate-400">
                 Ainda nao tem uma conta?{" "}
                 <Link
@@ -157,7 +157,7 @@ export default function LoginPage() {
         </div>
 
         {/* Trust indicators */}
-        <div className="mt-8 flex items-center justify-center gap-6 text-xs text-slate-600">
+        <div className="mt-6 sm:mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs text-slate-600">
           <div className="flex items-center gap-1.5">
             <Shield className="w-3.5 h-3.5" />
             <span>Dados seguros</span>
