@@ -11,6 +11,7 @@ import { generateText } from 'ai'
 import { openrouter } from '@/lib/ai/openrouter'
 import { perplexity, PERPLEXITY_RESEARCH_MODEL, buildResearchPrompt } from '@/lib/ai/perplexity'
 import { createClient as createServerClient } from '@/lib/supabase/server'
+import { hasEnoughCredits, deductCredits } from '@/lib/credits/service'
 import { createClient } from '@supabase/supabase-js'
 import { nanoid } from 'nanoid'
 
@@ -381,6 +382,18 @@ export async function POST(req: Request) {
 
     console.log(`[Artifact Generate] Type: ${type}, User: ${user.id}`)
 
+    // 3b. Verificar créditos antes de gerar
+    const creditCheck = await hasEnoughCredits(user.id, GENERATION_MODEL)
+    if (!creditCheck.ok) {
+      return Response.json({
+        error: 'credits_exhausted',
+        message: `Créditos insuficientes para gerar artefato. Saldo: ${creditCheck.balance}, necessário: ${creditCheck.cost}. Limite mensal: ${creditCheck.monthly_limit} créditos.`,
+        balance: creditCheck.balance,
+        cost: creditCheck.cost,
+        monthly_limit: creditCheck.monthly_limit,
+      }, { status: 402 })
+    }
+
     // 4. Generate content with LLM
     let systemPrompt: string
     let userPrompt: string
@@ -643,6 +656,9 @@ Retorne um JSON valido conforme o formato especificado.`
     }
 
     console.log(`[Artifact Generate] Saved artifact ${artifactId} for user ${user.id}`)
+
+    // Debitar créditos após geração bem-sucedida
+    await deductCredits(user.id, GENERATION_MODEL, 'artifact', `Artefato: ${type}`)
 
     // 7. Return success with artifact info
     return Response.json({

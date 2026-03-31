@@ -19,6 +19,7 @@ import {
 import { Logo } from "@/components/logo"
 import { UserProfile } from './user-profile'
 import { ThemeToggle } from './theme-toggle'
+import { CreditsBadge } from './credits-badge'
 
 // Context for sidebar state
 const SidebarContext = createContext<{
@@ -195,6 +196,12 @@ export function Sidebar({ user }: SidebarProps) {
           <div className="py-1">
             <ThemeToggle collapsed={isCollapsed} />
           </div>
+
+          {!isCollapsed && (
+            <div className="px-1 pb-1">
+              <CreditsBadge className="w-full justify-center" />
+            </div>
+          )}
 
           <div className="flex items-center gap-2 justify-between pt-1">
             <UserProfile user={user} collapsed={isCollapsed} />

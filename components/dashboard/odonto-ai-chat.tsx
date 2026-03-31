@@ -121,7 +121,15 @@ export function OdontoAIChat({
     transport: chatTransport,
     onError: (error) => {
       console.error("[OdontoAIChat] Error:", error)
-      toast.error("Erro no chat", { description: error.message })
+      // Verifica se é erro de créditos esgotados
+      const msg = error.message ?? ''
+      if (msg.includes('credits_exhausted') || msg.includes('402')) {
+        toast.error("Créditos esgotados", {
+          description: "Você atingiu o limite mensal de créditos do seu plano. Faça upgrade para continuar usando.",
+        })
+      } else {
+        toast.error("Erro no chat", { description: "Não foi possível gerar a resposta. Tente novamente." })
+      }
     },
     onFinish: (result) => {
       console.log("[OdontoAIChat] Message complete:", result.message?.id)

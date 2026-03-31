@@ -4,6 +4,7 @@ import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
 import { createClient, getUser } from '@/lib/supabase/server'
 import { createSession, saveMessage, deleteChat, updateChatTitle } from '@/lib/db/simple-queries'
 import { initializeContext } from '@/lib/ai/artifacts/context.server'
+import { hasEnoughCredits, deductCredits } from '@/lib/credits/service'
 
 export const maxDuration = 120
 
@@ -14,6 +15,23 @@ export async function POST(req: Request) {
 
     const { messages: uiMessages, agentId = 'odonto-gpt', sessionId } = await req.json()
     let currentSessionId = sessionId
+
+    // Verificar créditos antes de processar
+    const agentConfigCheck = AGENT_CONFIGS[agentId] || AGENT_CONFIGS['odonto-gpt']
+    const modelToUse = agentConfigCheck.model || MODELS.chat
+    const creditCheck = await hasEnoughCredits(user.id, modelToUse)
+    if (!creditCheck.ok) {
+      return Response.json(
+        {
+          error: 'credits_exhausted',
+          message: `Créditos insuficientes. Saldo: ${creditCheck.balance}, necessário: ${creditCheck.cost}. Seu limite mensal é de ${creditCheck.monthly_limit} créditos.`,
+          balance: creditCheck.balance,
+          cost: creditCheck.cost,
+          monthly_limit: creditCheck.monthly_limit,
+        },
+        { status: 402 }
+      )
+    }
 
     // 1. Criar sessão se necessário
     if (!currentSessionId) {
@@ -63,11 +81,14 @@ export async function POST(req: Request) {
       maxOutputTokens: 8000,
       timeout: 120000,
       async onFinish({ text }) {
-        // 5. Salvar resposta do assistente
+        // 5. Debitar créditos pelo uso do modelo
+        await deductCredits(user.id, agentConfig.model || MODELS.chat, 'chat')
+
+        // 6. Salvar resposta do assistente
         if (currentSessionId && text) {
           await saveMessage(currentSessionId, 'assistant', text)
 
-          // 6. Gerar título se for nova conversa (usa modelo barato)
+          // 7. Gerar título se for nova conversa (usa modelo barato)
           if (!sessionId) {
             const rawUserText = lastUserMsg?.parts?.[0]?.text ?? lastUserMsg?.content ?? ''
             const userText = (typeof rawUserText === 'string' ? rawUserText : '').substring(0, 1000)

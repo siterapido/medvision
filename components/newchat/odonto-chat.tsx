@@ -236,7 +236,16 @@ export function OdontoChat({ chatId, initialMessages, className }: OdontoChatPro
         {error && (
           <div className="flex justify-center">
             <div className="bg-destructive/10 text-destructive rounded-lg p-4 max-w-md text-center">
-              <p className="text-sm">Ocorreu um erro. Tente novamente.</p>
+              <p className="text-sm font-medium">
+                {(error.message ?? '').includes('credits_exhausted') || (error.message ?? '').includes('402')
+                  ? '✦ Créditos esgotados'
+                  : 'Não foi possível gerar a resposta'}
+              </p>
+              <p className="text-xs mt-1 opacity-80">
+                {(error.message ?? '').includes('credits_exhausted') || (error.message ?? '').includes('402')
+                  ? 'Você atingiu o limite mensal do seu plano. Faça upgrade para continuar.'
+                  : 'Ocorreu um erro inesperado. Tente novamente.'}
+              </p>
             </div>
           </div>
         )}

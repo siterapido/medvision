@@ -1,8 +1,9 @@
 
-import { openrouter, MODELS } from '@/lib/ai/openrouter'
+import { openrouter, MODELS, VISION_MODEL_IDS } from '@/lib/ai/openrouter'
 import { generateText } from 'ai'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
+import { hasEnoughCredits, deductCredits } from '@/lib/credits/service'
 
 export const maxDuration = 120 // 120 seconds — allow larger images
 
@@ -352,7 +353,7 @@ const JSON_SCHEMA_EXAMPLE = `{
   }
 }`
 
-async function callVisionAI(imageData: string, clinicalContext?: string): Promise<z.infer<typeof VisionSchema>> {
+async function callVisionAI(imageData: string, clinicalContext?: string, models: readonly string[] = VISION_MODELS): Promise<z.infer<typeof VisionSchema>> {
     const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
 
     const generateWithModel = async (modelId: string): Promise<z.infer<typeof VisionSchema>> => {
@@ -391,13 +392,14 @@ NÃO inclua markdown, code blocks, ou texto fora do JSON.`
         return validated
     }
 
-    return callWithFallback(VISION_MODELS, generateWithModel)
+    return callWithFallback(models, generateWithModel)
 }
 
 async function callVisionRefinement(
     regionImageData: string,
     originalAnalysisSummary: string,
-    clinicalContext?: string
+    clinicalContext?: string,
+    models: readonly string[] = VISION_MODELS
 ): Promise<z.infer<typeof VisionSchema>> {
     const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
 
@@ -447,7 +449,7 @@ NÃO inclua markdown, code blocks, ou texto fora do JSON.`
         return validated
     }
 
-    return callWithFallback(VISION_MODELS, generateWithModel)
+    return callWithFallback(models, generateWithModel)
 }
 
 // ============================================================
@@ -550,7 +552,8 @@ const DETAILED_ANALYSIS_SCHEMA = `{
 // Estágio 1: Detecção rápida
 async function callVisionDetection(
     imageData: string,
-    clinicalContext?: string
+    clinicalContext?: string,
+    models: readonly string[] = VISION_MODELS
 ): Promise<z.infer<typeof QuickDetectionSchema>> {
     const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
 
@@ -588,14 +591,15 @@ ${QUICK_DETECTION_SCHEMA}`
         return validated
     }
 
-    return callWithFallback(VISION_MODELS, generateWithModel)
+    return callWithFallback(models, generateWithModel)
 }
 
 // Estágio 2: Análise detalhada
 async function callVisionDetailedAnalysis(
     imageData: string,
     quickDetections: z.infer<typeof QuickDetectionSchema>['quickDetections'],
-    clinicalContext?: string
+    clinicalContext?: string,
+    models: readonly string[] = VISION_MODELS
 ): Promise<z.infer<typeof DetailedDetectionSchema>> {
     const detectionsSummary = quickDetections.map((d, i) =>
         `${i}: ${d.label} (${d.toothNumber || 'N/A'}) - ${d.severity} - confiança ${Math.round(d.confidence * 100)}%`
@@ -642,16 +646,17 @@ ${DETAILED_ANALYSIS_SCHEMA}`
         return validated
     }
 
-    return callWithFallback(VISION_MODELS, generateWithModel)
+    return callWithFallback(models, generateWithModel)
 }
 
 // Função principal de análise em 2 estágios
 async function callTwoStageVisionAnalysis(
     imageData: string,
-    clinicalContext?: string
+    clinicalContext?: string,
+    models: readonly string[] = VISION_MODELS
 ): Promise<z.infer<typeof VisionSchema>> {
     console.log('=== ESTÁGIO 1: Detecção Rápida ===')
-    const quickResult = await callVisionDetection(imageData, clinicalContext)
+    const quickResult = await callVisionDetection(imageData, clinicalContext, models)
     console.log(`Estágio 1 concluído: ${quickResult.quickDetections.length} detecções encontradas`)
 
     if (quickResult.quickDetections.length === 0) {
@@ -671,7 +676,7 @@ async function callTwoStageVisionAnalysis(
     console.log('=== ESTÁGIO 2: Análise Detalhada ===')
     let detailedAnalysis: z.infer<typeof DetailedDetectionSchema>['detailedAnalysis'] = []
     try {
-        const detailedResult = await callVisionDetailedAnalysis(imageData, quickResult.quickDetections, clinicalContext)
+        const detailedResult = await callVisionDetailedAnalysis(imageData, quickResult.quickDetections, clinicalContext, models)
         detailedAnalysis = detailedResult.detailedAnalysis
         console.log(`Estágio 2 concluído: ${detailedAnalysis.length} análises detalhadas`)
     } catch (err) {
@@ -714,7 +719,8 @@ async function callTwoStageVisionAnalysis(
     // CROSS-VALIDATION PARA CASOS CRÍTICOS
     // ============================================================
     const hasCriticalDetections = detections.some(d => d.severity === 'critical')
-    if (hasCriticalDetections) {
+    // Skip cross-validation when a single user-selected model is used to avoid overriding their choice
+    if (hasCriticalDetections && models.length > 1) {
         console.log('=== CROSS-VALIDATION: Verificando detecções críticas ===')
         detections = await crossValidateCriticalDetections(imageData, detections as DetectionInput[], clinicalContext) as typeof detections
     }
@@ -1109,45 +1115,26 @@ export async function POST(req: Request) {
             })
         }
 
-        // --- Rate limiting ---
-        const { data: profile } = await supabase
-            .from('profiles')
-            .select('plan_type, role')
-            .eq('id', user.id)
-            .single()
-
-        const planType = profile?.plan_type ?? 'trial'
-        const role = profile?.role ?? 'user'
-        const dailyLimit = role === 'admin' ? RATE_LIMITS.admin : (RATE_LIMITS[planType] ?? DEFAULT_LIMIT)
-
-        if (dailyLimit < 9999) {
-            const todayStart = new Date()
-            todayStart.setHours(0, 0, 0, 0)
-
-            const { count } = await supabase
-                .from('artifacts')
-                .select('id', { count: 'exact', head: true })
-                .eq('user_id', user.id)
-                .eq('type', 'vision')
-                .gte('created_at', todayStart.toISOString())
-
-            const usedToday = count ?? 0
-            if (usedToday >= dailyLimit) {
-                return new Response(JSON.stringify({
-                    error: `Limite diário de ${dailyLimit} análises atingido para o plano ${planType}. Tente novamente amanhã ou faça upgrade para Pro.`,
-                    code: 'RATE_LIMIT_EXCEEDED',
-                    limit: dailyLimit,
-                    used: usedToday
-                }), {
-                    status: 429,
-                    headers: { 'Content-Type': 'application/json' }
-                })
-            }
-        }
-
         // --- Parse body ---
         const body = await req.json()
-        const { image, clinicalContext, mode, originalAnalysisSummary } = body
+        const { image, clinicalContext, mode, originalAnalysisSummary, model } = body
+
+        // --- Verificação de créditos ---
+        const modelForCheck = (model && VISION_MODEL_IDS.has(model)) ? model : MODELS.vision
+        const creditCheck = await hasEnoughCredits(user.id, modelForCheck)
+        if (!creditCheck.ok) {
+            return new Response(JSON.stringify({
+                error: 'credits_exhausted',
+                message: `Créditos insuficientes para análise de visão. Saldo: ${creditCheck.balance}, necessário: ${creditCheck.cost}. Limite mensal: ${creditCheck.monthly_limit} créditos.`,
+                code: 'CREDITS_EXHAUSTED',
+                balance: creditCheck.balance,
+                cost: creditCheck.cost,
+                monthly_limit: creditCheck.monthly_limit,
+            }), {
+                status: 402,
+                headers: { 'Content-Type': 'application/json' }
+            })
+        }
 
         if (!image) {
             return new Response(JSON.stringify({ error: 'Image data is required' }), {
@@ -1177,18 +1164,23 @@ export async function POST(req: Request) {
             })
         }
 
+        // Resolve which models to use: user-selected or default fallback chain
+        const modelsToUse: readonly string[] = (model && VISION_MODEL_IDS.has(model))
+            ? [model]
+            : VISION_MODELS
+
         // --- Call AI ---
         let analysis: z.infer<typeof VisionSchema>
 
         if (mode === 'refine' && originalAnalysisSummary) {
             console.log('Mode: refine - usando callVisionRefinement')
-            analysis = await callVisionRefinement(imageData, originalAnalysisSummary, clinicalContext)
+            analysis = await callVisionRefinement(imageData, originalAnalysisSummary, clinicalContext, modelsToUse)
         } else if (mode === 'quick') {
             console.log('Mode: quick - usando callVisionAI (single-pass)')
-            analysis = await callVisionAI(imageData, clinicalContext)
+            analysis = await callVisionAI(imageData, clinicalContext, modelsToUse)
         } else if (mode === 'preview') {
             console.log('Mode: preview - usando callVisionDetection (detecção rápida)')
-            const quickResult = await callVisionDetection(imageData, clinicalContext)
+            const quickResult = await callVisionDetection(imageData, clinicalContext, modelsToUse)
             const validatedDetections = validateAndMergeDetections(quickResult.quickDetections.map((d, i) => ({
                 id: `det-${i}`,
                 label: d.label,
@@ -1215,14 +1207,18 @@ export async function POST(req: Request) {
                 })),
                 isPreview: true
             }
+            await deductCredits(user.id, modelsToUse[0], 'vision', 'Preview de detecção')
             return Response.json(previewResponse)
         } else {
             console.log('Mode: default (two-stage) - usando callTwoStageVisionAnalysis')
-            analysis = await callTwoStageVisionAnalysis(imageData, clinicalContext)
+            analysis = await callTwoStageVisionAnalysis(imageData, clinicalContext, modelsToUse)
         }
 
+        // Debitar créditos após análise bem-sucedida
+        await deductCredits(user.id, modelsToUse[0], 'vision')
+
         const responseData = mapAnalysisToResponse(analysis)
-        return Response.json(responseData)
+        return Response.json({ ...responseData, modelId: modelsToUse[0] })
 
     } catch (error: unknown) {
         console.error('Vision analysis error:', error)

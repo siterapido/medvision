@@ -46,7 +46,9 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
 import { getSeverityStyle } from '@/lib/constants/vision'
-import { VisionAnalysisResult, VisionArtifactContent, VisionRefinement, BoundingBox } from '@/lib/types/vision'
+import { VisionAnalysisResult, VisionArtifactContent, VisionRefinement, BoundingBox, VisionComparisonResult } from '@/lib/types/vision'
+import { ModelSelector } from '@/components/vision/model-selector'
+import { VISION_MODELS_LIST } from '@/lib/ai/openrouter'
 import { ImageOverlay } from '@/components/vision/image-overlay'
 import { QualityFeedback } from '@/components/vision/quality-feedback'
 import { AnnotationToolbar } from '@/components/vision/annotation-toolbar'
@@ -58,7 +60,46 @@ import { useAnnotations } from '@/lib/hooks/use-annotations'
 import { toast } from 'sonner'
 import { generateVisionPDF } from '@/lib/utils/generate-vision-pdf'
 
-type VisionState = 'UPLOAD' | 'VALIDATING' | 'CROP' | 'ANALYZING' | 'RESULT' | 'ERROR'
+type VisionState = 'UPLOAD' | 'DESCRIBE' | 'MODELS' | 'VALIDATING' | 'CROP' | 'CONFIRM' | 'ANALYZING' | 'RESULT' | 'ERROR'
+
+const WIZARD_STEPS: { key: VisionState; label: string }[] = [
+    { key: 'UPLOAD',   label: 'Imagem'    },
+    { key: 'DESCRIBE', label: 'Problema'  },
+    { key: 'MODELS',   label: 'Modelos'   },
+    { key: 'CROP',     label: 'Ajustes'   },
+    { key: 'CONFIRM',  label: 'Confirmar' },
+]
+
+function StepIndicator({ current }: { current: VisionState }) {
+    const idx = WIZARD_STEPS.findIndex(s => s.key === current)
+    if (idx === -1) return null
+    return (
+        <div className="flex items-center justify-center gap-0 mb-8">
+            {WIZARD_STEPS.map((step, i) => {
+                const done    = i < idx
+                const active  = i === idx
+                return (
+                    <div key={step.key} className="flex items-center">
+                        <div className="flex flex-col items-center gap-1">
+                            <div className={cn(
+                                'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all',
+                                done   ? 'bg-primary border-primary text-primary-foreground'
+                                       : active ? 'border-primary text-primary bg-primary/10'
+                                                : 'border-border text-muted-foreground bg-muted/30'
+                            )}>
+                                {done ? <Check className="w-3.5 h-3.5" /> : i + 1}
+                            </div>
+                            <span className={cn('text-[10px] font-medium hidden sm:block', active ? 'text-primary' : 'text-muted-foreground')}>{step.label}</span>
+                        </div>
+                        {i < WIZARD_STEPS.length - 1 && (
+                            <div className={cn('h-0.5 w-8 sm:w-12 mx-1 mb-4 transition-all', i < idx ? 'bg-primary' : 'bg-border')} />
+                        )}
+                    </div>
+                )
+            })}
+        </div>
+    )
+}
 
 export default function OdontoVisionPage() {
     const router = useRouter()
@@ -77,6 +118,13 @@ export default function OdontoVisionPage() {
     const [previousAnalyses, setPreviousAnalyses] = useState<{id: string; title: string; date: string; content: any}[]>([])
     const [isSaving, setIsSaving] = useState(false)
     const [clinicalContext, setClinicalContext] = useState('')
+
+    // Model selection state
+    const [analysisMode, setAnalysisMode] = useState<'single' | 'compare'>('single')
+    const [selectedModel, setSelectedModel] = useState('google/gemini-2.5-pro')
+    const [compareModelA, setCompareModelA] = useState('google/gemini-2.5-pro')
+    const [compareModelB, setCompareModelB] = useState('anthropic/claude-opus-4')
+    const [comparisonResult, setComparisonResult] = useState<VisionComparisonResult | null>(null)
 
     // Crop states
     const [crop, setCrop] = useState<CropType>()
@@ -245,18 +293,17 @@ export default function OdontoVisionPage() {
 
     const handleCropConfirm = useCallback(async () => {
         if (!originalImage) return
-        
-        // If no valid crop (user didn't draw a selection), skip crop and analyze original
+
         if (!completedCrop || completedCrop.width === 0) {
             setImage(originalImage)
-            startAnalysis(originalImage)
+            setState('CONFIRM')
             return
         }
 
         try {
             const croppedImage = await createCroppedImage(completedCrop)
             setImage(croppedImage)
-            startAnalysis(croppedImage)
+            setState('CONFIRM')
         } catch (error) {
             console.error('Error cropping image:', error)
             toast.error('Erro ao recortar imagem')
@@ -266,7 +313,7 @@ export default function OdontoVisionPage() {
     const handleSkipCrop = useCallback(() => {
         if (!originalImage) return
         setImage(originalImage)
-        startAnalysis(originalImage)
+        setState('CONFIRM')
     }, [originalImage])
 
     const resetCrop = useCallback(() => {
@@ -285,7 +332,7 @@ export default function OdontoVisionPage() {
                 setImage(compressed)
                 const result = await validateImageQuality(compressed)
                 setQualityResult(result)
-                setState('CROP')
+                setState('DESCRIBE')
                 resetCrop()
             } catch (error) {
                 console.error("Error processing image:", error)
@@ -296,7 +343,7 @@ export default function OdontoVisionPage() {
     }, [resetCrop])
 
     const handleValidationProceed = useCallback(() => {
-        setState('CROP')
+        setState('DESCRIBE')
         resetCrop()
     }, [resetCrop])
 
@@ -307,11 +354,15 @@ export default function OdontoVisionPage() {
         setState('UPLOAD')
     }, [])
 
-    const startAnalysis = async (imageData: string) => {
+    const getModelName = (modelId: string) =>
+        VISION_MODELS_LIST.find(m => m.id === modelId)?.name ?? modelId
+
+    const startSingleAnalysis = async (imageData: string, modelId: string) => {
         setState('ANALYZING')
         setProgress(0)
         setAnalysisResult(null)
         setAnalysisPrecision(null)
+        setComparisonResult(null)
 
         const interval = setInterval(() => {
             setProgress((prev) => (prev < 90 ? prev + 5 : prev))
@@ -321,12 +372,15 @@ export default function OdontoVisionPage() {
             const response = await fetch('/api/vision/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: imageData, clinicalContext: clinicalContext || undefined })
+                body: JSON.stringify({ image: imageData, clinicalContext: clinicalContext || undefined, model: modelId })
             })
 
             if (!response.ok) {
                 const errData = await response.json().catch(() => ({}))
                 if (response.status === 401) { router.push('/login'); return }
+                if (response.status === 402 || errData?.error === 'credits_exhausted') {
+                    throw new Error('Créditos insuficientes. Você atingiu o limite mensal do seu plano. Faça upgrade para continuar.')
+                }
                 if (response.status === 429) {
                     const limit = errData?.limit
                     const used = errData?.used
@@ -356,6 +410,85 @@ export default function OdontoVisionPage() {
             const msg = error instanceof Error ? error.message : 'Erro desconhecido'
             toast.error(`Erro ao analisar imagem: ${msg}. Tente novamente.`)
             setState('ERROR')
+        }
+    }
+
+    const startCompareAnalysis = async (imageData: string, modelA: string, modelB: string) => {
+        setState('ANALYZING')
+        setProgress(0)
+        setAnalysisResult(null)
+        setAnalysisPrecision(null)
+        setComparisonResult(null)
+
+        const interval = setInterval(() => {
+            setProgress((prev) => (prev < 85 ? prev + 3 : prev))
+        }, 300)
+
+        try {
+            const headers = { 'Content-Type': 'application/json' }
+            const [resA, resB] = await Promise.all([
+                fetch('/api/vision/analyze', {
+                    method: 'POST', headers,
+                    body: JSON.stringify({ image: imageData, clinicalContext: clinicalContext || undefined, model: modelA })
+                }),
+                fetch('/api/vision/analyze', {
+                    method: 'POST', headers,
+                    body: JSON.stringify({ image: imageData, clinicalContext: clinicalContext || undefined, model: modelB })
+                }),
+            ])
+
+            if (!resA.ok || !resB.ok) {
+                const failed = !resA.ok ? resA : resB
+                const errData = await failed.json().catch(() => ({}))
+                if (failed.status === 401) { router.push('/login'); return }
+                if (failed.status === 402 || errData?.error === 'credits_exhausted') {
+                    throw new Error('Créditos insuficientes. Você atingiu o limite mensal do seu plano. Faça upgrade para continuar.')
+                }
+                if (failed.status === 429) {
+                    const limit = errData?.limit
+                    const used = errData?.used
+                    const limitInfo = limit ? ` (${used}/${limit} hoje)` : ''
+                    throw new Error(errData?.error || `Limite diário atingido${limitInfo}. Faça upgrade para Pro.`)
+                }
+                throw new Error(errData?.error || `HTTP ${failed.status}`)
+            }
+
+            const [dataA, dataB] = await Promise.all([
+                resA.json() as Promise<VisionAnalysisResult & { precision?: number }>,
+                resB.json() as Promise<VisionAnalysisResult & { precision?: number }>,
+            ])
+
+            clearInterval(interval)
+            setProgress(100)
+
+            setComparisonResult({
+                modelA: { modelId: modelA, modelName: getModelName(modelA), result: dataA, precision: dataA.precision ?? null },
+                modelB: { modelId: modelB, modelName: getModelName(modelB), result: dataB, precision: dataB.precision ?? null },
+            })
+
+            // Auto-save model A result as the canonical artifact
+            performSave(imageData, dataA, []).then(() => {
+                setIsSaved(true)
+            }).catch((err) => {
+                console.warn('Auto-save failed:', err)
+            })
+
+            setTimeout(() => setState('RESULT'), 500)
+
+        } catch (error) {
+            clearInterval(interval)
+            console.error(error)
+            const msg = error instanceof Error ? error.message : 'Erro desconhecido'
+            toast.error(`Erro ao comparar modelos: ${msg}. Tente novamente.`)
+            setState('ERROR')
+        }
+    }
+
+    const startAnalysis = (imageData: string) => {
+        if (analysisMode === 'compare') {
+            startCompareAnalysis(imageData, compareModelA, compareModelB)
+        } else {
+            startSingleAnalysis(imageData, selectedModel)
         }
     }
 
@@ -440,6 +573,7 @@ export default function OdontoVisionPage() {
         setRefinements([])
         setExpandedRefinement(null)
         setClinicalContext('')
+        setComparisonResult(null)
         clearAnnotations()
         resetCrop()
     }
@@ -472,6 +606,8 @@ export default function OdontoVisionPage() {
                             exit={{ opacity: 0, y: -20 }}
                             className="w-full"
                         >
+                            <StepIndicator current="UPLOAD" />
+
                             {state === 'ERROR' && (
                                 <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-start gap-3 text-destructive">
                                     <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
@@ -503,29 +639,6 @@ export default function OdontoVisionPage() {
                                 </Button>
                             </GlassCard>
 
-                            {/* Clinical Context */}
-                            <GlassCard className="p-5 mt-6 border-border/40">
-                                <div className="flex items-start gap-3 mb-3">
-                                    <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 shrink-0">
-                                        <FileText className="w-4 h-4 text-primary" />
-                                    </div>
-                                    <div>
-                                        <h4 className="text-sm font-semibold">Contexto Clínico <span className="text-muted-foreground font-normal">(opcional)</span></h4>
-                                        <p className="text-xs text-muted-foreground">Informe queixa principal, histórico ou suspeita — a IA usará isso para personalizar o laudo.</p>
-                                    </div>
-                                </div>
-                                <Textarea
-                                    value={clinicalContext}
-                                    onChange={(e) => setClinicalContext(e.target.value)}
-                                    placeholder="Ex: Paciente com dor ao mastigar no quadrante superior esquerdo. Suspeita de lesão periapical no dente 26."
-                                    className="resize-none text-sm h-20 bg-muted/20 border-border/40 focus:border-primary/50"
-                                    maxLength={500}
-                                />
-                                {clinicalContext.length > 0 && (
-                                    <p className="text-[10px] text-muted-foreground text-right mt-1">{clinicalContext.length}/500</p>
-                                )}
-                            </GlassCard>
-
                             {/* Tips Section */}
                             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
                                 {[
@@ -545,6 +658,98 @@ export default function OdontoVisionPage() {
                         </motion.div>
                     )}
 
+                    {/* ─── STEP 2: DESCRIBE ─── */}
+                    {state === 'DESCRIBE' && originalImage && (
+                        <motion.div
+                            key="describe"
+                            initial={{ opacity: 0, x: 40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -40 }}
+                            className="w-full space-y-6"
+                        >
+                            <StepIndicator current="DESCRIBE" />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                                {/* Image preview */}
+                                <GlassCard className="p-4">
+                                    <p className="text-xs text-muted-foreground mb-3 font-medium">Imagem selecionada</p>
+                                    <div className="rounded-xl overflow-hidden border border-border/40 bg-black/20">
+                                        <img src={originalImage} alt="Preview" className="w-full object-contain max-h-[300px]" />
+                                    </div>
+                                </GlassCard>
+
+                                {/* Clinical context */}
+                                <GlassCard className="p-5 border-border/40">
+                                    <div className="flex items-start gap-3 mb-4">
+                                        <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 shrink-0">
+                                            <FileText className="w-4 h-4 text-primary" />
+                                        </div>
+                                        <div>
+                                            <h4 className="text-sm font-semibold">Descreva o Problema</h4>
+                                            <p className="text-xs text-muted-foreground mt-0.5">Informe queixa principal, histórico ou suspeita — a IA usará isso para personalizar o laudo.</p>
+                                        </div>
+                                    </div>
+                                    <Textarea
+                                        value={clinicalContext}
+                                        onChange={(e) => setClinicalContext(e.target.value)}
+                                        placeholder="Ex: Paciente com dor ao mastigar no quadrante superior esquerdo. Suspeita de lesão periapical no dente 26."
+                                        className="resize-none text-sm h-32 bg-muted/20 border-border/40 focus:border-primary/50"
+                                        maxLength={500}
+                                        autoFocus
+                                    />
+                                    {clinicalContext.length > 0 && (
+                                        <p className="text-[10px] text-muted-foreground text-right mt-1">{clinicalContext.length}/500</p>
+                                    )}
+                                    <p className="text-[11px] text-muted-foreground mt-3 italic">Campo opcional — pule se preferir.</p>
+                                </GlassCard>
+                            </div>
+
+                            {/* Navigation */}
+                            <div className="flex gap-3 pt-2">
+                                <Button variant="outline" className="flex-1 h-11 rounded-xl gap-2" onClick={() => setState('UPLOAD')}>
+                                    <ChevronRight className="w-4 h-4 rotate-180" /> Voltar
+                                </Button>
+                                <Button className="flex-1 h-11 rounded-xl gap-2" onClick={() => setState('MODELS')}>
+                                    Próximo <ChevronRight className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* ─── STEP 3: MODELS ─── */}
+                    {state === 'MODELS' && originalImage && (
+                        <motion.div
+                            key="models"
+                            initial={{ opacity: 0, x: 40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -40 }}
+                            className="w-full space-y-6"
+                        >
+                            <StepIndicator current="MODELS" />
+
+                            <ModelSelector
+                                mode={analysisMode}
+                                onModeChange={setAnalysisMode}
+                                selectedModel={selectedModel}
+                                onModelChange={setSelectedModel}
+                                compareModelA={compareModelA}
+                                compareModelB={compareModelB}
+                                onCompareModelAChange={setCompareModelA}
+                                onCompareModelBChange={setCompareModelB}
+                            />
+
+                            {/* Navigation */}
+                            <div className="flex gap-3 pt-2">
+                                <Button variant="outline" className="flex-1 h-11 rounded-xl gap-2" onClick={() => setState('DESCRIBE')}>
+                                    <ChevronRight className="w-4 h-4 rotate-180" /> Voltar
+                                </Button>
+                                <Button className="flex-1 h-11 rounded-xl gap-2" onClick={() => { setState('CROP'); resetCrop() }}>
+                                    Próximo <ChevronRight className="w-4 h-4" />
+                                </Button>
+                            </div>
+                        </motion.div>
+                    )}
+
                     {/* ─── VALIDATING ─── */}
                     {state === 'VALIDATING' && originalImage && qualityResult && (
                         <QualityFeedback
@@ -555,15 +760,17 @@ export default function OdontoVisionPage() {
                         />
                     )}
 
-                    {/* ─── CROP ─── */}
+                    {/* ─── CROP / ADJUST ─── */}
                     {state === 'CROP' && originalImage && (
                         <motion.div
                             key="crop"
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 1.05 }}
+                            initial={{ opacity: 0, x: 40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -40 }}
                             className="w-full space-y-6"
                         >
+                            <StepIndicator current="CROP" />
+
                             <GlassCard className="p-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-3">
@@ -623,12 +830,15 @@ export default function OdontoVisionPage() {
                                     </div>
                                 </div>
 
-                                <div className="flex gap-4 mt-6 pt-4 border-t border-border/30">
+                                <div className="flex gap-3 mt-6 pt-4 border-t border-border/30">
+                                    <Button variant="outline" className="h-12 rounded-xl gap-2 px-4" onClick={() => setState('MODELS')}>
+                                        <ChevronRight className="w-4 h-4 rotate-180" /> Voltar
+                                    </Button>
                                     <Button variant="outline" className="flex-1 h-12 rounded-xl gap-2" onClick={handleSkipCrop}>
-                                        <X className="w-4 h-4" /> Pular Recorte
+                                        <X className="w-4 h-4" /> Pular
                                     </Button>
                                     <Button className="flex-1 h-12 rounded-xl gap-2 bg-primary hover:bg-primary/90" onClick={handleCropConfirm}>
-                                        <Check className="w-4 h-4" /> Confirmar e Analisar
+                                        <Check className="w-4 h-4" /> Confirmar
                                     </Button>
                                 </div>
                             </GlassCard>
@@ -646,6 +856,83 @@ export default function OdontoVisionPage() {
                                     </div>
                                 </div>
                             )}
+                        </motion.div>
+                    )}
+
+                    {/* ─── STEP 5: CONFIRM ─── */}
+                    {state === 'CONFIRM' && image && (
+                        <motion.div
+                            key="confirm"
+                            initial={{ opacity: 0, x: 40 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -40 }}
+                            className="w-full space-y-6"
+                        >
+                            <StepIndicator current="CONFIRM" />
+
+                            <GlassCard className="p-6">
+                                <div className="flex items-center gap-3 mb-5">
+                                    <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
+                                        <Microscope className="w-5 h-5 text-primary" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-lg font-heading font-bold">Confirmar Análise</h3>
+                                        <p className="text-xs text-muted-foreground">Revise as configurações antes de iniciar.</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* Image preview */}
+                                    <div>
+                                        <p className="text-xs text-muted-foreground font-medium mb-2">Imagem a analisar</p>
+                                        <div className="rounded-xl overflow-hidden border border-border/40 bg-black/20">
+                                            <img src={image} alt="Preview final" className="w-full object-contain max-h-[240px]" />
+                                        </div>
+                                    </div>
+
+                                    {/* Summary */}
+                                    <div className="space-y-3">
+                                        <div className="p-3 rounded-xl bg-muted/30 border border-border/40">
+                                            <p className="text-[11px] text-muted-foreground font-medium mb-1">Modelo</p>
+                                            {analysisMode === 'compare' ? (
+                                                <div className="space-y-0.5">
+                                                    <p className="text-sm font-semibold">{getModelName(compareModelA)}</p>
+                                                    <p className="text-xs text-muted-foreground">vs</p>
+                                                    <p className="text-sm font-semibold">{getModelName(compareModelB)}</p>
+                                                </div>
+                                            ) : (
+                                                <p className="text-sm font-semibold">{getModelName(selectedModel)}</p>
+                                            )}
+                                        </div>
+
+                                        <div className="p-3 rounded-xl bg-muted/30 border border-border/40">
+                                            <p className="text-[11px] text-muted-foreground font-medium mb-1">Contexto clínico</p>
+                                            {clinicalContext ? (
+                                                <p className="text-sm leading-snug line-clamp-3">{clinicalContext}</p>
+                                            ) : (
+                                                <p className="text-sm text-muted-foreground italic">Não informado</p>
+                                            )}
+                                        </div>
+
+                                        {analysisMode === 'compare' && (
+                                            <div className="flex items-start gap-2 rounded-xl bg-amber-500/10 border border-amber-500/20 px-3 py-2">
+                                                <AlertTriangle className="h-3.5 w-3.5 text-amber-400 mt-0.5 shrink-0" />
+                                                <p className="text-[11px] text-amber-400 leading-snug">Comparação consome 2 análises do seu limite diário.</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </GlassCard>
+
+                            {/* Navigation */}
+                            <div className="flex gap-3">
+                                <Button variant="outline" className="flex-1 h-12 rounded-xl gap-2" onClick={() => setState('CROP')}>
+                                    <ChevronRight className="w-4 h-4 rotate-180" /> Voltar
+                                </Button>
+                                <Button className="flex-1 h-12 rounded-xl gap-2 bg-primary hover:bg-primary/90 font-semibold text-base" onClick={() => startAnalysis(image)}>
+                                    <Sparkles className="w-4 h-4" /> Analisar Agora
+                                </Button>
+                            </div>
                         </motion.div>
                     )}
 
@@ -670,7 +957,11 @@ export default function OdontoVisionPage() {
                                         <Loader2 className="w-8 h-8 text-primary animate-spin" />
                                         <div className="text-center">
                                             <h3 className="font-heading font-bold text-lg">Processando Imagem</h3>
-                                            <p className="text-sm text-muted-foreground">Utilizando OdontoVision AI Engine v4.2</p>
+                                            <p className="text-sm text-muted-foreground">
+                                                {analysisMode === 'compare'
+                                                    ? 'Comparando 2 modelos em paralelo...'
+                                                    : 'Utilizando OdontoVision AI Engine v4.2'}
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
@@ -689,8 +980,143 @@ export default function OdontoVisionPage() {
                         </motion.div>
                     )}
 
-                    {/* ─── RESULT ─── */}
-                    {state === 'RESULT' && analysisResult && (
+                    {/* ─── RESULT: Comparison Mode ─── */}
+                    {state === 'RESULT' && analysisMode === 'compare' && comparisonResult && (
+                        <motion.div
+                            key="result-compare"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="flex flex-col gap-6 max-w-6xl mx-auto w-full"
+                        >
+                            {/* Header */}
+                            <div className="flex items-center justify-between flex-wrap gap-3">
+                                <div className="flex items-center gap-2">
+                                    <GitBranch className="w-5 h-5 text-primary" />
+                                    <h2 className="text-xl font-heading font-bold">Comparação de Modelos</h2>
+                                </div>
+                                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                    <span>
+                                        {comparisonResult.modelA.result.detections.length} detecções ({comparisonResult.modelA.modelName})
+                                    </span>
+                                    <span>vs</span>
+                                    <span>
+                                        {comparisonResult.modelB.result.detections.length} detecções ({comparisonResult.modelB.modelName})
+                                    </span>
+                                </div>
+                            </div>
+
+                            {/* Side-by-side columns */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                {([
+                                    { side: comparisonResult.modelA, letter: 'A' },
+                                    { side: comparisonResult.modelB, letter: 'B' },
+                                ] as const).map(({ side, letter }) => (
+                                    <div key={letter} className="flex flex-col gap-4">
+                                        {/* Model badge */}
+                                        <div className="flex items-center gap-2 flex-wrap">
+                                            <Badge className="text-xs px-2 py-0.5">Modelo {letter}</Badge>
+                                            <span className="text-sm font-semibold">{side.modelName}</span>
+                                            {side.precision !== null && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className={cn('text-[10px] h-5 px-1.5 font-bold',
+                                                        side.precision >= 80 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
+                                                            : side.precision >= 60 ? 'bg-amber-500/10 text-amber-500 border-amber-500/30'
+                                                                : 'bg-red-500/10 text-red-400 border-red-400/30'
+                                                    )}
+                                                >
+                                                    Precisão {side.precision}%
+                                                </Badge>
+                                            )}
+                                        </div>
+
+                                        {/* Image overlay */}
+                                        <GlassCard className="p-1 overflow-hidden">
+                                            <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-black/5">
+                                                {image && (
+                                                    <ImageOverlay
+                                                        src={image}
+                                                        detections={side.result.detections}
+                                                        showConfidenceFilter
+                                                    />
+                                                )}
+                                            </div>
+                                        </GlassCard>
+
+                                        {/* Findings */}
+                                        <GlassCard className="p-4 space-y-3">
+                                            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                                <AlertCircle className="w-3 h-3" /> Achados ({side.result.findings.length})
+                                            </h4>
+                                            {side.result.findings.length === 0 ? (
+                                                <p className="text-xs text-muted-foreground">Nenhum achado detectado.</p>
+                                            ) : (
+                                                <div className="space-y-1.5">
+                                                    {side.result.findings.slice(0, 5).map((f, i) => (
+                                                        <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/30 border border-border/20 text-xs">
+                                                            <span className="font-medium truncate mr-2">{f.type}</span>
+                                                            <Badge variant="outline" className={cn('shrink-0 text-[9px] h-4 px-1', f.color.replace('text-', 'text-'))}>
+                                                                {f.level}
+                                                            </Badge>
+                                                        </div>
+                                                    ))}
+                                                    {side.result.findings.length > 5 && (
+                                                        <p className="text-[10px] text-muted-foreground">+{side.result.findings.length - 5} achados</p>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </GlassCard>
+
+                                        {/* Diagnostic hypothesis */}
+                                        {side.result.report?.diagnosticHypothesis && (
+                                            <GlassCard className="p-4">
+                                                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Hipótese Diagnóstica</h4>
+                                                <p className="text-xs leading-relaxed">{side.result.report.diagnosticHypothesis}</p>
+                                            </GlassCard>
+                                        )}
+
+                                        {/* Recommendations */}
+                                        {side.result.report?.recommendations && side.result.report.recommendations.length > 0 && (
+                                            <GlassCard className="p-4">
+                                                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Recomendações</h4>
+                                                <ol className="space-y-1">
+                                                    {side.result.report.recommendations.slice(0, 4).map((rec, i) => (
+                                                        <li key={i} className="flex gap-2 text-xs">
+                                                            <span className="shrink-0 text-primary font-semibold">{i + 1}.</span>
+                                                            <span className="leading-relaxed">{rec}</span>
+                                                        </li>
+                                                    ))}
+                                                </ol>
+                                            </GlassCard>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Action buttons */}
+                            <div className="flex flex-wrap gap-3">
+                                <Button variant="outline" className="flex-1 rounded-xl h-12 gap-2" onClick={reset}>
+                                    <RefreshCcw className="w-4 h-4" /> Analisar Outra
+                                </Button>
+                                <Button
+                                    className="flex-1 rounded-xl h-12 gap-2 bg-primary hover:bg-primary/90"
+                                    onClick={() => {
+                                        if (comparisonResult && image) {
+                                            toast.promise(
+                                                generateVisionPDF({ analysisResult: comparisonResult.modelA.result, imageBase64: image, refinements }),
+                                                { loading: 'Gerando PDF (Modelo A)...', success: 'PDF gerado!', error: 'Erro ao gerar PDF' }
+                                            )
+                                        }
+                                    }}
+                                >
+                                    <Download className="w-4 h-4" /> Exportar PDF (Modelo A)
+                                </Button>
+                            </div>
+                        </motion.div>
+                    )}
+
+                    {/* ─── RESULT: Single Mode ─── */}
+                    {state === 'RESULT' && analysisMode === 'single' && analysisResult && (
                         <motion.div
                             key="result"
                             initial={{ opacity: 0 }}

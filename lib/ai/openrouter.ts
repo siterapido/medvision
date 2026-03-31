@@ -55,6 +55,21 @@ export const MODELS = {
 
 export type ModelId = typeof MODELS[keyof typeof MODELS]
 
+export const VISION_MODELS_LIST = [
+  { id: 'google/gemini-3-pro-image-preview', name: 'Gemini 3 Pro Image', provider: 'Google' },
+  { id: 'google/gemini-2.5-pro',             name: 'Gemini 2.5 Pro',     provider: 'Google' },
+  { id: 'google/gemini-2.5-flash',           name: 'Gemini 2.5 Flash',   provider: 'Google' },
+  { id: 'google/gemini-2.0-flash-001',       name: 'Gemini 2.0 Flash',   provider: 'Google' },
+  { id: 'anthropic/claude-sonnet-4.6',       name: 'Claude Sonnet 4.6',  provider: 'Anthropic' },
+  { id: 'anthropic/claude-sonnet-4-5',       name: 'Claude Sonnet 4.5',  provider: 'Anthropic' },
+  { id: 'openai/gpt-4o',                     name: 'GPT-4o',             provider: 'OpenAI' },
+  { id: 'meta-llama/llama-4-maverick',       name: 'Llama 4 Maverick',   provider: 'Meta' },
+  { id: 'qwen/qwen2.5-vl-72b-instruct',     name: 'Qwen 2.5 VL 72B',   provider: 'Qwen' },
+] as const
+
+export type VisionModelInfo = typeof VISION_MODELS_LIST[number]
+export const VISION_MODEL_IDS = new Set(VISION_MODELS_LIST.map(m => m.id))
+
 /**
  * Cria um modelo OpenRouter com o ID especificado (Chat Completions API)
  */
