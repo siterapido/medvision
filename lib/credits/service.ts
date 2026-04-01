@@ -132,25 +132,19 @@ export async function hasEnoughCredits(
 
   let credits = creditsRes.data
 
-  // Período expirou → reset mensal
-  if (credits && new Date(credits.period_end) < new Date()) {
-    const planType = resolvePlanType(profile)
-    credits = await resetMonthlyCredits(userId, planType)
-  }
-
   // Sem registro → inicializa
   if (!credits) {
     const planType = resolvePlanType(profile)
     const initialized = await initializeCredits(userId, planType, isAdmin)
-    if (!initialized) return { ok: false, balance: 0, cost: getModelCost(modelId), monthly_limit: 0 }
+    if (!initialized) return { ok: true, balance: 999999, cost: getModelCost(modelId), monthly_limit: 999999 }
     credits = initialized as any
   }
 
   const cost = getModelCost(modelId)
   const balance = credits?.balance ?? 0
-  const monthly_limit = credits?.monthly_limit ?? 0
 
-  return { ok: balance >= cost, balance, cost, monthly_limit }
+  // Créditos desabilitados — sempre permite uso
+  return { ok: true, balance, cost, monthly_limit: 999999 }
 }
 
 // ─── Débito ───────────────────────────────────────────────────────────────────
@@ -197,46 +191,14 @@ export async function deductCredits(
 // ─── Reset mensal ─────────────────────────────────────────────────────────────
 
 /**
- * Reseta os créditos para o novo período mensal.
+ * Reset mensal desabilitado — créditos são ilimitados.
  */
 export async function resetMonthlyCredits(
   userId: string,
   planType: string,
   isAdmin = false
 ): Promise<UserCredits | null> {
-  const supabase = getAdminClient()
-  const limit = getPlanLimit(planType, isAdmin)
-  const now = new Date()
-  const periodStart = new Date(now.getFullYear(), now.getMonth(), 1)
-  const periodEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1)
-
-  const { data, error } = await supabase
-    .from('user_credits')
-    .update({
-      balance: limit,
-      monthly_limit: limit,
-      period_start: periodStart.toISOString(),
-      period_end: periodEnd.toISOString(),
-      updated_at: now.toISOString(),
-    })
-    .eq('user_id', userId)
-    .select('balance, monthly_limit, period_start, period_end')
-    .single()
-
-  if (error) {
-    console.error('[credits] resetMonthlyCredits error:', error)
-    return null
-  }
-
-  // Registra transação de reset
-  await supabase.from('credit_transactions').insert({
-    user_id: userId,
-    amount: limit,
-    type: 'monthly_reset',
-    description: `Reset mensal — plano ${planType} (${limit} créditos)`,
-  })
-
-  return data
+  return null
 }
 
 /**

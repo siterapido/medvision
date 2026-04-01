@@ -4,7 +4,7 @@ import { AGENT_CONFIGS } from '@/lib/ai/agents/config'
 import { createClient, getUser } from '@/lib/supabase/server'
 import { createSession, saveMessage, deleteChat, updateChatTitle } from '@/lib/db/simple-queries'
 import { initializeContext } from '@/lib/ai/artifacts/context.server'
-import { hasEnoughCredits, deductCredits } from '@/lib/credits/service'
+import { deductCredits } from '@/lib/credits/service'
 
 export const maxDuration = 120
 
@@ -16,22 +16,7 @@ export async function POST(req: Request) {
     const { messages: uiMessages, agentId = 'odonto-gpt', sessionId } = await req.json()
     let currentSessionId = sessionId
 
-    // Verificar créditos antes de processar
-    const agentConfigCheck = AGENT_CONFIGS[agentId] || AGENT_CONFIGS['odonto-gpt']
-    const modelToUse = agentConfigCheck.model || MODELS.chat
-    const creditCheck = await hasEnoughCredits(user.id, modelToUse)
-    if (!creditCheck.ok) {
-      return Response.json(
-        {
-          error: 'credits_exhausted',
-          message: `Créditos insuficientes. Saldo: ${creditCheck.balance}, necessário: ${creditCheck.cost}. Seu limite mensal é de ${creditCheck.monthly_limit} créditos.`,
-          balance: creditCheck.balance,
-          cost: creditCheck.cost,
-          monthly_limit: creditCheck.monthly_limit,
-        },
-        { status: 402 }
-      )
-    }
+    // Créditos desabilitados — não há verificação de limite
 
     // 1. Criar sessão se necessário
     if (!currentSessionId) {

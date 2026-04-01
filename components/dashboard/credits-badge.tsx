@@ -19,31 +19,16 @@ export function CreditsBadge({ className }: { className?: string }) {
 
   if (!credits) return null
 
-  const pct = credits.monthly_limit > 0
-    ? Math.round((credits.balance / credits.monthly_limit) * 100)
-    : 0
-
-  const isLow = pct <= 20
-  const isEmpty = credits.balance === 0
-
   return (
     <div
       className={cn(
-        'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
-        isEmpty
-          ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
-          : isLow
-          ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
-          : 'bg-muted text-muted-foreground',
+        'flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
         className
       )}
-      title={`${credits.balance} de ${credits.monthly_limit} créditos restantes este mês`}
+      title="Créditos ilimitados"
     >
-      <Zap className={cn('h-3 w-3', isEmpty ? 'text-red-500' : isLow ? 'text-amber-500' : 'text-primary')} />
-      <span>
-        {credits.balance.toLocaleString('pt-BR')}
-        <span className="opacity-60"> / {credits.monthly_limit.toLocaleString('pt-BR')}</span>
-      </span>
+      <Zap className="h-3 w-3 text-green-500" />
+      <span>∞ Créditos</span>
     </div>
   )
 }

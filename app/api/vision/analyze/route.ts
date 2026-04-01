@@ -3,7 +3,7 @@ import { openrouter, MODELS, VISION_MODEL_IDS } from '@/lib/ai/openrouter'
 import { generateText } from 'ai'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
-import { hasEnoughCredits, deductCredits } from '@/lib/credits/service'
+import { deductCredits } from '@/lib/credits/service'
 
 export const maxDuration = 120 // 120 seconds — allow larger images
 
@@ -1119,22 +1119,7 @@ export async function POST(req: Request) {
         const body = await req.json()
         const { image, clinicalContext, mode, originalAnalysisSummary, model } = body
 
-        // --- Verificação de créditos ---
-        const modelForCheck = (model && VISION_MODEL_IDS.has(model)) ? model : MODELS.vision
-        const creditCheck = await hasEnoughCredits(user.id, modelForCheck)
-        if (!creditCheck.ok) {
-            return new Response(JSON.stringify({
-                error: 'credits_exhausted',
-                message: `Créditos insuficientes para análise de visão. Saldo: ${creditCheck.balance}, necessário: ${creditCheck.cost}. Limite mensal: ${creditCheck.monthly_limit} créditos.`,
-                code: 'CREDITS_EXHAUSTED',
-                balance: creditCheck.balance,
-                cost: creditCheck.cost,
-                monthly_limit: creditCheck.monthly_limit,
-            }), {
-                status: 402,
-                headers: { 'Content-Type': 'application/json' }
-            })
-        }
+        // Créditos desabilitados — não há verificação de limite
 
         if (!image) {
             return new Response(JSON.stringify({ error: 'Image data is required' }), {

@@ -5,15 +5,15 @@
  * reseta automaticamente no início de cada período.
  */
 
-// ─── Limites mensais por plano ────────────────────────────────────────────────
+// ─── Limites mensais por plano (DESABILITADO — créditos ilimitados) ────────────
 
 export const PLAN_CREDITS: Record<string, number> = {
-  trial:       100,   // 7 dias grátis — uso limitado para experimentar
-  free:         50,   // conta gratuita sem assinatura
-  basic:       500,   // Plano Básico R$ 39,90/mês
-  pro:        2000,   // Plano Pro R$ 59,90/mês
-  certificate:  500,  // Certificado (acesso vitalício ao conteúdo)
-  admin:     999999,  // admins têm créditos ilimitados
+  trial:       999999,
+  free:        999999,
+  basic:       999999,
+  pro:         999999,
+  certificate: 999999,
+  admin:       999999,
 }
 
 // ─── Custo em créditos por modelo de IA ──────────────────────────────────────
