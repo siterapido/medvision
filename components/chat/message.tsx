@@ -9,6 +9,7 @@
  */
 
 import type { UIMessage } from 'ai'
+import { useMemo, useState } from 'react'
 import { cn } from '@/lib/utils'
 import { SparklesIcon } from './icons'
 import { Loader2 } from 'lucide-react'
@@ -24,8 +25,8 @@ import {
 } from '@/components/artifacts'
 import {
   Search, BookOpen, FlaskConical, Brain, FileText, Layers,
-  CheckCircle2, AlertCircle, Code, Image, Table, Lightbulb,
-  Database, Globe, BookMarked, Cpu
+  CheckCircle2, AlertCircle, Code, Image as ImageIcon, Table, Lightbulb,
+  Database, Globe, BookMarked, Cpu, ExternalLink
 } from 'lucide-react'
 
 interface MessageProps {
@@ -128,7 +129,7 @@ const TOOL_META: Record<string, ToolMeta> = {
   saveImageAnalysis: {
     label: 'Análise salva',
     labelLoading: 'Salvando análise de imagem...',
-    icon: <Image className="w-3.5 h-3.5" />,
+    icon: <ImageIcon className="w-3.5 h-3.5" />,
     color: 'text-rose-600 dark:text-rose-400',
     bgColor: 'bg-rose-50 dark:bg-rose-950/40',
     borderColor: 'border-rose-200 dark:border-rose-800/60',
@@ -147,6 +148,163 @@ function getToolMeta(toolName: string): ToolMeta {
 }
 
 // ─── Tool part renderer ───────────────────────────────────────────────────────
+
+function asStringOrJson(value: unknown) {
+  if (value == null) return ''
+  return typeof value === 'string' ? value : JSON.stringify(value, null, 2)
+}
+
+type ResearchToolName = 'askPerplexity' | 'searchPubMed'
+
+function isResearchTool(toolName: string): toolName is ResearchToolName {
+  return toolName === 'askPerplexity' || toolName === 'searchPubMed'
+}
+
+function extractResearchMarkdown(output: any) {
+  if (!output) return ''
+  if (typeof output === 'string') return output
+  if (typeof output?.formatted === 'string' && output.formatted.trim()) return output.formatted
+  if (typeof output?.message === 'string' && output.message.trim()) return output.message
+  return ''
+}
+
+function extractResearchLinks(output: any): { title: string; url: string }[] {
+  const links: { title: string; url: string }[] = []
+
+  const articles = output?.articles
+  if (Array.isArray(articles)) {
+    for (const a of articles) {
+      const url = typeof a?.url === 'string' ? a.url : ''
+      if (!url) continue
+      const title = typeof a?.title === 'string' && a.title.trim() ? a.title : 'Link'
+      links.push({ title, url })
+    }
+  }
+
+  const sources = output?.sources
+  if (Array.isArray(sources)) {
+    for (const s of sources) {
+      const url = typeof s?.url === 'string' ? s.url : ''
+      if (!url) continue
+      const title = typeof s?.title === 'string' && s.title.trim() ? s.title : 'Fonte'
+      links.push({ title, url })
+    }
+  }
+
+  // De-dup por URL
+  const seen = new Set<string>()
+  return links.filter((l) => {
+    if (seen.has(l.url)) return false
+    seen.add(l.url)
+    return true
+  })
+}
+
+function ResearchToolResultCard({
+  toolName,
+  meta,
+  output,
+}: {
+  toolName: ResearchToolName
+  meta: ToolMeta
+  output: any
+}) {
+  const [expanded, setExpanded] = useState(false)
+
+  const markdown = useMemo(() => extractResearchMarkdown(output), [output])
+  const links = useMemo(() => extractResearchLinks(output), [output])
+  const preview = useMemo(() => {
+    const raw = markdown || asStringOrJson(output)
+    return raw.slice(0, 320).trim()
+  }, [markdown, output])
+
+  const hasDetails = Boolean(markdown && markdown.length > 320) || links.length > 0
+
+  return (
+    <div className={cn('rounded-xl border overflow-hidden text-sm', meta.bgColor, meta.borderColor)}>
+      <div className={cn('flex items-center justify-between gap-3 px-3 py-2 border-b', meta.color, meta.borderColor)}>
+        <div className="flex items-center gap-2 font-medium min-w-0">
+          {meta.icon}
+          <span className="truncate">{meta.label} — resultado obtido</span>
+        </div>
+
+        {hasDetails && (
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            className={cn(
+              'shrink-0 rounded-md px-2 py-1 text-[11px] font-semibold transition-colors',
+              'bg-background/60 hover:bg-background/80 border border-border/60'
+            )}
+            aria-expanded={expanded}
+          >
+            {expanded ? 'Ocultar' : 'Ver detalhes'}
+          </button>
+        )}
+      </div>
+
+      {!expanded ? (
+        <div className="px-3 py-2 text-muted-foreground text-xs leading-relaxed">
+          {preview}{(markdown || asStringOrJson(output)).length > 320 ? '…' : ''}
+          {links.length > 0 && (
+            <div className="mt-2 flex flex-wrap gap-2">
+              {links.slice(0, 2).map((l) => (
+                <a
+                  key={l.url}
+                  href={l.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 rounded-full bg-background/60 px-2 py-1 text-[11px] font-semibold text-foreground hover:bg-background/80 border border-border/60"
+                >
+                  <ExternalLink className="w-3 h-3" />
+                  <span className="truncate max-w-[18rem]">{l.title}</span>
+                </a>
+              ))}
+              {links.length > 2 && (
+                <span className="text-[11px] font-semibold text-muted-foreground">
+                  +{links.length - 2} links
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="px-3 py-3">
+          {markdown ? (
+            <Markdown>{markdown}</Markdown>
+          ) : (
+            <pre className="text-xs overflow-auto max-h-64 p-3 bg-muted/40 rounded-lg border border-border/60">
+              {asStringOrJson(output)}
+            </pre>
+          )}
+
+          {links.length > 0 && (
+            <div className="mt-3">
+              <p className="text-xs font-semibold text-foreground mb-2">Links</p>
+              <div className="grid gap-2">
+                {links.map((l) => (
+                  <a
+                    key={l.url}
+                    href={l.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group flex items-start gap-2 rounded-lg border border-border/60 bg-background/40 px-3 py-2 hover:bg-background/70 transition-colors"
+                  >
+                    <ExternalLink className="mt-0.5 w-4 h-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
+                    <div className="min-w-0">
+                      <p className="text-xs font-semibold text-foreground line-clamp-2">{l.title}</p>
+                      <p className="text-[11px] text-muted-foreground break-all">{l.url}</p>
+                    </div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
 
 function renderToolPart(part: any, key: string) {
   const toolName = part.toolName ?? part.type?.replace('tool-', '') ?? 'unknown'
@@ -217,23 +375,8 @@ function renderToolPart(part: any, key: string) {
     }
 
     // askPerplexity / searchPubMed: mostra resumo compacto do resultado
-    if ((toolName === 'askPerplexity' || toolName === 'searchPubMed') && output) {
-      const text = typeof output === 'string' ? output : JSON.stringify(output, null, 2)
-      const preview = text.slice(0, 300).trim()
-      return (
-        <div
-          key={key}
-          className={cn('rounded-xl border overflow-hidden text-sm', meta.bgColor, meta.borderColor)}
-        >
-          <div className={cn('flex items-center gap-2 px-3 py-2 border-b font-medium', meta.color, meta.borderColor)}>
-            {meta.icon}
-            <span>{meta.label} — resultado obtido</span>
-          </div>
-          <div className="px-3 py-2 text-muted-foreground text-xs line-clamp-3 leading-relaxed">
-            {preview}{text.length > 300 ? '…' : ''}
-          </div>
-        </div>
-      )
+    if (isResearchTool(toolName) && output) {
+      return <ResearchToolResultCard key={key} toolName={toolName} meta={meta} output={output} />
     }
 
     // generateArtifact: tenta renderizar como artifact

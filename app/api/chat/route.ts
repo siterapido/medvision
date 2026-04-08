@@ -61,10 +61,10 @@ export async function POST(req: Request) {
       system: systemWithProfile,
       messages: modelMessages,
       tools: agentConfig.tools,
-      stopWhen: stepCountIs(5),
+      stopWhen: stepCountIs(4),
       temperature: 0.65,
-      maxOutputTokens: 8000,
-      timeout: 120000,
+      maxOutputTokens: 4096,
+      timeout: 90000,
       async onFinish({ text }) {
         // 5. Debitar créditos pelo uso do modelo
         await deductCredits(user.id, agentConfig.model || MODELS.chat, 'chat')

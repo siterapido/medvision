@@ -75,10 +75,15 @@ export function Markdown({ children }: MarkdownProps) {
     <div
       className={cn(
         'prose prose-sm dark:prose-invert max-w-none',
-        'prose-p:leading-relaxed prose-pre:p-0 prose-pre:bg-transparent prose-pre:my-0',
+        'break-words',
+        'prose-p:leading-7 prose-p:my-3',
+        'prose-pre:p-0 prose-pre:bg-transparent prose-pre:my-0',
         'prose-headings:font-semibold',
         'prose-a:text-primary prose-a:underline',
         'prose-code:bg-muted prose-code:rounded prose-code:px-1 prose-code:py-0.5',
+        'prose-ul:my-3 prose-ol:my-3 prose-li:my-1',
+        'prose-blockquote:my-3',
+        'text-justify',
       )}
     >
       <ReactMarkdown

@@ -30,6 +30,7 @@ interface ChatProps {
   userName?: string
   userImage?: string
   subscriptionInfo?: { isPro: boolean; trialDaysRemaining: number }
+  onMessagesChange?: (messages: any[]) => void
 }
 
 export function Chat({
@@ -40,6 +41,7 @@ export function Chat({
   userName,
   userImage,
   subscriptionInfo,
+  onMessagesChange,
 }: ChatProps) {
   const [input, setInput] = useState('')
   const [selectedAgent, setSelectedAgent] = useState(initialAgentId)
@@ -71,6 +73,10 @@ export function Chat({
   }, [id, transport])
 
   const { messages, sendMessage, status, stop, regenerate, error } = useChat(useChatOptions as any)
+
+  useEffect(() => {
+    onMessagesChange?.(messages as any[])
+  }, [messages, onMessagesChange])
 
   const handleEditMessage = (_id: string, _content: string) => {
     // TODO: implement edit
