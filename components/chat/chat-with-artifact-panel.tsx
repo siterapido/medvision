@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react'
 import { Chat } from './chat'
-import { ArtifactPanel, ArtifactPanelEmpty } from '@/components/artifacts/artifact-panel'
+import { ArtifactPanel } from '@/components/artifacts/artifact-panel'
 import { ArtifactProvider, useArtifact } from '@/lib/contexts/artifact-context'
 import {
   ResizablePanelGroup,
@@ -89,6 +89,70 @@ function getResearchBullets(formatted: string) {
     .slice(0, 6)
 }
 
+type ResearchData = NonNullable<ReturnType<typeof getLastResearchFromMessages>>
+
+function ResearchSummaryBody({
+  research,
+  researchBullets,
+}: {
+  research: ResearchData | null
+  researchBullets: string[]
+}) {
+  if (!research) {
+    return (
+      <p className="text-sm text-muted-foreground">
+        Quando você fizer uma pesquisa (Perplexity/PubMed), o resumo e os links vão aparecer aqui.
+      </p>
+    )
+  }
+
+  return (
+    <>
+      {researchBullets.length > 0 && (
+        <div className="rounded-xl border bg-muted/20 p-3">
+          <p className="mb-2 text-xs font-semibold text-foreground">Principais pontos</p>
+          <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+            {researchBullets.slice(0, 6).map((b, idx) => (
+              <li key={idx}>{b}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {research.formatted ? (
+        <div className="text-sm">
+          <Markdown>{research.formatted}</Markdown>
+        </div>
+      ) : (
+        <p className="text-sm text-muted-foreground">Resultado obtido, mas sem conteúdo formatado.</p>
+      )}
+
+      {research.links.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-semibold text-foreground">Links</p>
+          <div className="grid gap-2">
+            {research.links.map((l) => (
+              <a
+                key={l.url}
+                href={l.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group flex items-start gap-2 rounded-lg border border-border/60 bg-background/40 px-3 py-2 transition-colors hover:bg-background/70"
+              >
+                <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
+                <div className="min-w-0">
+                  <p className="line-clamp-2 text-xs font-semibold text-foreground">{l.title}</p>
+                  <p className="break-all text-[11px] text-muted-foreground">{l.url}</p>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
 interface ChatWithArtifactPanelProps {
   id?: string
   initialMessages?: UIMessage[]
@@ -115,6 +179,7 @@ function ChatWithArtifactPanelInner({
   const { isPanelOpen, closePanel, currentArtifact } = useArtifact()
 
   const [isResearchPanelOpen, setIsResearchPanelOpen] = useState(false)
+  const [mobileResearchOpen, setMobileResearchOpen] = useState(false)
 
   const [liveMessages, setLiveMessages] = useState<any[]>(initialMessages as any[])
 
@@ -144,7 +209,23 @@ function ChatWithArtifactPanelInner({
   // Mobile: Show artifact in a sheet/modal
   if (isMobile) {
     return (
-      <div className="flex h-full min-h-0 flex-col">
+      <div className="relative flex h-full min-h-0 flex-col">
+        {research && (
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-end p-3 pb-[calc(88px+env(safe-area-inset-bottom))]">
+            <button
+              type="button"
+              onClick={() => setMobileResearchOpen(true)}
+              className={cn(
+                'pointer-events-auto inline-flex items-center gap-1.5 rounded-full border bg-background/95 px-3 py-2 text-xs font-semibold shadow-md backdrop-blur-sm',
+                'hover:bg-background'
+              )}
+            >
+              <FlaskConical className="h-3.5 w-3.5" />
+              Resumo da pesquisa
+            </button>
+          </div>
+        )}
+
         <Chat
           id={id}
           initialMessages={initialMessages as any}
@@ -155,6 +236,19 @@ function ChatWithArtifactPanelInner({
           subscriptionInfo={subscriptionInfo}
           onMessagesChange={setLiveMessages}
         />
+
+        <Sheet open={mobileResearchOpen} onOpenChange={setMobileResearchOpen}>
+          <SheetContent side="bottom" className="flex max-h-[85vh] flex-col p-0">
+            <SheetHeader className="border-b px-4 py-3 text-left">
+              <SheetTitle>Resumo da pesquisa</SheetTitle>
+            </SheetHeader>
+            <ScrollArea className="max-h-[min(70vh,560px)]">
+              <div className="space-y-4 p-4">
+                <ResearchSummaryBody research={research} researchBullets={researchBullets} />
+              </div>
+            </ScrollArea>
+          </SheetContent>
+        </Sheet>
 
         {/* Mobile Sheet for Artifact */}
         <Sheet open={isPanelOpen} onOpenChange={(open) => !open && closePanel()}>
@@ -255,56 +349,8 @@ function ChatWithArtifactPanelInner({
                 </div>
 
                 <ScrollArea className="flex-1">
-                  <div className="p-4 space-y-4">
-                    {!research ? (
-                      <p className="text-sm text-muted-foreground">
-                        Quando você fizer uma pesquisa (Perplexity/PubMed), o resumo e os links vão aparecer aqui.
-                      </p>
-                    ) : (
-                      <>
-                        {researchBullets.length > 0 && (
-                          <div className="rounded-xl border bg-muted/20 p-3">
-                            <p className="text-xs font-semibold text-foreground mb-2">Principais pontos</p>
-                            <ul className="list-disc pl-5 space-y-1 text-sm text-muted-foreground">
-                              {researchBullets.slice(0, 6).map((b, idx) => (
-                                <li key={idx}>{b}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-
-                        {research.formatted ? (
-                          <div className="text-sm">
-                            <Markdown>{research.formatted}</Markdown>
-                          </div>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">Resultado obtido, mas sem conteúdo formatado.</p>
-                        )}
-
-                        {research.links.length > 0 && (
-                          <div className="space-y-2">
-                            <p className="text-xs font-semibold text-foreground">Links</p>
-                            <div className="grid gap-2">
-                              {research.links.map((l) => (
-                                <a
-                                  key={l.url}
-                                  href={l.url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="group flex items-start gap-2 rounded-lg border border-border/60 bg-background/40 px-3 py-2 hover:bg-background/70 transition-colors"
-                                >
-                                  <ExternalLink className="mt-0.5 w-4 h-4 shrink-0 text-muted-foreground group-hover:text-foreground" />
-                                  <div className="min-w-0">
-                                    <p className="text-xs font-semibold text-foreground line-clamp-2">{l.title}</p>
-                                    <p className="text-[11px] text-muted-foreground break-all">{l.url}</p>
-                                  </div>
-                                </a>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    )}
+                  <div className="space-y-4 p-4">
+                    <ResearchSummaryBody research={research} researchBullets={researchBullets} />
                   </div>
                 </ScrollArea>
               </div>
@@ -320,17 +366,19 @@ function ChatWithArtifactPanelInner({
  * Chat component with artifact side panel
  *
  * Layout:
- * - Desktop: Split-screen with chat on left (60%) and artifact panel on right (40%)
- * - Mobile: Chat fullscreen, artifact opens as bottom sheet
+ * - Desktop: Split-screen with chat on left (60%) e painel direito (artifact ou resumo da pesquisa)
+ * - Mobile: Chat em tela cheia; artifact em bottom sheet; resumo da pesquisa em outro bottom sheet (FAB)
  *
  * Features:
  * - Resizable panels on desktop
  * - Panel size persistence in localStorage
  * - Collapsible artifact panel
+ * - Resumo Perplexity/PubMed com bullets e links
  */
 export function ChatWithArtifactPanel(props: ChatWithArtifactPanelProps) {
+  const sessionKey = props.id ?? 'new-chat'
   return (
-    <ArtifactProvider>
+    <ArtifactProvider key={sessionKey}>
       <ChatWithArtifactPanelInner {...props} />
     </ArtifactProvider>
   )
