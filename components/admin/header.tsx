@@ -27,7 +27,12 @@ export function AdminHeader({
               aria-controls="admin-sidebar"
               aria-expanded={isSidebarVisible}
               title="Alternar menu lateral"
-              className="group flex h-9 w-9 items-center justify-center rounded-lg border bg-secondary/50 text-muted-foreground transition-all duration-200 hover:border-primary/50 hover:bg-secondary hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary md:hidden"
+              className={cn(
+                'group flex h-9 w-9 items-center justify-center rounded-lg border bg-secondary/50 text-muted-foreground transition-all duration-200 hover:bg-secondary hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 md:hidden',
+                isSidebarVisible
+                  ? 'border-violet-500/55 text-violet-300 [&_svg]:text-violet-300'
+                  : 'border-border hover:border-violet-500/40'
+              )}
             >
               <Menu className="h-5 w-5" />
             </button>

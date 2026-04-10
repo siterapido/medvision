@@ -29,7 +29,8 @@ export function MobileFloatingHeader({
   userImage,
   className,
 }: MobileFloatingHeaderProps) {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, isMobile, openMobile } = useSidebar()
+  const menuAberto = isMobile && openMobile
 
   // Get initials from name
   const initials = userName
@@ -45,7 +46,8 @@ export function MobileFloatingHeader({
         'fixed top-0 left-0 right-0 z-40 md:hidden',
         'h-[52px] pt-[env(safe-area-inset-top)]',
         'bg-background/95 backdrop-blur-xl',
-        'border-b border-border/50',
+        'border-b transition-colors duration-200',
+        menuAberto ? 'border-violet-500/50' : 'border-border/50',
         'flex items-center justify-between px-3',
         className
       )}
@@ -55,7 +57,12 @@ export function MobileFloatingHeader({
         variant="ghost"
         size="icon"
         onClick={toggleSidebar}
-        className="size-9 rounded-lg text-muted-foreground hover:text-foreground"
+        className={cn(
+          'size-9 rounded-lg border border-transparent transition-colors',
+          menuAberto
+            ? 'border-violet-500/55 bg-violet-500/10 text-violet-300 hover:bg-violet-500/15 hover:text-violet-200 [&_svg]:text-violet-300'
+            : 'text-muted-foreground hover:border-violet-500/30 hover:text-foreground'
+        )}
         aria-label="Abrir menu"
       >
         <Menu className="size-5" />

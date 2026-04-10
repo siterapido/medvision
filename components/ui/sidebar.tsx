@@ -263,11 +263,17 @@ const SidebarTrigger = React.forwardRef<
   React.ElementRef<typeof Button>,
   React.ComponentProps<typeof Button>
 >(({ className, onClick, ...props }, ref) => {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar, isMobile, openMobile } = useSidebar()
+  const menuAberto = isMobile && openMobile
 
   return (
     <Button
-      className={cn('h-7 w-7', className)}
+      className={cn(
+        'h-7 w-7 border border-transparent transition-colors',
+        menuAberto &&
+          'border-violet-500/60 bg-violet-500/10 text-violet-300 hover:bg-violet-500/15 hover:text-violet-200 [&_svg]:text-violet-300',
+        className
+      )}
       data-sidebar="trigger"
       onClick={(event) => {
         onClick?.(event)

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { SidebarTrigger, useSidebar } from '@/components/ui/sidebar'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils'
 // import { AgentSwitcher } from './agent-switcher' // Optional, can enable if needed in header
 
 interface ChatHeaderProps {
@@ -18,10 +19,16 @@ export function ChatHeader({
     onAgentChange,
 }: ChatHeaderProps) {
     const router = useRouter()
-    const { isMobile } = useSidebar()
+    const { openMobile, isMobile } = useSidebar()
+    const menuAberto = isMobile && openMobile
 
     return (
-        <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header
+            className={cn(
+                'sticky top-0 z-10 flex h-14 shrink-0 items-center justify-between gap-2 border-b bg-background/95 px-4 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-colors duration-200',
+                menuAberto ? 'border-violet-500/55' : 'border-border'
+            )}
+        >
             <div className="flex items-center gap-2">
                 <SidebarTrigger className="-ml-1" />
                 <Button
@@ -33,7 +40,13 @@ export function ChatHeader({
                     <User className="h-4 w-4" />
                     <span className="sr-only">Perfil</span>
                 </Button>
-                <Separator orientation="vertical" className="mr-2 h-4 lg:hidden" />
+                <Separator
+                    orientation="vertical"
+                    className={cn(
+                        'mr-2 h-4 lg:hidden transition-colors',
+                        menuAberto ? 'bg-violet-500/45' : undefined
+                    )}
+                />
 
                 {/* Title or Breadcrumb */}
                 <div className="flex items-center gap-2 text-sm font-medium">

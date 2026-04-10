@@ -65,10 +65,10 @@ export function Header({
         aria-label={isMenuOpen ? "Fechar menu" : "Abrir menu"}
         aria-expanded={isMenuOpen}
         className={cn(
-          "group flex h-10 w-10 items-center justify-center rounded-xl border backdrop-blur-sm transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary",
+          "group flex h-10 w-10 items-center justify-center rounded-xl border backdrop-blur-sm transition-all duration-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500",
           isMenuOpen
-            ? "border-primary/50 bg-slate-800/50 text-primary"
-            : "border-slate-700/50 bg-slate-900/40 text-slate-400 hover:border-primary/30 hover:bg-slate-800/40 hover:text-white"
+            ? "border-violet-500/60 bg-slate-800/50 text-violet-300 [&_svg]:text-violet-300"
+            : "border-slate-700/50 bg-slate-900/40 text-slate-400 hover:border-violet-500/35 hover:bg-slate-800/40 hover:text-white"
         )}
       >
         <Menu
@@ -84,7 +84,8 @@ export function Header({
   return (
     <header
       className={cn(
-        "border-b border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-4 py-2 shadow-lg transition-colors duration-200 md:px-6",
+        "border-b bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 px-4 py-2 shadow-lg transition-colors duration-200 md:px-6",
+        isMenuOpen ? "border-violet-500/45" : "border-slate-800",
         className
       )}
     >
