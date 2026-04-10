@@ -2,6 +2,10 @@
   "name": "medvision",
   "version": "0.1.4",
   "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/siterapido/medvision.git"
+  },
   "scripts": {
     "build": "next build",
     "dev": "next dev --turbo",
