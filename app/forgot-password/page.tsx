@@ -11,10 +11,8 @@ import { AlertCircle, CheckCircle2, Loader2 } from "lucide-react"
 
 export default function ForgotPasswordPage() {
   const envReady = useMemo(() => {
-    const hasUrl = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL)
-    const hasAnon = Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-    const validUrl = hasUrl && /^https?:\/\//.test(String(process.env.NEXT_PUBLIC_SUPABASE_URL))
-    return hasUrl && hasAnon && validUrl
+    const url = process.env.NEXT_PUBLIC_NEON_AUTH_BASE_URL
+    return Boolean(url) && /^https?:\/\//.test(String(url))
   }, [])
 
   const [email, setEmail] = useState("")
@@ -22,7 +20,7 @@ export default function ForgotPasswordPage() {
   const [status, setStatus] = useState<{ type: "success" | "error"; message: string } | null>(null)
 
   const missingEnvMessage = !envReady
-    ? "Configuração do Supabase ausente: defina NEXT_PUBLIC_SUPABASE_URL (com https://) e NEXT_PUBLIC_SUPABASE_ANON_KEY em .env.local e reinicie o servidor."
+    ? "Configuração de autenticação ausente: defina NEXT_PUBLIC_NEON_AUTH_BASE_URL (com https://) no ambiente e reinicie o servidor."
     : null
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -68,7 +66,7 @@ export default function ForgotPasswordPage() {
             Recuperação protegida
             <br />
             <span className="bg-gradient-to-r from-primary via-accent to-cyan-400 bg-clip-text text-transparent">
-              orientada pelo Supabase
+              com autenticação segura
             </span>
           </h1>
           <p className="text-base text-slate-200 max-w-sm">

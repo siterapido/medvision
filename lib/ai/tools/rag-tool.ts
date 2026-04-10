@@ -12,8 +12,9 @@ import { z } from "zod";
 import { tool } from "ai";
 import { getContext } from "../artifacts/context";
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const RAG_SEARCH_URL = process.env.NEXT_PUBLIC_APP_URL
+  ? `${process.env.NEXT_PUBLIC_APP_URL}/api/rag-search`
+  : `http://localhost:${process.env.PORT ?? 3000}/api/rag-search`;
 
 /**
  * Search knowledge base and user memories using RAG
@@ -61,14 +62,11 @@ export const searchKnowledge = tool({
         };
       }
 
-      // Call the rag-search Edge Function
-      const response = await fetch(
-        `${SUPABASE_URL}/functions/v1/rag-search`,
-        {
+      // Call the internal rag-search API route
+      const response = await fetch(RAG_SEARCH_URL, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify({
             query,
