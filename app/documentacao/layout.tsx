@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
-  title: 'Documentação Técnica | Odonto GPT',
+  title: 'Documentação Técnica | MedVision',
   description: 'Hub de documentação interna do projeto Odonto GPT',
 }
 

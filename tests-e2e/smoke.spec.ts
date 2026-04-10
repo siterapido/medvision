@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Smoke Tests', () => {
   test('deve carregar a página de login', async ({ page }) => {
     await page.goto('/login');
-    await expect(page).toHaveTitle(/Odonto|Login/i);
+    await expect(page).toHaveTitle(/MedVision|Odonto|Login/i);
     // Verifica se existe algum input de email
     await expect(page.locator('input[type="email"]')).toBeVisible();
   });

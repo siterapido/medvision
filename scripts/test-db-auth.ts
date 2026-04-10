@@ -22,7 +22,7 @@ async function runTest() {
     console.log('🔗 URL:', supabaseUrl);
 
     const testUser = {
-        email: 'test-user@odontogpt.com',
+        email: 'test-user@medvision.local',
         password: 'password123',
         name: 'Usuário de Teste'
     };

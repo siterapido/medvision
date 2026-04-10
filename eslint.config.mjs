@@ -5,9 +5,6 @@ import tsParser from '@typescript-eslint/parser'
 
 const config = [
   {
-    ignores: ['v0-odonto-gpt-ui/**'],
-  },
-  {
     files: ['**/*.{ts,tsx,js,jsx}'],
     languageOptions: {
       parser: tsParser,

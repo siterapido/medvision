@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { getPublicSiteUrl } from '@/lib/site-url';
 
 export async function POST(request: NextRequest) {
   try {
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
 
     // Envia email de redefinição de senha
     const { data, error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://odontogpt.com'}/auth/callback?next=/dashboard`,
+      redirectTo: `${getPublicSiteUrl()}/auth/callback?next=/dashboard`,
     });
 
     if (error) {

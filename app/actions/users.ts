@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 
 import { resolveUserRole } from "@/lib/auth/roles"
+import { getPublicSiteUrl } from "@/lib/site-url"
 import { DEFAULT_TRIAL_DAYS, calculateTrialEndDate, normalizeTrialDays } from "@/lib/trial"
 import { createAdminClient } from "@/lib/supabase/admin"
 import { createClient } from "@/lib/supabase/server"
@@ -373,7 +374,7 @@ export async function sendPasswordResetEmail(email: string): Promise<ActionResul
     // O método resetPasswordForEmail envia o email automaticamente
     const supabase = adminCheck.supabase
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "https://odontogpt.com"}/auth/callback?next=/dashboard`,
+      redirectTo: `${getPublicSiteUrl()}/auth/callback?next=/dashboard`,
     })
 
     if (error) {

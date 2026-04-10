@@ -16,7 +16,7 @@ describe("sanitizeNextPath", () => {
 
   it("bloqueia tentativas de open-redirect", () => {
     assert.equal(sanitizeNextPath("http://example.com"), "/dashboard")
-    assert.equal(sanitizeNextPath("https://odontogpt.com"), "/dashboard")
+    assert.equal(sanitizeNextPath("https://example.com"), "/dashboard")
     assert.equal(sanitizeNextPath("//evil.com"), "/dashboard")
   })
 })

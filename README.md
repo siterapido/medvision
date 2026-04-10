@@ -1,34 +1,25 @@
-# Odonto GPT UI
+# MedVision
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+Cópia de desenvolvimento independente do stack OdontoGPT Web, voltada a um novo projeto com **banco de dados e autenticação próprios** (Supabase ou outro backend que você configurar).
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/insightfy/v0-odonto-gpt-ui)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/sahgokuYUIU)
+## Repositório
 
-## Overview
+- **Este projeto:** [github.com/siterapido/medvision](https://github.com/siterapido/medvision)
+- **Origem (referência):** [github.com/siterapido/odontogptweb](https://github.com/siterapido/odontogptweb)
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+## Primeiros passos
 
-## Deploy
+1. Crie um projeto no [Supabase](https://supabase.com) (ou o provedor escolhido) e **não** reutilize as credenciais do OdontoGPT.
+2. Copie `.env.example` para `.env.local` e preencha `NEXT_PUBLIC_SUPABASE_URL`, chaves anon/service role, `NEXT_PUBLIC_SITE_URL`, `APP_URL`, e demais integrações (Bunny, Z-API, IA, etc.).
+3. Aplique migrações: `pnpm db:push` ou `supabase db push` conforme o guia em `docs/` e `supabase/README.md`.
+4. Configure URLs de redirect no painel de Auth (Site URL e redirect URLs apontando para o seu domínio ou `http://localhost:3000`).
 
-Guia completo de produção (Vercel + Supabase):
+Documentação de deploy em produção:
 
-- docs/DEPLOY_PRODUCTION.md
+- `docs/DEPLOY_PRODUCTION.md`
 
-Projeto em produção:
+## Scripts
 
-**[https://vercel.com/insightfy/v0-odonto-gpt-ui](https://vercel.com/insightfy/v0-odonto-gpt-ui)**
-
-## Build your app
-
-Continue building your app on:
-
-**[https://v0.app/chat/sahgokuYUIU](https://v0.app/chat/sahgokuYUIU)**
-
-## How It Works
-
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+- `pnpm dev` — desenvolvimento
+- `pnpm build` / `pnpm start` — build e produção local
+- `pnpm validate:env` — checagem de variáveis de ambiente

@@ -27,9 +27,9 @@ const plusJakarta = Plus_Jakarta_Sans({
 })
 
 export const metadata: Metadata = {
-  title: "Odonto GPT - IA para Profissionais de Odontologia",
-  description: "Plataforma SaaS com IA e cursos para profissionais de odontologia",
-  generator: "v0.app",
+  title: "MedVision",
+  description: "Plataforma com IA e cursos — projeto independente (configure branding no código).",
+  generator: "Next.js",
   icons: {
     icon: '/favicon.ico',
   },

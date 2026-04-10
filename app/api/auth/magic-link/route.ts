@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { getPublicSiteUrl } from '@/lib/site-url';
 
 export async function POST(request: NextRequest) {
   try {
@@ -18,7 +19,7 @@ export async function POST(request: NextRequest) {
     const { data, error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://odontogpt.com'}/dashboard`,
+        emailRedirectTo: `${getPublicSiteUrl()}/dashboard`,
       },
     });
 

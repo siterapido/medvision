@@ -4,6 +4,7 @@
  */
 
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getPublicSiteUrl } from '@/lib/site-url'
 import { sendWhatsAppResponse } from './send-response'
 
 type SupabaseAdmin = ReturnType<typeof createAdminClient>
@@ -69,12 +70,13 @@ async function checkTrialExpiringTrigger(supabase: SupabaseAdmin) {
       (new Date(user.trial_ends_at!).getTime() - now.getTime()) / (24 * 60 * 60 * 1000)
     )
 
+    const base = getPublicSiteUrl()
     const message = `🔔 *Olá ${user.name}*!
 
-Seu período de teste do Odonto GPT termina em *${daysLeft} dias*.
+Seu período de teste do MedVision termina em *${daysLeft} dias*.
 
 Para continuar com acesso ilimitado:
-📱 Acesse: https://odontogpt.com.br/checkout
+📱 Acesse: ${base}/checkout
 
 Dúvidas? É só responder aqui! 😊`
 
@@ -147,13 +149,14 @@ async function checkTrialExpiredTrigger(supabase: SupabaseAdmin) {
       continue
     }
 
+    const base = getPublicSiteUrl()
     const message = `💙 *${user.name}*, sentimos sua falta!
 
-Vimos que seu teste do Odonto GPT terminou.
+Vimos que seu teste do MedVision terminou.
 
 🎁 *Oferta especial:* 20% de desconto se assinar hoje!
 
-👉 https://odontogpt.com.br/checkout?coupon=VOLTA20
+👉 ${base}/checkout?coupon=VOLTA20
 
 Podemos te ajudar com algo? 📚`
 
@@ -253,12 +256,13 @@ async function checkNewCoursesTrigger(supabase: SupabaseAdmin) {
         continue
       }
 
+      const base = getPublicSiteUrl()
       const message = `🎓 *Novo curso disponível!*
 
 *${course.title}*
 
 Acesse agora em:
-👉 https://odontogpt.com.br/dashboard/cursos/${course.id}
+👉 ${base}/dashboard/cursos/${course.id}
 
 Bons estudos! 📚`
 

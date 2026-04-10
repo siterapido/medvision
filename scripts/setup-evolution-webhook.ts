@@ -12,7 +12,7 @@
 const EVOLUTION_API_URL = process.env.EVOLUTION_API_URL || 'https://evolution-api-production-027f.up.railway.app'
 const EVOLUTION_API_KEY = process.env.EVOLUTION_API_KEY || 'sixsaude2026'
 const EVOLUTION_INSTANCE = process.env.EVOLUTION_INSTANCE || 'sixsaude-test'
-const APP_URL = process.env.APP_URL || 'https://www.odontogpt.com'
+const APP_URL = process.env.APP_URL || 'http://localhost:3000'
 
 const WEBHOOK_URL = `${APP_URL}/api/webhooks/evolution`
 
