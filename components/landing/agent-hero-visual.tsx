@@ -66,7 +66,7 @@ export function AgentHeroVisual() {
         {
             id: 2,
             icon: Eye,
-            label: "Odonto Vision",
+            label: "Med Vision",
             color: "bg-gradient-to-br from-cyan-500 via-blue-500 to-indigo-500",
             position: "right-[-8%] top-[5%] md:right-[5%] md:top-[15%]"
         },
@@ -161,7 +161,7 @@ export function AgentHeroVisual() {
                 >
                     {/* Linha para Odonto Research (topo esquerda) */}
                     <line x1="50%" y1="50%" x2="12%" y2="25%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
-                    {/* Linha para Odonto Vision (topo direita) */}
+                    {/* Linha para Med Vision (topo direita) */}
                     <line x1="50%" y1="50%" x2="88%" y2="25%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
                     {/* Linha para Odonto Summary (meio esquerda) */}
                     <line x1="50%" y1="50%" x2="8%" y2="50%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />

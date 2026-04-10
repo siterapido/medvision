@@ -49,14 +49,14 @@ export const AGENT_CONFIGS: Record<string, AgentInfo> = {
     },
     "odonto-vision": {
         id: "odonto-vision",
-        name: "Odonto Vision",
+        name: "Med Vision",
         icon: Eye,
         color: "amber",
         gradient: "from-amber-500 via-orange-500 to-red-500",
         ringColor: "ring-amber-500/50",
         bgGlow: "shadow-amber-500/20",
-        handoffMessage: "Analisando imagem odontológica...",
-        description: "Interprete radiografias e imagens odontológicas com apoio de IA. Auxílio na leitura clínica, identificação de padrões e geração de laudos."
+        handoffMessage: "Analisando radiografia ou tomografia...",
+        description: "Interprete radiografias e tomografias (incluindo CBCT) com apoio de IA: leitura pedagógica, achados e laudo educacional."
     },
     "medvision": {
         id: "medvision",
@@ -127,9 +127,9 @@ export const AGENT_SUGGESTIONS: Record<string, string[]> = {
         "Revisar artigo sobre endodontia"
     ],
     "odonto-vision": [
-        "Analisar radiografia periapical",
-        "Interpretar panorâmica",
-        "Laudo de tomografia"
+        "Analisar radiografia periapical ou panorâmica",
+        "Interpretar corte de CBCT ou TC",
+        "Revisar achados em tomografia volumétrica"
     ],
     "medvision": [
         "Quero pesquisar e criar um resumo",

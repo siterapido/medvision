@@ -51,7 +51,7 @@ export function AgentDemoVision() {
                                     <Eye className="w-6 h-6 text-white" />
                                 </motion.div>
                                 <div>
-                                    <div className="font-semibold text-white">Odonto Vision</div>
+                                    <div className="font-semibold text-white">Med Vision</div>
                                     <div className="text-xs text-slate-400">
                                         {stage < 2 ? "Pronto para análise" : stage === 2 ? "Analisando imagem..." : "Análise completa"}
                                     </div>
@@ -175,7 +175,7 @@ export function AgentDemoVision() {
                     >
                         <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-[#FF6B6B]/10 border border-[#FF6B6B]/20">
                             <Eye className="w-5 h-5 text-[#FF6B6B]" />
-                            <span className="text-[#FF6B6B] font-semibold">Odonto Vision</span>
+                            <span className="text-[#FF6B6B] font-semibold">Med Vision</span>
                             <span className="px-2 py-0.5 bg-[#DA4167] rounded-full text-xs text-white font-bold">PRO</span>
                         </div>
 

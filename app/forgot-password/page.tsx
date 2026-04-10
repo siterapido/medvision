@@ -55,17 +55,17 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen flex bg-slate-50 dark:bg-slate-900">
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#0F192F] via-[#131D37] to-[#1A2847] p-12 flex-col justify-between">
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-[#0C1F18] via-[#102820] to-[#143D32] p-12 flex-col justify-between">
         <div className="absolute inset-0 opacity-30">
           <div className="absolute inset-0 bg-grid-pattern"></div>
           <div className="absolute top-24 left-16 w-72 h-72 bg-primary/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-16 right-16 w-72 h-72 bg-[#2399B4]/20 rounded-full blur-3xl"></div>
+          <div className="absolute bottom-16 right-16 w-72 h-72 bg-emerald-500/20 rounded-full blur-3xl"></div>
         </div>
         <div className="relative z-10 space-y-8">
           <h1 className="text-4xl font-bold text-white leading-tight">
             Recuperação protegida
             <br />
-            <span className="bg-gradient-to-r from-primary via-accent to-cyan-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-primary via-emerald-400 to-teal-400 bg-clip-text text-transparent">
               com autenticação segura
             </span>
           </h1>
@@ -122,7 +122,7 @@ export default function ForgotPasswordPage() {
             <Button
               type="submit"
               disabled={!envReady || isSubmitting}
-              className="w-full h-12 bg-gradient-to-r from-primary to-accent hover:from-primary-hover hover:to-accent text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
+              className="w-full h-12 bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all"
             >
               {isSubmitting ? (
                 <>

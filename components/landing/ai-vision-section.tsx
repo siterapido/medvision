@@ -46,17 +46,17 @@ export function AiVisionSection() {
                         <div className="space-y-8">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/30 text-purple-400 text-sm font-semibold">
                                 <Eye className="w-4 h-4" />
-                                <span>Odonto Vision (Pro)</span>
+                                <span>Med Vision (Pro)</span>
                             </div>
 
                             <h2 className="text-3xl md:text-5xl font-bold text-white leading-tight">
-                                Analisa e Lauda <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">Radiografias</span>
+                                Analisa e Lauda <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-400">RX e Tomografias</span>
                             </h2>
 
                             <div className="space-y-6 text-lg text-slate-300 leading-relaxed">
                                 <p>
-                                    Envie radiografias odontológicas e receba laudos automáticos
-                                    com sugestões diagnósticas baseadas em IA.
+                                    Envie radiografias ou cortes de tomografia e receba laudos assistidos
+                                    com sugestões diagnósticas baseadas em IA (uso educacional).
                                 </p>
 
                                 <p className="font-medium text-slate-100 text-xl border-l-4 border-purple-500 pl-4 py-1">
@@ -93,7 +93,7 @@ export function AiVisionSection() {
                                         <Eye className="w-6 h-6 text-white" />
                                     </motion.div>
                                     <div>
-                                        <div className="font-semibold text-white">Odonto Vision</div>
+                                        <div className="font-semibold text-white">Med Vision</div>
                                         <div className="text-xs text-slate-400">
                                             {stage < 2 ? "Aguardando imagem..." : stage === 2 ? "Processando..." : "Análise concluída"}
                                         </div>

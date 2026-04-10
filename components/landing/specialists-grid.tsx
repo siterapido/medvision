@@ -18,8 +18,8 @@ const specialists = [
     },
     {
         icon: Eye,
-        title: "Odonto Vision",
-        desc: "Analisa radiografias e imagens clínicas para identificar patologias automaticamente.",
+        title: "Med Vision",
+        desc: "Analisa radiografias e tomografias com laudo assistido por IA (fins educacionais).",
         color: "text-cyan-400",
         dotColor: "bg-cyan-400",
         bg: "bg-cyan-500/10",

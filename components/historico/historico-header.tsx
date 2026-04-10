@@ -26,7 +26,7 @@ export function HistoricoHeader({ total }: HistoricoHeaderProps) {
         className="bg-[var(--brand)] hover:bg-[var(--brand-muted)] text-white"
       >
         <Plus className="w-4 h-4 mr-2" />
-        Odonto Vision
+        Med Vision
       </Button>
     </div>
   )

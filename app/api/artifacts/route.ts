@@ -22,7 +22,7 @@ const createArtifactSchema = z.object({
         maxTokens: z.number().optional(),
         systemPrompt: z.string().optional(),
         timestamp: z.string().optional(),
-    }).optional().default({ model: 'gpt-4o', agent: 'OdontoVision AI' }),
+    }).optional().default({ model: 'gpt-4o', agent: 'MedVision AI' }),
 })
 
 /**

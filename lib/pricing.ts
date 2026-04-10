@@ -46,7 +46,7 @@ export const plans: Plan[] = [
     caktoId: CAKTO_PRO_MONTHLY_PLAN_ID,
     features: [
       "Tudo do Plano Basico",
-      "Odonto Vision: Analise visual avancada",
+      "Med Vision: analise avancada de radiografias e tomografias",
       "Relatorios de evolucao de casos",
       "Acesso a biblioteca premium de casos clinicos",
       "Suporte prioritario",

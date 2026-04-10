@@ -23,7 +23,7 @@ export const AGENT_PILLS: AgentPill[] = [
     icon: <Sparkles className="w-3.5 h-3.5" />,
     shortName: 'GPT',
     fullName: 'MedVision',
-    placeholder: 'Pergunte sobre odontologia...',
+    placeholder: 'Pergunte sobre radiografias, tomografias ou estudo...',
     color: '#00A3FF',
   },
   {
@@ -54,8 +54,8 @@ export const AGENT_PILLS: AgentPill[] = [
     id: 'odonto-vision',
     icon: <ScanEye className="w-3.5 h-3.5" />,
     shortName: 'Visão',
-    fullName: 'Odonto Vision',
-    placeholder: 'Envie uma imagem radiográfica para análise...',
+    fullName: 'Med Vision',
+    placeholder: 'Envie radiografia ou tomografia para análise...',
     color: '#FF6B6B',
   },
 ]

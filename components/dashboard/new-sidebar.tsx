@@ -30,7 +30,7 @@ export type DashboardNavItem = {
 }
 
 export const dashboardNavigation: DashboardNavItem[] = [
-  { name: "Odonto Vision", href: "/dashboard/odonto-vision", icon: ImageIcon },
+  { name: "Med Vision", href: "/dashboard/odonto-vision", icon: ImageIcon },
 ]
 
 interface NewSidebarProps {
@@ -75,7 +75,7 @@ export function NewSidebar({ isCollapsed, toggleCollapse, onLogout }: NewSidebar
               )}
             >
               <Plus className="h-4 w-4" />
-              {!isCollapsed && <span className="text-sm font-medium">Odonto Vision</span>}
+              {!isCollapsed && <span className="text-sm font-medium">Med Vision</span>}
             </Button>
           </Link>
         </div>

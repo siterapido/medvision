@@ -132,7 +132,7 @@ export function VisionArtifact({ artifact, className }: VisionArtifactProps) {
 
     content += '\n---\n'
     content += '*Este laudo foi gerado por IA e serve apenas como auxílio diagnóstico.*\n'
-    content += '*OdontoVision AI • CRM Virtual: 0001-AI*'
+    content += '*MedVision AI • CRM Virtual: 0001-AI*'
 
     await navigator.clipboard.writeText(content)
     setCopied(true)
@@ -518,7 +518,7 @@ export function VisionArtifact({ artifact, className }: VisionArtifactProps) {
                 alt="IA signature"
               />
               <div>
-                <p className="text-xs font-bold text-foreground">OdontoVision AI</p>
+                <p className="text-xs font-bold text-foreground">MedVision AI</p>
                 <p className="text-[10px] text-muted-foreground">CRM Virtual: 0001-AI</p>
               </div>
             </div>

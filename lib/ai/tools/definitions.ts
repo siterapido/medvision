@@ -35,7 +35,7 @@ export const askPerplexity = tool({
           messages: [
             {
               role: "system",
-              content: `Você é um assistente de pesquisa científica odontológica sênior do MedVision.
+              content: `Você é um assistente de pesquisa científica sênior do MedVision, com ênfase em diagnóstico por imagem, radiologia e áreas clínicas relacionadas quando o tema exigir.
 Responda sempre em Português do Brasil com linguagem técnica e precisa.
 Ao citar estudos no texto, use o formato de hyperlink markdown integrado: [Sobrenome et al., Ano](URL_DO_ARTIGO).
 Ao final, inclua obrigatoriamente uma seção "### Referências" com a lista completa no formato:

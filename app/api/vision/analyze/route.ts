@@ -1,5 +1,10 @@
 
-import { openrouter, MODELS, VISION_MODEL_IDS } from '@/lib/ai/openrouter'
+import {
+    openrouterMedVision,
+    MODELS,
+    VISION_MODEL_IDS,
+    hasMedVisionOpenRouterKey,
+} from '@/lib/ai/openrouter'
 import { generateText } from 'ai'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
@@ -77,7 +82,16 @@ const DetectionSchema = z.object({
 
 const VisionSchema = z.object({
     meta: z.object({
-        imageType: z.enum(['Periapical', 'Panorâmica', 'Interproximal (Bitewing)', 'Oclusal', 'Foto Intraoral', 'Tomografia', 'Desconhecido']).describe("Tipo da imagem odontológica."),
+        imageType: z.enum([
+            'Periapical',
+            'Panorâmica',
+            'Interproximal (Bitewing)',
+            'Oclusal',
+            'Foto Intraoral',
+            'Tomografia (CBCT ou TC)',
+            'Radiografia (outra região / geral)',
+            'Desconhecido'
+        ]).describe("Tipo do exame de imagem (radiografia 2D, tomografia ou outro)."),
         quality: z.enum(['Excelente', 'Boa', 'Aceitável', 'Ruim', 'Inadequada']).describe("Qualidade técnica da imagem para fins diagnósticos."),
         qualityScore: z.number().min(0).max(100).describe("Pontuação de qualidade de 0 a 100 para fins de cálculo de precisão."),
         notes: z.string().optional().describe("Notas sobre a qualidade técnica (ex: 'Sobreposição', 'Distorção', 'Baixo contraste').")
@@ -101,7 +115,16 @@ const VisionSchema = z.object({
 // Schema para Estágio 1: Detecção rápida (mais simples, focado em encontrar anomalias)
 const QuickDetectionSchema = z.object({
     meta: z.object({
-        imageType: z.enum(['Periapical', 'Panorâmica', 'Interproximal (Bitewing)', 'Oclusal', 'Foto Intraoral', 'Tomografia', 'Desconhecido']).describe("Tipo da imagem odontológica."),
+        imageType: z.enum([
+            'Periapical',
+            'Panorâmica',
+            'Interproximal (Bitewing)',
+            'Oclusal',
+            'Foto Intraoral',
+            'Tomografia (CBCT ou TC)',
+            'Radiografia (outra região / geral)',
+            'Desconhecido'
+        ]).describe("Tipo do exame de imagem (radiografia 2D, tomografia ou outro)."),
         quality: z.enum(['Excelente', 'Boa', 'Aceitável', 'Ruim', 'Inadequada']).describe("Qualidade técnica da imagem."),
         qualityScore: z.number().min(0).max(100),
     }),
@@ -245,12 +268,18 @@ function validateImagePayload(imageData: string): { valid: boolean; message?: st
     return { valid: true }
 }
 
-const SYSTEM_PROMPT_BASE = `Você é o OdontoAI Vision, um radiologista e estomatologista renomado com especialização em diagnóstico por imagem odontológica.
-Sua tarefa é analisar imagens odontológicas e gerar um LAUDO TÉCNICO PROFISSIONAL COMPLETO com máxima precisão diagnóstica.
+const SYSTEM_PROMPT_BASE = `Você é o **MedVision AI** (motor de análise de imagem), operando como especialista em diagnóstico por **radiografia** e **tomografia** (incluindo CBCT, TC multidetector e cortes 2D derivados de exames volumétricos).
+Sua tarefa é analisar a imagem fornecida e gerar um LAUDO TÉCNICO COMPLETO com máxima precisão, em português do Brasil.
+
+ESCOPO:
+- **Radiografias**: intraorais (periapical, interproximal), extraorais (panorâmica, telerradiografia), e outras projeções ósseas ou de tórax quando for esse o exame.
+- **Tomografias**: descreva o plano (axial, coronal, sagital) quando visível; em CBCT/maxilofacial, correlacione com dentes (FDI) e estruturas (canal mandibular, seios, base de crânio).
+- Se a imagem for **exclusivamente dentária**, use também as categorias A–I abaixo com CID-10 odontológicos quando aplicável.
+- Se a imagem for **não dentária** (ex.: tórax, osso longo), adapte achados, CID-10 e diferenciais ao território anatômico — use detectionType 'other' e descreva com rigor.
 
 DIRETRIZES DE ANÁLISE:
-1. Classifique o tipo da imagem e sua qualidade técnica (atribua um qualityScore de 0-100).
-2. Identifique TODOS os tipos de anomalias listados abaixo, FORNECENDO dados específicos para cada tipo:
+1. Classifique o tipo do exame e a qualidade técnica (qualityScore 0-100). Em tomografia, mencione artefatos de metal ou ruído se relevantes.
+2. Quando aplicável à arcada dentária ou maxilofacial, identifique anomalias nas categorias abaixo com dados específicos:
 
 A) CÁRIES (detectionType: 'caries')
    - Forneça: Classe de Black (I-VI), superfície afetada (O/M/D/B/L/F), profundidade (inicial/moderada/avançada), se atinge polpa
@@ -288,8 +317,8 @@ I) CISTOS E TUMORES (detectionType: 'cyst' ou 'tumor')
    - Forneça: Localização, extensão, características radiográficas
    - CID-10: K09.0-K09.9 (cistos), D10-D16 (tumores benignos)
 
-3. Use terminologia técnica PRECISA: "imagem radiolúcida", "reabsorção óssea horizontal de grau X", "lesão sugestiva de...", "radiopacidade compatível com...".
-4. NUMERAÇÃO FDI: Para CADA achado que envolva um dente específico, identifique o número do dente em notação FDI Internacional (11-18 superior direito, 21-28 superior esquerdo, 31-38 inferior esquerdo, 41-48 inferior direito).
+3. Use terminologia técnica PRECISA: "radiolúcido/radiopaco", "janela/níveis", "realce", "reabsorção óssea", "lesão sugestiva de...", "opacidade compatível com...".
+4. **NUMERAÇÃO FDI**: Para achados em dentes permanentes, identifique o dente em notação FDI (11-18, 21-28, 31-38, 41-48). Fora da arcada, use localização anatômica precisa.
 5. CID-10: Para cada achado patológico, forneça o código CID-10 correspondente. Exemplos:
    - K02.0 Cárie limitada ao esmalte, K02.1 Cárie de dentina, K02.3 Cárie de cemento
    - K05.1 Gengivite crônica, K05.2 Periodontite aguda, K05.3 Periodontite crônica
@@ -321,7 +350,7 @@ IDIOMA: Português do Brasil (pt-BR) formal e técnico.`
 
 const JSON_SCHEMA_EXAMPLE = `{
   "meta": {
-    "imageType": "Periapical" | "Panorâmica" | "Interproximal (Bitewing)" | "Oclusal" | "Foto Intraoral" | "Tomografia" | "Desconhecido",
+    "imageType": "Periapical" | "Panorâmica" | "Interproximal (Bitewing)" | "Oclusal" | "Foto Intraoral" | "Tomografia (CBCT ou TC)" | "Radiografia (outra região / geral)" | "Desconhecido",
     "quality": "Excelente" | "Boa" | "Aceitável" | "Ruim" | "Inadequada",
     "qualityScore": number (0-100),
     "notes": string (opcional)
@@ -358,14 +387,14 @@ async function callVisionAI(imageData: string, clinicalContext?: string, models:
 
     const generateWithModel = async (modelId: string): Promise<z.infer<typeof VisionSchema>> => {
         const userTextParts: { type: 'text'; text: string }[] = [
-            { type: 'text' as const, text: 'GERE UM LAUDO RADIOGRÁFICO DETALHADO E COMPLETO. Analise esta imagem com máxima precisão técnica. Para cada achado: (1) bounding box preciso e justo, (2) número do dente FDI quando aplicável, (3) código CID-10, (4) diagnóstico diferencial, (5) ações recomendadas específicas. Inclua perToothBreakdown e differentialDiagnosis no report. Responda SOMENTE com o JSON.' },
+            { type: 'text' as const, text: 'GERE UM LAUDO DE IMAGEM (RADIOGRAFIA OU TOMOGRAFIA) DETALHADO E COMPLETO. Analise esta imagem com máxima precisão técnica. Para cada achado: (1) bounding box preciso e justo, (2) localização (FDI se dentário; senão anatomia topográfica), (3) CID-10 quando aplicável, (4) diagnóstico diferencial, (5) ações recomendadas. Inclua perToothBreakdown e differentialDiagnosis no report quando fizer sentido. Responda SOMENTE com o JSON.' },
         ]
         if (safeContext) {
             userTextParts.push({ type: 'text' as const, text: `CONTEXTO CLÍNICO FORNECIDO PELO PROFISSIONAL:\n${safeContext}\n\nConsidere este contexto ao formular hipóteses diagnósticas e recomendações.` })
         }
 
         const result = await generateText({
-            model: openrouter(modelId),
+            model: openrouterMedVision(modelId),
             maxOutputTokens: 8000,
             messages: [
                 {
@@ -412,14 +441,14 @@ async function callVisionRefinement(
         }
 
         const result = await generateText({
-            model: openrouter(modelId),
+            model: openrouterMedVision(modelId),
             maxOutputTokens: 6000,
             messages: [
                 {
                     role: 'system' as const,
                     content: `${SYSTEM_PROMPT_BASE}
 
-MODO DE REFINAMENTO: Você está re-analisando uma REGIÃO ESPECÍFICA extraída de uma imagem odontológica maior.
+MODO DE REFINAMENTO: Você está re-analisando uma REGIÃO ESPECÍFICA extraída de uma imagem médica maior (radiografia ou tomografia).
 A análise original da imagem completa identificou: ${originalAnalysisSummary}
 
 Sua tarefa agora é:
@@ -566,7 +595,7 @@ async function callVisionDetection(
         }
 
         const result = await generateText({
-            model: openrouter(modelId),
+            model: openrouterMedVision(modelId),
             maxOutputTokens: 4000,
             messages: [
                 {
@@ -616,7 +645,7 @@ async function callVisionDetailedAnalysis(
         }
 
         const result = await generateText({
-            model: openrouter(modelId),
+            model: openrouterMedVision(modelId),
             maxOutputTokens: 6000,
             messages: [
                 {
@@ -955,7 +984,7 @@ async function crossValidateCriticalDetections(
     
     try {
         const result = await generateText({
-            model: openrouter(MODELS.visionFallback2), // Use Gemini 2.5 Pro para validação
+            model: openrouterMedVision(MODELS.visionFallback2), // Use Gemini 2.5 Pro para validação
             maxOutputTokens: 2000,
             messages: [
                 {
@@ -1141,8 +1170,10 @@ export async function POST(req: Request) {
             })
         }
 
-        if (!process.env.OPENROUTER_API_KEY) {
-            console.error('Vision analysis error: OPENROUTER_API_KEY not configured')
+        if (!hasMedVisionOpenRouterKey()) {
+            console.error(
+                'Vision analysis error: configure MEDVISION_OPENROUTER_API_KEY ou OPENROUTER_API_KEY'
+            )
             return new Response(JSON.stringify({ error: 'API not configured' }), {
                 status: 500,
                 headers: { 'Content-Type': 'application/json' }

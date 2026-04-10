@@ -127,7 +127,7 @@ export const AnimatedAgentIcons = () => {
             icon: Eye,
             color: "#06B6D4",
             gradient: "from-cyan-500 via-blue-500 to-indigo-500",
-            name: "Odonto Vision",
+            name: "Med Vision",
             position: { x: 75, y: 15 },
             mobilePosition: { x: 62, y: 8 }
         },

@@ -522,7 +522,7 @@ export default function PaidLandingPage() {
                             <Eye className="w-6 h-6 text-purple-400" />
                           </div>
                           <div>
-                            <h3 className="text-xl font-bold text-white">Odonto Vision</h3>
+                            <h3 className="text-xl font-bold text-white">Med Vision</h3>
                             <p className="text-xs text-slate-500 uppercase tracking-wider">Analise por Imagem</p>
                           </div>
                         </div>
@@ -797,7 +797,7 @@ export default function PaidLandingPage() {
                     <ul className="space-y-3 mb-8 flex-grow">
                       {[
                         "Tudo do Plano Basico",
-                        "Odonto Vision: Analise visual de imagens",
+                        "Med Vision: analise de radiografias e tomografias",
                         "Biblioteca premium de casos clinicos",
                         "Suporte prioritario",
                         "Ebook: Como Validar Diploma nos EUA",

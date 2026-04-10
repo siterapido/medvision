@@ -27,7 +27,7 @@ type FloatingNavItem = {
 }
 
 const allNavItems: FloatingNavItem[] = [
-  { icon: Eye, href: '/dashboard/odonto-vision', label: 'Odonto Vision', isCenter: true },
+  { icon: Eye, href: '/dashboard/odonto-vision', label: 'Med Vision', isCenter: true },
 ]
 
 export function FloatingNavBar() {

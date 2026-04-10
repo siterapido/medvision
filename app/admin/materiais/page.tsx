@@ -1,6 +1,8 @@
 import { createClient } from "@/lib/supabase/server"
 import { MaterialsManager, type AdminMaterialRow } from "@/components/admin/materials-manager"
 
+export const dynamic = "force-dynamic"
+
 export const metadata = {
   title: "Materiais | Admin",
   description: "Gerencie a biblioteca de materiais e e-books",

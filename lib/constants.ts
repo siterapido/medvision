@@ -32,7 +32,7 @@ export const AGENT_NAMES = {
     [AGENT_IDS.RESEARCH]: 'Odonto Research',
     [AGENT_IDS.PRACTICE]: 'Odonto Practice',
     [AGENT_IDS.WRITE]: 'Odonto Write',
-    [AGENT_IDS.VISION]: 'Odonto Vision',
+    [AGENT_IDS.VISION]: 'Med Vision',
     [AGENT_IDS.SUMMARY]: 'Odonto Summary',
     [AGENT_IDS.FLOW]: 'MedVision', // Unified Name
     [AGENT_IDS.QA]: 'MedVision Legacy',

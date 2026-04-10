@@ -101,7 +101,7 @@ function StepIndicator({ current }: { current: VisionState }) {
     )
 }
 
-export default function OdontoVisionPage() {
+export default function MedVisionPage() {
     const router = useRouter()
     const [state, setState] = useState<VisionState>('UPLOAD')
     const [image, setImage] = useState<string | null>(null)
@@ -208,7 +208,7 @@ export default function OdontoVisionPage() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 title: `Laudo Vision: ${imageType} - ${date}`,
-                description: analysisData.report?.diagnosticHypothesis?.slice(0, 200) || 'Análise de imagem odontológica',
+                description: analysisData.report?.diagnosticHypothesis?.slice(0, 200) || 'Análise de imagem (radiografia ou tomografia)',
                 type: 'vision',
                 content
             })
@@ -587,7 +587,7 @@ export default function OdontoVisionPage() {
                         <Scan className="w-5 h-5 md:w-6 md:h-6 text-primary" />
                     </div>
                     <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight text-foreground">
-                        Odonto Vision
+                        Med Vision
                     </h1>
                 </div>
                 <p className="text-muted-foreground text-xs md:text-base max-w-2xl">
@@ -960,7 +960,7 @@ export default function OdontoVisionPage() {
                                             <p className="text-sm text-muted-foreground">
                                                 {analysisMode === 'compare'
                                                     ? 'Comparando 2 modelos em paralelo...'
-                                                    : 'Utilizando OdontoVision AI Engine v4.2'}
+                                                    : 'Utilizando MedVision AI Engine v4.2'}
                                             </p>
                                         </div>
                                     </div>
@@ -1381,7 +1381,7 @@ export default function OdontoVisionPage() {
                                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/30">
                                         <div>
                                             <h2 className="text-xl font-heading font-bold">Laudo AI</h2>
-                                            <p className="text-xs text-muted-foreground">OdontoVision AI Engine v4.2</p>
+                                            <p className="text-xs text-muted-foreground">MedVision AI Engine v4.2</p>
                                         </div>
                                         <div className="flex flex-wrap gap-2 justify-end">
                                             {analysisResult.meta && (
@@ -1567,7 +1567,7 @@ export default function OdontoVisionPage() {
                                         <div className="flex items-center gap-3">
                                             <img src="https://ui-avatars.com/api/?name=IA&background=0284c7&color=fff" className="w-10 h-10 rounded-full border border-primary/20" alt="IA" />
                                             <div>
-                                                <p className="text-sm font-bold">OdontoVision AI</p>
+                                                <p className="text-sm font-bold">MedVision AI</p>
                                                 <p className="text-[10px] text-muted-foreground">CRM Virtual: 0001-AI</p>
                                             </div>
                                         </div>

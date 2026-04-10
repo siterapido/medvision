@@ -1,5 +1,5 @@
 /**
- * Shared severity constants for OdontoVision.
+ * Shared severity constants for MedVision (análise de imagem).
  * Single source of truth — used by image-overlay, detection-popover, and page.
  */
 

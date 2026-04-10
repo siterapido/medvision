@@ -55,7 +55,7 @@ export function SearchHome() {
 
       {/* Caixa de Busca Principal */}
       <div className="w-full relative group">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/20 via-blue-500/20 to-purple-500/20 rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/20 via-teal-500/20 to-emerald-600/20 rounded-2xl blur-xl opacity-20 group-hover:opacity-30 transition-opacity duration-500" />
         <div className="relative bg-background border border-border/60 shadow-lg rounded-2xl p-2 transition-all duration-300 focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary/50 hover:border-border/80">
           <Textarea
             ref={textareaRef}

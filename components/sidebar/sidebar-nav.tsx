@@ -38,6 +38,7 @@ export function SidebarNav({ role, planType }: SidebarNavProps) {
   // Short labels for collapsed state (Perplexity-style)
   const getShortLabel = (label: string) => {
     const shortLabels: Record<string, string> = {
+      'Med Vision': 'Vision',
       'Odonto Vision': 'Vision',
       'Biblioteca': 'Biblioteca',
       'OdontoFlix': 'Flix',

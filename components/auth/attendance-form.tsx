@@ -173,7 +173,7 @@ export function AttendanceForm() {
           onChange={(e) => setName(e.target.value)}
           required
           disabled={isLoading || success}
-          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
         />
       </div>
 
@@ -189,7 +189,7 @@ export function AttendanceForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           disabled={isLoading || success}
-          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
         />
       </div>
 
@@ -205,7 +205,7 @@ export function AttendanceForm() {
           onChange={(e) => setWhatsapp(e.target.value)}
           required
           disabled={isLoading || success}
-          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
         />
       </div>
 
@@ -219,7 +219,7 @@ export function AttendanceForm() {
           disabled={isLoading || success}
           required
         >
-          <SelectTrigger className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all [&>span]:text-slate-500 [&>span]:data-[placeholder]:text-slate-500">
+          <SelectTrigger className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all [&>span]:text-slate-500 [&>span]:data-[placeholder]:text-slate-500">
             <SelectValue placeholder="Selecione sua ocupação" />
           </SelectTrigger>
           <SelectContent className="bg-[#0F172A] border-slate-700">
@@ -244,7 +244,7 @@ export function AttendanceForm() {
             onChange={(e) => setInstitution(e.target.value)}
             required
             disabled={isLoading || success}
-            className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+            className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
           />
         </div>
       )}
@@ -263,7 +263,7 @@ export function AttendanceForm() {
         style={{
           background: success
             ? 'linear-gradient(135deg, #059669 0%, #0d9488 100%)'
-            : 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
+            : 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
         }}
       >
         {isLoading ? (

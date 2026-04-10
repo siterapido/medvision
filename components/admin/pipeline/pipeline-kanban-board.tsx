@@ -59,7 +59,7 @@ type PipelineLead = {
 type PipelineStage =
   | "cadastro"           // 📥 Cadastro Realizado
   | "primeira_consulta"  // 🧪 Primeira Consulta
-  | "usou_vision"        // 🧠 Usou Odonto Vision
+  | "usou_vision"        // 🧠 Usou Med Vision
   | "uso_recorrente"     // 🔄 Uso Recorrente (3+ consultas)
   | "barreira_plano"     // 🚧 Barreira do Plano (limite atingido)
   | "convertido"         // 💳 Convertido (pagamento confirmado)

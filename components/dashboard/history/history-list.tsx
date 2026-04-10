@@ -83,7 +83,7 @@ export function HistoryList() {
                     className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground font-medium rounded-full hover:opacity-90 transition-all hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5"
                 >
                     <MessageSquare className="w-4 h-4" />
-                    Abrir Odonto Vision
+                    Abrir Med Vision
                 </Link>
             </div>
         )

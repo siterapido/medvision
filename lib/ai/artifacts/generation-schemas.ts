@@ -56,7 +56,7 @@ export const flashcardsGenerationSchema = z.object({
 export const quizGenerationSchema = z.object({
   title: z.string().describe('Titulo do quiz/simulado'),
   topic: z.string().describe('Topico do quiz'),
-  specialty: z.string().optional().describe('Especialidade odontologica'),
+  specialty: z.string().optional().describe('Especialidade ou área (ex.: radiologia, imagem, clínica)'),
   difficulty: z.enum(['easy', 'medium', 'hard']).default('medium'),
   questions: z
     .array(

@@ -79,7 +79,7 @@ export function InlineHandoff({ fromAgentId, toAgentId, className }: InlineHando
                         "text-xs font-medium transition-colors duration-300",
                         phase === 'connected' ? "text-white" : "text-slate-400"
                     )}>
-                        {toAgent.name.replace('Odonto ', '')}
+                        {toAgent.name.replace(/^(Odonto|Med) /, '')}
                     </span>
                 </div>
             </div>

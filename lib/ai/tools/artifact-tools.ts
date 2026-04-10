@@ -265,7 +265,7 @@ export const createResearchTool = tool({
 
 // Tool para criar laudo radiográfico
 export const createReportTool = tool({
-  description: 'Cria um laudo de análise de imagem odontológica. Use após analisar radiografias ou fotos clínicas.',
+  description: 'Cria um laudo de análise de imagem (radiografias e tomografias). Use após analisar o exame enviado.',
   inputSchema: z.object({
     title: z.string().describe('Título do laudo'),
     examType: z.string().describe('Tipo de exame (Panorâmica, Periapical, CBCT, etc.)'),

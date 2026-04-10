@@ -11,14 +11,33 @@
 
 import { createOpenAI } from '@ai-sdk/openai'
 
+const openRouterHeaders = {
+  'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  'X-Title': 'MedVision',
+} as const
+
 // Provider base (não exportar diretamente - usa Responses API por padrão)
 const openrouterProvider = createOpenAI({
   name: 'openrouter',
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY,
+  headers: openRouterHeaders,
+})
+
+/**
+ * OpenRouter dedicado ao Med Vision (análise de imagem em /api/vision/analyze).
+ * Usa MEDVISION_OPENROUTER_API_KEY se definida; senão cai no OPENROUTER_API_KEY.
+ */
+const medVisionOpenRouterKey =
+  process.env.MEDVISION_OPENROUTER_API_KEY ?? process.env.OPENROUTER_API_KEY
+
+const openrouterMedVisionProvider = createOpenAI({
+  name: 'openrouter-medvision-vision',
+  baseURL: 'https://openrouter.ai/api/v1',
+  apiKey: medVisionOpenRouterKey,
   headers: {
-    'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-    'X-Title': 'MedVision',
+    ...openRouterHeaders,
+    'X-Title': 'MedVision — Image Analysis',
   },
 })
 
@@ -27,6 +46,20 @@ const openrouterProvider = createOpenAI({
  * Usage: openrouter('google/gemini-2.0-flash-001')
  */
 export const openrouter = (modelId: string) => openrouterProvider.chat(modelId)
+
+/**
+ * Mesmo contrato que `openrouter`, mas com chave opcionalmente separada (Med Vision / visão).
+ */
+export const openrouterMedVision = (modelId: string) =>
+  openrouterMedVisionProvider.chat(modelId)
+
+/** True se a rota de visão tiver alguma chave OpenRouter disponível. */
+export function hasMedVisionOpenRouterKey(): boolean {
+  return Boolean(
+    process.env.MEDVISION_OPENROUTER_API_KEY?.trim() ||
+      process.env.OPENROUTER_API_KEY?.trim()
+  )
+}
 
 // Modelos disponíveis via OpenRouter (versões pagas - mais estáveis)
 export const MODELS = {

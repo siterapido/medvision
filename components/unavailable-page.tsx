@@ -14,7 +14,7 @@ interface UnavailablePageProps {
 
 export function UnavailablePage({
     title,
-    description = "Esta funcionalidade está em manutenção ou será liberada em breve para sua conta. Utilize o Odonto Vision para análise de imagens."
+    description = "Esta funcionalidade está em manutenção ou será liberada em breve para sua conta. Utilize o Med Vision para análise de radiografias e tomografias."
 }: UnavailablePageProps) {
     const router = useRouter()
 
@@ -76,7 +76,7 @@ export function UnavailablePage({
                         >
                             <div className="flex items-center justify-center gap-3">
                                 <Eye className="w-5 h-5 transition-transform duration-500 group-hover:rotate-12 text-cyan-200" />
-                                <span className="tracking-wide text-cyan-50">Ir para o Odonto Vision</span>
+                                <span className="tracking-wide text-cyan-50">Ir para o Med Vision</span>
                                 <ArrowLeft className="w-4 h-4 ml-auto opacity-30 group-hover:-translate-x-1 transition-transform text-cyan-200" />
                             </div>
                         </Button>

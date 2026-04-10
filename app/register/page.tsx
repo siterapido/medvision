@@ -29,34 +29,34 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
           className="absolute inset-0"
           style={{
             background: `
-              radial-gradient(ellipse 150% 100% at 50% 0%, #0D1628 0%, #080D19 50%, #060A14 100%)
+              radial-gradient(ellipse 150% 100% at 50% 0%, #0D1F18 0%, #080F0D 50%, #060C0A 100%)
             `
           }}
         />
 
-        {/* Nebula Layer 1: Large diffuse cyan glow - top left */}
+        {/* Nebula Layer 1: brilho esmeralda - topo esquerdo */}
         <div
           className="absolute w-[800px] h-[800px] -top-[200px] -left-[200px] opacity-[0.06]"
           style={{
-            background: 'radial-gradient(circle, #06b6d4 0%, transparent 70%)',
+            background: 'radial-gradient(circle, #10b981 0%, transparent 70%)',
             filter: 'blur(100px)',
           }}
         />
 
-        {/* Nebula Layer 2: Subtle purple accent - center right */}
+        {/* Nebula Layer 2: teal de apoio - centro direita */}
         <div
           className="absolute w-[600px] h-[600px] top-[30%] -right-[150px] opacity-[0.04]"
           style={{
-            background: 'radial-gradient(circle, #8b5cf6 0%, transparent 70%)',
+            background: 'radial-gradient(circle, #14b8a6 0%, transparent 70%)',
             filter: 'blur(120px)',
           }}
         />
 
-        {/* Nebula Layer 3: Deep cyan - bottom */}
+        {/* Nebula Layer 3: esmeralda profunda - base */}
         <div
           className="absolute w-[1000px] h-[500px] -bottom-[100px] left-[20%] opacity-[0.05]"
           style={{
-            background: 'radial-gradient(ellipse, #0891b2 0%, transparent 70%)',
+            background: 'radial-gradient(ellipse, #059669 0%, transparent 70%)',
             filter: 'blur(100px)',
           }}
         />
@@ -84,8 +84,8 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
               radial-gradient(1px 1px at 50% 70%, rgba(255,255,255,0.2) 0%, transparent 100%),
               radial-gradient(1px 1px at 70% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
               radial-gradient(1px 1px at 90% 55%, rgba(255,255,255,0.25) 0%, transparent 100%),
-              radial-gradient(1.5px 1.5px at 25% 45%, rgba(6,182,212,0.6) 0%, transparent 100%),
-              radial-gradient(1.5px 1.5px at 75% 65%, rgba(139,92,246,0.5) 0%, transparent 100%)
+              radial-gradient(1.5px 1.5px at 25% 45%, rgba(16,185,129,0.6) 0%, transparent 100%),
+              radial-gradient(1.5px 1.5px at 75% 65%, rgba(20,184,166,0.5) 0%, transparent 100%)
             `,
             backgroundSize: '100% 100%',
           }}
@@ -96,8 +96,8 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
           className="absolute inset-0 opacity-[0.08]"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(6, 182, 212, 0.4) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(6, 182, 212, 0.4) 1px, transparent 1px)
+              linear-gradient(rgba(16, 185, 129, 0.4) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(16, 185, 129, 0.4) 1px, transparent 1px)
             `,
             backgroundSize: '80px 80px',
             maskImage: 'radial-gradient(ellipse 80% 50% at 50% 50%, black 0%, transparent 85%)'
@@ -107,8 +107,8 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
           className="absolute inset-0 opacity-[0.03]"
           style={{
             backgroundImage: `
-              linear-gradient(rgba(6, 182, 212, 0.2) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(6, 182, 212, 0.2) 1px, transparent 1px)
+              linear-gradient(rgba(16, 185, 129, 0.2) 1px, transparent 1px),
+              linear-gradient(90deg, rgba(16, 185, 129, 0.2) 1px, transparent 1px)
             `,
             backgroundSize: '20px 20px',
             maskImage: 'radial-gradient(ellipse 80% 50% at 50% 50%, black 0%, transparent 90%)'
@@ -130,14 +130,14 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
             {/* Register Card */}
             <div className="relative">
               {/* Glow effect behind card */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-[#0891b2]/20 to-[#8b5cf6]/20 rounded-3xl blur-xl opacity-50" />
+              <div className="absolute -inset-1 bg-gradient-to-r from-[#059669]/20 to-[#14b8a6]/20 rounded-3xl blur-xl opacity-50" />
 
               <div className="relative bg-[#0F172A]/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-8 shadow-2xl">
                 {/* Header */}
                 <div className="text-center mb-8">
-                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#22d3ee]/10 border border-[#22d3ee]/30 mb-4">
-                    <Sparkles className="w-4 h-4 text-[#22d3ee]" />
-                    <span className="text-[#22d3ee] text-xs font-semibold">Plataforma de IA</span>
+                  <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#34d399]/10 border border-[#34d399]/30 mb-4">
+                    <Sparkles className="w-4 h-4 text-[#34d399]" />
+                    <span className="text-[#34d399] text-xs font-semibold">Plataforma de IA</span>
                   </div>
                   <h1 className="text-2xl font-bold text-white mb-2">Crie sua conta</h1>
                   <p className="text-slate-400 text-sm">Comece sua jornada com IA odontologica</p>
@@ -152,7 +152,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
                     Ja tem uma conta?{" "}
                     <Link
                       href="/login"
-                      className="text-[#22d3ee] hover:text-[#67e8f9] font-semibold transition-colors"
+                      className="text-[#34d399] hover:text-[#6ee7b7] font-semibold transition-colors"
                     >
                       Entrar
                     </Link>
@@ -165,7 +165,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
             <div className="mt-6 text-center">
               <Link
                 href="/"
-                className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-[#22d3ee] transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-[#34d399] transition-colors"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -197,7 +197,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
       <style jsx>{`
         .scrollbar-visible {
           scrollbar-width: thin;
-          scrollbar-color: rgba(34, 211, 238, 0.3) rgba(15, 23, 42, 0.3);
+          scrollbar-color: rgba(52, 211, 153, 0.3) rgba(15, 23, 42, 0.3);
         }
 
         .scrollbar-visible::-webkit-scrollbar {
@@ -210,13 +210,13 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
         }
 
         .scrollbar-visible::-webkit-scrollbar-thumb {
-          background: rgba(34, 211, 238, 0.3);
+          background: rgba(52, 211, 153, 0.3);
           border-radius: 4px;
           transition: background 0.2s;
         }
 
         .scrollbar-visible::-webkit-scrollbar-thumb:hover {
-          background: rgba(34, 211, 238, 0.5);
+          background: rgba(52, 211, 153, 0.5);
         }
 
         /* Ensure smooth scrolling */

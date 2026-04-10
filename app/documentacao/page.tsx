@@ -394,7 +394,7 @@ export default function DocumentacaoPage() {
                     },
                     {
                       icon: Eye,
-                      name: 'Odonto Vision',
+                      name: 'Med Vision',
                       desc: 'Análise visual por IA de radiografias e imagens clínicas. Upload direto no chat ou módulo dedicado.',
                       status: 'Produção',
                       doc: '/docs/odonto-vision.md',

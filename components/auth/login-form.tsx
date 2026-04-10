@@ -119,7 +119,7 @@ export function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           disabled={isLoading}
-          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
         />
       </div>
 
@@ -131,7 +131,7 @@ export function LoginForm() {
           <Link
             href="/forgot-password"
             prefetch={false}
-            className="text-xs text-[#22d3ee] hover:text-[#67e8f9] font-medium transition-colors"
+            className="text-xs text-[#34d399] hover:text-[#6ee7b7] font-medium transition-colors"
           >
             Esqueceu a senha?
           </Link>
@@ -145,7 +145,7 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
             disabled={isLoading}
-            className="h-12 px-4 pr-12 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+            className="h-12 px-4 pr-12 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
           />
           <button
             type="button"
@@ -163,7 +163,7 @@ export function LoginForm() {
         type="submit"
         className="w-full h-12 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] border-0 text-white"
         style={{
-          background: 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
+          background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
         }}
         disabled={isLoading || !envReady}
       >

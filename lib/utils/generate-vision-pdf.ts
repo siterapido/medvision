@@ -431,7 +431,7 @@ export async function generateVisionPDF({ analysisResult, imageBase64, refinemen
 
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2])
-  doc.text('OdontoVision AI • CRM Virtual: 0001-AI', pageWidth - margin - 55, footerY + 11)
+  doc.text('MedVision AI • CRM Virtual: 0001-AI', pageWidth - margin - 55, footerY + 11)
 
   // Save the PDF
   doc.save(`laudo-odontovision-${reportId}.pdf`)

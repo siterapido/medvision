@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server"
 
+import { isDevAuthBypass } from "@/lib/dev-auth"
 import { mapNeonUserToSupabaseUser, type NeonLikeUser } from "@/lib/supabase/map-user"
 import { resolveUserRole } from "@/lib/auth/roles"
 
@@ -42,7 +43,7 @@ export async function proxy(request: NextRequest) {
   const authPaths = ["/login", "/register"]
   const isAuthPath = authPaths.some((path) => request.nextUrl.pathname.startsWith(path))
 
-  if (isProtectedPath && !user) {
+  if (isProtectedPath && !user && !isDevAuthBypass()) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = "/login"
     redirectUrl.searchParams.set("redirectTo", request.nextUrl.pathname)

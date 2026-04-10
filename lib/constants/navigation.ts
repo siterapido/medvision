@@ -18,9 +18,9 @@ export interface NavItem {
   hiddenForTrial?: boolean
 }
 
-/** Navegação do app: apenas Odonto Vision no produto atual. */
+/** Navegação do app: ferramenta principal Med Vision (imagens). */
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/dashboard/odonto-vision", label: "Odonto Vision", icon: Eye },
+  { href: "/dashboard/odonto-vision", label: "Med Vision", icon: Eye },
 ]
 
 export const BOTTOM_NAV_ITEMS: NavItem[] = []

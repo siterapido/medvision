@@ -221,16 +221,16 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
           </div>
         </div>
       ) : (
-        <div className="bg-gradient-to-r from-[#22d3ee]/10 via-[#0891b2]/10 to-[#22d3ee]/10 border border-[#22d3ee]/30 rounded-xl p-4 mb-6 backdrop-blur-sm">
+        <div className="bg-gradient-to-r from-[#34d399]/10 via-[#059669]/10 to-[#34d399]/10 border border-[#34d399]/30 rounded-xl p-4 mb-6 backdrop-blur-sm">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-[#22d3ee]/20 to-[#0891b2]/20 p-2 rounded-full">
-              <Sparkles className="h-4 w-4 text-[#22d3ee]" />
+            <div className="bg-gradient-to-br from-[#34d399]/20 to-[#059669]/20 p-2 rounded-full">
+              <Sparkles className="h-4 w-4 text-[#34d399]" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-[#22d3ee]">
+              <p className="text-sm font-semibold text-[#34d399]">
                 {trialLabel} de acesso gratuito
               </p>
-              <p className="text-xs text-[#22d3ee]/70">
+              <p className="text-xs text-[#34d399]/70">
                 Sem cartao de credito. Acesso completo imediato.
               </p>
             </div>
@@ -269,7 +269,7 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
           onChange={(e) => setName(e.target.value)}
           required
           disabled={isLoading || success}
-          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
         />
       </div>
 
@@ -285,7 +285,7 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
           onChange={(e) => setEmail(e.target.value)}
           required
           disabled={isLoading || success}
-          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
         />
       </div>
 
@@ -301,7 +301,7 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
           onChange={(e) => setWhatsapp(e.target.value)}
           required
           disabled={isLoading || success}
-          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
         />
       </div>
 
@@ -315,7 +315,7 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
           disabled={isLoading || success}
           required
         >
-          <SelectTrigger className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all [&>span]:text-slate-500 [&>span]:data-[placeholder]:text-slate-500">
+          <SelectTrigger className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all [&>span]:text-slate-500 [&>span]:data-[placeholder]:text-slate-500">
             <SelectValue placeholder="Selecione sua ocupacao" />
           </SelectTrigger>
           <SelectContent className="bg-[#0F172A] border-slate-700">
@@ -340,7 +340,7 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
             onChange={(e) => setInstitution(e.target.value)}
             required
             disabled={isLoading || success}
-            className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+            className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
           />
         </div>
       )}
@@ -359,7 +359,7 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
             required
             minLength={8}
             disabled={isLoading || success}
-            className="h-12 px-4 pr-12 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+            className="h-12 px-4 pr-12 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
           />
           <button
             type="button"
@@ -387,7 +387,7 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
             required
             minLength={8}
             disabled={isLoading || success}
-            className="h-12 px-4 pr-12 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#22d3ee] focus:ring-[#22d3ee]/20 rounded-xl transition-all"
+            className="h-12 px-4 pr-12 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
           />
           <button
             type="button"
@@ -410,7 +410,7 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
             ? 'linear-gradient(135deg, #059669 0%, #0d9488 100%)'
             : isCheckoutFlow
               ? 'linear-gradient(135deg, #10B981 0%, #14B8A6 100%)'
-              : 'linear-gradient(135deg, #0891b2 0%, #06b6d4 100%)'
+              : 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
         }}
       >
         {isLoading ? (
