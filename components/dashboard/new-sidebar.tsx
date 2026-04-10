@@ -4,6 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Logo } from "@/components/logo"
+import type { LucideIcon } from "lucide-react"
 import {
   Sparkles,
   UserRound,
@@ -20,7 +21,15 @@ import {
   TooltipProvider
 } from "@/components/ui/tooltip"
 
-export const dashboardNavigation = [
+export type DashboardNavItem = {
+  name: string
+  href: string
+  icon: LucideIcon
+  /** Se true, ativa só com pathname igual a href; senão usa prefixo (startsWith). */
+  exact?: boolean
+}
+
+export const dashboardNavigation: DashboardNavItem[] = [
   { name: "Odonto Vision", href: "/dashboard/odonto-vision", icon: ImageIcon },
 ]
 

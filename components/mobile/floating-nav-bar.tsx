@@ -11,13 +11,22 @@
  * - Visível apenas em mobile (<768px)
  */
 
+import type { LucideIcon } from 'lucide-react'
 import { Eye, Menu } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSidebar } from '@/components/ui/sidebar'
 
-const allNavItems = [
+type FloatingNavItem = {
+  icon: LucideIcon
+  href: string
+  label: string
+  isCenter?: boolean
+  exact?: boolean
+}
+
+const allNavItems: FloatingNavItem[] = [
   { icon: Eye, href: '/dashboard/odonto-vision', label: 'Odonto Vision', isCenter: true },
 ]
 
