@@ -1,5 +1,5 @@
 /**
- * Memory Service for Odonto GPT
+ * Memory Service for MedVision
  *
  * Provides a unified interface for:
  * - Saving memories with embeddings
@@ -150,7 +150,7 @@ export class MemoryService {
       return (data || []).map((row: any) => ({
         id: row.id,
         userId,
-        agentId: 'odonto-gpt',
+        agentId: 'medvision',
         type: row.type as MemoryType,
         content: row.content,
         topic: row.topic,
@@ -228,7 +228,7 @@ export class MemoryService {
       return (data || []).map((row: any) => ({
         id: row.id,
         userId,
-        agentId: 'odonto-gpt',
+        agentId: 'medvision',
         type: row.type as MemoryType,
         content: row.content,
         topic: row.topic,
@@ -279,7 +279,7 @@ export class MemoryService {
       return (data || []).map((row: any) => ({
         id: row.id,
         userId,
-        agentId: 'odonto-gpt',
+        agentId: 'medvision',
         type: row.type as MemoryType,
         content: row.content,
         topic: row.topic,
@@ -317,7 +317,7 @@ export class MemoryService {
       return (data || []).map((row: any) => ({
         id: row.id,
         userId,
-        agentId: 'odonto-gpt',
+        agentId: 'medvision',
         type: row.type as MemoryType,
         content: row.content,
         topic: row.topic,
@@ -412,7 +412,7 @@ export class MemoryService {
   ): Promise<Memory | null> {
     return this.saveMemory({
       userId,
-      agentId: 'odonto-gpt',
+      agentId: 'medvision',
       type: 'episodic',
       content: summary,
       topic: topics.join(', '),

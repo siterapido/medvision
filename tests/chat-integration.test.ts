@@ -24,7 +24,7 @@ describe('Chat API Integration Tests', () => {
             role: 'user',
             parts: [{ type: 'text', text: 'Ola' }]
           }],
-          agentId: 'odonto-gpt'
+          agentId: 'medvision'
         })
       })
 
@@ -34,7 +34,7 @@ describe('Chat API Integration Tests', () => {
     })
 
     it('should require authentication for all agents', async () => {
-      const agents = ['odonto-gpt', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision']
+      const agents = ['medvision', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision']
 
       for (const agentId of agents) {
         const response = await fetch(`${BASE_URL}/api/chat`, {
@@ -82,7 +82,7 @@ describe('Agent Configuration Tests', () => {
     const { AGENT_CONFIGS, listAgents } = await import('../lib/ai/agents/config')
 
     const requiredAgents = [
-      'odonto-gpt',
+      'medvision',
       'odonto-research',
       'odonto-practice',
       'odonto-summary',

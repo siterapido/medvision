@@ -19,10 +19,10 @@ export interface AgentPill {
 
 export const AGENT_PILLS: AgentPill[] = [
   {
-    id: 'odonto-gpt',
+    id: 'medvision',
     icon: <Sparkles className="w-3.5 h-3.5" />,
     shortName: 'GPT',
-    fullName: 'Odonto GPT',
+    fullName: 'MedVision',
     placeholder: 'Pergunte sobre odontologia...',
     color: '#00A3FF',
   },

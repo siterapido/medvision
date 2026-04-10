@@ -2,7 +2,7 @@
  * E2E Tests: Chat Agents & Artifacts Usability
  *
  * Testes de usabilidade para cada agente do chat
- * e geracao de artefatos no OdontoGPT
+ * e geracao de artefatos no MedVision
  */
 
 import { test, expect, type Page } from '@playwright/test'
@@ -13,8 +13,8 @@ import { test, expect, type Page } from '@playwright/test'
 
 const AGENTS = [
   {
-    id: 'odonto-gpt',
-    name: 'Odonto GPT',
+    id: 'medvision',
+    name: 'MedVision',
     shortName: 'GPT',
     testPrompt: 'O que e carie dentaria?',
     expectedInResponse: ['carie', 'dente', 'bacteria'],
@@ -365,7 +365,7 @@ test.describe('Usabilidade Mobile', () => {
 test.afterAll(async () => {
   if (metricsCollector.length > 0) {
     console.log('\n==========================================')
-    console.log('RELATORIO DE USABILIDADE - OdontoGPT Chat')
+    console.log('RELATORIO DE USABILIDADE - MedVision Chat')
     console.log('==========================================\n')
 
     console.log('Metricas coletadas:')

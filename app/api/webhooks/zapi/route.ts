@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
     const response = await processConversationSync(
       history,
       message.phone,
-      "odonto-gpt",
+      "medvision",
       userContext
     )
 
@@ -226,7 +226,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     status: "active",
-    service: "Odonto GPT WhatsApp Webhook",
+    service: "MedVision WhatsApp Webhook",
     timestamp: new Date().toISOString(),
   })
 }

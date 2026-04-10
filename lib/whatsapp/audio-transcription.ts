@@ -33,7 +33,7 @@ export async function transcribeAudio(audioUrl: string): Promise<string> {
     const response = await fetch(audioUrl, {
       headers: {
         // Alguns serviços podem requerer User-Agent
-        "User-Agent": "OdontoGPT/1.0",
+        "User-Agent": "MedVision/1.0",
       },
     })
 

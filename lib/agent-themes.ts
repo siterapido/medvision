@@ -32,7 +32,7 @@ export interface AgentTheme {
 export const AGENT_THEMES: Record<string, AgentTheme> = {
   "chat": {
     id: "chat",
-    name: "Odonto GPT",
+    name: "MedVision",
     icon: Bot,
     color: "cyan",
     primaryColor: "#0891b2",

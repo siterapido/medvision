@@ -77,7 +77,7 @@ export function ChatSidebar({ userId, userName, userImage }: ChatSidebarProps) {
                     <BotMessageSquare className="h-4 w-4 text-primary" />
                   </div>
                   <span className="cursor-pointer font-semibold text-lg hover:text-primary transition-colors">
-                    Odonto GPT
+                    MedVision
                   </span>
                 </div>
               </Link>

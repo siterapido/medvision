@@ -211,7 +211,7 @@ export async function persistArtifact(artifact: Artifact): Promise<string> {
   }
 
   const supabase = getSupabase();
-  const { userId, agentId = 'odonto-gpt', sessionId } = ctx;
+  const { userId, agentId = 'medvision', sessionId } = ctx;
 
   let record: ArtifactDBRecord;
 

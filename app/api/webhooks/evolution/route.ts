@@ -2,7 +2,7 @@
  * Webhook para receber mensagens do WhatsApp via Evolution API v2
  *
  * Recebe eventos MESSAGES_UPSERT da Evolution API e responde automaticamente
- * usando o agente de IA do Odonto GPT.
+ * usando o agente de IA do MedVision.
  *
  * Features:
  * - Validação por API key no header
@@ -227,7 +227,7 @@ async function processMessage(data: EvolutionMessageData): Promise<void> {
   const response = await processConversationSync(
     history,
     phone,
-    "odonto-gpt",
+    "medvision",
     userContext
   )
 
@@ -312,7 +312,7 @@ export async function POST(request: NextRequest) {
 export async function GET() {
   return NextResponse.json({
     status: "active",
-    service: "Odonto GPT — Evolution API Webhook",
+    service: "MedVision — Evolution API Webhook",
     timestamp: new Date().toISOString(),
   })
 }

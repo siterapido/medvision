@@ -10,7 +10,7 @@ import { notFound, redirect } from 'next/navigation'
 export const dynamic = 'force-dynamic'
 
 export const metadata = {
-    title: 'Chat | Odonto GPT',
+    title: 'Chat | MedVision',
     description: 'Converse com seu tutor inteligente de Odontologia',
 }
 

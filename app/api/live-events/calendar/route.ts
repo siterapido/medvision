@@ -32,10 +32,10 @@ export async function GET() {
     const bodyLines = [
       "BEGIN:VCALENDAR",
       "VERSION:2.0",
-      "PRODID:-//Odonto GPT//Agenda de Lives//PT",
+      "PRODID:-//MedVision//Agenda de Lives//PT",
       "CALSCALE:GREGORIAN",
       "METHOD:PUBLISH",
-      "X-WR-CALNAME:Odonto GPT - Lives",
+      "X-WR-CALNAME:MedVision - Lives",
       `X-WR-TIMEZONE:UTC`,
     ]
 

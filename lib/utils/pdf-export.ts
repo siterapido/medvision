@@ -68,7 +68,7 @@ function addFooter(doc: jsPDF, pageNumber: number) {
 
   doc.setTextColor(100, 116, 139) // Gray
   doc.setFontSize(FONT_SIZES.small)
-  doc.text('Gerado por Odonto GPT', 15, pageHeight - 8)
+  doc.text('Gerado por MedVision', 15, pageHeight - 8)
   doc.text(`Página ${pageNumber}`, pageWidth - 15, pageHeight - 8, { align: 'right' })
 }
 

@@ -18,7 +18,7 @@ export default function ConfiguracoesPage() {
             <div className="space-y-2">
                 <h1 className="text-3xl font-bold tracking-tight text-white">Configurações</h1>
                 <p className="text-slate-400">
-                    Gerencie suas preferências, aparência e segurança do OdontoGPT.
+                    Gerencie suas preferências, aparência e segurança do MedVision.
                 </p>
             </div>
 
@@ -34,7 +34,7 @@ export default function ConfiguracoesPage() {
                             <div>
                                 <CardTitle className="text-white">Aparência</CardTitle>
                                 <CardDescription className="text-slate-400">
-                                    Personalize como o OdontoGPT se parece para você.
+                                    Personalize como o MedVision se parece para você.
                                 </CardDescription>
                             </div>
                         </div>
@@ -155,7 +155,7 @@ export default function ConfiguracoesPage() {
                             <div className="space-y-0.5">
                                 <Label className="text-base text-slate-200">Emails de Marketing</Label>
                                 <p className="text-sm text-slate-400">
-                                    Receba novidades e ofertas do OdontoGPT.
+                                    Receba novidades e ofertas do MedVision.
                                 </p>
                             </div>
                             <Switch defaultChecked className="data-[state=checked]:bg-[#0891b2]" />

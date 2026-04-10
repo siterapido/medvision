@@ -48,7 +48,7 @@ export function AgentDemoGPT() {
                     >
                         <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-[#5E5CE6]/10 border border-[#5E5CE6]/20">
                             <MessageCircle className="w-5 h-5 text-[#A855F7]" />
-                            <span className="text-[#A855F7] font-semibold">Odonto GPT</span>
+                            <span className="text-[#A855F7] font-semibold">MedVision</span>
                         </div>
 
                         <h2 className="text-4xl md:text-5xl font-bold text-white leading-tight">
@@ -96,7 +96,7 @@ export function AgentDemoGPT() {
                                     <MessageCircle className="w-6 h-6 text-white" />
                                 </motion.div>
                                 <div>
-                                    <div className="font-semibold text-white">Odonto GPT</div>
+                                    <div className="font-semibold text-white">MedVision</div>
                                     <div className="text-xs text-slate-400">
                                         {stage < 2 ? "Online" : "Digitando..."}
                                     </div>

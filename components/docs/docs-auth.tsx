@@ -125,7 +125,7 @@ export function DocsAuth({ onAuthenticate, correctPassword }: DocsAuthProps) {
 
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground/60">
-          Documentação técnica interna • Odonto GPT v0.1.4
+          Documentação técnica interna • MedVision v0.1.4
         </p>
       </div>
     </div>

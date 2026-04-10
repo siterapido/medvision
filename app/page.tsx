@@ -218,7 +218,7 @@ export default function LandingPage() {
               label="Sua Equipe Completa"
               icon={Brain}
               title="Especialistas Disponíveis 24/7"
-              description="Cada agente da Odonto GPT foi treinado para uma função específica, garantindo precisão e profundidade em cada resposta."
+              description="Cada agente da MedVision foi treinado para uma função específica, garantindo precisão e profundidade em cada resposta."
               align="center"
             />
 
@@ -284,13 +284,13 @@ export default function LandingPage() {
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">Bem</span>
                 </h2>
                 <p className="text-lg text-slate-400 leading-relaxed">
-                  A Odonto GPT não substitui seu estudo, ela o potencializa. Veja a diferença na prática.
+                  A MedVision não substitui seu estudo, ela o potencializa. Veja a diferença na prática.
                 </p>
               </div>
             </FadeIn>
 
             <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
-              {/* Sem Odonto GPT */}
+              {/* Sem MedVision */}
               <FadeIn direction="right" delay={0.2}>
                 <div className="group relative h-full">
                   <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500" />
@@ -301,7 +301,7 @@ export default function LandingPage() {
                         <XCircle className="w-7 h-7 text-red-400" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-bold text-white">Sem Odonto GPT</h3>
+                        <h3 className="text-2xl font-bold text-white">Sem MedVision</h3>
                         <p className="text-sm text-red-400/80">O caminho mais difícil</p>
                       </div>
                     </div>
@@ -349,7 +349,7 @@ export default function LandingPage() {
                 </div>
               </FadeIn>
 
-              {/* Com Odonto GPT */}
+              {/* Com MedVision */}
               <FadeIn direction="left" delay={0.3}>
                 <div className="group relative h-full">
                   {/* Glow effect */}
@@ -364,7 +364,7 @@ export default function LandingPage() {
                           <CheckCircle2 className="w-7 h-7 text-emerald-400" />
                         </div>
                         <div>
-                          <h3 className="text-2xl font-bold text-white">Com Odonto GPT</h3>
+                          <h3 className="text-2xl font-bold text-white">Com MedVision</h3>
                           <p className="text-sm text-emerald-400/80">A vantagem competitiva</p>
                         </div>
                       </div>
@@ -635,7 +635,7 @@ export default function LandingPage() {
               label="Responsabilidade Técnica"
               icon={Award}
               title="Conhecimento com Respaldo de Quem Entende da Área"
-              description="Por trás de cada resposta da Odonto GPT, está a experiência de um profissional que já viveu suas dúvidas e desafios"
+              description="Por trás de cada resposta da MedVision, está a experiência de um profissional que já viveu suas dúvidas e desafios"
               align="center"
             />
 
@@ -646,7 +646,7 @@ export default function LandingPage() {
                     <div className="w-full h-full rounded-full overflow-hidden relative">
                       <Image
                         src="/Imagens /roniery.jpg"
-                        alt="Roniery Costa - Responsável Técnico da Odonto GPT"
+                        alt="Roniery Costa - Responsável Técnico da MedVision"
                         width={320}
                         height={320}
                         className="w-full h-full object-cover"

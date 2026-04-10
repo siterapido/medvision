@@ -8,7 +8,7 @@ export interface AgentUIConfig {
 }
 
 export const AGENT_UI_CONFIG: Record<string, AgentUIConfig> = {
-    'odonto-gpt': {
+    'medvision': {
         icon: Sparkles,
         gradient: 'from-[#00D4FF] via-[#00A3FF] to-[#0066FF]',
         color: '#00D4FF'

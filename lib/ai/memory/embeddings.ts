@@ -35,7 +35,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
         'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-        'X-Title': 'OdontoGPT Memory System',
+        'X-Title': 'MedVision Memory System',
       },
       body: JSON.stringify({
         model: EMBEDDING_MODEL,
@@ -99,7 +99,7 @@ export async function generateEmbeddings(texts: string[]): Promise<number[][]> {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
           'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-          'X-Title': 'OdontoGPT Memory System',
+          'X-Title': 'MedVision Memory System',
         },
         body: JSON.stringify({
           model: EMBEDDING_MODEL,

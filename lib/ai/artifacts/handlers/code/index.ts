@@ -41,7 +41,7 @@ export const codeHandler: DocumentHandler<CodeParams, CodeDocument> = {
       },
       description: doc.description || `Codigo ${doc.language}`,
       ai_context: {
-        agent: ctx.agentId || 'odonto-gpt',
+        agent: ctx.agentId || 'medvision',
         sessionId: ctx.sessionId,
       },
       metadata: {

@@ -51,7 +51,7 @@ function toolResultToArtifact(toolName: string, result: any): Artifact | null {
 
 export function OdontoAIChat({
   userId,
-  agentId = 'odonto-gpt',
+  agentId = 'medvision',
   initialMessages = [],
   initialChatId,
   userName
@@ -337,7 +337,7 @@ export function OdontoAIChat({
                   animate={{ y: 0, opacity: 1 }}
                   className="text-lg md:text-2xl font-heading font-semibold text-foreground"
                 >
-                  {selectedAgent.id === 'odonto-gpt' ? `Olá, ${userName || 'Doutor(a)'}` : selectedAgent.greetingTitle}
+                  {selectedAgent.id === 'medvision' ? `Olá, ${userName || 'Doutor(a)'}` : selectedAgent.greetingTitle}
                 </motion.h2>
                 <motion.p
                   key={`desc-${selectedAgent.id}`}

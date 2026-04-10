@@ -63,7 +63,7 @@ export const createSummaryTool = tool({
             tags: tags || [],
           },
           description: `Resumo sobre ${topic}`,
-          ai_context: { agent: ctx.agentId || 'odonto-gpt', sessionId: ctx.sessionId },
+          ai_context: { agent: ctx.agentId || 'medvision', sessionId: ctx.sessionId },
           metadata: { tags: tags || [] },
         })
         console.log(`[Artifact] Summary "${title}" saved for user ${ctx.userId}`)
@@ -121,7 +121,7 @@ export const createFlashcardsTool = tool({
             cards: processedCards,
           },
           description: `Flashcards sobre ${topic}`,
-          ai_context: { agent: ctx.agentId || 'odonto-gpt', sessionId: ctx.sessionId },
+          ai_context: { agent: ctx.agentId || 'medvision', sessionId: ctx.sessionId },
           metadata: { count: processedCards.length },
         })
         console.log(`[Artifact] Flashcards "${title}" saved for user ${ctx.userId}`)
@@ -327,7 +327,7 @@ export const createReportTool = tool({
 
 // Mapeamento de tools por agente (LEGACY - usar AGENT_UNIFIED_TOOLS para novos agentes)
 export const AGENT_ARTIFACT_TOOLS = {
-  'odonto-gpt': {
+  'medvision': {
     createSummary: createSummaryTool,
     createFlashcards: createFlashcardsTool
   },

@@ -33,7 +33,7 @@ export default function TrialRegisterPage({ params }: TrialRegisterPageProps) {
             Teste grátis de {trialLabel}
           </h1>
           <p className="text-slate-300">
-            Cadastro dedicado para liberar {trialLabel} do OdontoGPT
+            Cadastro dedicado para liberar {trialLabel} do MedVision
           </p>
           {isFallback && (
             <p className="mt-3 text-xs text-amber-300">

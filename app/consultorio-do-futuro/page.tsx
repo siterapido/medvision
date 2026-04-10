@@ -314,7 +314,7 @@ export default function ConsultorioDoFuturoPage() {
                         <Logo variant="white" width={100} height={22} />
                     </Link>
                     <p className="text-sm text-slate-500">
-                        {new Date().getFullYear()} Odonto GPT. Todos os direitos reservados.
+                        {new Date().getFullYear()} MedVision. Todos os direitos reservados.
                     </p>
                 </div>
             </footer>

@@ -1,5 +1,5 @@
 /**
- * Memory Tools for Odonto GPT Agent
+ * Memory Tools for MedVision Agent
  *
  * Tools that allow the agent to:
  * - Remember important facts about the student
@@ -39,7 +39,7 @@ export const rememberFact = tool({
 
     const memory = await memoryService.saveMemory({
       userId: ctx.userId,
-      agentId: ctx.agentId || 'odonto-gpt',
+      agentId: ctx.agentId || 'medvision',
       type,
       content,
       topic,
@@ -152,7 +152,7 @@ export const updateStudentProfile = tool({
 
       await memoryService.saveMemory({
         userId: ctx.userId,
-        agentId: 'odonto-gpt',
+        agentId: 'medvision',
         type: 'long_term',
         content: `Perfil do aluno atualizado: ${updateSummary}`,
         topic: 'perfil academico',

@@ -1,5 +1,5 @@
 /**
- * Unified Tool Registry for Odonto GPT
+ * Unified Tool Registry for MedVision
  *
  * Consolidates all tools with metadata for:
  * - Tool approval flow (needsApproval flag)
@@ -82,7 +82,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       description: 'Cria um artifact (resumo, quiz, flashcards, codigo, diagramas, etc.)',
       category: 'artifact',
       needsApproval: false,
-      agents: ['odonto-gpt', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision'],
+      agents: ['medvision', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision'],
     },
   },
 
@@ -93,7 +93,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       description: 'Atualiza um artifact existente',
       category: 'artifact',
       needsApproval: false,
-      agents: ['odonto-gpt', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision'],
+      agents: ['medvision', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision'],
     },
   },
 
@@ -105,7 +105,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       description: 'Busca online com Perplexity AI',
       category: 'research',
       needsApproval: false,
-      agents: ['odonto-gpt', 'odonto-research', 'odonto-practice'],
+      agents: ['medvision', 'odonto-research', 'odonto-practice'],
     },
   },
 
@@ -116,7 +116,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       description: 'Pesquisa no PubMed',
       category: 'research',
       needsApproval: false,
-      agents: ['odonto-gpt', 'odonto-research'],
+      agents: ['medvision', 'odonto-research'],
     },
   },
 
@@ -128,7 +128,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       description: 'Salva fato sobre o aluno',
       category: 'memory',
       needsApproval: false,
-      agents: ['odonto-gpt', 'odonto-research', 'odonto-practice', 'odonto-summary'],
+      agents: ['medvision', 'odonto-research', 'odonto-practice', 'odonto-summary'],
     },
   },
 
@@ -139,7 +139,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       description: 'Busca memorias do aluno',
       category: 'memory',
       needsApproval: false,
-      agents: ['odonto-gpt', 'odonto-research', 'odonto-practice', 'odonto-summary'],
+      agents: ['medvision', 'odonto-research', 'odonto-practice', 'odonto-summary'],
     },
   },
 
@@ -150,7 +150,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       description: 'Obtem contexto do aluno',
       category: 'memory',
       needsApproval: false,
-      agents: ['odonto-gpt', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision'],
+      agents: ['medvision', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision'],
     },
   },
 
@@ -163,7 +163,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       category: 'profile',
       needsApproval: true,
       approvalMessage: 'Deseja atualizar seu perfil academico com estas informacoes?',
-      agents: ['odonto-gpt', 'odonto-research', 'odonto-practice', 'odonto-summary'],
+      agents: ['medvision', 'odonto-research', 'odonto-practice', 'odonto-summary'],
     },
   },
 
@@ -175,7 +175,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       category: 'profile',
       needsApproval: true,
       approvalMessage: 'Deseja salvar estas informacoes no seu perfil?',
-      agents: ['odonto-gpt', 'odonto-research'],
+      agents: ['medvision', 'odonto-research'],
     },
   },
 
@@ -187,7 +187,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       description: 'Cria resumo estruturado',
       category: 'artifact',
       needsApproval: false,
-      agents: ['odonto-gpt', 'odonto-summary'],
+      agents: ['medvision', 'odonto-summary'],
     },
   },
 
@@ -198,7 +198,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       description: 'Cria deck de flashcards',
       category: 'artifact',
       needsApproval: false,
-      agents: ['odonto-gpt', 'odonto-summary'],
+      agents: ['medvision', 'odonto-summary'],
     },
   },
 
@@ -209,7 +209,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       description: 'Cria quiz/simulado',
       category: 'artifact',
       needsApproval: false,
-      agents: ['odonto-gpt', 'odonto-practice'],
+      agents: ['medvision', 'odonto-practice'],
     },
   },
 
@@ -242,7 +242,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       description: 'Gera artefato educacional generico',
       category: 'artifact',
       needsApproval: false,
-      agents: ['odonto-gpt', 'odonto-research', 'odonto-practice', 'odonto-summary'],
+      agents: ['medvision', 'odonto-research', 'odonto-practice', 'odonto-summary'],
     },
   },
 
@@ -278,7 +278,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       description: 'Salva resumo',
       category: 'artifact',
       needsApproval: false, // Auto-saves are OK for summaries
-      agents: ['odonto-gpt', 'odonto-summary'],
+      agents: ['medvision', 'odonto-summary'],
     },
   },
 
@@ -289,7 +289,7 @@ export const TOOL_REGISTRY: Record<string, RegisteredTool> = {
       description: 'Salva flashcards',
       category: 'artifact',
       needsApproval: false, // Auto-saves are OK
-      agents: ['odonto-gpt', 'odonto-summary'],
+      agents: ['medvision', 'odonto-summary'],
     },
   },
 
@@ -399,10 +399,10 @@ export function listAllTools(): ToolMetadata[] {
 // ========================================
 
 export const AGENT_TOOL_PRESETS = {
-  'odonto-gpt': {
+  'medvision': {
     maxSteps: 10,
-    tools: getToolsForAgent('odonto-gpt'),
-    approvalTools: getApprovalToolsForAgent('odonto-gpt'),
+    tools: getToolsForAgent('medvision'),
+    approvalTools: getApprovalToolsForAgent('medvision'),
   },
   'odonto-research': {
     maxSteps: 8,
@@ -434,6 +434,6 @@ export type AgentToolPreset = (typeof AGENT_TOOL_PRESETS)[keyof typeof AGENT_TOO
 export function getAgentToolPreset(agentId: string): AgentToolPreset {
   return (
     AGENT_TOOL_PRESETS[agentId as keyof typeof AGENT_TOOL_PRESETS] ??
-    AGENT_TOOL_PRESETS['odonto-gpt']
+    AGENT_TOOL_PRESETS['medvision']
   )
 }

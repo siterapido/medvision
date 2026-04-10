@@ -3,7 +3,7 @@
  * Script de Teste dos Agentes Odonto
  * 
  * Testa configurações, tools e geração de artefatos dos agentes:
- * - odonto-gpt (Tutor Inteligente)
+ * - medvision (Tutor Inteligente)
  * - odonto-research (Pesquisa Científica)
  * - odonto-practice (Casos Clínicos e Simulados)
  * - odonto-summary (Resumos e Flashcards)
@@ -105,7 +105,7 @@ const TOOL_NAMES = [
 ] as const;
 
 const EXPECTED_AGENT_TOOLS: Record<string, string[]> = {
-  'odonto-gpt': ['askPerplexity', 'searchPubMed', 'updateUserProfile', 'generateArtifact', 'saveSummary', 'saveFlashcards'],
+  'medvision': ['askPerplexity', 'searchPubMed', 'updateUserProfile', 'generateArtifact', 'saveSummary', 'saveFlashcards'],
   'odonto-research': ['askPerplexity', 'searchPubMed', 'saveResearch', 'updateUserProfile', 'generateArtifact'],
   'odonto-practice': ['generateArtifact', 'savePracticeExam', 'askPerplexity', 'updateUserProfile'],
   'odonto-summary': ['generateArtifact', 'saveSummary', 'saveFlashcards', 'saveMindMap', 'updateUserProfile'],
@@ -437,13 +437,13 @@ ${summary.failedTests === 0 ? '✅ TODOS OS TESTES PASSARAM' : `⚠️ ${summary
 
 ## 5. Matriz Agente x Tools
 
-| Tool | odonto-gpt | odonto-research | odonto-practice | odonto-summary | odonto-vision |
+| Tool | medvision | odonto-research | odonto-practice | odonto-summary | odonto-vision |
 |------|:----------:|:---------------:|:---------------:|:--------------:|:-------------:|
 `;
 
   for (const toolName of TOOL_NAMES) {
     const row: string[] = [toolName];
-    for (const agentId of ['odonto-gpt', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision']) {
+    for (const agentId of ['medvision', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision']) {
       const agent = agentResults.find(a => a.agentId === agentId);
       const hasTool = agent?.toolsAvailable.includes(toolName);
       row.push(hasTool ? '✅' : '❌');
@@ -504,7 +504,7 @@ ${summary.failedTests === 0 ? '✅ TODOS OS TESTES PASSARAM' : `⚠️ ${summary
 
 ### Funcionalidades Implementadas
 
-- [x] Tutor Socrático (odonto-gpt)
+- [x] Tutor Socrático (medvision)
 - [x] Pesquisa Científica (odonto-research)
 - [x] Casos Clínicos e Simulados (odonto-practice)
 - [x] Resumos e Flashcards (odonto-summary)
@@ -550,7 +550,7 @@ async function main() {
 
   // 1. Testar configurações dos agentes
   console.log('📋 Testando configurações dos agentes...');
-  const agentIds = ['odonto-gpt', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision'];
+  const agentIds = ['medvision', 'odonto-research', 'odonto-practice', 'odonto-summary', 'odonto-vision'];
 
   for (const agentId of agentIds) {
     console.log(`  → ${agentId}`);

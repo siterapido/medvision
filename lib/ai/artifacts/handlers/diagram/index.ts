@@ -41,7 +41,7 @@ export const diagramHandler: DocumentHandler<DiagramParams, DiagramDocument> = {
       },
       description: doc.description || `Diagrama ${doc.diagramType}`,
       ai_context: {
-        agent: ctx.agentId || 'odonto-gpt',
+        agent: ctx.agentId || 'medvision',
         sessionId: ctx.sessionId,
       },
       metadata: {

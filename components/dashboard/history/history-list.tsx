@@ -128,7 +128,7 @@ export function HistoryList() {
                                     : "hover:bg-muted/50 text-muted-foreground hover:text-foreground"
                             )}
                         >
-                            {AGENT_CONFIGS[agent as string]?.name || agent || 'OdontoGPT'}
+                            {AGENT_CONFIGS[agent as string]?.name || agent || 'MedVision'}
                         </button>
                     ))}
                 </div>
@@ -181,7 +181,7 @@ export function HistoryList() {
 
                                                     <div className="flex items-center gap-2">
                                                         <span className="text-[10px] font-medium text-muted-foreground/60 px-2 py-1 rounded-full bg-muted/50 border border-border/50">
-                                                            {agentConfig?.name || 'OdontoGPT'}
+                                                            {agentConfig?.name || 'MedVision'}
                                                         </span>
                                                         <button
                                                             onClick={(e) => handleDelete(e, session.id)}

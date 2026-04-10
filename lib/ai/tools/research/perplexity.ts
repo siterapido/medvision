@@ -24,7 +24,7 @@ que exceda o conhecimento interno ou bancos de dados específicos como PubMed.`,
       
       const result = await generateText({
         model,
-        system: `Você é um assistente de pesquisa acadêmica para Odonto GPT.
+        system: `Você é um assistente de pesquisa acadêmica para MedVision.
 Sua tarefa é encontrar artigos científicos e evidências clínicas atualizadas.
 Responda sempre em Português (Brasil).
 Inclua citações no corpo do texto.

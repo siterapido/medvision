@@ -6,7 +6,7 @@ import { useAgnoAgents } from "@/lib/hooks/useAgnoAgents"
 import { useAgnoChat } from "@/lib/hooks/useAgnoChat"
 import { useImageUpload } from "@/lib/hooks/useImageUpload"
 import { getAgentInfo } from "@/lib/agent-config"
-// AgentSelector removed - Odonto GPT is the only chat agent
+// AgentSelector removed - MedVision is the only chat agent
 import { AgnoMessage } from "./agno-message"
 import { AgnoInput } from "./agno-input"
 import { format } from "date-fns"
@@ -203,7 +203,7 @@ export function AgnoChat({ userId, onArtifactCreated }: AgnoChatProps) {
                             {/* Static Title instead of Selector */}
                             <div className="flex items-center gap-2 text-foreground px-2">
                                 <Sparkles className="w-4 h-4 text-primary" />
-                                <span className="font-semibold text-sm">Odonto GPT</span>
+                                <span className="font-semibold text-sm">MedVision</span>
                                 <span className="text-[10px] bg-primary/10 text-primary px-1.5 py-0.5 rounded border border-primary/20">TUTOR</span>
                             </div>
                         </div>
@@ -237,7 +237,7 @@ export function AgnoChat({ userId, onArtifactCreated }: AgnoChatProps) {
                                 </div>
 
                                 <h1 className="text-2xl font-bold text-foreground mb-2 flex items-center gap-2">
-                                    Olá, sou o Odonto GPT!
+                                    Olá, sou o MedVision!
                                     <Sparkles className="w-5 h-5 text-primary" />
                                 </h1>
 
@@ -304,7 +304,7 @@ export function AgnoChat({ userId, onArtifactCreated }: AgnoChatProps) {
                             }
                         />
                         <p className="text-center text-[10px] text-muted-foreground mt-2">
-                            Odonto GPT utiliza IA para suporte educacional. Verifique informações clínicas críticas.
+                            MedVision utiliza IA para suporte educacional. Verifique informações clínicas críticas.
                         </p>
                     </div>
                 </div>

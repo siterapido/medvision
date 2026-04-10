@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge"
 import { CreditCard, Calendar, Sparkles } from "lucide-react"
 
 export const metadata: Metadata = {
-  title: "Meu Perfil | OdontoGPT",
+  title: "Meu Perfil | MedVision",
   description: "Gerencie suas informações pessoais e assinatura.",
 }
 

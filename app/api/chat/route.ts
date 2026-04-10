@@ -13,7 +13,7 @@ export async function POST(req: Request) {
     const user = await getUser()
     if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { messages: uiMessages, agentId = 'odonto-gpt', sessionId } = await req.json()
+    const { messages: uiMessages, agentId = 'medvision', sessionId } = await req.json()
     let currentSessionId = sessionId
 
     // Créditos desabilitados — não há verificação de limite
@@ -35,7 +35,7 @@ export async function POST(req: Request) {
     }
 
     // 3. Inicializar contexto e injetar perfil do aluno no system prompt
-    const agentConfig = AGENT_CONFIGS[agentId] || AGENT_CONFIGS['odonto-gpt']
+    const agentConfig = AGENT_CONFIGS[agentId] || AGENT_CONFIGS['medvision']
 
     const odontoCtx = await initializeContext(user.id, currentSessionId || '', agentId)
     const profile = odontoCtx.userProfile

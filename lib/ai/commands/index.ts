@@ -1,5 +1,5 @@
 /**
- * Command System for Odonto GPT
+ * Command System for MedVision
  *
  * Provides slash commands for user interactions:
  * - /setup - Configure profile

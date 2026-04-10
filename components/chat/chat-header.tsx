@@ -50,7 +50,7 @@ export function ChatHeader({
 
                 {/* Title or Breadcrumb */}
                 <div className="flex items-center gap-2 text-sm font-medium">
-                    <span className="hidden sm:inline-block text-muted-foreground">Odonto GPT</span>
+                    <span className="hidden sm:inline-block text-muted-foreground">MedVision</span>
                     <span className="hidden sm:inline-block text-muted-foreground">/</span>
                     <span className="text-foreground">Chat</span>
                 </div>

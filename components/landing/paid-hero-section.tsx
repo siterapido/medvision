@@ -47,7 +47,7 @@ export function PaidHeroSection() {
                   Inteligencia artificial especifica para odontologia com base em livros e artigos cientificos.
                 </p>
                 <p className="text-base text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
-                  <span className="text-emerald-400 font-semibold">+2.000 profissionais</span> ja transformaram seus estudos e atendimentos com a Odonto GPT.
+                  <span className="text-emerald-400 font-semibold">+2.000 profissionais</span> ja transformaram seus estudos e atendimentos com a MedVision.
                 </p>
               </div>
             </FadeIn>
@@ -106,7 +106,7 @@ export function PaidHeroSection() {
                   ))}
                   <div className="w-8 h-8 rounded-full border-2 border-[#0F192F] bg-slate-800 flex items-center justify-center text-xs font-bold text-white">+2k</div>
                 </div>
-                <span>Dentistas ja usam Odonto GPT</span>
+                <span>Dentistas ja usam MedVision</span>
               </div>
             </FadeIn>
           </div>

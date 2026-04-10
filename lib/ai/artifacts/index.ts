@@ -1,5 +1,5 @@
 /**
- * Sistema de Artefatos do Odonto GPT
+ * Sistema de Artefatos do MedVision
  *
  * Exporta schemas, streaming, contexto e persistência
  * para uso em tools do AI SDK v6

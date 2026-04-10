@@ -28,14 +28,14 @@ export const askPerplexity = tool({
           "Authorization": `Bearer ${apiKey}`,
           "Content-Type": "application/json",
           "HTTP-Referer": process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000",
-          "X-Title": "OdontoGPT Research Agent",
+          "X-Title": "MedVision Research Agent",
         },
         body: JSON.stringify({
           model: model,
           messages: [
             {
               role: "system",
-              content: `Você é um assistente de pesquisa científica odontológica sênior do Odonto GPT.
+              content: `Você é um assistente de pesquisa científica odontológica sênior do MedVision.
 Responda sempre em Português do Brasil com linguagem técnica e precisa.
 Ao citar estudos no texto, use o formato de hyperlink markdown integrado: [Sobrenome et al., Ano](URL_DO_ARTIGO).
 Ao final, inclua obrigatoriamente uma seção "### Referências" com a lista completa no formato:
@@ -241,7 +241,7 @@ export const savePracticeExam = tool({
       type: 'exam',
       content: artifactContent,
       description: `Simulado de ${topic}`,
-      ai_context: { agent: 'odonto-gpt', model: 'google/gemini-2.0-flash-exp' },
+      ai_context: { agent: 'medvision', model: 'google/gemini-2.0-flash-exp' },
       metadata: { specialty, difficulty }
     }).select().single();
 
@@ -275,7 +275,7 @@ export const saveSummary = tool({
       type: 'summary',
       content: artifactContent,
       description: `Resumo sobre ${topic}`,
-      ai_context: { agent: 'odonto-gpt', model: 'google/gemini-2.0-flash-exp' },
+      ai_context: { agent: 'medvision', model: 'google/gemini-2.0-flash-exp' },
       metadata: { tags }
     }).select().single();
 
@@ -309,7 +309,7 @@ export const saveFlashcards = tool({
       type: 'flashcards',
       content: artifactContent,
       description: `Flashcards sobre ${topic}`,
-      ai_context: { agent: 'odonto-gpt', model: 'google/gemini-2.0-flash-exp' },
+      ai_context: { agent: 'medvision', model: 'google/gemini-2.0-flash-exp' },
       metadata: { count: cards.length }
     }).select().single();
 
@@ -340,7 +340,7 @@ export const saveMindMap = tool({
       type: 'mindmap',
       content: artifactContent,
       description: `Mapa mental de ${topic}`,
-      ai_context: { agent: 'odonto-gpt', model: 'google/gemini-2.0-flash-exp' },
+      ai_context: { agent: 'medvision', model: 'google/gemini-2.0-flash-exp' },
       metadata: { nodes: Object.keys(mapData).length }
     }).select().single();
 
@@ -376,7 +376,7 @@ export const saveImageAnalysis = tool({
       type: 'image',
       content: artifactContent,
       description: analysis.substring(0, 100) + '...',
-      ai_context: { agent: 'odonto-gpt', model: 'google/gpt-4o' },
+      ai_context: { agent: 'medvision', model: 'google/gpt-4o' },
       metadata: metadata || {}
     }).select().single();
 

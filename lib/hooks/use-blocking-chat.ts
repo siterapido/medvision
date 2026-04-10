@@ -80,7 +80,7 @@ function normalizeMessage(msg: UIMessage): UIMessage {
 export function useBlockingChat({
   api = '/api/chat',
   initialMessages = [],
-  agentId = 'odonto-gpt',
+  agentId = 'medvision',
   sessionId: initialSessionId,
   onError,
   onFinish,

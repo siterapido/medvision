@@ -170,7 +170,7 @@ function ChatWithArtifactPanelInner({
   id,
   initialMessages = [],
   apiEndpoint = '/api/chat',
-  agentId = 'odonto-gpt',
+  agentId = 'medvision',
   userName,
   userImage,
   subscriptionInfo,

@@ -1,5 +1,5 @@
 /**
- * Command Handlers for Odonto GPT
+ * Command Handlers for MedVision
  *
  * Implements handlers for each slash command
  */

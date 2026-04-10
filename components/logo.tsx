@@ -14,36 +14,15 @@ interface LogoProps {
 }
 
 export function Logo({ width = 120, height = 40, className = '', variant = 'auto', iconOnly = false }: LogoProps) {
-  if (variant === 'white') {
-    // Renderiza apenas a versão branca, útil para seções escuras (landing hero/footer)
-    return (
-      <img
-        src="/Imagens%20/logo-odonto-gpt-branca.png"
-        alt="Odonto Suite"
-        width={width}
-        height={height}
-        className={className}
-      />
-    )
-  }
+  // Renderiza o logo como texto "MedVision"
+  const textSizeClass = width && width < 50 ? 'text-sm' : 'text-xl'
 
   return (
-    <>
-      {/* Fallback: renderiza só a branca se a preta não existir */}
-      <img
-        src="/Imagens%20/logo-odonto-gpt-branca.png"
-        alt="Odonto Suite"
-        width={width}
-        height={height}
-        className={`hidden dark:block ${className}`}
-      />
-      <img
-        src="/Imagens%20/logo-odonto-gpt-branca.png"
-        alt="Odonto Suite"
-        width={width}
-        height={height}
-        className={`block dark:hidden ${className}`}
-      />
-    </>
+    <div
+      className={`font-bold ${textSizeClass} bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent ${className}`}
+      style={{ width, height }}
+    >
+      MedVision
+    </div>
   )
 }

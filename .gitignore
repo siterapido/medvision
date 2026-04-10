@@ -43,3 +43,4 @@ tsconfig.tsbuildinfo
 /iniciar-odontogpt
 /leads
 .env.local
+.vercel

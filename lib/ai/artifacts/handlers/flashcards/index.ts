@@ -46,7 +46,7 @@ export const flashcardsHandler: DocumentHandler<FlashcardsParams, FlashcardsDocu
       },
       description: `${doc.cards.length} flashcards sobre ${doc.topic}`,
       ai_context: {
-        agent: ctx.agentId || 'odonto-gpt',
+        agent: ctx.agentId || 'medvision',
         sessionId: ctx.sessionId,
       },
       metadata: {

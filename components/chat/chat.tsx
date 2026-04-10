@@ -37,7 +37,7 @@ export function Chat({
   id,
   initialMessages = [],
   apiEndpoint = '/api/chat',
-  agentId: initialAgentId = 'odonto-gpt',
+  agentId: initialAgentId = 'medvision',
   userName,
   userImage,
   subscriptionInfo,

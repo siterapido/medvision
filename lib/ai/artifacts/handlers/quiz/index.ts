@@ -58,7 +58,7 @@ export const quizHandler: DocumentHandler<QuizParams, QuizDocument> = {
       },
       description: `Quiz de ${doc.topic} com ${doc.questions.length} questoes`,
       ai_context: {
-        agent: ctx.agentId || 'odonto-gpt',
+        agent: ctx.agentId || 'medvision',
         sessionId: ctx.sessionId,
       },
       metadata: {

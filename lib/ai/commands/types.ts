@@ -1,5 +1,5 @@
 /**
- * Command Types for Odonto GPT
+ * Command Types for MedVision
  *
  * Defines types for the slash command system
  */

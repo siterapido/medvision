@@ -58,15 +58,15 @@ export const AGENT_CONFIGS: Record<string, AgentInfo> = {
         handoffMessage: "Analisando imagem odontológica...",
         description: "Interprete radiografias e imagens odontológicas com apoio de IA. Auxílio na leitura clínica, identificação de padrões e geração de laudos."
     },
-    "odonto-gpt": {
-        id: "odonto-gpt",
-        name: "Odonto GPT",
+    "medvision": {
+        id: "medvision",
+        name: "MedVision",
         icon: Workflow, // Represents the Unified/Orchestrator nature
         color: "cyan",
         gradient: "from-cyan-500 via-blue-500 to-indigo-500",
         ringColor: "ring-cyan-500/50",
         bgGlow: "shadow-cyan-500/20",
-        handoffMessage: "Odonto GPT pensando...",
+        handoffMessage: "MedVision pensando...",
         description: "Seu assistente central inteligente. Conversa amigável e acesso automático a toda a equipe de especialistas quando necessário.",
         isOrchestrator: true
     },
@@ -84,8 +84,8 @@ export const AGENT_CONFIGS: Record<string, AgentInfo> = {
 }
 
 export function getAgentInfo(agentId?: string): AgentInfo {
-    if (!agentId) return AGENT_CONFIGS["odonto-gpt"]
-    return AGENT_CONFIGS[agentId] || AGENT_CONFIGS["odonto-gpt"]
+    if (!agentId) return AGENT_CONFIGS["medvision"]
+    return AGENT_CONFIGS[agentId] || AGENT_CONFIGS["medvision"]
 }
 
 /**
@@ -131,7 +131,7 @@ export const AGENT_SUGGESTIONS: Record<string, string[]> = {
         "Interpretar panorâmica",
         "Laudo de tomografia"
     ],
-    "odonto-gpt": [
+    "medvision": [
         "Quero pesquisar e criar um resumo",
         "Como funciona o tratamento de canal?",
         "Me ajuda com meu TCC",
@@ -140,7 +140,7 @@ export const AGENT_SUGGESTIONS: Record<string, string[]> = {
 }
 
 export function getAgentSuggestions(agentId: string): string[] {
-    return AGENT_SUGGESTIONS[agentId] || AGENT_SUGGESTIONS["odonto-gpt"]
+    return AGENT_SUGGESTIONS[agentId] || AGENT_SUGGESTIONS["medvision"]
 }
 
 export function getAgentForTab(pathname: string): string {
@@ -150,5 +150,5 @@ export function getAgentForTab(pathname: string): string {
             return agent
         }
     }
-    return "odonto-gpt"
+    return "medvision"
 }

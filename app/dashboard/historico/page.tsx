@@ -2,7 +2,7 @@ import { HistoricoListEnhanced } from "@/components/historico"
 import { Metadata } from "next"
 
 export const metadata: Metadata = {
-    title: "Historico de Conversas | Odonto GPT",
+    title: "Historico de Conversas | MedVision",
     description: "Acesse suas conversas anteriores e memorias.",
 }
 

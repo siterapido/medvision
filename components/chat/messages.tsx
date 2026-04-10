@@ -30,7 +30,7 @@ export function Messages({
   userName,
   onEditMessage,
   onRegenerate,
-  agentId = 'odonto-gpt',
+  agentId = 'medvision',
   error,
 }: MessagesProps) {
   const containerRef = useRef<HTMLDivElement>(null)

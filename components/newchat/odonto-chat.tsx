@@ -130,7 +130,7 @@ export function OdontoChat({ chatId, initialMessages, className }: OdontoChatPro
         {messages.length === 0 && (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             <div className="text-center space-y-2">
-              <p className="text-lg font-medium">Olá! Sou o Odonto GPT 🦷</p>
+              <p className="text-lg font-medium">Olá! Sou o MedVision 🦷</p>
               <p className="text-sm">Como posso te ajudar nos estudos hoje?</p>
             </div>
           </div>
@@ -303,7 +303,7 @@ export function OdontoChat({ chatId, initialMessages, className }: OdontoChatPro
           )}
         </form>
         <p className="text-xs text-muted-foreground mt-2 text-center">
-          O Odonto GPT pode cometer erros. Verifique informações importantes.
+          O MedVision pode cometer erros. Verifique informações importantes.
         </p>
       </div>
     </div>

@@ -85,7 +85,7 @@ export function UnavailablePage({
                     <div className="flex flex-col items-center gap-1 pt-4">
                         <div className="w-8 h-[1px] bg-cyan-500/20" />
                         <p className="text-[10px] text-cyan-400/30 uppercase tracking-[0.3em] font-bold">
-                            OdontoGPT System
+                            MedVision System
                         </p>
                     </div>
                 </div>

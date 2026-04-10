@@ -97,7 +97,7 @@ export default function PalestraIAPage() {
                     <FadeIn delay={0.3} direction="up">
                         <p className="text-lg sm:text-xl text-slate-300 leading-relaxed max-w-3xl mx-auto mb-8">
                             Descubra como a Inteligência Artificial está revolucionando a odontologia.
-                            Palestra exclusiva da Odonto GPT com certificado de {PALESTRA_IA_EVENT.hours} horas.
+                            Palestra exclusiva da MedVision com certificado de {PALESTRA_IA_EVENT.hours} horas.
                         </p>
                     </FadeIn>
 
@@ -336,7 +336,7 @@ export default function PalestraIAPage() {
                         <Logo variant="white" width={100} height={22} />
                     </Link>
                     <p className="text-sm text-slate-500">
-                        {new Date().getFullYear()} Odonto GPT. Todos os direitos reservados.
+                        {new Date().getFullYear()} MedVision. Todos os direitos reservados.
                     </p>
                 </div>
             </footer>

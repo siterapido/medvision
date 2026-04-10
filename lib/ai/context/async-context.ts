@@ -104,7 +104,7 @@ export function getSessionId(): string {
  * Get agent ID from current context.
  */
 export function getAgentId(): string {
-  return getContext().agentId || 'odonto-gpt'
+  return getContext().agentId || 'medvision'
 }
 
 /**
@@ -141,7 +141,7 @@ export function getMetadata<T = unknown>(key: string): T | undefined {
 export function createMinimalContext(
   userId: string,
   sessionId: string,
-  agentId = 'odonto-gpt'
+  agentId = 'medvision'
 ): OdontoContext {
   return {
     userId,
@@ -169,7 +169,7 @@ export function createContext(params: {
     sessionId: params.sessionId,
     userProfile: params.userProfile ?? {},
     permissions: params.permissions ?? ['read', 'write', 'create_artifacts'],
-    agentId: params.agentId ?? 'odonto-gpt',
+    agentId: params.agentId ?? 'medvision',
     metadata: params.metadata ?? {},
   }
 }

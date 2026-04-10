@@ -1,5 +1,5 @@
 /**
- * Design Tokens - Odonto GPT Design System
+ * Design Tokens - MedVision Design System
  *
  * Este arquivo mapeia os tokens do design system (.interface-design/system.md)
  * para classes Tailwind CSS consistentes.

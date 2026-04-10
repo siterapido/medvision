@@ -1,5 +1,5 @@
 /**
- * RAG Search Tool for Odonto GPT
+ * RAG Search Tool for MedVision
  *
  * Unified search tool that combines:
  * - Knowledge documents (textbooks, articles, protocols, guidelines)

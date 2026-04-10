@@ -36,7 +36,7 @@ export function useAgnoChat(options: UseAgnoChatOptions): UseAgnoChatReturn {
     const [sessions, setSessions] = useState<SessionEntry[]>([])
     const [isLoadingSessions, setIsLoadingSessions] = useState(false)
     const [error, setError] = useState<string | null>(null)
-    const [currentAgentId, setCurrentAgentId] = useState<string>('odonto-gpt')
+    const [currentAgentId, setCurrentAgentId] = useState<string>('medvision')
 
     // Supabase client
     const supabase = createClient()

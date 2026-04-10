@@ -20,7 +20,7 @@ export function LandingFooter() {
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Logo width={160} height={36} variant="white" />
-              <span className="sr-only">Odonto GPT</span>
+              <span className="sr-only">MedVision</span>
             </div>
             <p className="text-sm text-slate-500">Inteligência Artificial especializada em Odontologia</p>
           </div>
@@ -83,7 +83,7 @@ export function LandingFooter() {
         </div>
 
         <div className="mt-8 border-t border-slate-800/50 pt-8 text-center text-sm text-slate-500">
-          <p>© {new Date().getFullYear()} Odonto GPT. Todos os direitos reservados.</p>
+          <p>© {new Date().getFullYear()} MedVision. Todos os direitos reservados.</p>
         </div>
       </div>
     </footer>

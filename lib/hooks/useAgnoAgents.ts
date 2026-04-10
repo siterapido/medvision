@@ -47,7 +47,7 @@ export function useAgnoAgents(options: UseAgnoAgentsOptions = {}): UseAgnoAgents
             setIsConnected(healthCheck.ok)
 
             if (!healthCheck.ok) {
-                setError("Serviço OdontoGPT não está disponível. Verifique se o backend está rodando.")
+                setError("Serviço MedVision não está disponível. Verifique se o backend está rodando.")
                 setAgents([])
                 setSelectedAgent(null)
                 return
@@ -75,9 +75,9 @@ export function useAgnoAgents(options: UseAgnoAgentsOptions = {}): UseAgnoAgents
 
             setAgents(agentList)
 
-            // Auto-select Odonto GPT (unified) as default agent
+            // Auto-select MedVision (unified) as default agent
             if (autoSelect && agentList.length > 0 && !selectedAgent) {
-                const flowAgent = agentList.find(a => a.id === 'odonto-gpt')
+                const flowAgent = agentList.find(a => a.id === 'medvision')
                 setSelectedAgent(flowAgent || agentList[0])
             }
         } catch (err) {

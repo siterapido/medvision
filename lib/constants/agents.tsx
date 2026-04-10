@@ -25,9 +25,9 @@ export interface AgentUIConfig {
 
 export const AGENTS_UI: AgentUIConfig[] = [
   {
-    id: 'odonto-gpt',
+    id: 'medvision',
     icon: <Sparkles className="w-4 h-4" />,
-    name: 'Odonto GPT',
+    name: 'MedVision',
     shortName: 'GPT',
     description: 'Assistente geral de odontologia para duvidas e estudo',
     placeholder: 'Pergunte sobre odontologia...',

@@ -26,8 +26,8 @@ interface AgentSelectorProps {
 
 // Configuração visual dos agentes - Gradientes estilo Apple (cores vibrantes, transições suaves)
 const agentConfig: Record<string, { icon: React.ElementType, gradient: string, isAuto?: boolean }> = {
-    // Odonto GPT agora é o agente unificado (antigo Flow)
-    'odonto-gpt': { icon: Sparkles, gradient: 'from-[#00D4FF] via-[#00A3FF] to-[#0066FF]', isAuto: true },
+    // MedVision agora é o agente unificado (antigo Flow)
+    'medvision': { icon: Sparkles, gradient: 'from-[#00D4FF] via-[#00A3FF] to-[#0066FF]', isAuto: true },
     'odonto-research': { icon: FlaskConical, gradient: 'from-[#BF5AF2] via-[#9D4EDD] to-[#7B2CBF]' },
     'odonto-practice': { icon: GraduationCap, gradient: 'from-[#FF9F0A] via-[#FF6B35] to-[#FF453A]' },
     'odonto-summary': { icon: FileText, gradient: 'from-[#30D158] via-[#00C7BE] to-[#00B4D8]' },
@@ -74,10 +74,10 @@ export function AgentSelector({
         )
     }
 
-    const flowAgent = agents.find(a => a.id === 'odonto-gpt')
-    const specializedAgents = agents.filter(a => a.id !== 'odonto-gpt')
+    const flowAgent = agents.find(a => a.id === 'medvision')
+    const specializedAgents = agents.filter(a => a.id !== 'medvision')
 
-    const selectedConfig = selectedAgent ? agentConfig[selectedAgent.id] : agentConfig['odonto-gpt']
+    const selectedConfig = selectedAgent ? agentConfig[selectedAgent.id] : agentConfig['medvision']
     const SelectedIcon = selectedConfig?.icon || Bot
 
     return (
@@ -106,7 +106,7 @@ export function AgentSelector({
                             <span className="truncate text-sm">
                                 {selectedAgent?.name || "Selecionar Agente"}
                             </span>
-                            {selectedAgent?.id === 'odonto-gpt' && (
+                            {selectedAgent?.id === 'medvision' && (
                                 <span className="text-[10px] text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded">
                                     UNIFIED
                                 </span>
@@ -120,7 +120,7 @@ export function AgentSelector({
                 {flowAgent && (
                     <SelectGroup>
                         <SelectLabel className="text-[10px] uppercase text-slate-500 px-2">
-                            🤖 Odonto GPT Unificado
+                            🤖 MedVision Unificado
                         </SelectLabel>
                         <SelectItem
                             value={flowAgent.id}

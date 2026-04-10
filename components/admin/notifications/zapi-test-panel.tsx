@@ -20,7 +20,7 @@ interface InstanceStatus {
 
 export function ZApiTestPanel() {
   const [phone, setPhone] = useState("")
-  const [message, setMessage] = useState("Olá! Esta é uma mensagem de teste do OdontoGPT via Z-API.")
+  const [message, setMessage] = useState("Olá! Esta é uma mensagem de teste do MedVision via Z-API.")
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<any>(null)
   const [config, setConfig] = useState<any>(null)

@@ -130,7 +130,7 @@ export const updateDocumentTool = tool({
         : {}
       updates.ai_context = {
         ...existingAiContext,
-        lastModifiedAgent: ctx.agentId || 'odonto-gpt',
+        lastModifiedAgent: ctx.agentId || 'medvision',
         lastModifiedSession: ctx.sessionId,
       }
 

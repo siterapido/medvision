@@ -156,7 +156,7 @@ export function AttendanceForm() {
         <Alert className="bg-emerald-500/10 border-emerald-500/30 text-emerald-400">
           <CheckCircle2 className="h-4 w-4" />
           <AlertDescription>
-            Presença confirmada! Redirecionando para o Odonto GPT...
+            Presença confirmada! Redirecionando para o MedVision...
           </AlertDescription>
         </Alert>
       )}
@@ -252,7 +252,7 @@ export function AttendanceForm() {
       {/* Info box */}
       <div className="bg-slate-800/30 border border-slate-700/50 rounded-lg p-3">
         <p className="text-xs text-slate-400 text-center">
-          Ao confirmar sua presença, você terá acesso imediato ao Odonto GPT por 7 dias.
+          Ao confirmar sua presença, você terá acesso imediato ao MedVision por 7 dias.
         </p>
       </div>
 

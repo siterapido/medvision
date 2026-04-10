@@ -289,7 +289,7 @@ export function TrialHeroSection() {
                   ))}
                   <div className="w-8 h-8 rounded-full border-2 border-[#0F192F] bg-slate-800 flex items-center justify-center text-xs font-bold text-white">+2k</div>
                 </div>
-                <span>Dentistas já usam Odonto GPT</span>
+                <span>Dentistas já usam MedVision</span>
               </div>
             </FadeIn>
           </div>

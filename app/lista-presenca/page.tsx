@@ -151,7 +151,7 @@ export default function AttendancePage() {
                     </div>
                     <div className="flex-1">
                       <p className="text-sm font-semibold text-[#22d3ee]">
-                        ✓ 7 dias de Odonto GPT gratuito
+                        ✓ 7 dias de MedVision gratuito
                       </p>
                       <p className="text-xs text-[#22d3ee]/70 mt-0.5">
                         Acesso completo à plataforma de IA odontológica

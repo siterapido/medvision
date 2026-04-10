@@ -1,5 +1,5 @@
 /**
- * Tipos para o sistema de IA do Odonto GPT
+ * Tipos para o sistema de IA do MedVision
  */
 
 export type AIChannel = "web" | "whatsapp"

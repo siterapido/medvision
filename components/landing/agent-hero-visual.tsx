@@ -128,7 +128,7 @@ export function AgentHeroVisual() {
                         <Sparkles className="w-full h-full text-white" />
                     </motion.div>
 
-                    {/* Floating 'Odonto GPT' label */}
+                    {/* Floating 'MedVision' label */}
                     <motion.div
                         className="absolute -bottom-8 md:-bottom-10 left-1/2 -translate-x-1/2 whitespace-nowrap"
                         initial={{ opacity: 0, y: 10 }}
@@ -137,7 +137,7 @@ export function AgentHeroVisual() {
                     >
                         <div className="px-3 py-1 md:px-4 md:py-1.5 bg-gradient-to-r from-[#00D4FF] to-[#0066FF] backdrop-blur-md rounded-full border border-cyan-400/30 shadow-lg shadow-cyan-500/20 flex items-center gap-1.5 md:gap-2">
                             <Sparkles className="w-3 h-3 md:w-4 md:h-4 text-white" />
-                            <span className="font-bold text-white text-[10px] md:text-sm">Odonto GPT</span>
+                            <span className="font-bold text-white text-[10px] md:text-sm">MedVision</span>
                         </div>
                     </motion.div>
                 </div>
@@ -169,7 +169,7 @@ export function AgentHeroVisual() {
                     <line x1="50%" y1="50%" x2="92%" y2="50%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
                     {/* Linha para Odonto Write (baixo esquerda) */}
                     <line x1="50%" y1="50%" x2="12%" y2="75%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
-                    {/* Linha para Odonto GPT (baixo direita) */}
+                    {/* Linha para MedVision (baixo direita) */}
                     <line x1="50%" y1="50%" x2="88%" y2="75%" stroke="url(#line-grad)" strokeWidth="1.5" strokeDasharray="4 4" />
                 </motion.g>
                 <defs>

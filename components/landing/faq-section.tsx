@@ -22,7 +22,7 @@ export function FAQSection() {
                             <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#22d3ee] to-[#a855f7]">Frequentes.</span>
                         </h2>
                         <p className="text-slate-400 text-lg max-w-2xl mx-auto">
-                            Tudo o que você precisa saber para começar sua jornada com o Odonto GPT.
+                            Tudo o que você precisa saber para começar sua jornada com o MedVision.
                         </p>
                     </div>
                 </FadeIn>
@@ -32,7 +32,7 @@ export function FAQSection() {
                         {[
                             {
                                 q: "Qual a diferença para o ChatGPT comum?",
-                                a: "O Odonto GPT não é apenas uma IA genérica. Ele foi treinado especificamente com literatura odontológica, protocolos clínicos brasileiros e artigos científicos de alto impacto. Diferente do ChatGPT comum, ele entende o contexto clínico real e fornece referências técnicas precisas."
+                                a: "O MedVision não é apenas uma IA genérica. Ele foi treinado especificamente com literatura odontológica, protocolos clínicos brasileiros e artigos científicos de alto impacto. Diferente do ChatGPT comum, ele entende o contexto clínico real e fornece referências técnicas precisas."
                             },
                             {
                                 q: "Como funciona o acesso via WhatsApp?",

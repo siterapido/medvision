@@ -15,7 +15,7 @@ const openrouter = createOpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   headers: {
     'HTTP-Referer': process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
-    'X-Title': 'OdontoGPT WhatsApp',
+    'X-Title': 'MedVision WhatsApp',
   }
 })
 
@@ -35,13 +35,13 @@ export interface UserContext {
  *
  * @param message - A mensagem do usuário
  * @param phone - Número de telefone do usuário (para contexto/logging)
- * @param agentId - ID do agente a ser usado (padrão: odonto-gpt)
+ * @param agentId - ID do agente a ser usado (padrão: medvision)
  * @returns A resposta gerada pelo agente
  */
 export async function processMessageSync(
   message: string,
   phone: string,
-  agentId: string = 'odonto-gpt'
+  agentId: string = 'medvision'
 ): Promise<string> {
   try {
     const agentConfig = getAgentConfig(agentId)
@@ -60,7 +60,7 @@ COMANDOS ESPECIAIS (use quando apropriado):
 
 Exemplo:
 Usuário: "Quanto custa?"
-Você: "O Odonto GPT custa R$ 97/mês com acesso ilimitado! [SEND_PAYMENT_LINK]"
+Você: "O MedVision custa R$ 97/mês com acesso ilimitado! [SEND_PAYMENT_LINK]"
 
 Coloque o comando no final da sua resposta, será substituído automaticamente.`
 
@@ -96,7 +96,7 @@ Coloque o comando no final da sua resposta, será substituído automaticamente.`
 export async function processConversationSync(
   messages: Array<{ role: 'user' | 'assistant'; content: string }>,
   phone: string,
-  agentId: string = 'odonto-gpt',
+  agentId: string = 'medvision',
   userContext?: UserContext
 ): Promise<string> {
   try {

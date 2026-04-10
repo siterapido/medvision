@@ -85,7 +85,7 @@ test.describe('Chat Page E2E Tests', () => {
     await page.keyboard.press('Enter')
     
     // Wait for assistant response (with timeout)
-    await expect(page.locator('text=Odonto GPT')).toBeVisible({ timeout: 30000 })
+    await expect(page.locator('text=MedVision')).toBeVisible({ timeout: 30000 })
   })
   
   test('should handle keyboard shortcuts', async ({ page }) => {
@@ -119,7 +119,7 @@ test.describe('Chat with Artifacts', () => {
     await page.keyboard.press('Enter')
     
     // Wait for response (longer timeout for artifact generation)
-    await expect(page.locator('text=Odonto GPT')).toBeVisible({ timeout: 60000 })
+    await expect(page.locator('text=MedVision')).toBeVisible({ timeout: 60000 })
     
     // If artifact was generated, it should show the card
     // This is a soft check - artifact may not always be generated

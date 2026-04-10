@@ -1,5 +1,5 @@
 /**
- * System Prompts para o Odonto GPT
+ * System Prompts para o MedVision
  *
  * Este arquivo contém os prompts do sistema que definem o comportamento
  * e personalidade do agente de IA especializado em odontologia.
@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server"
 /**
  * Prompt base do sistema — usado como fallback quando não há configuração personalizada
  */
-export const DEFAULT_SYSTEM_PROMPT = `Você é o **Odonto GPT**, mentor sênior de Odontologia especializado em educação baseada em evidências.
+export const DEFAULT_SYSTEM_PROMPT = `Você é o **MedVision**, mentor sênior de Odontologia especializado em educação baseada em evidências.
 
 Seus usuários são estudantes de graduação em Odontologia ou profissionais já formados — presuma conhecimento técnico básico e adapte a profundidade conforme o que o usuário demonstrar saber ao longo da conversa.
 
@@ -29,7 +29,7 @@ Responda sempre em Português do Brasil.`
  * Prompt específico para canal WhatsApp
  * Mais conciso e adaptado para mensagens de texto
  */
-export const WHATSAPP_SYSTEM_PROMPT = `Você é o Odonto GPT. Responda em 2-3 linhas no máximo. Seja direto e use formatação WhatsApp (*negrito*). Português brasileiro.`
+export const WHATSAPP_SYSTEM_PROMPT = `Você é o MedVision. Responda em 2-3 linhas no máximo. Seja direto e use formatação WhatsApp (*negrito*). Português brasileiro.`
 
 /**
  * Busca o system prompt personalizado do banco de dados

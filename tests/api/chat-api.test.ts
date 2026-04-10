@@ -94,7 +94,7 @@ describe('Chat API', () => {
           role: 'user',
           parts: [{ type: 'text', text: 'O que é cárie dentária em uma frase?' }]
         }],
-        agentId: 'odonto-gpt'
+        agentId: 'medvision'
       })
     })
 
@@ -182,7 +182,7 @@ describe('Chat API', () => {
       })
     })
 
-    // Deve usar o agente padrão (odonto-gpt) e não falhar
+    // Deve usar o agente padrão (medvision) e não falhar
     expect(response.ok).toBe(true)
   })
 })

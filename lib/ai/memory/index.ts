@@ -1,5 +1,5 @@
 /**
- * Memory System for Odonto GPT
+ * Memory System for MedVision
  *
  * Unified exports for the memory system including:
  * - Types and interfaces

@@ -9,7 +9,7 @@ export interface AgentArtifactConfig {
 }
 
 export const AGENT_ARTIFACT_CONFIG: Record<string, AgentArtifactConfig> = {
-  'odonto-gpt': {
+  'medvision': {
     primaryArtifact: 'summary',
     supportedArtifacts: ['summary', 'flashcards'],
     color: '#00D4FF',
@@ -68,7 +68,7 @@ export const AGENT_ARTIFACT_CONFIG: Record<string, AgentArtifactConfig> = {
 } as const
 
 export function getAgentArtifactConfig(agentId: string): AgentArtifactConfig {
-  return AGENT_ARTIFACT_CONFIG[agentId] || AGENT_ARTIFACT_CONFIG['odonto-gpt']
+  return AGENT_ARTIFACT_CONFIG[agentId] || AGENT_ARTIFACT_CONFIG['medvision']
 }
 
 export function canGenerateArtifact(agentId: string, artifactType: ArtifactType): boolean {

@@ -163,7 +163,7 @@ export async function processConversation(
       if (fact.confidence >= 0.7) {
         await memoryService.saveMemory({
           userId,
-          agentId: 'odonto-gpt',
+          agentId: 'medvision',
           type: fact.type,
           content: fact.content,
           topic: fact.topic,

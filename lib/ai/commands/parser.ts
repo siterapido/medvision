@@ -1,5 +1,5 @@
 /**
- * Command Parser for Odonto GPT
+ * Command Parser for MedVision
  *
  * Parses slash commands from user messages
  */

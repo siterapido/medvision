@@ -1,4 +1,4 @@
-// Documentação técnica interna do Odonto GPT
+// Documentação técnica interna do MedVision
 // Last synced from CLAUDE.md: 2026-01-28
 // PROTEGIDA COM SENHA - Acesso restrito
 
@@ -174,7 +174,7 @@ export default function DocumentacaoPage() {
           </button>
         </div>
         <h1 className="text-3xl md:text-4xl font-heading font-semibold text-foreground tracking-tight">
-          Odonto GPT — Docs
+          MedVision — Docs
         </h1>
         <p className="text-muted-foreground mt-2 text-sm max-w-xl">
           Hub centralizado de documentação técnica do projeto. Referência para arquitetura, integrações, banco de dados e ambiente de desenvolvimento.
@@ -218,7 +218,7 @@ export default function DocumentacaoPage() {
               <div>
                 <h3 className="text-sm font-semibold text-foreground mb-2">Sobre o Projeto</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Odonto GPT é uma plataforma SaaS educacional full-stack para profissionais de odontologia, com integração avançada de IA (OpenAI, Perplexity Sonar) e sistema de vendas comportamental sofisticado. Permite que dentistas usem assistentes de IA para consultas clínicas, análise de imagens, pesquisa bibliográfica, geração de conteúdo educacional e acompanhamento de estudos.
+                  MedVision é uma plataforma SaaS educacional full-stack para profissionais de odontologia, com integração avançada de IA (OpenAI, Perplexity Sonar) e sistema de vendas comportamental sofisticado. Permite que dentistas usem assistentes de IA para consultas clínicas, análise de imagens, pesquisa bibliográfica, geração de conteúdo educacional e acompanhamento de estudos.
                 </p>
               </div>
 
@@ -387,10 +387,10 @@ export default function DocumentacaoPage() {
                   {[
                     {
                       icon: Sparkles,
-                      name: 'Odonto GPT Chat',
+                      name: 'MedVision Chat',
                       desc: 'Assistente clínico com streaming bidirecional via Vercel AI SDK. Suporte a upload de imagens e documentos.',
                       status: 'Produção',
-                      doc: '/docs/odonto-gpt-chat.md',
+                      doc: '/docs/medvision-chat.md',
                     },
                     {
                       icon: Eye,
@@ -952,7 +952,7 @@ productionBrowserSourceMaps: false
 
           {/* Footer */}
           <div className="pb-8 text-center text-xs text-muted-foreground/40">
-            Odonto GPT — Documentação Técnica Interna · v0.1.4 · Sincronizado em Jan 2026
+            MedVision — Documentação Técnica Interna · v0.1.4 · Sincronizado em Jan 2026
           </div>
 
         </main>

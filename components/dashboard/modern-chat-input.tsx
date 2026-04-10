@@ -127,7 +127,7 @@ export function ModernChatInput({
                         value={input || ""}
                         onChange={(e) => safeSetInput(e.target.value)}
                         onKeyDown={safeHandleKeyDown}
-                        placeholder="Perguntar ao Odonto GPT..."
+                        placeholder="Perguntar ao MedVision..."
                         rows={1}
                         className="w-full resize-none bg-transparent py-2 text-sm outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 max-h-[200px] overflow-y-auto custom-scrollbar text-zinc-900 dark:text-zinc-100 leading-relaxed font-sans"
                     />

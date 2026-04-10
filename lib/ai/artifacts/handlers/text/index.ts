@@ -35,7 +35,7 @@ export const textHandler: DocumentHandler<TextParams, TextDocument> = {
       },
       description: `Texto: ${doc.title}`,
       ai_context: {
-        agent: ctx.agentId || 'odonto-gpt',
+        agent: ctx.agentId || 'medvision',
         sessionId: ctx.sessionId,
       },
       metadata: {

@@ -1,5 +1,5 @@
 /**
- * Memory Types for Odonto GPT
+ * Memory Types for MedVision
  *
  * Defines the structure for the memory system including:
  * - Short-term (session context)
@@ -187,7 +187,7 @@ export function memoryToRow(
 ): Partial<AgentMemoryRow> {
   return {
     user_id: memory.userId,
-    agent_id: memory.agentId || 'odonto-gpt',
+    agent_id: memory.agentId || 'medvision',
     content: memory.content,
     type: memory.type,
     topic: memory.topic || null,

@@ -219,7 +219,7 @@ export default function PaidLandingPage() {
               label="Sua Equipe Completa"
               icon={Brain}
               title="Especialistas Disponíveis 24/7"
-              description="Cada agente da Odonto GPT foi treinado para uma função específica, garantindo precisão e profundidade em cada resposta."
+              description="Cada agente da MedVision foi treinado para uma função específica, garantindo precisão e profundidade em cada resposta."
               align="center"
             />
 
@@ -281,13 +281,13 @@ export default function PaidLandingPage() {
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">Bem</span>
                 </h2>
                 <p className="text-lg text-slate-400 leading-relaxed">
-                  A Odonto GPT nao substitui seu estudo, ela o potencializa. Veja a diferenca na pratica.
+                  A MedVision nao substitui seu estudo, ela o potencializa. Veja a diferenca na pratica.
                 </p>
               </div>
             </FadeIn>
 
             <div className="grid lg:grid-cols-2 gap-6 lg:gap-8 items-stretch">
-              {/* Sem Odonto GPT */}
+              {/* Sem MedVision */}
               <FadeIn direction="right" delay={0.2}>
                 <div className="group relative h-full">
                   <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-all duration-500" />
@@ -297,7 +297,7 @@ export default function PaidLandingPage() {
                         <XCircle className="w-7 h-7 text-red-400" />
                       </div>
                       <div>
-                        <h3 className="text-2xl font-bold text-white">Sem Odonto GPT</h3>
+                        <h3 className="text-2xl font-bold text-white">Sem MedVision</h3>
                         <p className="text-sm text-red-400/80">O caminho mais dificil</p>
                       </div>
                     </div>
@@ -343,7 +343,7 @@ export default function PaidLandingPage() {
                 </div>
               </FadeIn>
 
-              {/* Com Odonto GPT */}
+              {/* Com MedVision */}
               <FadeIn direction="left" delay={0.3}>
                 <div className="group relative h-full">
                   <div className="absolute -inset-[1px] bg-gradient-to-r from-emerald-400 to-teal-400 rounded-2xl opacity-100" />
@@ -356,7 +356,7 @@ export default function PaidLandingPage() {
                           <CheckCircle2 className="w-7 h-7 text-emerald-400" />
                         </div>
                         <div>
-                          <h3 className="text-2xl font-bold text-white">Com Odonto GPT</h3>
+                          <h3 className="text-2xl font-bold text-white">Com MedVision</h3>
                           <p className="text-sm text-emerald-400/80">A vantagem competitiva</p>
                         </div>
                       </div>
@@ -616,7 +616,7 @@ export default function PaidLandingPage() {
               label="Responsabilidade Tecnica"
               icon={Award}
               title="Conhecimento com Respaldo de Quem Entende da Area"
-              description="Por tras de cada resposta da Odonto GPT, esta a experiencia de um profissional que ja viveu suas duvidas e desafios"
+              description="Por tras de cada resposta da MedVision, esta a experiencia de um profissional que ja viveu suas duvidas e desafios"
               align="center"
             />
 
@@ -627,7 +627,7 @@ export default function PaidLandingPage() {
                     <div className="w-full h-full rounded-full overflow-hidden relative">
                       <Image
                         src="/Imagens /roniery.jpg"
-                        alt="Roniery Costa - Responsavel Tecnico da Odonto GPT"
+                        alt="Roniery Costa - Responsavel Tecnico da MedVision"
                         width={320}
                         height={320}
                         className="w-full h-full object-cover"

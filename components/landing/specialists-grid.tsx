@@ -7,7 +7,7 @@ import { Brain, BookOpen, Shield, Zap, PenTool, Eye } from "lucide-react"
 const specialists = [
     {
         icon: Brain,
-        title: "Odonto GPT",
+        title: "MedVision",
         desc: "Base de conhecimento com livros e artigos científicos. Seu consultor 24/7.",
         color: "text-purple-400",
         dotColor: "bg-purple-400",
