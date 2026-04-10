@@ -97,7 +97,7 @@ export const TAB_AGENT_MAP: Record<string, string> = {
     "/dashboard/flashcards": "odonto-practice",
     "/dashboard/questionarios": "odonto-practice",
     "/dashboard/mindmaps": "odonto-summary",
-    "/dashboard/chat": "odonto-gpt",
+    "/dashboard/odonto-vision": "odonto-vision",
     "/dashboard/escritor": "odonto-write",
     "/dashboard/imagens": "odonto-vision"
 }

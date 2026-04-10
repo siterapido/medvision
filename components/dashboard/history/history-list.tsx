@@ -79,11 +79,11 @@ export function HistoryList() {
                     </p>
                 </div>
                 <Link
-                    href="/dashboard/chat"
+                    href="/dashboard/odonto-vision"
                     className="inline-flex items-center gap-2 px-6 py-2.5 bg-primary text-primary-foreground font-medium rounded-full hover:opacity-90 transition-all hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-0.5"
                 >
                     <MessageSquare className="w-4 h-4" />
-                    Iniciar Novo Chat
+                    Abrir Odonto Vision
                 </Link>
             </div>
         )
@@ -167,7 +167,7 @@ export function HistoryList() {
                                     return (
                                         <Link
                                             key={session.id}
-                                            href={`/dashboard/chat/${session.id}`}
+                                            href="/dashboard/odonto-vision"
                                             className="group relative flex flex-col justify-between p-5 rounded-2xl bg-card hover:bg-muted/30 border border-border/50 hover:border-primary/20 transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1"
                                         >
                                             <div className="space-y-4">

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient as createSupabaseServerClient } from "@/lib/supabase/server"
-import { getUserPaymentHistory } from "@/lib/cakto"
+import { getUserPaymentHistory } from "@/lib/cakto-server"
 
 export async function GET(request: NextRequest) {
   const supabase = await createSupabaseServerClient()

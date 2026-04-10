@@ -1,55 +1,35 @@
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { neonAuth } from "@neondatabase/auth/next/server"
+import type { SupabaseClient } from "@supabase/supabase-js"
 import { cache } from "react"
 
+import { mapNeonUserToSupabaseUser, type NeonLikeUser } from "@/lib/supabase/map-user"
+import { createNeonDbClient } from "@/lib/supabase/postgres-builder"
+
+const db = createNeonDbClient()
+
 /**
- * Especially important if using Fluid compute: Don't put this client in a
- * global variable. Always create a new client within each function when using
- * it.
- * 
- * We use React's cache() to ensure that the same client is reused within a single
- * request, which reduces the number of calls to Supabase Auth (mitigating rate limits).
+ * Cliente compatível com o antigo Supabase server: `from()`, `rpc()` e `auth.getUser()`.
+ * Asserção para `SupabaseClient` preserva tipagem em serviços que ainda esperam o SDK.
  */
-export const createClient = cache(async () => {
-  const cookieStore = await cookies()
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("[v0] Missing Supabase environment variables")
-    throw new Error(
-      "Missing Supabase environment variables: set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY in .env.local and restart the dev server"
-    )
-  }
-
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-        } catch {
-          // The "setAll" method was called from a Server Component.
-          // This can be ignored if you have middleware refreshing
-          // user sessions.
+export const createClient = cache(async (): Promise<SupabaseClient> => {
+  return {
+    from: (table: string) => db.from(table),
+    rpc: (fn: string, args?: Record<string, unknown>) => db.rpc(fn, args ?? {}),
+    auth: {
+      getUser: async () => {
+        const { user } = await neonAuth()
+        if (!user) return { data: { user: null }, error: null }
+        return {
+          data: { user: mapNeonUserToSupabaseUser(user as NeonLikeUser) },
+          error: null,
         }
       },
     },
-  })
+  } as unknown as SupabaseClient
 })
 
-/**
- * Get the current authenticated user with request-level caching.
- * Prevents redundant calls to Supabase Auth during a single page render.
- */
 export const getUser = cache(async () => {
-  const supabase = await createClient()
-  const { data: { user }, error } = await supabase.auth.getUser()
-  if (error || !user) return null
-  return user
+  const { user } = await neonAuth()
+  if (!user) return null
+  return mapNeonUserToSupabaseUser(user as NeonLikeUser)
 })
-
-

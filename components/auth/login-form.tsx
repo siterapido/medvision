@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useMemo, useState } from "react"
+import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,19 +19,10 @@ export function LoginForm() {
   const [password, setPassword] = useState("")
   const [showPassword, setShowPassword] = useState(false)
 
-  const envReady = useMemo(() => {
-    const hasUrl = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL)
-    const hasAnon = Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
-    const validUrl = hasUrl && /^https?:\/\//.test(String(process.env.NEXT_PUBLIC_SUPABASE_URL))
-    return hasUrl && hasAnon && validUrl
-  }, [])
-
-  const missingEnvMessage = envReady
-    ? null
-    : "Configuração do Supabase ausente: defina NEXT_PUBLIC_SUPABASE_URL (com https://) e NEXT_PUBLIC_SUPABASE_ANON_KEY em .env.local e reinicie o servidor."
+  const envReady = true
 
   const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState<string | null>(missingEnvMessage)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -78,14 +69,14 @@ export function LoginForm() {
       }
 
       if (data.user) {
-        const { data: profileRow, error: profileError } = await supabase
-          .from("profiles")
-          .select("role")
-          .eq("id", data.user.id)
-          .maybeSingle()
-
-        if (profileError) {
-          console.warn("[auth] Could not load profile role after login", profileError)
+        let profileRow: { role?: string } | null = null
+        try {
+          const res = await fetch("/api/profile/self", { credentials: "include" })
+          if (res.ok) {
+            profileRow = await res.json()
+          }
+        } catch (e) {
+          console.warn("[auth] Could not load profile after login", e)
         }
 
         const resolvedRole = resolveUserRole(profileRow?.role, data.user)
@@ -96,10 +87,8 @@ export function LoginForm() {
     } catch (err: unknown) {
       console.error("Unexpected error:", err)
       const msg = err instanceof Error ? err.message : String(err)
-      if (msg.toLowerCase().includes("missing supabase environment variables")) {
-        setError(
-          "Configuração do Supabase ausente: defina NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY em .env.local e reinicie o servidor."
-        )
+      if (msg.toLowerCase().includes("missing")) {
+        setError("Configuração de autenticação ausente. Verifique NEON_AUTH_BASE_URL no servidor.")
       } else {
         setError("Erro inesperado. Por favor, tente novamente.")
       }

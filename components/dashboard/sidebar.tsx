@@ -5,12 +5,6 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
-  Home,
-  MessageCircle,
-  BookOpen,
-  MonitorPlay,
-  Eye,
-  FileBadge,
   ChevronLeft,
   ChevronRight,
   Menu,
@@ -62,11 +56,7 @@ export function Sidebar({ user }: SidebarProps) {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  const isActive = (href: string) => {
-    if (href === '/dashboard' && pathname === '/dashboard') return true
-    if (href !== '/dashboard' && pathname.startsWith(href)) return true
-    return false
-  }
+  const isActive = (href: string) => pathname.startsWith(href)
 
   return (
     <SidebarContext.Provider value={{ isCollapsed, setIsCollapsed }}>
@@ -83,7 +73,7 @@ export function Sidebar({ user }: SidebarProps) {
           "flex items-center justify-between px-6 py-10",
           isCollapsed ? "justify-center px-0" : ""
         )}>
-          <Link href="/dashboard" className="relative flex items-center justify-center group">
+          <Link href="/dashboard/odonto-vision" className="relative flex items-center justify-center group">
             <Logo width={isCollapsed ? 40 : 120} height={isCollapsed ? 40 : 40} variant="white" className="transition-transform duration-300 group-hover:scale-105" />
             <div className="absolute inset-0 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full"></div>
           </Link>

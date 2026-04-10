@@ -37,6 +37,8 @@
   ],
   "exclude": [
     "node_modules",
-    "supabase/functions"
+    "supabase/functions",
+    "tests",
+    "tests-e2e"
   ]
 }

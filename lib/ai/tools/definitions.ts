@@ -1,13 +1,9 @@
 import { z } from "zod";
 import { tool } from "ai";
-import { createClient } from "@supabase/supabase-js";
 
-// Supabase client creation
-const createSupabaseClient = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
-  return createClient(supabaseUrl, supabaseServiceKey);
-};
+import { createAdminClient } from "@/lib/supabase/admin";
+
+const createSupabaseClient = () => createAdminClient();
 
 // --- RESEARCH TOOLS ---
 

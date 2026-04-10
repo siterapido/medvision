@@ -1,4 +1,4 @@
-import { createAdminClient } from "@/lib/supabase/admin"
+// Constantes e helpers usáveis no cliente (sem DB). Funções que acessam o banco: `@/lib/cakto-server`.
 
 // Planos de assinatura anual
 export const CAKTO_BASIC_ANNUAL_PLAN_ID = "pdjvzs7_751299"
@@ -56,21 +56,10 @@ function extractProductId(input?: string) {
 
 function resolveProductId() {
   return extractProductId(
-    process.env.NEXT_PUBLIC_CAKTO_PRODUCT_ID ?? process.env.CAKTO_PRODUCT_ID ?? DEFAULT_CAKTO_PRODUCT_ID,
+    process.env.NEXT_PUBLIC_CAKTO_PRODUCT_ID ??
+      process.env.CAKTO_PRODUCT_ID ??
+      DEFAULT_CAKTO_PRODUCT_ID,
   )
-}
-
-function getAdminClient() {
-  return createAdminClient()
-}
-
-type UserSummary = {
-  id: string
-  email: string
-  name?: string | null
-  planType: string
-  subscriptionStatus: string
-  expiresAt?: string | null
 }
 
 type SuccessResponse<T> = { success: true } & T
@@ -111,67 +100,11 @@ function normalizeEmail(email?: string) {
   return trimmed === "" ? null : trimmed
 }
 
-async function findUserByEmail(email: string): Promise<UserSummary | null> {
-  const normalizedEmail = normalizeEmail(email)
-  if (!normalizedEmail) {
-    return null
-  }
-
-  const admin = getAdminClient()
-  const { data: profile, error: profileError } = await admin
-    .from("profiles")
-    .select("id, email, name, plan_type, subscription_status, expires_at")
-    .eq("email", normalizedEmail)
-    .maybeSingle<{
-      id: string
-      email: string | null
-      name: string | null
-      plan_type: string | null
-      subscription_status: string | null
-      expires_at: string | null
-    }>()
-
-  if (profileError) {
-    console.error("[cakto] falha ao buscar profile:", profileError)
-  }
-
-  if (profile) {
-    return {
-      id: profile.id,
-      email: profile.email ?? normalizedEmail,
-      name: profile.name ?? null,
-      planType: profile.plan_type ?? "free",
-      subscriptionStatus: profile.subscription_status ?? "free",
-      expiresAt: profile.expires_at ?? null,
-    }
-  }
-
-  try {
-    const { data: { users }, error: adminError } = await admin.auth.admin.listUsers()
-    if (adminError) {
-      console.error("[cakto] falha ao buscar auth.users:", adminError)
-      return null
-    }
-    const user = users?.find((u) => u.email?.toLowerCase() === normalizedEmail) || null
-    if (!user) {
-      return null
-    }
-
-  return {
-    id: user!.id,
-    email: user!.email ?? normalizedEmail,
-    name: user!.user_metadata?.name ?? null,
-    planType: "free",
-    subscriptionStatus: "free",
-    expiresAt: null,
-  }
-  } catch (error) {
-    console.error("[cakto] erro ao buscar usuário:", error)
-    return null
-  }
-}
-
-export function generateCheckoutUrl(userEmail: string, customData: Record<string, string> = {}, productId?: string) {
+export function generateCheckoutUrl(
+  userEmail: string,
+  customData: Record<string, string> = {},
+  productId?: string,
+) {
   const normalizedEmail = normalizeEmail(userEmail)
   if (!normalizedEmail) {
     throw new Error("E-mail inválido para gerar checkout")
@@ -189,62 +122,4 @@ export function generateCheckoutUrl(userEmail: string, customData: Record<string
 
   const baseUrl = `https://pay.cakto.com.br/${resolvedProductId}`
   return `${baseUrl}?${params.toString()}`
-}
-
-export async function checkUserSubscription(email: string): Promise<SubscriptionStatusResponse> {
-  const user = await findUserByEmail(email)
-  if (!user) {
-    return { success: false, message: "Usuário não encontrado" }
-  }
-
-  return {
-    success: true,
-    user: {
-      email: user.email,
-      plan: user.planType,
-      subscription_status: user.subscriptionStatus,
-      expires_at: user.expiresAt ?? null,
-      isPremium: user.planType === "premium",
-    },
-  }
-}
-
-export async function getUserPaymentHistory(
-  email: string,
-): Promise<PaymentHistoryResponse> {
-  const user = await findUserByEmail(email)
-  if (!user) {
-    return { success: false, message: "Usuário não encontrado" }
-  }
-
-  const admin = getAdminClient()
-  const { data, error } = await admin
-    .from("payment_history")
-    .select(
-      "transaction_id, amount, currency, status, payment_method, webhook_data, created_at",
-    )
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-
-  if (error) {
-    console.error("[cakto] erro ao buscar histórico de pagamentos:", error)
-    return { success: false, message: "Erro ao buscar histórico" }
-  }
-
-  // Map and filter out entries with null required fields
-  const payments: PaymentHistoryEntry[] = (data ?? [])
-    .filter((p): p is typeof p & { transaction_id: string; amount: number; currency: string; status: string; created_at: string } =>
-      p.transaction_id != null && p.amount != null && p.currency != null && p.status != null && p.created_at != null
-    )
-    .map((p) => ({
-      transaction_id: p.transaction_id,
-      amount: p.amount,
-      currency: p.currency,
-      status: p.status,
-      payment_method: p.payment_method,
-      webhook_data: p.webhook_data,
-      created_at: p.created_at,
-    }))
-
-  return { success: true, payments }
 }

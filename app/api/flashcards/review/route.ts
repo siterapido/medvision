@@ -7,18 +7,14 @@
  */
 
 import { createClient as createServerClient } from '@/lib/supabase/server'
-import { createClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
 import {
   calculateNextReview,
   QualityRating,
   DEFAULT_CARD_PROGRESS
 } from '@/lib/utils/spaced-repetition'
 
-// Admin client for persistence (bypasses RLS)
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+const adminSupabase = createAdminClient()
 
 interface ReviewRequest {
   artifactId: string

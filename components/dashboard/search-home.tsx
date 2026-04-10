@@ -24,8 +24,7 @@ export function SearchHome() {
     // Redireciona para o chat com a query inicial (simulando o comportamento do Perplexity)
     // Precisaremos garantir que o componente de chat saiba lidar com query params ou state
     // Por enquanto, vamos assumir que passar via URL query param funciona ou implementar depois
-    const encodedQuery = encodeURIComponent(query)
-    router.push(`/dashboard/chat?q=${encodedQuery}`)
+    router.push(`/dashboard/odonto-vision`)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

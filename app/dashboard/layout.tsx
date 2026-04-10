@@ -29,13 +29,13 @@ export default async function NewDashboardLayout({
   // Get user profile data
   const { data: profile } = await supabase
     .from('profiles')
-    .select('full_name, avatar_url, plan_type, subscription_status, trial_ends_at')
+    .select('name, avatar_url, plan_type, subscription_status, trial_ends_at')
     .eq('id', user.id)
     .single()
 
   const userData = {
     id: user.id,
-    name: profile?.full_name || user.user_metadata?.full_name || null,
+    name: profile?.name || user.user_metadata?.full_name || null,
     email: user.email,
     avatar_url: profile?.avatar_url || user.user_metadata?.avatar_url || null,
     plan_type: profile?.plan_type || 'free',

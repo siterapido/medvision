@@ -4,21 +4,17 @@
  * Implements handlers for each slash command
  */
 
+import type { SupabaseClient } from '@supabase/supabase-js'
+
+import { createAdminClient } from '@/lib/supabase/admin'
 import { CommandHandler, CommandResult, CommandRegistry, SETUP_QUESTIONS } from './types'
 import { memoryService } from '../memory'
-import { createClient } from '@supabase/supabase-js'
 
-// Lazy-initialized admin client for database operations
-let adminSupabase: ReturnType<typeof createClient> | null = null
+let adminSupabase: SupabaseClient | null = null
 
 function getAdminSupabase() {
   if (adminSupabase) return adminSupabase
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) {
-    throw new Error('Missing Supabase credentials')
-  }
-  adminSupabase = createClient(url, key)
+  adminSupabase = createAdminClient()
   return adminSupabase
 }
 

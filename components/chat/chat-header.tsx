@@ -66,7 +66,7 @@ export function ChatHeader({
                             variant="ghost"
                             size="icon"
                             onClick={() => {
-                                router.push('/dashboard/chat')
+                                router.push('/dashboard/odonto-vision')
                                 router.refresh()
                             }}
                             className="h-8 w-8"

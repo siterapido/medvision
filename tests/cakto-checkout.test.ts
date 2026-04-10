@@ -1,6 +1,6 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
-import { generateCheckoutUrl } from "../app/lib/cakto"
+import { generateCheckoutUrl } from "../lib/cakto"
 
 async function withCaktoProductId(value: string, fn: () => void | Promise<void>) {
   const prevPublic = process.env.NEXT_PUBLIC_CAKTO_PRODUCT_ID

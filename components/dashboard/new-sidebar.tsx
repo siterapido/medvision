@@ -5,23 +5,12 @@ import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Logo } from "@/components/logo"
 import {
-  BotIcon,
-  BookOpen,
-  GraduationCap,
   Sparkles,
   UserRound,
-  FileText,
-  Microscope,
-  ClipboardList,
-  PenTool,
   Image as ImageIcon,
   Plus,
-  Settings,
-  LogOut,
   ChevronLeft,
   ChevronRight,
-  MessageSquarePlus,
-  Search
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
@@ -32,15 +21,7 @@ import {
 } from "@/components/ui/tooltip"
 
 export const dashboardNavigation = [
-  { name: "Nova Busca", href: "/dashboard", icon: Search, exact: true },
-  { name: "Odonto GPT", href: "/dashboard/chat", icon: MessageSquarePlus },
-  { name: "Pesquisas", href: "/dashboard/pesquisas", icon: Microscope },
-  { name: "Questionários", href: "/dashboard/questionarios", icon: ClipboardList },
-  { name: "Escritor", href: "/dashboard/escritor", icon: PenTool },
-  { name: "Imagens", href: "/dashboard/imagens", icon: ImageIcon },
-  { name: "Resumos", href: "/dashboard/resumos", icon: FileText },
-  { name: "Cursos", href: "/dashboard/cursos", icon: GraduationCap },
-  { name: "Materiais", href: "/dashboard/materiais", icon: BookOpen },
+  { name: "Odonto Vision", href: "/dashboard/odonto-vision", icon: ImageIcon },
 ]
 
 interface NewSidebarProps {
@@ -63,12 +44,12 @@ export function NewSidebar({ isCollapsed, toggleCollapse, onLogout }: NewSidebar
         {/* Header da Sidebar */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-border/50">
           {!isCollapsed && (
-             <Link href="/dashboard" className="flex items-center gap-2 transition-opacity hover:opacity-80">
+             <Link href="/dashboard/odonto-vision" className="flex items-center gap-2 transition-opacity hover:opacity-80">
                <Logo width={100} height={24} />
              </Link>
           )}
           {isCollapsed && (
-             <Link href="/dashboard" className="mx-auto transition-opacity hover:opacity-80">
+             <Link href="/dashboard/odonto-vision" className="mx-auto transition-opacity hover:opacity-80">
                <Logo width={32} height={32} iconOnly />
              </Link>
           )}
@@ -76,7 +57,7 @@ export function NewSidebar({ isCollapsed, toggleCollapse, onLogout }: NewSidebar
 
         {/* Botão Novo Chat / Busca (Perplexity Style) */}
         <div className="p-3">
-          <Link href="/dashboard">
+          <Link href="/dashboard/odonto-vision">
             <Button
               variant="outline"
               className={cn(
@@ -85,7 +66,7 @@ export function NewSidebar({ isCollapsed, toggleCollapse, onLogout }: NewSidebar
               )}
             >
               <Plus className="h-4 w-4" />
-              {!isCollapsed && <span className="text-sm font-medium">Nova Busca</span>}
+              {!isCollapsed && <span className="text-sm font-medium">Odonto Vision</span>}
             </Button>
           </Link>
         </div>
@@ -93,9 +74,9 @@ export function NewSidebar({ isCollapsed, toggleCollapse, onLogout }: NewSidebar
         {/* Navegação */}
         <nav className="flex-1 flex flex-col gap-1 px-2 py-2 overflow-y-auto custom-scrollbar">
           {dashboardNavigation.map((item) => {
-            const isActive = item.exact 
-              ? pathname === item.href 
-              : pathname?.startsWith(item.href) && item.href !== "/dashboard"
+            const isActive = item.exact
+              ? pathname === item.href
+              : pathname?.startsWith(item.href)
 
             return (
               <Tooltip key={item.href}>

@@ -7,7 +7,7 @@
  */
 
 import { createClient as createServerClient } from '@/lib/supabase/server'
-import { createClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
 import {
   exportResearchToPDF,
   exportSummaryToPDF,
@@ -17,11 +17,7 @@ import {
   exportMindMapToMarkdown,
 } from '@/lib/utils/pdf-export'
 
-// Admin client for fetching (bypasses RLS)
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+const adminSupabase = createAdminClient()
 
 export async function GET(
   req: Request,

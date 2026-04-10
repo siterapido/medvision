@@ -16,8 +16,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { bootstrapProfileAfterSignup } from "@/app/actions/register-bootstrap"
 import { DEFAULT_ROLE, resolveUserRole } from "@/lib/auth/roles"
-import { DEFAULT_TRIAL_DAYS, calculateTrialEndDate, normalizeTrialDays } from "@/lib/trial"
+import { DEFAULT_TRIAL_DAYS, normalizeTrialDays } from "@/lib/trial"
 import { createClient } from "@/lib/supabase/client"
 import { CAKTO_BASIC_ANNUAL_PLAN_ID, CAKTO_PRO_ANNUAL_PLAN_ID } from "@/lib/cakto"
 
@@ -141,34 +142,19 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
         // Cadastro bem-sucedido
         setSuccess(true)
 
-        if (data.session) {
-          const now = new Date()
-          const trialEnd = calculateTrialEndDate(now, normalizedTrialDays)
-
-          // Busca o pipeline_stage atual para preservá-lo
-          const { data: currentProfile } = await supabase
-            .from("profiles")
-            .select("pipeline_stage")
-            .eq("id", data.user.id)
-            .single()
-
-          const { error: trialUpdateError } = await supabase
-            .from("profiles")
-            .update({
-              trial_started_at: now.toISOString(),
-              trial_ends_at: trialEnd.toISOString(),
-              trial_used: false,
-              // Preserva o pipeline_stage se já existir, caso contrário define como 'novo_usuario'
-              pipeline_stage: currentProfile?.pipeline_stage || "novo_usuario",
-            })
-            .eq("id", data.user.id)
-
-          if (trialUpdateError) {
-            console.warn("[auth] Não foi possível ajustar o trial escolhido", trialUpdateError)
-          }
+        const boot = await bootstrapProfileAfterSignup({
+          name,
+          email,
+          whatsapp,
+          profession: occupation,
+          institution: occupation === "Estudante" ? institution : null,
+          trialDays: normalizedTrialDays,
+        })
+        if (boot.error) {
+          console.warn("[auth] bootstrap perfil:", boot.error)
         }
 
-        // Se o email foi confirmado automaticamente (depende da configuração do Supabase)
+        // Se o email foi confirmado automaticamente (depende da configuração do Neon Auth)
         if (data.user.email_confirmed_at || data.session) {
           // Se veio de um plano, redirecionar para o checkout da Cakto
           if (isCheckoutFlow && selectedPlan) {
@@ -178,14 +164,12 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
             }, 1500)
           } else {
             // Fluxo normal: ir para o dashboard
-            const { data: profileRow, error: profileError } = await supabase
-              .from("profiles")
-              .select("role")
-              .eq("id", data.user.id)
-              .maybeSingle()
-
-            if (profileError) {
-              console.warn("[auth] Could not load profile role after signup", profileError)
+            let profileRow: { role?: string } | null = null
+            try {
+              const res = await fetch("/api/profile/self", { credentials: "include" })
+              if (res.ok) profileRow = await res.json()
+            } catch (e) {
+              console.warn("[auth] Could not load profile role after signup", e)
             }
 
             const resolvedRole = resolveUserRole(profileRow?.role, data.user)

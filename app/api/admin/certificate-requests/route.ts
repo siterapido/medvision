@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
+import { getSql } from '@/lib/db/pool'
 import { NextResponse } from 'next/server'
 
 export async function GET() {
@@ -11,19 +12,20 @@ export async function GET() {
         }
 
         const { data: profile } = await supabase.from('profiles').select('role').eq('id', user.id).single()
-        if (profile?.role !== 'ADMIN') {
+        if (profile?.role !== 'admin' && profile?.role !== 'ADMIN') {
             return NextResponse.json({ error: 'Acesso negado' }, { status: 403 })
         }
 
-        const { data: requests, error } = await supabase
-            .from('certificate_requests')
-            .select('*, profile:profiles(name, email), course:courses(title)')
-            .order('created_at', { ascending: false })
-
-        if (error) {
-            console.error('Error fetching requests:', error)
-            return NextResponse.json({ error: 'Erro ao buscar solicitações' }, { status: 500 })
-        }
+        const sql = getSql()
+        const requests = await sql.query(`
+          SELECT r.*,
+            json_build_object('name', p.name, 'email', p.email) AS profile,
+            json_build_object('title', c.title) AS course
+          FROM public.certificate_requests r
+          LEFT JOIN public.profiles p ON p.id = r.user_id
+          LEFT JOIN public.courses c ON c.id = r.course_id
+          ORDER BY r.created_at DESC NULLS LAST
+        `, [])
 
         return NextResponse.json(requests)
     } catch (err) {

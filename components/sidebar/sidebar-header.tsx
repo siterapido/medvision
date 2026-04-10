@@ -18,7 +18,7 @@ export function SidebarHeader() {
       isCollapsed ? 'flex-col gap-2' : 'justify-between'
     )}>
       <Link
-        href="/dashboard"
+        href="/dashboard/odonto-vision"
         className="relative flex items-center justify-center group"
       >
         <Logo

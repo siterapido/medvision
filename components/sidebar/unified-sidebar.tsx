@@ -11,9 +11,7 @@ import {
 } from '@/components/ui/sidebar'
 import { SidebarHeader } from './sidebar-header'
 import { SidebarNav } from './sidebar-nav'
-import { SidebarHistory } from './sidebar-history'
 import { SidebarUser } from './sidebar-user'
-import { NewChatButton } from './new-chat-button'
 import { cn } from '@/lib/utils'
 
 interface UnifiedSidebarProps {
@@ -29,7 +27,6 @@ interface UnifiedSidebarProps {
 }
 
 export function UnifiedSidebar({ user }: UnifiedSidebarProps) {
-  const pathname = usePathname()
   const { state } = useSidebar()
   const isCollapsed = state === 'collapsed'
 
@@ -41,29 +38,16 @@ export function UnifiedSidebar({ user }: UnifiedSidebarProps) {
         'bg-transparent'
       )}
     >
-      {/* Header with Logo - Perplexity style centered when collapsed */}
       <BaseSidebarHeader className={cn(
         isCollapsed ? 'p-2' : 'p-4'
       )}>
         <SidebarHeader />
       </BaseSidebarHeader>
 
-      {/* New Chat CTA */}
-      <div className={cn(
-        'pb-2',
-        isCollapsed ? 'px-1' : 'px-3'
-      )}>
-        <NewChatButton collapsed={isCollapsed} />
-      </div>
-
       <SidebarContent className="sidebar-scrollbar">
-        {/* Navigation Section */}
         <SidebarNav role={user?.role} planType={user?.plan_type} />
-        {/* History Section */}
-        <SidebarHistory />
       </SidebarContent>
 
-      {/* Footer with User Profile - Perplexity style */}
       <SidebarFooter className={cn(
         'border-t border-sidebar-border',
         isCollapsed ? 'p-1' : 'p-2'
@@ -71,7 +55,6 @@ export function UnifiedSidebar({ user }: UnifiedSidebarProps) {
         <SidebarUser user={user} collapsed={isCollapsed} />
       </SidebarFooter>
 
-      {/* Rail for resizing */}
       <SidebarRail />
     </Sidebar>
   )

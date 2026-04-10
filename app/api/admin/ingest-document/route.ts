@@ -10,7 +10,8 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
+
+import { createAdminClient } from "@/lib/supabase/admin";
 import { generateEmbedding, formatEmbeddingForPostgres } from "@/lib/ai/memory/embeddings";
 
 /**
@@ -57,10 +58,7 @@ function chunkText(
  */
 export async function POST(req: NextRequest) {
   try {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    );
+    const supabase = createAdminClient();
 
     // Verify authorization
     const authHeader = req.headers.get("authorization");

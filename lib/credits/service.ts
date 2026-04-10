@@ -5,15 +5,11 @@
  * Usa o Supabase admin client para bypass de RLS.
  */
 
-import { createClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getPlanLimit, getModelCost } from './config'
 
-// Admin client — contorna RLS (server-side only)
 function getAdminClient() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
+  return createAdminClient()
 }
 
 export interface UserCredits {

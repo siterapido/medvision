@@ -22,11 +22,11 @@ export function HistoricoHeader({ total }: HistoricoHeaderProps) {
         </p>
       </div>
       <Button
-        onClick={() => router.push('/dashboard/chat')}
+        onClick={() => router.push('/dashboard/odonto-vision')}
         className="bg-[var(--brand)] hover:bg-[var(--brand-muted)] text-white"
       >
         <Plus className="w-4 h-4 mr-2" />
-        Nova Conversa
+        Odonto Vision
       </Button>
     </div>
   )

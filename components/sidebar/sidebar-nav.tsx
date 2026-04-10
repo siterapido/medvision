@@ -26,22 +26,19 @@ export function SidebarNav({ role, planType }: SidebarNavProps) {
   const isAdmin = role === 'admin' || role === 'vendedor'
 
   const isActive = (href: string) => {
-    if (href === '/dashboard' && pathname === '/dashboard') return true
     if (href === '/admin' && pathname === '/admin') return true
-    if (href !== '/dashboard' && href !== '/admin' && pathname?.startsWith(href)) return true
+    if (href !== '/admin' && pathname?.startsWith(href)) return true
     return false
   }
 
   const isTrialUser = planType === 'free' || !planType
 
-  // Filter out Chat from main nav since we have a dedicated CTA
-  const mainNavItems = NAV_ITEMS.filter(item => item.href !== '/dashboard/chat')
-    .filter(item => !(item.hiddenForTrial && isTrialUser))
+  const mainNavItems = NAV_ITEMS.filter(item => !(item.hiddenForTrial && isTrialUser))
 
   // Short labels for collapsed state (Perplexity-style)
   const getShortLabel = (label: string) => {
     const shortLabels: Record<string, string> = {
-      'Início': 'Início',
+      'Odonto Vision': 'Vision',
       'Biblioteca': 'Biblioteca',
       'OdontoFlix': 'Flix',
       'Radiografia': 'Radiografia',

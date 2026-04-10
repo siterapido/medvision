@@ -3,7 +3,7 @@
 import * as React from "react"
 import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
-import { Lock, MessageSquare, ArrowLeft } from "lucide-react"
+import { Lock, Eye, ArrowLeft } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -14,12 +14,12 @@ interface UnavailablePageProps {
 
 export function UnavailablePage({
     title,
-    description = "Esta funcionalidade está em manutenção ou será liberada em breve para sua conta. Por enquanto, utilize nosso chat inteligente para tirar suas dúvidas."
+    description = "Esta funcionalidade está em manutenção ou será liberada em breve para sua conta. Utilize o Odonto Vision para análise de imagens."
 }: UnavailablePageProps) {
     const router = useRouter()
 
-    const handleBackToChat = () => {
-        router.push("/dashboard/chat")
+    const handleBackToVision = () => {
+        router.push("/dashboard/odonto-vision")
     }
 
     return (
@@ -67,7 +67,7 @@ export function UnavailablePage({
 
                     <div className="pt-2">
                         <Button
-                            onClick={handleBackToChat}
+                            onClick={handleBackToVision}
                             className={cn(
                                 "w-full group relative overflow-hidden h-14 rounded-2xl text-white font-semibold transition-all duration-500",
                                 "bg-cyan-500/10 border border-cyan-500/20 hover:bg-cyan-500/20 hover:border-cyan-400/40 hover:scale-[1.02]",
@@ -75,8 +75,8 @@ export function UnavailablePage({
                             )}
                         >
                             <div className="flex items-center justify-center gap-3">
-                                <MessageSquare className="w-5 h-5 transition-transform duration-500 group-hover:rotate-12 text-cyan-200" />
-                                <span className="tracking-wide text-cyan-50">Voltar para o Chat</span>
+                                <Eye className="w-5 h-5 transition-transform duration-500 group-hover:rotate-12 text-cyan-200" />
+                                <span className="tracking-wide text-cyan-50">Ir para o Odonto Vision</span>
                                 <ArrowLeft className="w-4 h-4 ml-auto opacity-30 group-hover:-translate-x-1 transition-transform text-cyan-200" />
                             </div>
                         </Button>

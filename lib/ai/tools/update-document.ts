@@ -7,22 +7,17 @@
 
 import { tool } from 'ai'
 import { z } from 'zod'
-import { createClient } from '@supabase/supabase-js'
+import type { SupabaseClient } from '@supabase/supabase-js'
+
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getContextSafe } from '@/lib/ai/artifacts'
 import { DocumentKinds, type DocumentKind } from '@/lib/ai/artifacts/handlers'
-import type { Database } from '@/lib/supabase/types'
 
-// Lazy-initialized admin client for persistence (bypasses RLS)
-let adminSupabase: ReturnType<typeof createClient<Database>> | null = null
+let adminSupabase: SupabaseClient | null = null
 
 function getAdminSupabase() {
   if (adminSupabase) return adminSupabase
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !key) {
-    throw new Error('Missing Supabase credentials')
-  }
-  adminSupabase = createClient<Database>(url, key)
+  adminSupabase = createAdminClient()
   return adminSupabase
 }
 

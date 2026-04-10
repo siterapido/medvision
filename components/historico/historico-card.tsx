@@ -34,7 +34,7 @@ export function HistoricoCard({ chat, onDelete }: HistoricoCardProps) {
   const displayMessages = previewMessages.length > 0 ? previewMessages.slice(0, 2) : []
 
   return (
-    <Link href={`/dashboard/chat/${chat.id}`}>
+    <Link href="/dashboard/odonto-vision">
       <Card
         className={cn(
           'group p-4 h-full min-h-[140px]',

@@ -1,71 +1,47 @@
-import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
+
+import { mapNeonUserToSupabaseUser, type NeonLikeUser } from "@/lib/supabase/map-user"
 import { resolveUserRole } from "@/lib/auth/roles"
 
-export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
-
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-  if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("[middleware] Missing Supabase environment variables")
-    return response
+async function fetchNeonSessionUser(request: NextRequest): Promise<NeonLikeUser | null> {
+  const base = process.env.NEON_AUTH_BASE_URL?.trim()
+  if (!base) {
+    console.error("[proxy] NEON_AUTH_BASE_URL ausente")
+    return null
   }
-
-  const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        return request.cookies.getAll()
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value))
-        response = NextResponse.next({
-          request,
-        })
-        cookiesToSet.forEach(({ name, value, options }) =>
-          response.cookies.set(name, value, options)
-        )
-      },
-    },
+  const url = new URL("get-session", base.endsWith("/") ? base : `${base}/`)
+  const res = await fetch(url.toString(), {
+    headers: { cookie: request.headers.get("cookie") ?? "" },
+    cache: "no-store",
   })
+  const body = (await res.json().catch(() => null)) as {
+    user?: NeonLikeUser
+    session?: { user?: NeonLikeUser }
+  } | null
+  if (!body) return null
+  return body.user ?? body.session?.user ?? null
+}
 
-  // Refresh session if it exists
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+export async function proxy(request: NextRequest) {
+  const user = await fetchNeonSessionUser(request)
+  const mapped = user ? mapNeonUserToSupabaseUser(user) : null
+  const userRole = mapped ? resolveUserRole(undefined, mapped) : undefined
 
-  const userRole = user ? resolveUserRole(undefined, user) : undefined
-
-  // Passar o pathname atual via header para os Server Components
   const requestHeaders = new Headers(request.headers)
   requestHeaders.set("x-pathname", request.nextUrl.pathname)
 
-  // Preserve existing cookies when creating new response with pathname header
-  const existingCookies = response.cookies.getAll()
-  response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  })
-  // Re-apply cookies that were set during auth refresh
-  existingCookies.forEach((cookie) => {
-    response.cookies.set(cookie.name, cookie.value)
+  let response = NextResponse.next({
+    request: { headers: requestHeaders },
   })
 
-  // Protected routes that require authentication
-  const protectedPaths = ["/dashboard", "/settings", "/profile", "/admin"]
-  const isProtectedPath = protectedPaths.some((path) => request.nextUrl.pathname.startsWith(path))
+  const protectedPaths = ["/dashboard", "/settings", "/profile", "/admin", "/newdashboard"]
+  const isProtectedPath = protectedPaths.some((path) =>
+    request.nextUrl.pathname.startsWith(path),
+  )
 
-  // Auth pages that authenticated users shouldn't access
   const authPaths = ["/login", "/register"]
   const isAuthPath = authPaths.some((path) => request.nextUrl.pathname.startsWith(path))
 
-  // Redirect unauthenticated users from protected routes to login
   if (isProtectedPath && !user) {
     const redirectUrl = request.nextUrl.clone()
     redirectUrl.pathname = "/login"
@@ -73,10 +49,10 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(redirectUrl)
   }
 
-  // Redirect authenticated users from auth pages to their default panel
   if (isAuthPath && user) {
     const redirectUrl = request.nextUrl.clone()
-    redirectUrl.pathname = userRole === "admin" ? "/admin" : "/dashboard"
+    const staff = userRole === "admin" || userRole === "vendedor"
+    redirectUrl.pathname = staff ? "/admin" : "/dashboard/odonto-vision"
     return NextResponse.redirect(redirectUrl)
   }
 
@@ -85,13 +61,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
     "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }

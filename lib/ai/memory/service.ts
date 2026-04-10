@@ -8,8 +8,9 @@
  * - Managing memory lifecycle (expiration, cleanup)
  */
 
-import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@/lib/supabase/types'
+import type { SupabaseClient } from '@supabase/supabase-js'
+
+import { createAdminClient } from '@/lib/supabase/admin'
 import {
   Memory,
   CreateMemoryInput,
@@ -24,24 +25,14 @@ import {
 } from './types'
 import { generateEmbedding, formatEmbeddingForPostgres } from './embeddings'
 
-// Lazy-initialized admin client for bypassing RLS
-let adminSupabase: ReturnType<typeof createClient<Database>> | null = null
+let adminSupabase: SupabaseClient | null = null
 
 function getAdminSupabase() {
   if (adminSupabase) {
     return adminSupabase
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
-
-  if (!url || !key) {
-    throw new Error(
-      'Missing Supabase credentials: NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY'
-    )
-  }
-
-  adminSupabase = createClient<Database>(url, key)
+  adminSupabase = createAdminClient()
   return adminSupabase
 }
 

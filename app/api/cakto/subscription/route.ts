@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { createClient as createSupabaseServerClient } from "@/lib/supabase/server"
-import { checkUserSubscription } from "@/lib/cakto"
+import { checkUserSubscription } from "@/lib/cakto-server"
 
 export async function GET(request: NextRequest) {
   const supabase = await createSupabaseServerClient()

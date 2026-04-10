@@ -12,7 +12,7 @@ import { openrouter } from '@/lib/ai/openrouter'
 import { perplexity, PERPLEXITY_RESEARCH_MODEL, buildResearchPrompt } from '@/lib/ai/perplexity'
 import { createClient as createServerClient } from '@/lib/supabase/server'
 import { deductCredits } from '@/lib/credits/service'
-import { createClient } from '@supabase/supabase-js'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { nanoid } from 'nanoid'
 
 export const maxDuration = 60
@@ -20,11 +20,7 @@ export const maxDuration = 60
 // Check if Perplexity is available
 const usePerplexity = !!process.env.PERPLEXITY_API_KEY
 
-// Admin client for persistence (bypasses RLS)
-const adminSupabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+const adminSupabase = createAdminClient()
 
 // Model for artifact generation
 const GENERATION_MODEL = 'google/gemini-2.0-flash-001'
