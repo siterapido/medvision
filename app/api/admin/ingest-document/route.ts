@@ -13,11 +13,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { generateEmbedding, formatEmbeddingForPostgres } from "@/lib/ai/memory/embeddings";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
-
 /**
  * Split text into chunks with overlap
  */
@@ -62,6 +57,11 @@ function chunkText(
  */
 export async function POST(req: NextRequest) {
   try {
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+
     // Verify authorization
     const authHeader = req.headers.get("authorization");
     const expectedToken = `Bearer ${process.env.ADMIN_API_KEY}`;
