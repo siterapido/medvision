@@ -5,103 +5,19 @@ import { Brain, Sparkles, Shield, Zap } from "lucide-react"
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen flex items-center justify-center relative overflow-x-hidden bg-[#080D19]">
-      {/* ATMOSPHERIC BACKGROUND SYSTEM - Same as Landing Page */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        {/* Base: Pure deep dark with subtle warm undertone */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background: `
-              radial-gradient(ellipse 150% 100% at 50% 0%, #0D1F18 0%, #080F0D 50%, #060C0A 100%)
-            `
-          }}
-        />
+    <div className="relative flex min-h-screen items-center justify-center overflow-x-hidden bg-white">
+      {/* Brilho muito suave no topo — só para não ficar “papel chapado”; quase imperceptível */}
+      <div
+        className="pointer-events-none fixed inset-0 z-0"
+        aria-hidden
+        style={{
+          background:
+            "radial-gradient(ellipse 120% 80% at 50% -20%, rgba(16, 185, 129, 0.06) 0%, transparent 55%)",
+        }}
+      />
 
-        {/* Nebula Layer 1: brilho esmeralda - topo esquerdo */}
-        <div
-          className="absolute w-[800px] h-[800px] -top-[200px] -left-[200px] opacity-[0.06]"
-          style={{
-            background: 'radial-gradient(circle, #10b981 0%, transparent 70%)',
-            filter: 'blur(100px)',
-          }}
-        />
-
-        {/* Nebula Layer 2: teal de apoio - centro direita */}
-        <div
-          className="absolute w-[600px] h-[600px] top-[30%] -right-[150px] opacity-[0.04]"
-          style={{
-            background: 'radial-gradient(circle, #14b8a6 0%, transparent 70%)',
-            filter: 'blur(120px)',
-          }}
-        />
-
-        {/* Nebula Layer 3: esmeralda profunda - base */}
-        <div
-          className="absolute w-[1000px] h-[500px] -bottom-[100px] left-[20%] opacity-[0.05]"
-          style={{
-            background: 'radial-gradient(ellipse, #059669 0%, transparent 70%)',
-            filter: 'blur(100px)',
-          }}
-        />
-
-        {/* Subtle noise texture for depth */}
-        <div
-          className="absolute inset-0 opacity-[0.015]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-            backgroundRepeat: 'repeat',
-          }}
-        />
-
-        {/* Minimal star field - tiny dots */}
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage: `
-              radial-gradient(1px 1px at 20% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
-              radial-gradient(1px 1px at 40% 35%, rgba(255,255,255,0.3) 0%, transparent 100%),
-              radial-gradient(1px 1px at 60% 20%, rgba(255,255,255,0.35) 0%, transparent 100%),
-              radial-gradient(1px 1px at 80% 40%, rgba(255,255,255,0.25) 0%, transparent 100%),
-              radial-gradient(1px 1px at 10% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
-              radial-gradient(1px 1px at 30% 80%, rgba(255,255,255,0.35) 0%, transparent 100%),
-              radial-gradient(1px 1px at 50% 70%, rgba(255,255,255,0.2) 0%, transparent 100%),
-              radial-gradient(1px 1px at 70% 85%, rgba(255,255,255,0.3) 0%, transparent 100%),
-              radial-gradient(1px 1px at 90% 55%, rgba(255,255,255,0.25) 0%, transparent 100%),
-              radial-gradient(1.5px 1.5px at 25% 45%, rgba(16,185,129,0.6) 0%, transparent 100%),
-              radial-gradient(1.5px 1.5px at 75% 65%, rgba(20,184,166,0.5) 0%, transparent 100%)
-            `,
-            backgroundSize: '100% 100%',
-          }}
-        />
-
-        {/* Tech Grid Pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.08]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(16, 185, 129, 0.4) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(16, 185, 129, 0.4) 1px, transparent 1px)
-            `,
-            backgroundSize: '80px 80px',
-            maskImage: 'radial-gradient(ellipse 80% 50% at 50% 50%, black 0%, transparent 85%)'
-          }}
-        />
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `
-              linear-gradient(rgba(16, 185, 129, 0.2) 1px, transparent 1px),
-              linear-gradient(90deg, rgba(16, 185, 129, 0.2) 1px, transparent 1px)
-            `,
-            backgroundSize: '20px 20px',
-            maskImage: 'radial-gradient(ellipse 80% 50% at 50% 50%, black 0%, transparent 90%)'
-          }}
-        />
-      </div>
-
-      {/* Content */}
-      <div className="relative z-10 w-full max-w-md px-4 py-6 sm:py-8">
+      {/* Content — página e card claros */}
+      <main className="relative z-10 w-full max-w-md px-4 py-8 sm:py-10">
         {/* Logo */}
         <div className="text-center mb-6 sm:mb-8">
           <Link href="/" className="inline-block">
@@ -109,32 +25,31 @@ export default function LoginPage() {
           </Link>
         </div>
 
-        {/* Login Card */}
-        <div className="relative">
-          {/* Glow effect behind card */}
-          <div className="absolute -inset-1 bg-gradient-to-r from-[#059669]/20 to-[#14b8a6]/20 rounded-3xl blur-xl opacity-50" />
-
-          <div className="relative bg-[#0F172A]/90 backdrop-blur-xl border border-slate-800/80 rounded-2xl p-5 sm:p-8 shadow-2xl">
+        {/* Login Card — leve sombra para separar do fundo branco */}
+        <div className="relative motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-300">
+          <div className="relative rounded-2xl border border-slate-200/90 bg-white p-5 shadow-[0_12px_40px_-8px_rgba(15,23,42,0.08),0_4px_16px_-4px_rgba(15,23,42,0.04)] sm:p-8">
             {/* Header */}
             <div className="text-center mb-6 sm:mb-8">
-              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#34d399]/10 border border-[#34d399]/30 mb-3 sm:mb-4">
-                <Sparkles className="w-4 h-4 text-[#34d399]" />
-                <span className="text-[#34d399] text-xs font-semibold">Plataforma de IA</span>
+              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-200/90 bg-emerald-50 px-3 py-1.5 sm:mb-4">
+                <Sparkles className="h-4 w-4 text-emerald-600" aria-hidden />
+                <span className="text-xs font-semibold text-emerald-800">Plataforma de IA</span>
               </div>
-              <h1 className="text-xl sm:text-2xl font-bold text-white mb-1.5 sm:mb-2">Bem-vindo de volta</h1>
-              <p className="text-slate-400 text-sm">Entre para acessar sua conta</p>
+              <h1 className="mb-1.5 text-xl font-bold tracking-tight text-slate-900 sm:mb-2 sm:text-2xl">
+                Bem-vindo de volta
+              </h1>
+              <p className="text-sm text-slate-600">Entre para acessar sua conta</p>
             </div>
 
             {/* Form */}
-            <LoginForm />
+            <LoginForm variant="light" />
 
             {/* Divider */}
-            <div className="mt-6 sm:mt-8 pt-5 sm:pt-6 border-t border-slate-800">
-              <p className="text-center text-sm text-slate-400">
-                Ainda nao tem uma conta?{" "}
+            <div className="mt-6 border-t border-slate-200 pt-5 sm:mt-8 sm:pt-6">
+              <p className="text-center text-sm text-slate-600">
+                Ainda não tem uma conta?{" "}
                 <Link
                   href="/register"
-                  className="text-[#34d399] hover:text-[#6ee7b7] font-semibold transition-colors"
+                  className="font-semibold text-emerald-700 transition-colors hover:text-emerald-800"
                 >
                   Criar conta
                 </Link>
@@ -147,7 +62,7 @@ export default function LoginPage() {
         <div className="mt-6 text-center">
           <Link
             href="/"
-            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-[#34d399] transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-slate-600 transition-colors hover:text-emerald-700"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -157,21 +72,21 @@ export default function LoginPage() {
         </div>
 
         {/* Trust indicators */}
-        <div className="mt-6 sm:mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs text-slate-600">
+        <div className="mt-6 flex flex-wrap items-center justify-center gap-3 text-xs text-slate-500 sm:mt-8 sm:gap-6 [&_svg]:text-slate-400">
           <div className="flex items-center gap-1.5">
-            <Shield className="w-3.5 h-3.5" />
+            <Shield className="h-3.5 w-3.5" aria-hidden />
             <span>Dados seguros</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Zap className="w-3.5 h-3.5" />
+            <Zap className="h-3.5 w-3.5" aria-hidden />
             <span>Acesso 24/7</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <Brain className="w-3.5 h-3.5" />
+            <Brain className="h-3.5 w-3.5" aria-hidden />
             <span>IA Especializada</span>
           </div>
         </div>
-      </div>
+      </main>
     </div>
   )
 }

@@ -12,8 +12,14 @@ import Link from "next/link"
 import { createClient } from "@/lib/supabase/client"
 import { resolveUserRole } from "@/lib/auth/roles"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { cn } from "@/lib/utils"
 
-export function LoginForm() {
+type LoginFormProps = {
+  /** Card claro (branco) ou escuro — alinhar com o container da página de login */
+  variant?: "light" | "dark"
+}
+
+export function LoginForm({ variant = "light" }: LoginFormProps) {
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -97,18 +103,30 @@ export function LoginForm() {
     }
   }
 
+  const isLight = variant === "light"
+
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
       {/* Erro */}
       {error && (
-        <Alert variant="destructive" className="bg-red-500/10 border-red-500/30 text-red-400">
+        <Alert
+          variant="destructive"
+          className={cn(
+            isLight
+              ? "border-red-200 bg-red-50 text-red-800 [&>svg]:text-red-600"
+              : "bg-red-500/10 border-red-500/30 text-red-400"
+          )}
+        >
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="email" className="text-sm font-medium text-slate-300">
+        <Label
+          htmlFor="email"
+          className={cn("text-sm font-medium", isLight ? "text-slate-800" : "text-slate-300")}
+        >
           Email
         </Label>
         <Input
@@ -119,19 +137,32 @@ export function LoginForm() {
           onChange={(e) => setEmail(e.target.value)}
           required
           disabled={isLoading}
-          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
+          className={cn(
+            "h-12 px-4 rounded-xl transition-all",
+            isLight
+              ? "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-emerald-500 focus:ring-emerald-500/20"
+              : "bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20"
+          )}
         />
       </div>
 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <Label htmlFor="password" className="text-sm font-medium text-slate-300">
+          <Label
+            htmlFor="password"
+            className={cn("text-sm font-medium", isLight ? "text-slate-800" : "text-slate-300")}
+          >
             Senha
           </Label>
           <Link
             href="/forgot-password"
             prefetch={false}
-            className="text-xs text-[#34d399] hover:text-[#6ee7b7] font-medium transition-colors"
+            className={cn(
+              "text-xs font-medium transition-colors",
+              isLight
+                ? "text-emerald-700 hover:text-emerald-800"
+                : "text-[#34d399] hover:text-[#6ee7b7]"
+            )}
           >
             Esqueceu a senha?
           </Link>
@@ -145,13 +176,23 @@ export function LoginForm() {
             onChange={(e) => setPassword(e.target.value)}
             required
             disabled={isLoading}
-            className="h-12 px-4 pr-12 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
+            className={cn(
+              "h-12 px-4 pr-12 rounded-xl transition-all",
+              isLight
+                ? "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-emerald-500 focus:ring-emerald-500/20"
+                : "bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20"
+            )}
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             disabled={isLoading}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-50"
+            className={cn(
+              "absolute right-3 top-1/2 -translate-y-1/2 transition-colors disabled:opacity-50",
+              isLight
+                ? "text-slate-400 hover:text-slate-600"
+                : "text-slate-500 hover:text-slate-300"
+            )}
             aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -161,9 +202,12 @@ export function LoginForm() {
 
       <Button
         type="submit"
-        className="w-full h-12 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] border-0 text-white"
+        className={cn(
+          "w-full h-12 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] border-0 text-white",
+          isLight && "shadow-emerald-900/15 hover:shadow-emerald-900/25 focus-visible:ring-2 focus-visible:ring-emerald-600/40"
+        )}
         style={{
-          background: 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
+          background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
         }}
         disabled={isLoading || !envReady}
       >
