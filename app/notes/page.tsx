@@ -3,6 +3,9 @@ import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { CheckCircle2 } from "lucide-react"
 
+/** Evita prerender no build (DATABASE_URL só existe em runtime na Vercel / .env). */
+export const dynamic = "force-dynamic"
+
 export default async function NotesPage() {
   const supabase = await createClient()
 
