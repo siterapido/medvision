@@ -31,11 +31,14 @@ async function proxy(
   const target = new URL(path.join("/"), base)
   target.search = new URL(request.url).search
 
-  // Copia headers omitindo `origin` e `host` (serão redefinidos abaixo)
+  // Copia headers omitindo os que causam rejeição no Neon Auth:
+  // - origin/host: redefinidos abaixo com o endereço do servidor Neon
+  // - x-forwarded-host: injetado pela Vercel com nosso domínio → INVALID_HOSTNAME
+  // - x-forwarded-for / x-real-ip: podem conflitar com validações do Neon Auth
+  const STRIP = new Set(["origin", "host", "x-forwarded-host", "x-forwarded-for", "x-real-ip"])
   const headers = new Headers()
   request.headers.forEach((value, key) => {
-    const k = key.toLowerCase()
-    if (k !== "origin" && k !== "host") headers.set(key, value)
+    if (!STRIP.has(key.toLowerCase())) headers.set(key, value)
   })
   // Define origin como o próprio servidor Neon → passa na verificação INVALID_ORIGIN
   // Origin deve ser apenas scheme+host (sem path), ex: https://ep-xxx.neonauth.region.aws.neon.tech
