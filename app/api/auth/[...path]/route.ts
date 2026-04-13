@@ -38,7 +38,9 @@ async function proxy(
     if (k !== "origin" && k !== "host") headers.set(key, value)
   })
   // Define origin como o próprio servidor Neon → passa na verificação INVALID_ORIGIN
-  headers.set("origin", NEON_BASE)
+  // Origin deve ser apenas scheme+host (sem path), ex: https://ep-xxx.neonauth.region.aws.neon.tech
+  const neonOrigin = new URL(NEON_BASE).origin
+  headers.set("origin", neonOrigin)
 
   const hasBody = request.method !== "GET" && request.method !== "HEAD"
   const body = hasBody ? await request.arrayBuffer() : undefined
