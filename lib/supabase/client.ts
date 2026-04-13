@@ -7,12 +7,18 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 let adapter: ReturnType<typeof createAuthClient> | null = null
 
 function getNeonAuthBaseUrl(): string {
-  return (
-    process.env.NEXT_PUBLIC_NEON_AUTH_BASE_URL ??
-    (process.env.NEXT_PUBLIC_VERCEL_URL
-      ? `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
-      : "")
-  )
+  if (process.env.NEXT_PUBLIC_NEON_AUTH_BASE_URL) {
+    return process.env.NEXT_PUBLIC_NEON_AUTH_BASE_URL
+  }
+  if (process.env.NEXT_PUBLIC_VERCEL_URL) {
+    return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
+  }
+  // Dev local: aponta para a própria aplicação para que os cookies
+  // sejam setados no domínio correto via proxy /api/auth/[...path]
+  if (typeof window !== "undefined") {
+    return window.location.origin
+  }
+  return "http://localhost:3000"
 }
 
 function getSupabaseCompatibleAuth() {
