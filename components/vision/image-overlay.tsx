@@ -14,6 +14,8 @@ interface ImageOverlayProps {
     showArrows?: boolean
     showHeatmap?: boolean
     showConfidenceFilter?: boolean
+    /** Quando true, deixa margem à direita no mobile para o botão “Ferramentas” sobre a imagem. */
+    reserveMobileToolbarSlot?: boolean
     className?: string
 }
 
@@ -139,6 +141,7 @@ export function ImageOverlay({
     showArrows = true,
     showHeatmap = false,
     showConfidenceFilter = false,
+    reserveMobileToolbarSlot = false,
     className,
 }: ImageOverlayProps) {
     const [hoveredId, setHoveredId] = useState<string | null>(null)
@@ -327,17 +330,33 @@ export function ImageOverlay({
                 onLoad={computeImgRect}
             />
 
-            {/* Confidence threshold slider — always at container top-right */}
+            {/* Confidence threshold slider — mobile: barra inferior; md+: canto superior direito */}
             {showConfidenceFilter && detections.length > 0 && (
-                <div className="absolute top-2 right-2 z-40 flex items-center gap-2 bg-black/60 backdrop-blur-md rounded-lg px-3 py-1.5 pointer-events-auto select-none">
-                    <span className="text-[10px] text-white/70 whitespace-nowrap">Confiança mín.</span>
-                    <input
-                        type="range" min={0} max={0.95} step={0.05} value={minConfidence}
-                        onChange={e => setMinConfidence(Number(e.target.value))}
-                        className="w-20 accent-primary cursor-pointer"
-                        title={`Mínimo: ${Math.round(minConfidence * 100)}%`}
-                    />
-                    <span className="text-[10px] font-mono text-white w-7 text-right">{Math.round(minConfidence * 100)}%</span>
+                <div
+                    className={cn(
+                        'absolute z-40 flex bg-black/60 backdrop-blur-md rounded-lg px-2 py-1.5 sm:px-3 pointer-events-auto select-none',
+                        'bottom-2 left-2 flex-col gap-1 min-w-0',
+                        reserveMobileToolbarSlot ? 'right-14' : 'right-2',
+                        'md:bottom-auto md:left-auto md:right-2 md:top-2 md:flex-row md:items-center md:gap-2 md:w-auto md:max-w-[min(100%,18rem)]'
+                    )}
+                    title="Filtrar detecções por confiança mínima"
+                >
+                    <span className="text-[10px] text-white/70 shrink-0 md:whitespace-nowrap">Confiança mín.</span>
+                    <div className="flex items-center gap-2 min-w-0 w-full md:w-auto">
+                        <input
+                            type="range"
+                            min={0}
+                            max={0.95}
+                            step={0.05}
+                            value={minConfidence}
+                            onChange={e => setMinConfidence(Number(e.target.value))}
+                            className="min-w-0 flex-1 h-2 md:w-20 md:flex-none accent-primary cursor-pointer"
+                            title={`Mínimo: ${Math.round(minConfidence * 100)}%`}
+                        />
+                        <span className="text-[10px] font-mono text-white w-8 shrink-0 text-right tabular-nums">
+                            {Math.round(minConfidence * 100)}%
+                        </span>
+                    </div>
                 </div>
             )}
 
@@ -510,17 +529,18 @@ export function ImageOverlay({
                                             exit={{ opacity: 0 }}
                                             transition={{ duration: 0.35, delay: 0.3 + i * 0.08 }}
                                             className={cn(
-                                                "absolute px-1.5 py-0.5 rounded text-[9px] font-semibold text-white uppercase tracking-normal shadow-md pointer-events-auto cursor-pointer select-none whitespace-nowrap",
+                                                "absolute px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-semibold text-white uppercase tracking-normal shadow-md pointer-events-auto cursor-pointer select-none",
+                                                "whitespace-normal break-words sm:whitespace-nowrap",
                                                 sevStyle.label,
                                                 (isHovered || isSelected) ? "ring-2 ring-white/80 scale-105" : ""
                                             )}
-                                            style={{ left: `${pos.x}%`, top: `${pos.y}%`, maxWidth: '40%' }}
+                                            style={{ left: `${pos.x}%`, top: `${pos.y}%`, maxWidth: 'min(40%, 92%)' }}
                                             onMouseEnter={() => setHoveredId(det.id)}
                                             onMouseLeave={() => setHoveredId(null)}
                                             onClick={(e) => handleDetectionClick(det.id, e)}
                                             title={`${det.label} — ${Math.round(det.confidence * 100)}% — Clique para detalhes`}
                                         >
-                                            <span className="truncate block" style={{ maxWidth: '100%' }}>
+                                            <span className="block line-clamp-2 sm:line-clamp-none sm:truncate sm:max-w-full">
                                                 {det.label}
                                                 <span className="ml-1 opacity-75 font-normal">{Math.round(det.confidence * 100)}%</span>
                                             </span>

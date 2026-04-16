@@ -35,6 +35,7 @@ import {
     ChevronDown,
     ChevronUp,
     Microscope,
+    MoreVertical,
 } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { GlassCard } from '@/components/ui/glass-card'
@@ -63,6 +64,13 @@ import { validateImageQuality, compressImageForAnalysis, ImageQualityResult } fr
 import { useAnnotations } from '@/lib/hooks/use-annotations'
 import { toast } from 'sonner'
 import { generateVisionPDF } from '@/lib/utils/generate-vision-pdf'
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 type VisionState = 'UPLOAD' | 'DESCRIBE' | 'MODELS' | 'VALIDATING' | 'CROP' | 'CONFIRM' | 'ANALYZING' | 'RESULT' | 'ERROR'
 
@@ -583,7 +591,7 @@ export default function MedVisionPage() {
     }
 
     return (
-        <div className="pb-4 pt-4 px-3 md:pb-20 md:pt-6 md:px-8 max-w-6xl mx-auto">
+        <div className="pb-4 pt-4 px-3 md:pb-20 md:pt-6 md:px-8 max-w-6xl mx-auto w-full min-w-0">
             {/* Header */}
             <header className="mb-5 md:mb-10 space-y-1.5">
                 <div className="flex items-center gap-2.5">
@@ -599,7 +607,7 @@ export default function MedVisionPage() {
                 </p>
             </header>
 
-            <div className="grid grid-cols-1 gap-8">
+            <div className="grid grid-cols-1 gap-8 min-w-0">
                 <AnimatePresence mode="wait">
                     {/* ─── UPLOAD / ERROR ─── */}
                     {(state === 'UPLOAD' || state === 'ERROR') && (
@@ -990,7 +998,7 @@ export default function MedVisionPage() {
                             key="result-compare"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex flex-col gap-6 max-w-6xl mx-auto w-full"
+                            className="flex flex-col gap-6 max-w-6xl mx-auto w-full min-w-0"
                         >
                             {/* Header */}
                             <div className="flex items-center justify-between flex-wrap gap-3">
@@ -1035,8 +1043,8 @@ export default function MedVisionPage() {
                                         </div>
 
                                         {/* Image overlay */}
-                                        <GlassCard className="p-1 overflow-hidden">
-                                            <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-black/5">
+                                        <GlassCard className="p-1 overflow-hidden min-w-0">
+                                            <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-black/5 min-w-0">
                                                 {image && (
                                                     <ImageOverlay
                                                         src={image}
@@ -1098,12 +1106,12 @@ export default function MedVisionPage() {
                             </div>
 
                             {/* Action buttons */}
-                            <div className="flex flex-wrap gap-3">
-                                <Button variant="outline" className="flex-1 rounded-xl h-12 gap-2" onClick={reset}>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 w-full min-w-0">
+                                <Button variant="outline" className="w-full rounded-xl h-12 gap-2" onClick={reset}>
                                     <RefreshCcw className="w-4 h-4" /> Analisar Outra
                                 </Button>
                                 <Button
-                                    className="flex-1 rounded-xl h-12 gap-2 bg-primary hover:bg-primary/90"
+                                    className="w-full rounded-xl h-12 gap-2 bg-primary hover:bg-primary/90"
                                     onClick={() => {
                                         if (comparisonResult && image) {
                                             toast.promise(
@@ -1125,7 +1133,7 @@ export default function MedVisionPage() {
                             key="result"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex flex-col gap-8 max-w-4xl mx-auto"
+                            className="flex flex-col gap-8 max-w-4xl mx-auto w-full min-w-0"
                         >
                             {/* Quality badge (high precision) */}
                             {analysisPrecision !== null && analysisPrecision >= 80 && analysisResult.meta && (
@@ -1140,22 +1148,20 @@ export default function MedVisionPage() {
                             {/* Precision/Quality Banner */}
                             {analysisPrecision !== null && analysisPrecision < 80 && (
                                 <div className={cn(
-                                    "p-4 rounded-xl border flex items-start gap-3",
+                                    "p-4 rounded-xl border flex flex-col gap-3 sm:flex-row sm:items-start",
                                     analysisPrecision >= 60 ? "bg-amber-500/10 border-amber-500/20" : "bg-red-500/10 border-red-500/20"
                                 )}>
-                                    <AlertTriangle className={cn("w-5 h-5 shrink-0 mt-0.5", analysisPrecision >= 60 ? "text-amber-500" : "text-red-400")} />
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center justify-between gap-2 flex-wrap">
-                                            <p className={cn("text-sm font-semibold", analysisPrecision >= 60 ? "text-amber-500" : "text-red-400")}>
-                                                Análise com precisão {analysisPrecision >= 60 ? 'limitada' : 'reduzida'} ({analysisPrecision}%)
-                                            </p>
-                                            {analysisResult.meta && (
-                                                <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-full border", analysisPrecision >= 60 ? "bg-amber-500/10 text-amber-500 border-amber-500/30" : "bg-red-500/10 text-red-400 border-red-400/30")}>
-                                                    Qualidade: {analysisResult.meta.quality}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <p className="text-xs text-muted-foreground mt-1">
+                                    <AlertTriangle className={cn("w-5 h-5 shrink-0 sm:mt-0.5", analysisPrecision >= 60 ? "text-amber-500" : "text-red-400")} />
+                                    <div className="min-w-0 flex-1 space-y-2">
+                                        <p className={cn("text-sm font-semibold break-words", analysisPrecision >= 60 ? "text-amber-500" : "text-red-400")}>
+                                            Análise com precisão {analysisPrecision >= 60 ? 'limitada' : 'reduzida'} ({analysisPrecision}%)
+                                        </p>
+                                        {analysisResult.meta && (
+                                            <span className={cn("inline-flex w-fit max-w-full text-[10px] font-semibold px-2 py-0.5 rounded-full border shrink-0", analysisPrecision >= 60 ? "bg-amber-500/10 text-amber-500 border-amber-500/30" : "bg-red-500/10 text-red-400 border-red-400/30")}>
+                                                Qualidade: {analysisResult.meta.quality}
+                                            </span>
+                                        )}
+                                        <p className="text-xs text-muted-foreground">
                                             {analysisPrecision < 60
                                                 ? 'A qualidade da imagem está abaixo do recomendado. Confirme com uma imagem de melhor qualidade.'
                                                 : 'A qualidade pode afetar a confiabilidade de alguns achados.'}
@@ -1166,9 +1172,9 @@ export default function MedVisionPage() {
 
                             {/* Image with Detections */}
                             <div className="space-y-4">
-                                <GlassCard className="p-1 overflow-hidden">
+                                <GlassCard className="p-1 overflow-hidden min-w-0">
                                     <div
-                                        className="relative aspect-[4/3] rounded-lg overflow-hidden border border-border/50 bg-black/5"
+                                        className="relative aspect-[4/3] rounded-lg overflow-hidden border border-border/50 bg-black/5 min-w-0"
                                         ref={(el) => {
                                             if (el && (el.offsetWidth !== imageSize.width || el.offsetHeight !== imageSize.height)) {
                                                 setImageSize({ width: el.offsetWidth, height: el.offsetHeight })
@@ -1183,6 +1189,7 @@ export default function MedVisionPage() {
                                                     annotations={annotations}
                                                     showHeatmap={showHeatmap}
                                                     showConfidenceFilter
+                                                    reserveMobileToolbarSlot
                                                 />
                                             )}
                                         </div>
@@ -1241,67 +1248,108 @@ export default function MedVisionPage() {
                                             </div>
                                         )}
 
-                                        {/* Action buttons */}
+                                        {/* Action buttons — desktop: ícones; mobile: menu compacto */}
                                         {!isAnnotating && !isSelectingRegion && !isRefining && (
-                                            <div className="absolute bottom-4 right-4 flex gap-2">
-                                                <Button
-                                                    size="icon"
-                                                    variant="secondary"
-                                                    className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full"
-                                                    onClick={() => setIsAnnotating(true)}
-                                                    title="Anotar"
-                                                >
-                                                    <Pencil className="w-4 h-4" />
-                                                </Button>
-                                                <Button
-                                                    size="icon"
-                                                    variant="secondary"
-                                                    className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full"
-                                                    onClick={() => setIsSelectingRegion(true)}
-                                                    title="Refinar região"
-                                                >
-                                                    <Microscope className="w-4 h-4" />
-                                                </Button>
-                                                <Button
-                                                    size="icon"
-                                                    variant="secondary"
-                                                    className={cn(
-                                                        "bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full",
-                                                        showHeatmap && "bg-red-500/50 border-red-500/50"
-                                                    )}
-                                                    onClick={() => setShowHeatmap(!showHeatmap)}
-                                                    title="Mapa de calor"
-                                                >
-                                                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill={showHeatmap ? "#ef4444" : "none"} />
-                                                        <circle cx="12" cy="12" r="4" fill={showHeatmap ? "#fca5a5" : "none"} />
-                                                    </svg>
-                                                </Button>
-                                                <Button
-                                                    size="icon"
-                                                    variant="secondary"
-                                                    className={cn(
-                                                        "bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full",
-                                                        isPresentationMode && "bg-primary/70 border-primary"
-                                                    )}
-                                                    onClick={() => setIsPresentationMode(!isPresentationMode)}
-                                                    title="Modo apresentação (paciente)"
-                                                >
-                                                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                        <rect x="2" y="3" width="20" height="14" rx="2" />
-                                                        <path d="M8 21h8M12 17v4" />
-                                                    </svg>
-                                                </Button>
-                                                <Button
-                                                    size="icon"
-                                                    variant="secondary"
-                                                    className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full"
-                                                    onClick={() => setIsFullscreen(true)}
-                                                    title="Tela cheia"
-                                                >
-                                                    <Maximize2 className="w-4 h-4" />
-                                                </Button>
-                                            </div>
+                                            <>
+                                                <div className="md:hidden absolute bottom-2 right-2 z-30">
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button
+                                                                size="icon"
+                                                                variant="secondary"
+                                                                className="bg-black/50 backdrop-blur-md border-white/10 hover:bg-black/70 rounded-full h-10 w-10"
+                                                                aria-label="Ferramentas da imagem"
+                                                            >
+                                                                <MoreVertical className="w-4 h-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end" className="w-52">
+                                                            <DropdownMenuItem onClick={() => setIsAnnotating(true)}>
+                                                                <Pencil className="w-4 h-4 mr-2" /> Anotar
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => setIsSelectingRegion(true)}>
+                                                                <Microscope className="w-4 h-4 mr-2" /> Refinar região
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => setShowHeatmap(!showHeatmap)}>
+                                                                <span className="mr-2 inline-flex h-4 w-4 items-center justify-center">
+                                                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill={showHeatmap ? "#ef4444" : "none"} />
+                                                                        <circle cx="12" cy="12" r="4" fill={showHeatmap ? "#fca5a5" : "none"} />
+                                                                    </svg>
+                                                                </span>
+                                                                Mapa de calor {showHeatmap ? '(ligado)' : '(desligado)'}
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuItem onClick={() => setIsPresentationMode(!isPresentationMode)}>
+                                                                <span className="mr-2 text-xs">{isPresentationMode ? '✓' : '○'}</span>
+                                                                Modo apresentação
+                                                            </DropdownMenuItem>
+                                                            <DropdownMenuSeparator />
+                                                            <DropdownMenuItem onClick={() => setIsFullscreen(true)}>
+                                                                <Maximize2 className="w-4 h-4 mr-2" /> Tela cheia
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
+                                                <div className="hidden md:flex absolute bottom-4 right-4 gap-2 flex-nowrap shrink-0">
+                                                    <Button
+                                                        size="icon"
+                                                        variant="secondary"
+                                                        className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0"
+                                                        onClick={() => setIsAnnotating(true)}
+                                                        title="Anotar"
+                                                    >
+                                                        <Pencil className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button
+                                                        size="icon"
+                                                        variant="secondary"
+                                                        className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0"
+                                                        onClick={() => setIsSelectingRegion(true)}
+                                                        title="Refinar região"
+                                                    >
+                                                        <Microscope className="w-4 h-4" />
+                                                    </Button>
+                                                    <Button
+                                                        size="icon"
+                                                        variant="secondary"
+                                                        className={cn(
+                                                            "bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0",
+                                                            showHeatmap && "bg-red-500/50 border-red-500/50"
+                                                        )}
+                                                        onClick={() => setShowHeatmap(!showHeatmap)}
+                                                        title="Mapa de calor"
+                                                    >
+                                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill={showHeatmap ? "#ef4444" : "none"} />
+                                                            <circle cx="12" cy="12" r="4" fill={showHeatmap ? "#fca5a5" : "none"} />
+                                                        </svg>
+                                                    </Button>
+                                                    <Button
+                                                        size="icon"
+                                                        variant="secondary"
+                                                        className={cn(
+                                                            "bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0",
+                                                            isPresentationMode && "bg-primary/70 border-primary"
+                                                        )}
+                                                        onClick={() => setIsPresentationMode(!isPresentationMode)}
+                                                        title="Modo apresentação (paciente)"
+                                                    >
+                                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                            <rect x="2" y="3" width="20" height="14" rx="2" />
+                                                            <path d="M8 21h8M12 17v4" />
+                                                        </svg>
+                                                    </Button>
+                                                    <Button
+                                                        size="icon"
+                                                        variant="secondary"
+                                                        className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0"
+                                                        onClick={() => setIsFullscreen(true)}
+                                                        title="Tela cheia"
+                                                    >
+                                                        <Maximize2 className="w-4 h-4" />
+                                                    </Button>
+                                                </div>
+                                            </>
                                         )}
                                     </div>
                                 </GlassCard>
@@ -1325,13 +1373,13 @@ export default function MedVisionPage() {
                                     </div>
                                 )}
 
-                                <div className="flex flex-wrap gap-3">
-                                    <Button variant="outline" className="flex-1 rounded-xl h-12 gap-2" onClick={reset}>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 w-full min-w-0">
+                                    <Button variant="outline" className="w-full rounded-xl h-12 gap-2" onClick={reset}>
                                         <RefreshCcw className="w-4 h-4" /> Analisar Outra
                                     </Button>
                                     <Button
                                         variant="outline"
-                                        className="flex-1 rounded-xl h-12 gap-2"
+                                        className="w-full rounded-xl h-12 gap-2"
                                         onClick={() => setIsSelectingRegion(true)}
                                         disabled={isRefining || isAnnotating || isSelectingRegion}
                                     >
@@ -1339,7 +1387,7 @@ export default function MedVisionPage() {
                                     </Button>
                                     <Button
                                         variant="outline"
-                                        className="flex-1 rounded-xl h-12 gap-2"
+                                        className="w-full rounded-xl h-12 gap-2"
                                         onClick={async () => {
                                             setIsComparing(true)
                                             try {
@@ -1364,7 +1412,7 @@ export default function MedVisionPage() {
                                         </svg> Comparar
                                     </Button>
                                     <Button
-                                        className="flex-1 rounded-xl h-12 gap-2 bg-primary hover:bg-primary/90"
+                                        className="w-full rounded-xl h-12 gap-2 bg-primary hover:bg-primary/90"
                                         onClick={() => {
                                             if (analysisResult && image) {
                                                 toast.promise(

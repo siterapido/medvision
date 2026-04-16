@@ -61,17 +61,18 @@ export function DetectionPopover({ detection, anchorPercent, containerSize, onCl
     }, [onClose])
 
     // Smart positioning: decide whether to show left or right, top or bottom
-    const POPOVER_WIDTH_PX = 280
     const POPOVER_APPROX_HEIGHT_PX = 380
+    const popoverWidthPx = Math.max(0, Math.min(280, containerSize.width - 16))
     const anchorPxX = (anchorPercent.x / 100) * containerSize.width
     const anchorPxY = (anchorPercent.y / 100) * containerSize.height
 
-    const showOnLeft = anchorPxX + POPOVER_WIDTH_PX + 8 > containerSize.width
+    const showOnLeft = anchorPxX + popoverWidthPx + 8 > containerSize.width
     const showAbove = anchorPxY + POPOVER_APPROX_HEIGHT_PX + 8 > containerSize.height
 
     const style: React.CSSProperties = {
         position: 'absolute',
-        width: `${POPOVER_WIDTH_PX}px`,
+        width: `${popoverWidthPx}px`,
+        maxWidth: `calc(100% - 8px)`,
         zIndex: 50,
         ...(showOnLeft
             ? { right: `${containerSize.width - anchorPxX + 4}px` }
