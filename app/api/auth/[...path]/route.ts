@@ -10,6 +10,29 @@
 
 const NEON_BASE = process.env.NEON_AUTH_BASE_URL?.trim()
 
+/**
+ * Em http://localhost o browser ignora cookies com flag Secure; o Neon Auth costuma
+ * enviar Secure em ambientes HTTPS. Remove Secure e ajusta SameSite para a sessão
+ * persistir no dev local.
+ */
+function shouldRelaxAuthCookieSecurity(requestUrl: string): boolean {
+  if (process.env.NODE_ENV !== "development") return false
+  try {
+    const { protocol, hostname } = new URL(requestUrl)
+    if (protocol !== "http:") return false
+    return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1"
+  } catch {
+    return false
+  }
+}
+
+function relaxSetCookieForInsecureLocalhost(cookie: string): string {
+  return cookie
+    .replace(/;\s*Partitioned/gi, "")
+    .replace(/;\s*Secure/gi, "")
+    .replace(/;\s*SameSite=None/gi, "; SameSite=Lax")
+}
+
 function missing() {
   return new Response(
     JSON.stringify({
@@ -54,10 +77,19 @@ async function proxy(
     body,
   })
 
-  // Encaminha a resposta ao browser preservando todos os headers (cookies, etc.)
+  // Encaminha a resposta ao browser preservando headers. Vários `Set-Cookie` exigem
+  // append — usar set() descarta todos exceto o último e quebra a sessão.
   const resHeaders = new Headers()
+  const relaxCookies = shouldRelaxAuthCookieSecurity(request.url)
   upstream.headers.forEach((value, key) => {
-    if (key.toLowerCase() !== "transfer-encoding") resHeaders.set(key, value)
+    const lk = key.toLowerCase()
+    if (lk === "transfer-encoding") return
+    if (lk === "set-cookie") {
+      const v = relaxCookies ? relaxSetCookieForInsecureLocalhost(value) : value
+      resHeaders.append("Set-Cookie", v)
+      return
+    }
+    resHeaders.set(key, value)
   })
 
   return new Response(upstream.body, {
