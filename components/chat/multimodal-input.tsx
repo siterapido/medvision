@@ -264,6 +264,9 @@ export function MultimodalInput({
 
         {/* Suggestion chips - shown when input is empty */}
         {!input.trim() && showSuggestions && onSuggestionClick && (
+          <div className="relative">
+            {/* Fade gradient indicating more chips to the right */}
+            <div className="pointer-events-none absolute right-0 top-0 h-full w-8 bg-gradient-to-l from-background to-transparent z-10" />
           <div className="flex gap-2 px-4 pt-3 pb-1 overflow-x-auto scrollbar-hide">
             {SUGGESTIONS.map((suggestion) => (
               <button
@@ -284,6 +287,7 @@ export function MultimodalInput({
                 {suggestion}
               </button>
             ))}
+          </div>
           </div>
         )}
 

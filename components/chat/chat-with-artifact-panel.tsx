@@ -211,7 +211,7 @@ function ChatWithArtifactPanelInner({
     return (
       <div className="relative flex h-full min-h-0 flex-col">
         {research && (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-end p-3 pb-[calc(88px+env(safe-area-inset-bottom))]">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-end p-3 pb-[calc(var(--dock-height,64px)+env(safe-area-inset-bottom)+24px)]">
             <button
               type="button"
               onClick={() => setMobileResearchOpen(true)}

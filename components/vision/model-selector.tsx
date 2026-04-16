@@ -22,9 +22,10 @@ const PROVIDER_COLORS: Record<string, string> = {
     Perplexity: 'bg-teal-500/10 text-teal-400 border-teal-500/20',
     Meta:       'bg-purple-500/10 text-purple-400 border-purple-500/20',
     Qwen:       'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+    'Z-AI':     'bg-violet-500/10 text-violet-400 border-violet-500/20',
 }
 
-const PROVIDERS = ['Google', 'Anthropic', 'OpenAI', 'Perplexity', 'Meta', 'Qwen'] as const
+const PROVIDERS = ['Google', 'Anthropic', 'OpenAI', 'Perplexity', 'Meta', 'Qwen', 'Z-AI'] as const
 
 function ModelSelect({
     value,

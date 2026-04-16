@@ -81,7 +81,7 @@ export async function POST(req: Request) {
             if (userText) {
               try {
                 const { text: title } = await generateText({
-                  model: openrouter(MODELS.titler),
+                  model: openrouter(MODELS.chat),
                   prompt: `Gere um título muito curto (3 a 4 palavras) em português para esta conversa baseada na mensagem: "${userText}". Retorne apenas o título, sem aspas.`,
                 })
                 if (title) {

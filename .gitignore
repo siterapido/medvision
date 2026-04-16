@@ -36,6 +36,7 @@ tsconfig.tsbuildinfo
 /playwright-report
 /test-results
 /reports
+/tests-e2e/.auth/
 
 # local data and backups
 /Odonto Studio e Biblioteca

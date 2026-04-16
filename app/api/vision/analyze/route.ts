@@ -22,7 +22,7 @@ const RATE_LIMITS: Record<string, number> = {
 const DEFAULT_LIMIT = 5
 
 const DetectionSchema = z.object({
-    label: z.string().describe("Nome curto da patologia ou estrutura identificada (ex: 'Cárie', 'Perda Óssea')."),
+    label: z.string().describe("Nome curto do achado radiológico (ex: 'Opacidade', 'Nódulo Pulmonar', 'Fratura', 'Derrame Pleural')."),
     box: z.array(z.number().min(0).max(100)).length(4)
         .refine(b => b[0] < b[2] && b[1] < b[3], {
             message: "Coordenadas inválidas: ymin deve ser < ymax e xmin deve ser < xmax",
@@ -32,69 +32,46 @@ const DetectionSchema = z.object({
     confidence: z.number().min(0).max(1).describe("Grau de confiança do achado de 0 a 1, refletindo a certeza diagnóstica."),
     description: z.string().optional().describe("Breve descrição técnica do achado (1-2 frases)."),
     detailedDescription: z.string().optional().describe("Descrição técnica detalhada do achado (3-5 frases) com terminologia especializada."),
-    toothNumber: z.string().optional().describe("Número do dente em notação FDI (ex: '26', '11', '36-37'). Omita se não aplicável à imagem."),
-    cidCode: z.string().optional().describe("Código CID-10 correspondente ao achado (ex: 'K02.1' para cárie de dentina, 'K05.3' para periodontite crônica, 'K04.5' para lesão periapical crônica)."),
+    anatomicalRegion: z.string().optional().describe("Região anatômica do achado usando topografia precisa (ex: 'Lobo superior direito', 'Hemitórax esquerdo', 'Fêmur distal', 'Hipocôndrio direito'). Omita se não identificável."),
+    cidCode: z.string().optional().describe("Código CID-10 correspondente ao achado (ex: 'J18.9' para pneumonia, 'S72.0' para fratura de fêmur, 'J90' para derrame pleural)."),
     differentialDiagnosis: z.array(z.string()).optional().describe("Lista de 2-3 diagnósticos diferenciais para este achado específico."),
     clinicalSignificance: z.enum(['alta', 'media', 'baixa']).optional().describe("Significância clínica do achado: alta (requer ação imediata), media (monitorar/tratar em breve), baixa (acompanhamento de rotina)."),
-    recommendedActions: z.array(z.string()).optional().describe("Lista de 1-3 ações recomendadas específicas para ESTE achado (ex: 'Restauração classe II com resina composta', 'Sondagem periodontal completa')."),
-    // Novos campos específicos por tipo de detecção
-    detectionType: z.enum(['caries', 'periodontal', 'periapical', 'restoration', 'fracture', 'implant', 'calculus', 'resorption', 'cyst', 'tumor', 'anomaly', 'other']).optional().describe("Tipo de detecção para分类."),
-    // Dados específicos para cáries
-    cariesData: z.object({
-        blackClass: z.enum(['I', 'II', 'III', 'IV', 'V', 'VI']).optional().describe("Classe de Black (I-VI)."),
-        surface: z.enum(['O', 'M', 'D', 'B', 'L', 'F', 'MO', 'DO', 'BO', 'LO']).optional().describe("Superfície afetada: O=oclusal, M=mesial, D=distal, B=buccal, L=lingual, F=facial, MO=mesio-oclusal, etc."),
-        depth: z.enum(['inicial', 'moderada', 'avancada']).optional().describe("Profundidade: inicial (<1/3 dentina), moderada (1/3-2/3), avançada (>2/3)."),
-        involvedPulp: z.boolean().optional().describe("Se está próxima ou atinge a polpa."),
-    }).optional().describe("Dados específicos para cáries."),
-    // Dados específicos para restaurações
-    restorationData: z.object({
-        type: z.enum(['amalgam', 'resina', 'ionomero', 'ouro', 'porcelana', 'provisoria', 'outro']).optional().describe("Tipo de restauração."),
-        condition: z.enum(['integra', 'fraturada', 'infiltração', 'desadaptada', 'carie_recidiva', 'descolorida']).optional().describe("Condição da restauração."),
-        marginalDefect: z.boolean().optional().describe("Defeito marginal visível."),
-        overhang: z.boolean().optional().describe("Overhang/excesso de material."),
-    }).optional().describe("Dados específicos para restaurações."),
+    recommendedActions: z.array(z.string()).optional().describe("Lista de 1-3 ações recomendadas específicas para ESTE achado (ex: 'TC de tórax com contraste', 'Broncoscopia', 'Ortopedia urgente')."),
+    detectionType: z.enum(['opacity', 'consolidation', 'nodule', 'mass', 'fracture', 'effusion', 'pneumothorax', 'cardiomegaly', 'lymphadenopathy', 'calcification', 'atelectasis', 'infiltrate', 'foreign_body', 'cyst', 'tumor', 'anomaly', 'other']).optional().describe("Tipo de achado radiológico para classificação."),
+    // Dados gerais de radiologia (opcional, aplicável a qualquer tipo de achado)
+    radiologyData: z.object({
+        pattern: z.string().optional().describe("Padrão radiológico (ex: 'alveolar', 'intersticial', 'nodular', 'consolidativo', 'cavitário')."),
+        distribution: z.string().optional().describe("Distribuição na imagem (ex: 'difuso', 'focal', 'bilateral', 'unilateral', 'lobar', 'segmentar')."),
+        margins: z.enum(['bem_definidas', 'mal_definidas', 'espiculadas', 'lobuladas']).optional().describe("Característica das margens do achado."),
+        density: z.enum(['hipodenso', 'isodenso', 'hiperdenso', 'heterogeneo']).optional().describe("Densidade do achado em TC (Hounsfield)."),
+    }).optional().describe("Dados radiológicos gerais do achado."),
     // Dados específicos para fraturas
     fractureData: z.object({
-        location: z.enum(['coronaria_radicular', 'radicular', 'coroa']).optional().describe("Localização da fratura."),
-        direction: z.enum(['horizontal', 'vertical', 'obliqua', 'inclinada']).optional().describe("Direção da fratura."),
-        extendsToCementum: z.boolean().optional().describe("Se estende até o cemento."),
-        displacement: z.boolean().optional().describe("Se há deslocamento dos fragmentos."),
-    }).optional().describe("Dados específicos para fraturas."),
-    // Dados específicos para implantes
-    implantData: z.object({
-        type: z.enum(['osseointegrado', 'subperiosteal', 'zirconia']).optional().describe("Tipo de implante."),
-        condition: z.enum(['saudavel', 'periimplantite', 'mucosite', 'falha']).optional().describe("Condição peri-implantar."),
-        boneLoss: z.number().optional().describe("Perda óssea em mm ao redor do implante."),
-        mobility: z.boolean().optional().describe("Se há mobilidade."),
-    }).optional().describe("Dados específicos para implantes."),
-    // Dados para cálculo
-    calculusData: z.object({
-        location: z.enum(['supragengival', 'subgengival', 'ambos']).optional().describe("Localização do cálculo."),
-        extent: z.enum(['localizado', 'generalizado']).optional().describe("Extensão."),
-    }).optional().describe("Dados específicos para cálculo."),
-    // Dados para reabsorção
-    resorptionData: z.object({
-        type: z.enum(['interna', 'externa', 'cervical']).optional().describe("Tipo de reabsorção."),
-        location: z.enum(['coronal', 'media', 'apical']).optional().describe("Localização."),
-        severity: z.enum(['leve', 'moderada', 'severa']).optional().describe("Gravidade."),
-    }).optional().describe("Dados específicos para reabsorção."),
+        location: z.string().optional().describe("Localização anatômica da fratura (ex: 'diáfise', 'epífise', 'arco costal', 'corpo vertebral')."),
+        direction: z.enum(['transversa', 'obliqua', 'espiral', 'cominutiva', 'compressao']).optional().describe("Padrão morfológico da fratura."),
+        displacement: z.boolean().optional().describe("Se há desvio/deslocamento dos fragmentos."),
+        alignment: z.string().optional().describe("Alinhamento dos fragmentos."),
+    }).optional().describe("Dados específicos para fraturas ósseas."),
 })
 
 const VisionSchema = z.object({
     meta: z.object({
         imageType: z.enum([
-            'Periapical',
-            'Panorâmica',
-            'Interproximal (Bitewing)',
-            'Oclusal',
-            'Foto Intraoral',
-            'Tomografia (CBCT ou TC)',
-            'Radiografia (outra região / geral)',
+            'Tórax PA/AP',
+            'Tórax Lateral',
+            'Abdômen',
+            'Crânio',
+            'Coluna',
+            'Membro Superior',
+            'Membro Inferior',
+            'Pélvis',
+            'Tomografia (TC)',
+            'Outra Radiografia',
             'Desconhecido'
         ]).describe("Tipo do exame de imagem (radiografia 2D, tomografia ou outro)."),
         quality: z.enum(['Excelente', 'Boa', 'Aceitável', 'Ruim', 'Inadequada']).describe("Qualidade técnica da imagem para fins diagnósticos."),
         qualityScore: z.number().min(0).max(100).describe("Pontuação de qualidade de 0 a 100 para fins de cálculo de precisão."),
-        notes: z.string().optional().describe("Notas sobre a qualidade técnica (ex: 'Sobreposição', 'Distorção', 'Baixo contraste').")
+        notes: z.string().optional().describe("Notas sobre a qualidade técnica (ex: 'Rotação', 'Subexposto', 'Artefato de movimento').")
     }),
     detections: z.array(DetectionSchema),
     report: z.object({
@@ -116,25 +93,28 @@ const VisionSchema = z.object({
 const QuickDetectionSchema = z.object({
     meta: z.object({
         imageType: z.enum([
-            'Periapical',
-            'Panorâmica',
-            'Interproximal (Bitewing)',
-            'Oclusal',
-            'Foto Intraoral',
-            'Tomografia (CBCT ou TC)',
-            'Radiografia (outra região / geral)',
+            'Tórax PA/AP',
+            'Tórax Lateral',
+            'Abdômen',
+            'Crânio',
+            'Coluna',
+            'Membro Superior',
+            'Membro Inferior',
+            'Pélvis',
+            'Tomografia (TC)',
+            'Outra Radiografia',
             'Desconhecido'
         ]).describe("Tipo do exame de imagem (radiografia 2D, tomografia ou outro)."),
         quality: z.enum(['Excelente', 'Boa', 'Aceitável', 'Ruim', 'Inadequada']).describe("Qualidade técnica da imagem."),
         qualityScore: z.number().min(0).max(100),
     }),
     quickDetections: z.array(z.object({
-        label: z.string().describe("Nome curto da patologia (ex: 'Cárie', 'Perda Óssea')."),
+        label: z.string().describe("Nome curto do achado radiológico (ex: 'Opacidade', 'Nódulo', 'Fratura', 'Derrame Pleural')."),
         box: z.array(z.number()).length(4).describe("Coordenadas [ymin, xmin, ymax, xmax] normalizadas 0-100."),
         severity: z.enum(['critical', 'moderate', 'normal']),
         confidence: z.number().min(0).max(1),
-        toothNumber: z.string().optional().describe("Número do dente em notação FDI quando aplicável."),
-    })).describe("Lista de anomalias detectadas na imagem.")
+        anatomicalRegion: z.string().optional().describe("Região anatômica do achado usando topografia precisa (ex: 'Lobo superior direito', 'Hemitórax esquerdo')."),
+    })).describe("Lista de achados radiológicos detectados na imagem.")
 })
 
 // Schema para Estágio 2: Análise detalhada por detecção
@@ -142,19 +122,14 @@ const DetailedDetectionSchema = z.object({
     detailedAnalysis: z.array(z.object({
         originalIndex: z.number().describe("Índice da detecção original (0, 1, 2...)"),
         label: z.string(),
-        toothNumber: z.string().optional(),
+        anatomicalRegion: z.string().optional().describe("Região anatômica precisa do achado."),
         cidCode: z.string().optional().describe("Código CID-10 principal para o achado."),
-        cariesClassification: z.object({
-            blackClass: z.enum(['I', 'II', 'III', 'IV', 'V', 'VI']).optional().describe("Classe de Black (se cárie)."),
-            surface: z.enum(['O', 'M', 'D', 'B', 'L', 'F']).optional().describe("Superfície: O=oclusal, M=mesial, D=distal, B=buccal, L=lingual, F=faces."),
-            depth: z.enum(['inicial', 'moderada', 'avancada']).optional().describe("Profundidade da cárie.")
-        }).optional().describe("Classificação de Black (apenas para cáries)."),
-        periodontalData: z.object({
-            boneLoss: z.number().optional().describe("Percentual de perda óssea."),
-            probingDepth: z.number().optional().describe("Profundidade de sondagem em mm."),
-            mobility: z.enum(['0', '1', '2', '3']).optional().describe("Grau de mobilidade."),
-            furcation: z.enum(['I', 'II', 'III', 'N']).optional().describe("Envolvimento de furca.")
-        }).optional().describe("Dados periodontais (se doença periodontal)."),
+        radiologyData: z.object({
+            pattern: z.string().optional().describe("Padrão radiológico (ex: 'alveolar', 'intersticial', 'nodular')."),
+            distribution: z.string().optional().describe("Distribuição (ex: 'lobar', 'bilateral', 'focal')."),
+            margins: z.enum(['bem_definidas', 'mal_definidas', 'espiculadas', 'lobuladas']).optional(),
+            density: z.enum(['hipodenso', 'isodenso', 'hiperdenso', 'heterogeneo']).optional(),
+        }).optional().describe("Características radiológicas do achado."),
         differentialDiagnosis: z.array(z.string()).describe("2-3 diagnósticos diferenciais para este achado."),
         clinicalSignificance: z.enum(['alta', 'media', 'baixa']).describe("Significância clínica."),
         recommendedActions: z.array(z.string()).describe("Ações clínicas recomendadas específicas."),
@@ -198,63 +173,67 @@ function sanitizeClinicalContext(ctx: string): string {
         .slice(0, 1000)                                        // hard length limit
 }
 
-// Fallback chain de modelos Gemini para visão
+// Modelos de visão disponíveis (com fallback)
 const VISION_MODELS = [
-    MODELS.vision,              // google/gemini-3.1-pro-preview
-    MODELS.visionFallback1,      // google/gemini-3-pro-preview
-    MODELS.visionFallback2,     // google/gemini-2.5-pro
+    MODELS.vision,              // primário (padrão Med Vision)
+    MODELS.visionFallback,      // fallback multimodal
 ] as const
 
 type VisionModelId = typeof VISION_MODELS[number]
 
 async function callWithFallback<T>(
     modelIds: readonly string[],
-    generateFn: (modelId: string) => Promise<T>,
-    attempt = 1
+    generateFn: (modelId: string, signal: AbortSignal) => Promise<T>,
 ): Promise<T> {
-    const currentIndex = Math.min(Math.floor((attempt - 1) / 3), modelIds.length - 1)
-    const currentModel = modelIds[currentIndex]
-    const maxAttemptsPerModel = 3
-    
-    const modelAttempt = ((attempt - 1) % maxAttemptsPerModel) + 1
+    let lastError: unknown
 
-    try {
-        console.log(`Trying model: ${currentModel} (attempt ${modelAttempt}/${maxAttemptsPerModel})`)
-        return await generateFn(currentModel)
-    } catch (error) {
-        const isRetryable = error instanceof Error && (
-            error.message.includes('timeout') ||
-            error.message.includes('network') ||
-            error.message.includes('503') ||
-            error.message.includes('502') ||
-            error.message.includes('500') ||
-            error.message.includes('429') ||
-            error.message.includes('ECONNRESET') ||
-            error.message.includes('fetch failed') ||
-            error.message.includes('rate limit') ||
-            error.name === 'ZodError' ||
-            error.name === 'SyntaxError'
-        )
+    for (let modelIndex = 0; modelIndex < modelIds.length; modelIndex++) {
+        const modelId = modelIds[modelIndex]
+        for (let attempt = 1; attempt <= 2; attempt++) {
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 45_000)
 
-        const nextAttempt = attempt + 1
-        const nextModelIndex = Math.floor((nextAttempt - 1) / maxAttemptsPerModel)
-        
-        if (isRetryable && nextModelIndex < modelIds.length) {
-            const waitTime = modelAttempt * 1500
-            console.warn(`Model ${currentModel} failed (attempt ${modelAttempt}), waiting ${waitTime}ms before trying next model...`)
-            await sleep(waitTime)
-            return callWithFallback(modelIds, generateFn, nextAttempt)
+            try {
+                console.log(`Trying model: ${modelId} (attempt ${attempt}/2)`)
+                const result = await generateFn(modelId, controller.signal)
+                clearTimeout(timeoutId)
+                return result
+            } catch (error) {
+                clearTimeout(timeoutId)
+                lastError = error
+
+                // Parse errors won't fix on retry — move to next model immediately
+                if (error instanceof Error && (error.name === 'ZodError' || error.name === 'SyntaxError')) {
+                    console.warn(`Model ${modelId} returned a parse error (${error.name}), skipping to next model`)
+                    break
+                }
+
+                const isRetryable = error instanceof Error && (
+                    error.message.includes('timeout') ||
+                    error.message.includes('network') ||
+                    error.message.includes('503') ||
+                    error.message.includes('502') ||
+                    error.message.includes('500') ||
+                    error.message.includes('429') ||
+                    error.message.includes('ECONNRESET') ||
+                    error.message.includes('fetch failed') ||
+                    error.message.includes('rate limit') ||
+                    error.name === 'AbortError'
+                )
+
+                if (!isRetryable) throw error
+
+                if (attempt < 2) {
+                    console.warn(`Model ${modelId} failed (attempt ${attempt}/2), retrying in 1000ms...`)
+                    await sleep(1_000)
+                } else {
+                    console.warn(`Model ${modelId} exhausted retries, trying next model...`)
+                }
+            }
         }
-        
-        if (isRetryable && modelAttempt < maxAttemptsPerModel) {
-            const retryWaitTime = modelAttempt * 1500
-            console.warn(`Model ${currentModel} failed (attempt ${modelAttempt}), retrying same model in ${retryWaitTime}ms...`)
-            await sleep(retryWaitTime)
-            return callWithFallback(modelIds, generateFn, nextAttempt)
-        }
-
-        throw error
     }
+
+    throw lastError
 }
 
 function validateImagePayload(imageData: string): { valid: boolean; message?: string } {
@@ -268,77 +247,75 @@ function validateImagePayload(imageData: string): { valid: boolean; message?: st
     return { valid: true }
 }
 
-const SYSTEM_PROMPT_BASE = `Você é o **MedVision AI** (motor de análise de imagem), operando como especialista em diagnóstico por **radiografia** e **tomografia** (incluindo CBCT, TC multidetector e cortes 2D derivados de exames volumétricos).
+const SYSTEM_PROMPT_BASE = `Você é o **MedVision AI** (motor de análise de imagem), operando como especialista em diagnóstico por **radiografia** e **tomografia computadorizada (TC)** em medicina geral.
 Sua tarefa é analisar a imagem fornecida e gerar um LAUDO TÉCNICO COMPLETO com máxima precisão, em português do Brasil.
 
 ESCOPO:
-- **Radiografias**: intraorais (periapical, interproximal), extraorais (panorâmica, telerradiografia), e outras projeções ósseas ou de tórax quando for esse o exame.
-- **Tomografias**: descreva o plano (axial, coronal, sagital) quando visível; em CBCT/maxilofacial, correlacione com dentes (FDI) e estruturas (canal mandibular, seios, base de crânio).
-- Se a imagem for **exclusivamente dentária**, use também as categorias A–I abaixo com CID-10 odontológicos quando aplicável.
-- Se a imagem for **não dentária** (ex.: tórax, osso longo), adapte achados, CID-10 e diferenciais ao território anatômico — use detectionType 'other' e descreva com rigor.
+- **Radiografias de tórax**: PA, AP (leito), lateral — pulmões, mediastino, coração, pleura, arcos costais, clavículas.
+- **Radiografias de abdômen**: simples ortostático e em decúbito — pneumoperitônio, alças intestinais, calcificações, densidades anormais.
+- **Radiografias do esqueleto**: crânio, coluna, membros superiores e inferiores, pelve — fraturas, luxações, lesões ósseas.
+- **Tomografias (TC)**: tórax, abdômen, pelve, crânio — descreva o plano (axial/coronal/sagital), a janela utilizada (pulmão/mediastino/óssea/partes moles) e os achados por região anatômica.
 
 DIRETRIZES DE ANÁLISE:
-1. Classifique o tipo do exame e a qualidade técnica (qualityScore 0-100). Em tomografia, mencione artefatos de metal ou ruído se relevantes.
-2. Quando aplicável à arcada dentária ou maxilofacial, identifique anomalias nas categorias abaixo com dados específicos:
+1. Classifique o tipo do exame e a qualidade técnica (qualityScore 0-100). Em TC, mencione artefatos de metal, ruído ou limitações de janela se relevantes.
+2. Identifique achados nas categorias abaixo com dados específicos:
 
-A) CÁRIES (detectionType: 'caries')
-   - Forneça: Classe de Black (I-VI), superfície afetada (O/M/D/B/L/F), profundidade (inicial/moderada/avançada), se atinge polpa
-   - CID-10: K02.0-K02.9
+A) OPACIDADES E CONSOLIDAÇÕES PULMONARES (detectionType: 'opacity' ou 'consolidation')
+   - Forneça: localização (lobo/segmento/hemitórax), padrão (alveolar/intersticial/misto), distribuição (focal/difusa/bilateral), broncograma aéreo
+   - CID-10: J18.9 (pneumonia), J81 (edema pulmonar), J84.1 (doença pulmonar intersticial)
 
-B) DOENÇA PERIODONTAL (detectionType: 'periodontal')
-   - Forneça: Nível de perda óssea (%), padrão (horizontal/vertical), profundidade de bolsa
-   - CID-10: K05.1-K05.6
+B) NÓDULOS E MASSAS (detectionType: 'nodule' ou 'mass')
+   - Forneça: localização, tamanho estimado, margens (bem/mal definidas, espiculadas), densidade, calcificação, efeito de massa
+   - CID-10: R91.1 (nódulo pulmonar solitário), C34 (neoplasia de brônquio/pulmão)
 
-C) LESÕES PERIAPICAIS (detectionType: 'periapical')
-   - Forneça: Tipo (radiolúcida/radiopaca), extensão, relação com ápice
-   - CID-10: K04.1-K04.9, K05.3-K05.6
+C) DERRAME PLEURAL (detectionType: 'effusion')
+   - Forneça: localização (uni/bilateral), volume estimado (pequeno/moderado/grande), apagamento de seio costofrênico, velamento de hemitórax
+   - CID-10: J90 (derrame pleural), J86 (empiema)
 
-D) RESTAURAÇÕES (detectionType: 'restoration')
-   - Forneça: Tipo (amálgama/resina/ionômero/ouro/porcelana), condição (integra/fraturada/infiltração/desadaptada), defeito marginal, overhang
-   - CID-10: K08.5 (defeito de restauração)
+D) PNEUMOTÓRAX (detectionType: 'pneumothorax')
+   - Forneça: localização, extensão (pequeno/moderado/grande/hipertensivo), linha pleural visível, desvio de mediastino
+   - CID-10: J93.1 (pneumotórax espontâneo), S27.0 (pneumotórax traumático)
 
-E) FRATURAS (detectionType: 'fracture')
-   - Forneça: Localização (coronária/radicular/coroa), direção (horizontal/vertical/oblíqua), se estende ao cemento, deslocamento
-   - CID-10: S02.5 (fratura dentária)
+E) ALTERAÇÕES CARDÍACAS E MEDIASTINAIS (detectionType: 'cardiomegaly' ou 'mass')
+   - Forneça: índice cardiotorácico (normal <0,5), alargamento de mediastino, silhueta vascular, derrame pericárdico
+   - CID-10: I51.7 (cardiomegalia), I71.2 (aneurisma aorta torácica)
 
-F) IMPLANTES (detectionType: 'implant')
-   - Forneça: Tipo (osseointegrado/subperiosteal/zircônia), condição (saudável/peri-implantite/mucosite), perda óssea em mm, mobilidade
-   - CID-10: Z96.1 (implante dentário)
+F) FRATURAS (detectionType: 'fracture')
+   - Forneça: localização anatômica precisa, padrão (transversa/oblíqua/espiral/cominutiva/compressão), desvio/deslocamento, comprometimento articular
+   - CID-10: S12-S99 (fraturas por região anatômica)
 
-G) CÁLCULO DENTAL (detectionType: 'calculus')
-   - Forneça: Localização (supragengival/subgengival/ambos), extensão (localizado/generalizado)
-   - CID-10: K03.6 (cálculo dentário)
+G) ATELECTASIA (detectionType: 'atelectasis')
+   - Forneça: tipo (laminar/segmentar/lobar/pulmonar total), localização, desvio de estruturas adjacentes
+   - CID-10: J98.1 (atelectasia)
 
-H) REABSORÇÕES (detectionType: 'resorption')
-   - Forneça: Tipo (interna/externa/cervical), localização (coronal/média/apical), gravidade (leve/moderada/severa)
-   - CID-10: K03.3 (reabsorção dentária)
+H) CALCIFICAÇÕES E CORPOS ESTRANHOS (detectionType: 'calcification' ou 'foreign_body')
+   - Forneça: localização, tamanho, padrão (puntiforme/grosseiro/em casca de ovo), estrutura adjacente envolvida
+   - CID-10: J98.0 (calcificação pleural), T18-T19 (corpo estranho)
 
-I) CISTOS E TUMORES (detectionType: 'cyst' ou 'tumor')
-   - Forneça: Localização, extensão, características radiográficas
-   - CID-10: K09.0-K09.9 (cistos), D10-D16 (tumores benignos)
+I) CISTOS E LESÕES EXPANSIVAS (detectionType: 'cyst' ou 'tumor')
+   - Forneça: localização, dimensões, características da parede, conteúdo, efeito de massa
+   - CID-10: J98.4 (cisto pulmonar), K86.2 (cisto pancreático)
 
-3. Use terminologia técnica PRECISA: "radiolúcido/radiopaco", "janela/níveis", "realce", "reabsorção óssea", "lesão sugestiva de...", "opacidade compatível com...".
-4. **NUMERAÇÃO FDI**: Para achados em dentes permanentes, identifique o dente em notação FDI (11-18, 21-28, 31-38, 41-48). Fora da arcada, use localização anatômica precisa.
+3. Use terminologia técnica PRECISA: "radiolúcido/radiopaco", "janela/níveis", "realce pós-contraste", "efeito de massa", "lesão sugestiva de...", "opacidade compatível com...".
+4. **LOCALIZAÇÃO ANATÔMICA**: Use topografia precisa — lobo/segmento pulmonar, quadrante abdominal, osso específico, lado (direito/esquerdo). NÃO use notação FDI.
 5. CID-10: Para cada achado patológico, forneça o código CID-10 correspondente. Exemplos:
-   - K02.0 Cárie limitada ao esmalte, K02.1 Cárie de dentina, K02.3 Cárie de cemento
-   - K05.1 Gengivite crônica, K05.2 Periodontite aguda, K05.3 Periodontite crônica
-   - K04.0 Pulpite, K04.5 Periodontite apical crônica, K04.6 Abscesso periapical
-   - K09.0 Cisto periodontal apical, K10.0 Distúrbio do desenvolvimento dos maxilares
-   - S02.5 Fratura dentária, K03.6 Cálculo dentário
-   - K03.3 Reabsorção dentária, Z96.1 Implante dentário
+   - J18.9 Pneumonia, J81.0 Edema pulmonar agudo, J90 Derrame pleural
+   - J93.1 Pneumotórax espontâneo, I51.7 Cardiomegalia, R91.1 Nódulo pulmonar
+   - J98.1 Atelectasia, J84.1 Doença pulmonar intersticial, C34.1 Neoplasia de lobo superior
+   - S22.3 Fratura de costela, S72.0 Fratura do colo do fêmur, S12.0 Fratura de C1
+   - K57.3 Diverticulose do cólon, K80.2 Colelitíase, K86.2 Cisto pancreático
 6. DIAGNÓSTICO DIFERENCIAL: Para cada achado relevante, liste 2-3 diagnósticos alternativos.
-7. SIGNIFICÂNCIA CLÍNICA: Classifique cada achado como 'alta' (tratamento imediato), 'media' (tratamento em breve), 'baixa' (monitorar).
+7. SIGNIFICÂNCIA CLÍNICA: Classifique cada achado como 'alta' (ação imediata), 'media' (tratar em breve), 'baixa' (monitorar).
 8. Para cada achado, forneça ações clínicas recomendadas específicas e práticas.
 
 REGRA DE FLEXIBILIDADE: Mesmo que a imagem seja de baixa qualidade, SEMPRE tente gerar achados e laudo. Se a qualidade for ruim, reduza o confidence dos achados proporcionalmente e indique isso no laudo. Nunca recuse analisar uma imagem.
 
 SOBRE AS COORDENADAS (BOX) - REGRAS ABSOLUTAS:
 - Cada bounding box deve ser o MENOR RETÂNGULO POSSÍVEL que contém apenas o achado específico.
-- NÃO use boxes que cobrem múltiplos dentes, quadrantes inteiros ou grandes regiões genéricas.
-- Para dentes individuais: box deve cobrir SOMENTE aquele dente.
-- Para lesões periapicais: box cobre apenas a lesão radiolúcida + ápice imediato, NÃO a mandíbula.
-- Para perda óssea: box na região do septo interproximal afetado, não em toda a arcada.
-- Se dois achados estão no mesmo dente: crie DOIS boxes distintos e precisos para cada um.
+- NÃO use boxes que cobrem regiões inteiras ou grandes áreas genéricas.
+- Para lesões focais: box deve cobrir SOMENTE a lesão com margem mínima.
+- Para derrames: box na região do apagamento de seio/velamento, não em todo o hemitórax.
+- Se dois achados estão na mesma região: crie DOIS boxes distintos e precisos para cada um.
 - Use decimais (ex: 23.5) para máxima precisão.
 - Tamanho típico de um box individual: 5–25% da imagem. Boxes acima de 40% serão descartados.
 
@@ -350,7 +327,7 @@ IDIOMA: Português do Brasil (pt-BR) formal e técnico.`
 
 const JSON_SCHEMA_EXAMPLE = `{
   "meta": {
-    "imageType": "Periapical" | "Panorâmica" | "Interproximal (Bitewing)" | "Oclusal" | "Foto Intraoral" | "Tomografia (CBCT ou TC)" | "Radiografia (outra região / geral)" | "Desconhecido",
+    "imageType": "Tórax PA/AP" | "Tórax Lateral" | "Abdômen" | "Crânio" | "Coluna" | "Membro Superior" | "Membro Inferior" | "Pélvis" | "Tomografia (TC)" | "Outra Radiografia" | "Desconhecido",
     "quality": "Excelente" | "Boa" | "Aceitável" | "Ruim" | "Inadequada",
     "qualityScore": number (0-100),
     "notes": string (opcional)
@@ -363,8 +340,8 @@ const JSON_SCHEMA_EXAMPLE = `{
       "confidence": number (0-1),
       "description": string (opcional, breve),
       "detailedDescription": string (opcional, 3-5 frases técnicas),
-      "toothNumber": string (FDI, ex: "26", opcional),
-      "cidCode": string (CID-10, ex: "K02.1", opcional),
+      "anatomicalRegion": string (ex: "Lobo superior direito", "Hemitórax esquerdo", opcional),
+      "cidCode": string (CID-10, ex: "J18.9", opcional),
       "differentialDiagnosis": [string] (2-3 alternativas, opcional),
       "clinicalSignificance": "alta" | "media" | "baixa" (opcional),
       "recommendedActions": [string] (ações específicas para este achado, opcional)
@@ -376,7 +353,7 @@ const JSON_SCHEMA_EXAMPLE = `{
     "diagnosticHypothesis": string,
     "recommendations": [string],
     "perToothBreakdown": [
-      { "tooth": string (FDI), "findings": string, "cidCode": string (opcional), "severity": "critical"|"moderate"|"normal" (opcional) }
+      { "tooth": string (região anatômica), "findings": string, "cidCode": string (opcional), "severity": "critical"|"moderate"|"normal" (opcional) }
     ] (opcional),
     "differentialDiagnosis": string (discussão detalhada, opcional)
   }
@@ -385,7 +362,7 @@ const JSON_SCHEMA_EXAMPLE = `{
 async function callVisionAI(imageData: string, clinicalContext?: string, models: readonly string[] = VISION_MODELS): Promise<z.infer<typeof VisionSchema>> {
     const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
 
-    const generateWithModel = async (modelId: string): Promise<z.infer<typeof VisionSchema>> => {
+    const generateWithModel = async (modelId: string, signal: AbortSignal): Promise<z.infer<typeof VisionSchema>> => {
         const userTextParts: { type: 'text'; text: string }[] = [
             { type: 'text' as const, text: 'GERE UM LAUDO DE IMAGEM (RADIOGRAFIA OU TOMOGRAFIA) DETALHADO E COMPLETO. Analise esta imagem com máxima precisão técnica. Para cada achado: (1) bounding box preciso e justo, (2) localização (FDI se dentário; senão anatomia topográfica), (3) CID-10 quando aplicável, (4) diagnóstico diferencial, (5) ações recomendadas. Inclua perToothBreakdown e differentialDiagnosis no report quando fizer sentido. Responda SOMENTE com o JSON.' },
         ]
@@ -395,6 +372,7 @@ async function callVisionAI(imageData: string, clinicalContext?: string, models:
 
         const result = await generateText({
             model: openrouterMedVision(modelId),
+            abortSignal: signal,
             maxOutputTokens: 8000,
             messages: [
                 {
@@ -432,7 +410,7 @@ async function callVisionRefinement(
 ): Promise<z.infer<typeof VisionSchema>> {
     const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
 
-    const generateWithModel = async (modelId: string): Promise<z.infer<typeof VisionSchema>> => {
+    const generateWithModel = async (modelId: string, signal: AbortSignal): Promise<z.infer<typeof VisionSchema>> => {
         const userTextParts: { type: 'text'; text: string }[] = [
             { type: 'text' as const, text: 'RE-ANALISE esta região específica com máximo detalhe e precisão. Identifique achados sutis, forneça descrições técnicas aprofundadas, CID-10, diagnósticos diferenciais e ações recomendadas. As coordenadas devem ser relativas a esta imagem recortada. Responda SOMENTE com o JSON.' },
         ]
@@ -442,7 +420,8 @@ async function callVisionRefinement(
 
         const result = await generateText({
             model: openrouterMedVision(modelId),
-            maxOutputTokens: 6000,
+            abortSignal: signal,
+            maxOutputTokens: 4000,
             messages: [
                 {
                     role: 'system' as const,
@@ -487,27 +466,27 @@ NÃO inclua markdown, code blocks, ou texto fora do JSON.`
 // Estágio 2: Análise detalhada para cada detecção
 // ============================================================
 
-const QUICK_DETECTION_PROMPT = `Você é um assistente de diagnóstico odontológico por imagem.
-Sua tarefa é realizar uma DETECÇÃO RÁPIDA de anomalias na imagem radiográfica.
+const QUICK_DETECTION_PROMPT = `Você é um assistente de diagnóstico por imagem em medicina geral.
+Sua tarefa é realizar uma DETECÇÃO RÁPIDA de achados na imagem radiológica.
 
 DIRETRIZES:
-1. Identifique TODAS as anomalias presentes na imagem
-2. Para cada anomalia: forneça bounding box preciso, severidade inicial, confiança e número do dente FDI se aplicável
+1. Identifique TODOS os achados radiológicos presentes na imagem (opacidades, nódulos, derrames, fraturas, consolidações, pneumotórax, cardiomegalia, calcificações, etc.)
+2. Para cada achado: forneça bounding box preciso, severidade inicial, confiança e região anatômica quando identificável
 3. NÃO faça descrições detalhadas ainda - isso será feito no Estágio 2
-4. Sea imagem for de baixa qualidade, reduza a confiança proporcionalmente
+4. Se a imagem for de baixa qualidade, reduza a confiança proporcionalmente
 5. Sempre retorne pelo menos meta e quickDetections
 
-NOTAÇÃO FDI:
-- Superior direito: 11-18
-- Superior esquerdo: 21-28
-- Inferior esquerdo: 31-38
-- Inferior direito: 41-48
+LOCALIZAÇÃO ANATÔMICA (use topografia precisa):
+- Tórax: lobo superior/médio/inferior direito ou esquerdo, hemitórax, mediastino, pleura, hilo
+- Abdômen: hipocôndrio D/E, epigástrio, flanco D/E, fossa ilíaca D/E, hipogástrio
+- Membros: osso específico + terço (proximal/médio/distal) + lado (D/E)
+- Coluna: vértebra específica (ex: L2, T8, C5)
 
 IDIOMA: Português do Brasil.`
 
 const QUICK_DETECTION_SCHEMA = `{
   "meta": {
-    "imageType": "Periapical" | "Panorâmica" | "Interproximal (Bitewing)" | "Oclusal" | "Foto Intraoral" | "Tomografia" | "Desconhecido",
+    "imageType": "Tórax PA/AP" | "Tórax Lateral" | "Abdômen" | "Crânio" | "Coluna" | "Membro Superior" | "Membro Inferior" | "Pélvis" | "Tomografia (TC)" | "Outra Radiografia" | "Desconhecido",
     "quality": "Excelente" | "Boa" | "Aceitável" | "Ruim" | "Inadequada",
     "qualityScore": number (0-100)
   },
@@ -517,37 +496,37 @@ const QUICK_DETECTION_SCHEMA = `{
       "box": [ymin, xmin, ymax, xmax] (0-100),
       "severity": "critical" | "moderate" | "normal",
       "confidence": number (0-1),
-      "toothNumber": string (FDI, opcional)
+      "anatomicalRegion": string (região anatômica precisa, opcional)
     }
   ]
 }`
 
-const DETAILED_ANALYSIS_PROMPT = `Você é um assistente de diagnóstico odontológico por imagem.
+const DETAILED_ANALYSIS_PROMPT = `Você é um especialista em diagnóstico por imagem em medicina geral.
 Você está no ESTÁGIO 2: Análise Detalhada.
 
-Foi fornecida uma lista de detecções do Estágio 1. Sua tarefa é fornecer uma análise DETALHADA para CADA uma delas.
+Foi fornecida uma lista de achados do Estágio 1. Sua tarefa é fornecer uma análise DETALHADA para CADA um deles.
 
-Para cada detecção, forneça:
-1. CID-10 correspondente (ex: K02.1 para cárie de dentina, K05.3 para periodontite crônica)
-2. Classificação de Black (se cárie): classe (I-VI), superfície (O/M/D/B/L/F), profundidade
-3. Dados periodontais (se doença periodontal): perda óssea %, profundidade de sondagem, mobilidade, furca
-4. Diagnóstico diferencial: 2-3 alternativas diagnósticas
-5. Significância clínica: alta/media/baixa
-6. Ações recomendadas específicas para este achado
-7. Descrição técnica detalhada (3-5 frases)
+Para cada achado, forneça:
+1. CID-10 correspondente (ex: J18.9 para pneumonia, J90 para derrame pleural, S72.0 para fratura de fêmur)
+2. Características radiológicas: padrão, distribuição, margens, densidade
+3. Diagnóstico diferencial: 2-3 alternativas diagnósticas
+4. Significância clínica: alta/media/baixa
+5. Ações recomendadas específicas para este achado
+6. Descrição técnica detalhada (3-5 frases)
 
 CÓDIGOS CID-10 IMPORTANTES:
-- K02.0 Cárie limitada ao esmalte
-- K02.1 Cárie de dentina
-- K04.0 Pulpite
-- K04.5 Periodontite apical crônica
-- K04.6 Abscesso periapical
-- K05.1 Gengivite crônica
-- K05.3 Periodontite crônica
-- K05.5 Perda dentária por periodontite
-- K08.5 Anomalia dentária
-- K00 Anomalias de desenvolvimento
-- S02.5 Fratura dentária
+- J18.9 Pneumonia não especificada
+- J81.0 Edema pulmonar agudo
+- J90 Derrame pleural
+- J93.1 Pneumotórax espontâneo
+- J98.1 Atelectasia
+- J84.1 Doença pulmonar intersticial
+- I51.7 Cardiomegalia
+- R91.1 Nódulo pulmonar solitário
+- C34.1 Neoplasia maligna de lobo superior do brônquio/pulmão
+- S22.3 Fratura de costela
+- S72.0 Fratura do colo do fêmur
+- K57.3 Diverticulose do intestino grosso
 
 IDIOMA: Português do Brasil técnico.`
 
@@ -556,18 +535,13 @@ const DETAILED_ANALYSIS_SCHEMA = `{
     {
       "originalIndex": number,
       "label": string,
-      "toothNumber": string (opcional),
+      "anatomicalRegion": string (opcional),
       "cidCode": string (CID-10, opcional),
-      "cariesClassification": {
-        "blackClass": "I" | "II" | "III" | "IV" | "V" | "VI" (opcional),
-        "surface": "O" | "M" | "D" | "B" | "L" | "F" (opcional),
-        "depth": "inicial" | "moderada" | "avancada" (opcional)
-      } (opcional),
-      "periodontalData": {
-        "boneLoss": number (opcional),
-        "probingDepth": number (opcional),
-        "mobility": "0" | "1" | "2" | "3" (opcional),
-        "furcation": "I" | "II" | "III" | "N" (opcional)
+      "radiologyData": {
+        "pattern": string (ex: "alveolar", "intersticial", opcional),
+        "distribution": string (ex: "lobar", "bilateral", opcional),
+        "margins": "bem_definidas" | "mal_definidas" | "espiculadas" | "lobuladas" (opcional),
+        "density": "hipodenso" | "isodenso" | "hiperdenso" | "heterogeneo" (opcional)
       } (opcional),
       "differentialDiagnosis": [string, string, string],
       "clinicalSignificance": "alta" | "media" | "baixa",
@@ -586,9 +560,9 @@ async function callVisionDetection(
 ): Promise<z.infer<typeof QuickDetectionSchema>> {
     const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
 
-    const generateWithModel = async (modelId: string): Promise<z.infer<typeof QuickDetectionSchema>> => {
+    const generateWithModel = async (modelId: string, signal: AbortSignal): Promise<z.infer<typeof QuickDetectionSchema>> => {
         const userTextParts: { type: 'text'; text: string }[] = [
-            { type: 'text' as const, text: 'Realize uma detecção rápida de todas as anomalias nesta imagem radiográfica. Identifique: cáries, perdas ósseas, lesões periapicais, restaurações, anomalias dentárias, etc. Forneça bounding boxes precisos e número do dente FDI quando aplicável.' },
+            { type: 'text' as const, text: 'Realize uma detecção rápida de todos os achados nesta imagem radiológica. Identifique: opacidades, consolidações, nódulos, derrames, pneumotórax, cardiomegalia, fraturas, atelectasias, calcificações, corpos estranhos, massas, anomalias e outras alterações. Forneça bounding boxes precisos e região anatômica quando identificável.' },
         ]
         if (safeContext) {
             userTextParts.push({ type: 'text' as const, text: `CONTEXTO CLÍNICO: ${safeContext}` })
@@ -596,7 +570,8 @@ async function callVisionDetection(
 
         const result = await generateText({
             model: openrouterMedVision(modelId),
-            maxOutputTokens: 4000,
+            abortSignal: signal,
+            maxOutputTokens: 2000,
             messages: [
                 {
                     role: 'system' as const,
@@ -631,12 +606,12 @@ async function callVisionDetailedAnalysis(
     models: readonly string[] = VISION_MODELS
 ): Promise<z.infer<typeof DetailedDetectionSchema>> {
     const detectionsSummary = quickDetections.map((d, i) =>
-        `${i}: ${d.label} (${d.toothNumber || 'N/A'}) - ${d.severity} - confiança ${Math.round(d.confidence * 100)}%`
+        `${i}: ${d.label} (${d.anatomicalRegion || 'N/A'}) - ${d.severity} - confiança ${Math.round(d.confidence * 100)}%`
     ).join('\n')
 
     const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
 
-    const generateWithModel = async (modelId: string): Promise<z.infer<typeof DetailedDetectionSchema>> => {
+    const generateWithModel = async (modelId: string, signal: AbortSignal): Promise<z.infer<typeof DetailedDetectionSchema>> => {
         const userTextParts: { type: 'text'; text: string }[] = [
             { type: 'text' as const, text: `Forneça análise detalhada para cada uma das ${quickDetections.length} detecções listadas acima. Para cada uma: CID-10, classificação (Black para cáries, dados periodontais), diagnóstico diferencial, significância clínica, ações recomendadas, e descrição técnica.` },
         ]
@@ -646,7 +621,8 @@ async function callVisionDetailedAnalysis(
 
         const result = await generateText({
             model: openrouterMedVision(modelId),
-            maxOutputTokens: 6000,
+            abortSignal: signal,
+            maxOutputTokens: 3500,
             messages: [
                 {
                     role: 'system' as const,
@@ -727,7 +703,7 @@ async function callTwoStageVisionAnalysis(
             confidence: qd.confidence,
             box: qd.box,
             severity: qd.severity,
-            toothNumber: qd.toothNumber ?? detailed?.toothNumber,
+            anatomicalRegion: qd.anatomicalRegion ?? detailed?.anatomicalRegion,
             cidCode: detailed?.cidCode,
             differentialDiagnosis: detailed?.differentialDiagnosis,
             clinicalSignificance: detailed?.clinicalSignificance,
@@ -744,30 +720,20 @@ async function callTwoStageVisionAnalysis(
     detections = validateAndMergeDetections(detections) as typeof detections
     console.log(`Validação concluída: ${detections.length} detecções após validação`)
 
-    // ============================================================
-    // CROSS-VALIDATION PARA CASOS CRÍTICOS
-    // ============================================================
-    const hasCriticalDetections = detections.some(d => d.severity === 'critical')
-    // Skip cross-validation when a single user-selected model is used to avoid overriding their choice
-    if (hasCriticalDetections && models.length > 1) {
-        console.log('=== CROSS-VALIDATION: Verificando detecções críticas ===')
-        detections = await crossValidateCriticalDetections(imageData, detections as DetectionInput[], clinicalContext) as typeof detections
-    }
-
     // Gerar relatório consolidado
     const perToothBreakdown = Object.entries(
         detections.reduce((acc, det) => {
-            const tooth = det.toothNumber || 'Não identificado'
-            if (!acc[tooth]) acc[tooth] = []
-            acc[tooth].push(det)
+            const region = det.anatomicalRegion || 'Região não identificada'
+            if (!acc[region]) acc[region] = []
+            acc[region].push(det)
             return acc
         }, {} as Record<string, typeof detections>)
-    ).map(([tooth, dets]): { tooth: string; findings: string; cidCode?: string; severity?: 'critical' | 'moderate' | 'normal' } => ({
-        tooth,
+    ).map(([region, dets]): { tooth: string; findings: string; cidCode?: string; severity?: 'critical' | 'moderate' | 'normal' } => ({
+        tooth: region,
         findings: dets.map(d => d.label).join(', '),
         cidCode: dets.find(d => d.cidCode)?.cidCode,
-        severity: dets.some(d => d.severity === 'critical') ? 'critical' 
-            : dets.some(d => d.severity === 'moderate') ? 'moderate' 
+        severity: dets.some(d => d.severity === 'critical') ? 'critical'
+            : dets.some(d => d.severity === 'moderate') ? 'moderate'
             : 'normal'
     }))
 
@@ -780,7 +746,7 @@ async function callTwoStageVisionAnalysis(
     const report = {
         technicalAnalysis: `Análise técnica da imagem radiográfica ${quickResult.meta.imageType.toLowerCase()} de qualidade ${quickResult.meta.quality.toLowerCase()}.`,
         detailedFindings: detections.map(d => 
-            `- ${d.label}${d.toothNumber ? ` (Dente ${d.toothNumber})` : ''}: ${d.detailedDescription || d.description || ''}`
+            `- ${d.label}${d.anatomicalRegion ? ` (${d.anatomicalRegion})` : ''}: ${d.detailedDescription || d.description || ''}`
         ).join('\n'),
         diagnosticHypothesis: `Baseado nas ${detections.length} anomalias detectadas, sugere-se investigação clínica das condições identificadas.`,
         recommendations: recommendations.length > 0 ? recommendations : ['Avaliação clínica recomendada.'],
@@ -960,100 +926,6 @@ function validateAndMergeDetections(detections: DetectionInput[]): DetectionInpu
     return result
 }
 
-// ============================================================
-// CROSS-VALIDATION PARA CASOS CRÍTICOS
-// ============================================================
-
-async function crossValidateCriticalDetections(
-    imageData: string,
-    detections: DetectionInput[],
-    clinicalContext?: string
-): Promise<DetectionInput[]> {
-    const criticalDetections = detections.filter(d => d.severity === 'critical')
-    
-    if (criticalDetections.length === 0) {
-        console.log('No critical detections to cross-validate')
-        return detections
-    }
-    
-    console.log(`Cross-validating ${criticalDetections.length} critical detections with secondary model...`)
-    
-    const validationSummary = criticalDetections.map((d, i) => 
-        `${i}: ${d.label} no dente ${d.toothNumber || 'N/A'} (confiança ${Math.round(d.confidence * 100)}%)`
-    ).join('\n')
-    
-    try {
-        const result = await generateText({
-            model: openrouterMedVision(MODELS.visionFallback2), // Use Gemini 2.5 Pro para validação
-            maxOutputTokens: 2000,
-            messages: [
-                {
-                    role: 'system' as const,
-                    content: `Você é um validador de diagnósticos odontológicos. Analise a imagem e verifique se as detecções críticas listadas são realmente válidas.
-
-Para cada detecção crítica, forneça:
-1. É válida? (sim/não)
-2. Se não, qual o diagnóstico correto?
-3. Confiança revisada (0-1)
-
-IDIOMA: Português do Brasil. Responda em JSON: {"validations": [{"index": number, "isValid": boolean, "correctedLabel": string, "revisedConfidence": number}]}`
-                },
-                {
-                    role: 'user' as const,
-                    content: [
-                        { type: 'text' as const, text: `Valide estas ${criticalDetections.length} detecções críticas:\n${validationSummary}\n\nPara cada uma, responda: é válida? Se não, qual o diagnóstico correto?` },
-                        { type: 'image' as const, image: imageData }
-                    ]
-                }
-            ]
-        })
-        
-        type ValidationItem = { index?: number; isValid: boolean; correctedLabel?: string; revisedConfidence?: number }
-        const parsed = extractJSON(result.text) as { validations?: ValidationItem[] }
-        const validations: ValidationItem[] = parsed.validations || []
-        
-        const validatedDetections = detections.map(d => {
-            if (d.severity !== 'critical') return d
-            
-            const validation = validations.find(v =>
-                v.index !== undefined && d.id.includes(String(v.index))
-            )
-            
-            if (validation && !validation.isValid) {
-                console.warn(`Cross-validation: Detection "${d.label}" marked as invalid, applying correction`)
-                return {
-                    ...d,
-                    label: validation.correctedLabel || d.label,
-                    confidence: validation.revisedConfidence || d.confidence * 0.7,
-                    _validated: true,
-                    _validationNote: 'Modified by cross-validation'
-                }
-            }
-            
-            if (validation && validation.revisedConfidence) {
-                const diff = Math.abs(d.confidence - validation.revisedConfidence)
-                if (diff > 0.2) {
-                    console.warn(`Cross-validation: Confidence adjusted from ${d.confidence} to ${validation.revisedConfidence}`)
-                    return {
-                        ...d,
-                        confidence: validation.revisedConfidence,
-                        _validated: true
-                    }
-                }
-            }
-            
-            return { ...d, _validated: true }
-        })
-        
-        console.log(`Cross-validation complete: ${validations.filter(v => v.isValid).length}/${criticalDetections.length} confirmed`)
-        return validatedDetections
-        
-    } catch (error) {
-        console.error('Cross-validation failed, keeping original detections:', error)
-        return detections
-    }
-}
-
 function mapAnalysisToResponse(analysis: z.infer<typeof VisionSchema>) {
     const qualityScore = analysis.meta.qualityScore
     const avgDetectionConfidence = analysis.detections.length > 0
@@ -1075,7 +947,7 @@ function mapAnalysisToResponse(analysis: z.infer<typeof VisionSchema>) {
             severity: d.severity,
             description: d.description,
             detailedDescription: d.detailedDescription,
-            toothNumber: d.toothNumber,
+            anatomicalRegion: d.anatomicalRegion,
             cidCode: d.cidCode,
             differentialDiagnosis: d.differentialDiagnosis,
             clinicalSignificance: d.clinicalSignificance,
@@ -1085,7 +957,7 @@ function mapAnalysisToResponse(analysis: z.infer<typeof VisionSchema>) {
 
     let findings = analysis.detections.map(d => ({
         type: d.label,
-        zone: d.description ? d.description.slice(0, 50) : (d.toothNumber ? `Dente ${d.toothNumber}` : 'Região Identificada'),
+        zone: d.description ? d.description.slice(0, 50) : (d.anatomicalRegion ? d.anatomicalRegion : 'Região Identificada'),
         level: d.severity === 'critical' ? 'Crítico' : d.severity === 'moderate' ? 'Moderado' : 'Normal',
         color: d.severity === 'critical' ? 'text-red-500' : d.severity === 'moderate' ? 'text-amber-500' : 'text-blue-500',
         confidence: d.confidence ?? 0.85
@@ -1095,14 +967,16 @@ function mapAnalysisToResponse(analysis: z.infer<typeof VisionSchema>) {
     if (findings.length === 0 && analysis.report.detailedFindings) {
         const findingsText = analysis.report.detailedFindings
         const keywords = [
-            { pattern: /cárie|carie/gi, type: 'Cárie', severity: 'moderate' },
-            { pattern: /perda óssea|perda ossea|reabsorção óssea/gi, type: 'Perda Óssea', severity: 'moderate' },
-            { pattern: /lesão periapical|lesao periapical|radiolúcida periapical/gi, type: 'Lesão Periapical', severity: 'critical' },
-            { pattern: /fratura|trinca/gi, type: 'Fratura', severity: 'critical' },
-            { pattern: /restauração|restauracao/gi, type: 'Restauração', severity: 'normal' },
-            { pattern: /periodontite|doença periodontal/gi, type: 'Periodontite', severity: 'moderate' },
-            { pattern: /cisto|quisto/gi, type: 'Lesão Cística', severity: 'critical' },
-            { pattern: /tratamento endodôntico|canal radicular/gi, type: 'Tratamento Endodôntico', severity: 'normal' },
+            { pattern: /pneumonia|consolidação|consolidacao/gi, type: 'Pneumonia / Consolidação', severity: 'moderate' },
+            { pattern: /derrame pleural|derrame/gi, type: 'Derrame Pleural', severity: 'moderate' },
+            { pattern: /pneumotórax|pneumotorax/gi, type: 'Pneumotórax', severity: 'critical' },
+            { pattern: /nódulo|nodulo|massa pulmonar/gi, type: 'Nódulo / Massa', severity: 'moderate' },
+            { pattern: /fratura/gi, type: 'Fratura', severity: 'critical' },
+            { pattern: /atelectasia/gi, type: 'Atelectasia', severity: 'moderate' },
+            { pattern: /cardiomegalia/gi, type: 'Cardiomegalia', severity: 'moderate' },
+            { pattern: /opacidade|infiltrado/gi, type: 'Opacidade / Infiltrado', severity: 'moderate' },
+            { pattern: /calcificação|calcificacao/gi, type: 'Calcificação', severity: 'normal' },
+            { pattern: /cisto|lesão cística/gi, type: 'Lesão Cística', severity: 'moderate' },
         ]
 
         const extractedFindings: typeof findings = []
@@ -1203,7 +1077,7 @@ export async function POST(req: Request) {
                 box: d.box,
                 confidence: d.confidence,
                 severity: d.severity,
-                toothNumber: d.toothNumber
+                anatomicalRegion: d.anatomicalRegion as string | undefined
             })))
             
             const previewResponse = {
@@ -1219,7 +1093,7 @@ export async function POST(req: Request) {
                         xmax: d.box[3]
                     },
                     severity: d.severity,
-                    toothNumber: d.toothNumber as string | undefined
+                    anatomicalRegion: d.anatomicalRegion as string | undefined
                 })),
                 isPreview: true
             }

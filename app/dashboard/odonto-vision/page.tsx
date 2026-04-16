@@ -48,7 +48,11 @@ import { cn } from '@/lib/utils'
 import { getSeverityStyle } from '@/lib/constants/vision'
 import { VisionAnalysisResult, VisionArtifactContent, VisionRefinement, BoundingBox, VisionComparisonResult } from '@/lib/types/vision'
 import { ModelSelector } from '@/components/vision/model-selector'
-import { VISION_MODELS_LIST } from '@/lib/ai/openrouter'
+import { MODELS, VISION_MODELS_LIST } from '@/lib/ai/openrouter'
+
+/** Segundo modelo para modo comparar (distinto do padrão). */
+const DEFAULT_COMPARE_MODEL_B =
+    VISION_MODELS_LIST.find(m => m.id !== MODELS.vision)?.id ?? MODELS.vision
 import { ImageOverlay } from '@/components/vision/image-overlay'
 import { QualityFeedback } from '@/components/vision/quality-feedback'
 import { AnnotationToolbar } from '@/components/vision/annotation-toolbar'
@@ -121,9 +125,9 @@ export default function MedVisionPage() {
 
     // Model selection state
     const [analysisMode, setAnalysisMode] = useState<'single' | 'compare'>('single')
-    const [selectedModel, setSelectedModel] = useState('google/gemini-2.5-pro')
-    const [compareModelA, setCompareModelA] = useState('google/gemini-2.5-pro')
-    const [compareModelB, setCompareModelB] = useState('anthropic/claude-opus-4')
+    const [selectedModel, setSelectedModel] = useState<string>(MODELS.vision)
+    const [compareModelA, setCompareModelA] = useState<string>(MODELS.vision)
+    const [compareModelB, setCompareModelB] = useState<string>(DEFAULT_COMPARE_MODEL_B)
     const [comparisonResult, setComparisonResult] = useState<VisionComparisonResult | null>(null)
 
     // Crop states

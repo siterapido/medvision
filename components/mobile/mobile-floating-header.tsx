@@ -71,7 +71,7 @@ export function MobileFloatingHeader({
       {/* Center: Logo */}
       <Link
         href="/dashboard"
-        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5"
+        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 max-w-[40%] overflow-hidden"
       >
         <Sparkles className="size-5 text-primary" />
         <span className="text-sm font-semibold text-foreground">

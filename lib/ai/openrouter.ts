@@ -37,7 +37,7 @@ const openrouterMedVisionProvider = createOpenAI({
   apiKey: medVisionOpenRouterKey,
   headers: {
     ...openRouterHeaders,
-    'X-Title': 'MedVision — Image Analysis',
+    'X-Title': 'MedVision - Image Analysis',
   },
 })
 
@@ -61,43 +61,23 @@ export function hasMedVisionOpenRouterKey(): boolean {
   )
 }
 
-// Modelos disponíveis via OpenRouter (versões pagas - mais estáveis)
+// Modelos disponíveis via OpenRouter
 export const MODELS = {
-  // Chat principal - Gemini 2.5 Pro (modelo avançado, alta inteligência)
-  chat: 'google/gemini-2.5-pro',
+  // Chat principal - GLM-5.1 (modelo padrão)
+  chat: 'z-ai/glm-5.1',
 
-  // Títulos de conversa - Gemini Flash (barato, suficiente para 3-4 palavras)
-  titler: 'google/gemini-2.0-flash-001',
+  // Visão — Claude Sonnet 4.6 como padrão (Med Vision)
+  vision: 'anthropic/claude-sonnet-4.6',
 
-  // Pesquisa - Perplexity Sonar
-  research: 'perplexity/sonar',
-
-  // Visão - Gemini 3.1 Pro para análise de imagens radiográficas
-  vision: 'google/gemini-3.1-pro-preview',
-
-  // Fallbacks Gemini para visão (fallback chain)
-  visionFallback1: 'google/gemini-3-pro-preview',
-  visionFallback2: 'google/gemini-2.5-pro',
-
-  // Escrita - para geração de conteúdo
-  writer: 'anthropic/claude-3-haiku',
-
-  // Fallback econômico - Llama 3.1 8B (muito barato)
-  fallback: 'meta-llama/llama-3.1-8b-instruct',
+  // Fallback de visão - Gemini 2.5 Pro (suporte multimodal confirmado)
+  visionFallback: 'google/gemini-2.5-pro',
 } as const
 
 export type ModelId = typeof MODELS[keyof typeof MODELS]
 
 export const VISION_MODELS_LIST = [
-  { id: 'google/gemini-3-pro-image-preview', name: 'Gemini 3 Pro Image', provider: 'Google' },
-  { id: 'google/gemini-2.5-pro',             name: 'Gemini 2.5 Pro',     provider: 'Google' },
-  { id: 'google/gemini-2.5-flash',           name: 'Gemini 2.5 Flash',   provider: 'Google' },
-  { id: 'google/gemini-2.0-flash-001',       name: 'Gemini 2.0 Flash',   provider: 'Google' },
-  { id: 'anthropic/claude-sonnet-4.6',       name: 'Claude Sonnet 4.6',  provider: 'Anthropic' },
-  { id: 'anthropic/claude-sonnet-4-5',       name: 'Claude Sonnet 4.5',  provider: 'Anthropic' },
-  { id: 'openai/gpt-4o',                     name: 'GPT-4o',             provider: 'OpenAI' },
-  { id: 'meta-llama/llama-4-maverick',       name: 'Llama 4 Maverick',   provider: 'Meta' },
-  { id: 'qwen/qwen2.5-vl-72b-instruct',     name: 'Qwen 2.5 VL 72B',   provider: 'Qwen' },
+  { id: 'openai/gpt-5.4-pro',             name: 'GPT-5.4 Pro',        provider: 'OpenAI' },
+  { id: 'anthropic/claude-sonnet-4.6',    name: 'Claude Sonnet 4.6',  provider: 'Anthropic' },
 ] as const
 
 export type VisionModelInfo = typeof VISION_MODELS_LIST[number]

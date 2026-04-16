@@ -76,12 +76,14 @@ export function AgentSwitcher({
   className,
 }: AgentSwitcherProps) {
   return (
+    <div className={cn('relative', className)}>
+      {/* Fade gradient indicating more content to the right */}
+      <div className="pointer-events-none absolute right-0 top-0 h-full w-8 rounded-r-2xl bg-gradient-to-l from-background to-transparent z-10" />
     <div
       className={cn(
         'flex items-center gap-1 bg-zinc-50 dark:bg-zinc-800/50 p-1 rounded-2xl',
         'border border-zinc-100 dark:border-zinc-800/50',
         'overflow-x-auto scrollbar-hide',
-        className
       )}
     >
       {agents.map((agent) => {
@@ -122,6 +124,7 @@ export function AgentSwitcher({
           </button>
         )
       })}
+    </div>
     </div>
   )
 }

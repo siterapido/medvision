@@ -20,7 +20,7 @@ que exceda o conhecimento interno ou bancos de dados específicos como PubMed.`,
   execute: async ({ query }) => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const model = openrouter(MODELS.research) as any
+      const model = openrouter('perplexity/sonar') as any
       
       const result = await generateText({
         model,
