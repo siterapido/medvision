@@ -11,7 +11,7 @@
  * Visivel apenas em mobile (<768px)
  */
 
-import { Menu, Settings, Sparkles } from 'lucide-react'
+import { Menu, Sparkles } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
 import { useSidebar } from '@/components/ui/sidebar'

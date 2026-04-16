@@ -1,0 +1,52 @@
+[
+  {
+    "id": "TC001",
+    "title": "get_api_health_returns_status_ok_or_missing_config",
+    "description": "Verify GET /api/health returns 200 with status 'ok' and checks when configuration is correct, and returns 500 with status 'missing-config' when configuration is missing."
+  },
+  {
+    "id": "TC002",
+    "title": "post_api_chat_streams_responses_and_persists_messages",
+    "description": "Verify POST /api/chat with valid authorization and messages streams AI agent responses and persists messages; returns 401 Unauthorized without auth; returns 400 Bad Request with invalid payload."
+  },
+  {
+    "id": "TC003",
+    "title": "post_api_vision_analyze_returns_structured_analysis",
+    "description": "Verify POST /api/vision/analyze with valid authorization and valid image returns 200 with structured analysis result; returns 400 Bad Request with corrupt or unsupported image; returns 401 Unauthorized without auth."
+  },
+  {
+    "id": "TC004",
+    "title": "get_api_profile_self_returns_user_profile",
+    "description": "Verify GET /api/profile/self with valid authorization returns 200 with user profile; returns 401 Unauthorized without authorization header."
+  },
+  {
+    "id": "TC005",
+    "title": "post_api_sessions_creates_and_get_api_sessions_lists_sessions",
+    "description": "Verify POST /api/sessions creates a new session with valid authorization; GET /api/sessions returns list of sessions for authorized user; unauthorized requests return 401; deleting session by owner returns 204; deleting by non-owner returns 403."
+  },
+  {
+    "id": "TC006",
+    "title": "post_api_artifacts_generate_creates_artifact",
+    "description": "Verify POST /api/artifacts/generate with valid authorization creates and returns an artifact; returns 500 Internal Server Error if external model fails."
+  },
+  {
+    "id": "TC007",
+    "title": "post_api_upload_uploads_file_to_blob_storage",
+    "description": "Verify POST /api/upload with valid authorization and multipart file uploads file to blob storage and returns 200 with file URL; returns 401 Unauthorized without auth."
+  },
+  {
+    "id": "TC008",
+    "title": "post_api_lessons_lessonid_attachments_creates_attachment",
+    "description": "Verify POST /api/lessons/[lessonId]/attachments with valid authorization and multipart file creates an attachment; GET lists attachments; DELETE removes attachment with 204; unauthorized or forbidden access returns 401 or 403 respectively."
+  },
+  {
+    "id": "TC009",
+    "title": "post_api_courses_lessons_complete_marks_lesson_completed",
+    "description": "Verify POST /api/courses/lessons/complete with valid authorization and lessonId marks lesson as completed and returns 200 ok."
+  },
+  {
+    "id": "TC010",
+    "title": "get_api_admin_users_lists_users_for_admin_only",
+    "description": "Verify GET /api/admin/users returns 200 with user list for admin authorized token; returns 403 Forbidden for non-admin token."
+  }
+]

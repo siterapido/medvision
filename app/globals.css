@@ -494,28 +494,6 @@
   box-shadow: var(--glass-shadow), var(--glass-inner-shadow), 0 0 0 1px var(--glass-border);
 }
 
-/* Dock glass */
-.dock-glass {
-  background: var(--dock-bg);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-top: 1px solid var(--dock-border);
-}
-
-/* Dock item states */
-.dock-item {
-  color: var(--text-tertiary);
-  transition: color 150ms ease-out, transform 150ms ease-out;
-}
-
-.dock-item:active {
-  transform: scale(0.92);
-}
-
-.dock-item-active {
-  color: var(--brand);
-}
-
 /* ========================================
    MODERN FLUID SCROLL SYSTEM
    ========================================

@@ -3,10 +3,9 @@
 /**
  * Dashboard Shell - Client wrapper for dashboard pages
  *
- * Mobile-First Tech Design System:
- * - bg-void background
- * - Bottom dock navigation with safe-area
- * - Padding bottom for dock on non-chat pages
+ * Mobile:
+ * - Header fixo com toggle da sidebar (sem dock inferior que cobria ações)
+ * - Padding-top para o header + safe-area
  *
  * Scroll System:
  * - SidebarInset (pai) gerencia overflow-y-auto em todos os breakpoints
@@ -14,7 +13,8 @@
  * - Chat/Biblioteca usam h-full overflow-hidden com scroll interno
  */
 
-import { FloatingNavBar } from '@/components/mobile/floating-nav-bar'
+import { MobileFloatingHeader } from '@/components/mobile/mobile-floating-header'
+import { useDashboardUser } from '@/lib/contexts/dashboard-user-context'
 import { useIsMobile } from '@/lib/hooks/use-mobile'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
@@ -27,6 +27,7 @@ interface DashboardShellProps {
 export function DashboardShell({ children, className }: DashboardShellProps) {
   const isMobile = useIsMobile()
   const pathname = usePathname()
+  const { user } = useDashboardUser()
 
   // Detecta páginas que precisam de altura total (chat, biblioteca)
   const isChat = pathname?.includes('/chat')
@@ -40,17 +41,22 @@ export function DashboardShell({ children, className }: DashboardShellProps) {
         className
       )}
     >
+      {isMobile && (
+        <MobileFloatingHeader
+          userName={user?.name ?? undefined}
+          userImage={user?.avatar_url ?? undefined}
+        />
+      )}
       <div
         className={cn(
           'flex flex-col flex-1 min-h-0',
-          // Padding para dock no mobile (exceto chat que gerencia próprio espaço)
-          isMobile && !isChat && 'pb-[calc(64px+env(safe-area-inset-bottom))]'
+          isMobile &&
+            !isChat &&
+            'pt-[calc(52px+env(safe-area-inset-top))]'
         )}
       >
         {children}
       </div>
-
-      {isMobile && <FloatingNavBar />}
     </div>
   )
 }

@@ -1,0 +1,20 @@
+{
+  "status": "commited",
+  "type": "frontend",
+  "scope": "codebase",
+  "localEndpoint": "http://localhost:3000",
+  "loginUser": "giovanny@medvision.com.br",
+  "loginPassword": "MedVision2026!",
+  "executionArgs": {
+    "projectName": "medvision",
+    "projectPath": "/Users/marcosalexandre/projetos/medvision",
+    "testIds": [],
+    "additionalInstruction": "Execute frontend E2E tests from testsprite_tests/testsprite_frontend_test_plan.json. App is served at http://localhost:3000 in production mode (next start). Ensure login placeholders are resolved for authenticated flows.",
+    "serverMode": "production",
+    "envs": {
+      "API_KEY": "sk-user-FK8yGU3PNYW1fWIQFDDiEIGHH3lZ_s5F1Zg06m-JluRd-EO6U4GSJ99vJAoEhsaoaP90mPoWN9FwAukGsMgBG9XeQjLoIJOxW80aEt7BTdFawObAXCUm48qqmYT_Hha-Iwk"
+    }
+  },
+  "serverPort": 59086,
+  "proxy": "http://ef3dfe61-ba49-40d9-9440-837c7cef2b05:hV3NpKwvNAuUbeDC6lpSk3SYiVNR4TPB@tun.testsprite.com:8080"
+}

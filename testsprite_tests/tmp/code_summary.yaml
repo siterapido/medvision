@@ -1,0 +1,52 @@
+version: "2"
+type: frontend
+tech_stack:
+  - TypeScript
+  - Next.js 16 (App Router)
+  - React
+  - Tailwind CSS
+  - react-image-crop / react-dropzone
+  - Vercel AI SDK (análise via /api/vision/analyze)
+routes:
+  - path: /login
+    file: app/login/page.tsx
+    auth_required: false
+    description: Login necessário para acessar Odonto Vision
+  - path: /dashboard
+    file: app/dashboard/page.tsx
+    auth_required: true
+    description: Dashboard com atalhos para produtos (inclui Odonto Vision)
+  - path: /dashboard/odonto-vision
+    file: app/dashboard/odonto-vision/page.tsx
+    auth_required: true
+    description: MedVision / Odonto Vision — fluxo guiado de upload, contexto, modelo, ROI, análise e resultado
+features:
+  - name: Odonto Vision (MedVision)
+    description: Fluxo completo de análise de imagens clínicas odontológicas com validação, recorte ROI, seleção de modelo e resultado estruturado.
+    files:
+      - app/dashboard/odonto-vision/page.tsx
+      - components/vision/model-selector.tsx
+      - components/vision/image-overlay.tsx
+      - components/vision/annotation-toolbar.tsx
+      - components/vision/annotation-canvas.tsx
+    entry_route: /dashboard/odonto-vision
+    user_interactions:
+      - Fazer login e abrir /dashboard/odonto-vision
+      - Arrastar/soltar ou selecionar imagem clínica
+      - Preencher contexto do caso
+      - Escolher modelo de visão/LLM
+      - Ajustar região de interesse (crop)
+      - Confirmar e iniciar análise
+      - Visualizar resultado estruturado e refinamentos
+      - Exportar PDF quando disponível
+    api_calls:
+      - method: POST
+        endpoint: /api/vision/analyze
+    auth_required: true
+known_limitations:
+  - issue: Plano de testes frontend restrito ao escopo Odonto Vision; chat, admin e outras áreas foram excluídos de propósito.
+    location: testsprite_tests/testsprite_frontend_test_plan.json
+    impact: Execuções TestSprite não cobrem regressões fora de /dashboard/odonto-vision.
+  - issue: Credenciais {{LOGIN_USER}} / {{LOGIN_PASSWORD}} devem estar configuradas no TestSprite para fluxos autenticados.
+    location: TestSprite dashboard / variáveis de teste
+    impact: Casos que exigem login falham sem placeholders resolvidos.

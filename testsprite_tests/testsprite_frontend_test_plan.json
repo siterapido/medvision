@@ -1,0 +1,276 @@
+[
+  {
+    "id": "TC001",
+    "title": "Concluir análise no Odonto Vision e visualizar resultado estruturado",
+    "description": "Verifica que o usuário autenticado completa o fluxo guiado de análise de imagem em /dashboard/odonto-vision e visualiza um resultado estruturado ao final.",
+    "category": "Med Vision (Odonto Vision)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard/odonto-vision"
+      },
+      {
+        "type": "action",
+        "description": "Upload a valid clinical dental image to start the analysis flow"
+      },
+      {
+        "type": "action",
+        "description": "Fill a brief clinical case context into the case context field"
+      },
+      {
+        "type": "action",
+        "description": "Select an available vision/LLM model option"
+      },
+      {
+        "type": "action",
+        "description": "Adjust the region of interest using the crop/ROI controls"
+      },
+      {
+        "type": "action",
+        "description": "Confirm and start the analysis"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a structured analysis result is displayed with findings and recommendations"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Abrir Odonto Vision a partir do dashboard",
+    "description": "Verifica que, após login, o usuário acessa o dashboard e consegue abrir o Odonto Vision (atalho ou navegação) até a tela do fluxo de análise.",
+    "category": "Med Vision (Odonto Vision)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Wait for the dashboard to load"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation entry or shortcut labeled for Odonto Vision or Med Vision to open the analysis flow"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the URL is /dashboard/odonto-vision and the Odonto Vision wizard (upload/stepper) is visible"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Refinar análise a partir de um resultado existente",
+    "description": "Verifica refinamento: após uma análise concluída, o usuário abre o resultado/histórico, ajusta ROI ou anotação e reexecuta a análise com resultado atualizado.",
+    "category": "Med Vision (Odonto Vision)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard/odonto-vision"
+      },
+      {
+        "type": "action",
+        "description": "Upload a valid clinical dental image to create an analysis result"
+      },
+      {
+        "type": "action",
+        "description": "Fill a brief clinical case context into the case context field"
+      },
+      {
+        "type": "action",
+        "description": "Select an available vision/LLM model option"
+      },
+      {
+        "type": "action",
+        "description": "Confirm and start the analysis"
+      },
+      {
+        "type": "action",
+        "description": "Open the most recent result from the results or history area in Odonto Vision"
+      },
+      {
+        "type": "action",
+        "description": "Adjust the region of interest or add an annotation for refinement"
+      },
+      {
+        "type": "action",
+        "description": "Re-run the analysis for refinement"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the analysis view shows an updated structured result for the refined run"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "Manter contexto e modelo ao ajustar ROI",
+    "description": "Verifica que, após preencher contexto do caso e selecionar modelo, ajustar ROI não descarta os dados já inseridos.",
+    "category": "Med Vision (Odonto Vision)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard/odonto-vision"
+      },
+      {
+        "type": "action",
+        "description": "Upload a valid clinical dental image to start the analysis flow"
+      },
+      {
+        "type": "action",
+        "description": "Fill a brief clinical case context into the case context field"
+      },
+      {
+        "type": "action",
+        "description": "Select an available vision/LLM model option"
+      },
+      {
+        "type": "action",
+        "description": "Adjust the region of interest using the crop/ROI controls"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the previously entered case context and selected model remain set in the flow"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC005",
+    "title": "Impedir análise sem imagem enviada",
+    "description": "Verifica validação quando o usuário tenta avançar ou iniciar análise sem ter enviado imagem.",
+    "category": "Med Vision (Odonto Vision)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard/odonto-vision"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to confirm and start the analysis without uploading an image"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an input validation error is visible indicating an image is required"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC006",
+    "title": "Impedir exportação de PDF antes de existir resultado",
+    "description": "Verifica que exportar relatório PDF não está disponível até existir resultado de análise concluído.",
+    "category": "Med Vision (Odonto Vision)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to /dashboard/odonto-vision"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to export the PDF report without having generated an analysis result"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the UI indicates exporting is not available until an analysis result exists"
+      }
+    ],
+    "priority": "Low"
+  }
+]
