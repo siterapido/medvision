@@ -9,6 +9,7 @@ import { generateText } from 'ai'
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase/server'
 import { deductCredits } from '@/lib/credits/service'
+import { getSpecialtyConfig, type SpecialtyPrompts } from '@/lib/constants/vision-specialties'
 
 export const maxDuration = 120 // 120 seconds — allow larger images
 
@@ -359,8 +360,9 @@ const JSON_SCHEMA_EXAMPLE = `{
   }
 }`
 
-async function callVisionAI(imageData: string, clinicalContext?: string, models: readonly string[] = VISION_MODELS): Promise<z.infer<typeof VisionSchema>> {
+async function callVisionAI(imageData: string, clinicalContext?: string, models: readonly string[] = VISION_MODELS, prompts?: SpecialtyPrompts): Promise<z.infer<typeof VisionSchema>> {
     const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
+    const activeSystemPrompt = prompts?.systemPrompt ?? SYSTEM_PROMPT_BASE
 
     const generateWithModel = async (modelId: string, signal: AbortSignal): Promise<z.infer<typeof VisionSchema>> => {
         const userTextParts: { type: 'text'; text: string }[] = [
@@ -377,7 +379,7 @@ async function callVisionAI(imageData: string, clinicalContext?: string, models:
             messages: [
                 {
                     role: 'system' as const,
-                    content: `${SYSTEM_PROMPT_BASE}
+                    content: `${activeSystemPrompt}
 
 FORMATO DE RESPOSTA: Responda SOMENTE com JSON válido seguindo este schema exato:
 ${JSON_SCHEMA_EXAMPLE}
@@ -406,9 +408,11 @@ async function callVisionRefinement(
     regionImageData: string,
     originalAnalysisSummary: string,
     clinicalContext?: string,
-    models: readonly string[] = VISION_MODELS
+    models: readonly string[] = VISION_MODELS,
+    prompts?: SpecialtyPrompts
 ): Promise<z.infer<typeof VisionSchema>> {
     const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
+    const activeSystemPrompt = prompts?.systemPrompt ?? SYSTEM_PROMPT_BASE
 
     const generateWithModel = async (modelId: string, signal: AbortSignal): Promise<z.infer<typeof VisionSchema>> => {
         const userTextParts: { type: 'text'; text: string }[] = [
@@ -425,7 +429,7 @@ async function callVisionRefinement(
             messages: [
                 {
                     role: 'system' as const,
-                    content: `${SYSTEM_PROMPT_BASE}
+                    content: `${activeSystemPrompt}
 
 MODO DE REFINAMENTO: Você está re-analisando uma REGIÃO ESPECÍFICA extraída de uma imagem médica maior (radiografia ou tomografia).
 A análise original da imagem completa identificou: ${originalAnalysisSummary}
@@ -556,9 +560,11 @@ const DETAILED_ANALYSIS_SCHEMA = `{
 async function callVisionDetection(
     imageData: string,
     clinicalContext?: string,
-    models: readonly string[] = VISION_MODELS
+    models: readonly string[] = VISION_MODELS,
+    prompts?: SpecialtyPrompts
 ): Promise<z.infer<typeof QuickDetectionSchema>> {
     const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
+    const activeQuickPrompt = prompts?.quickDetectionPrompt ?? QUICK_DETECTION_PROMPT
 
     const generateWithModel = async (modelId: string, signal: AbortSignal): Promise<z.infer<typeof QuickDetectionSchema>> => {
         const userTextParts: { type: 'text'; text: string }[] = [
@@ -575,7 +581,7 @@ async function callVisionDetection(
             messages: [
                 {
                     role: 'system' as const,
-                    content: `${QUICK_DETECTION_PROMPT}
+                    content: `${activeQuickPrompt}
 
 FORMATO: Responda SOMENTE com JSON válido:
 ${QUICK_DETECTION_SCHEMA}`
@@ -603,13 +609,15 @@ async function callVisionDetailedAnalysis(
     imageData: string,
     quickDetections: z.infer<typeof QuickDetectionSchema>['quickDetections'],
     clinicalContext?: string,
-    models: readonly string[] = VISION_MODELS
+    models: readonly string[] = VISION_MODELS,
+    prompts?: SpecialtyPrompts
 ): Promise<z.infer<typeof DetailedDetectionSchema>> {
     const detectionsSummary = quickDetections.map((d, i) =>
         `${i}: ${d.label} (${d.anatomicalRegion || 'N/A'}) - ${d.severity} - confiança ${Math.round(d.confidence * 100)}%`
     ).join('\n')
 
     const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
+    const activeDetailedPrompt = prompts?.detailedAnalysisPrompt ?? DETAILED_ANALYSIS_PROMPT
 
     const generateWithModel = async (modelId: string, signal: AbortSignal): Promise<z.infer<typeof DetailedDetectionSchema>> => {
         const userTextParts: { type: 'text'; text: string }[] = [
@@ -626,7 +634,7 @@ async function callVisionDetailedAnalysis(
             messages: [
                 {
                     role: 'system' as const,
-                    content: `${DETAILED_ANALYSIS_PROMPT}
+                    content: `${activeDetailedPrompt}
 
 DETECÇÕES DO ESTÁGIO 1:
 ${detectionsSummary}
@@ -658,10 +666,11 @@ ${DETAILED_ANALYSIS_SCHEMA}`
 async function callTwoStageVisionAnalysis(
     imageData: string,
     clinicalContext?: string,
-    models: readonly string[] = VISION_MODELS
+    models: readonly string[] = VISION_MODELS,
+    prompts?: SpecialtyPrompts
 ): Promise<z.infer<typeof VisionSchema>> {
     console.log('=== ESTÁGIO 1: Detecção Rápida ===')
-    const quickResult = await callVisionDetection(imageData, clinicalContext, models)
+    const quickResult = await callVisionDetection(imageData, clinicalContext, models, prompts)
     console.log(`Estágio 1 concluído: ${quickResult.quickDetections.length} detecções encontradas`)
 
     if (quickResult.quickDetections.length === 0) {
@@ -681,7 +690,7 @@ async function callTwoStageVisionAnalysis(
     console.log('=== ESTÁGIO 2: Análise Detalhada ===')
     let detailedAnalysis: z.infer<typeof DetailedDetectionSchema>['detailedAnalysis'] = []
     try {
-        const detailedResult = await callVisionDetailedAnalysis(imageData, quickResult.quickDetections, clinicalContext, models)
+        const detailedResult = await callVisionDetailedAnalysis(imageData, quickResult.quickDetections, clinicalContext, models, prompts)
         detailedAnalysis = detailedResult.detailedAnalysis
         console.log(`Estágio 2 concluído: ${detailedAnalysis.length} análises detalhadas`)
     } catch (err) {
@@ -1020,7 +1029,8 @@ export async function POST(req: Request) {
 
         // --- Parse body ---
         const body = await req.json()
-        const { image, clinicalContext, mode, originalAnalysisSummary, model } = body
+        const { image, clinicalContext, mode, originalAnalysisSummary, model, specialty } = body
+        const specialtyConfig = getSpecialtyConfig(specialty)
 
         // Créditos desabilitados — não há verificação de limite
 
@@ -1064,13 +1074,13 @@ export async function POST(req: Request) {
 
         if (mode === 'refine' && originalAnalysisSummary) {
             console.log('Mode: refine - usando callVisionRefinement')
-            analysis = await callVisionRefinement(imageData, originalAnalysisSummary, clinicalContext, modelsToUse)
+            analysis = await callVisionRefinement(imageData, originalAnalysisSummary, clinicalContext, modelsToUse, specialtyConfig)
         } else if (mode === 'quick') {
             console.log('Mode: quick - usando callVisionAI (single-pass)')
-            analysis = await callVisionAI(imageData, clinicalContext, modelsToUse)
+            analysis = await callVisionAI(imageData, clinicalContext, modelsToUse, specialtyConfig)
         } else if (mode === 'preview') {
             console.log('Mode: preview - usando callVisionDetection (detecção rápida)')
-            const quickResult = await callVisionDetection(imageData, clinicalContext, modelsToUse)
+            const quickResult = await callVisionDetection(imageData, clinicalContext, modelsToUse, specialtyConfig)
             const validatedDetections = validateAndMergeDetections(quickResult.quickDetections.map((d, i) => ({
                 id: `det-${i}`,
                 label: d.label,
@@ -1101,7 +1111,7 @@ export async function POST(req: Request) {
             return Response.json(previewResponse)
         } else {
             console.log('Mode: default (two-stage) - usando callTwoStageVisionAnalysis')
-            analysis = await callTwoStageVisionAnalysis(imageData, clinicalContext, modelsToUse)
+            analysis = await callTwoStageVisionAnalysis(imageData, clinicalContext, modelsToUse, specialtyConfig)
         }
 
         // Debitar créditos após análise bem-sucedida

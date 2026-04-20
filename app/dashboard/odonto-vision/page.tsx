@@ -50,6 +50,7 @@ import { getSeverityStyle } from '@/lib/constants/vision'
 import { VisionAnalysisResult, VisionArtifactContent, VisionRefinement, BoundingBox, VisionComparisonResult } from '@/lib/types/vision'
 import { ModelSelector } from '@/components/vision/model-selector'
 import { MODELS, VISION_MODELS_LIST } from '@/lib/ai/openrouter'
+import { VISION_SPECIALTIES, type VisionSpecialty } from '@/lib/constants/vision-specialties'
 
 /** Segundo modelo para modo comparar (distinto do padrão). */
 const DEFAULT_COMPARE_MODEL_B =
@@ -130,6 +131,7 @@ export default function MedVisionPage() {
     const [previousAnalyses, setPreviousAnalyses] = useState<{id: string; title: string; date: string; content: any}[]>([])
     const [isSaving, setIsSaving] = useState(false)
     const [clinicalContext, setClinicalContext] = useState('')
+    const [specialty, setSpecialty] = useState<VisionSpecialty>('torax')
 
     // Model selection state
     const [analysisMode, setAnalysisMode] = useState<'single' | 'compare'>('single')
@@ -384,7 +386,7 @@ export default function MedVisionPage() {
             const response = await fetch('/api/vision/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: imageData, clinicalContext: clinicalContext || undefined, model: modelId })
+                body: JSON.stringify({ image: imageData, clinicalContext: clinicalContext || undefined, model: modelId, specialty })
             })
 
             if (!response.ok) {
@@ -441,11 +443,11 @@ export default function MedVisionPage() {
             const [resA, resB] = await Promise.all([
                 fetch('/api/vision/analyze', {
                     method: 'POST', headers,
-                    body: JSON.stringify({ image: imageData, clinicalContext: clinicalContext || undefined, model: modelA })
+                    body: JSON.stringify({ image: imageData, clinicalContext: clinicalContext || undefined, model: modelA, specialty })
                 }),
                 fetch('/api/vision/analyze', {
                     method: 'POST', headers,
-                    body: JSON.stringify({ image: imageData, clinicalContext: clinicalContext || undefined, model: modelB })
+                    body: JSON.stringify({ image: imageData, clinicalContext: clinicalContext || undefined, model: modelB, specialty })
                 }),
             ])
 
@@ -526,6 +528,7 @@ export default function MedVisionPage() {
                     clinicalContext: clinicalContext || undefined,
                     mode: 'refine',
                     originalAnalysisSummary,
+                    specialty,
                 })
             })
 
@@ -690,30 +693,63 @@ export default function MedVisionPage() {
                                     </div>
                                 </GlassCard>
 
-                                {/* Clinical context */}
-                                <GlassCard className="p-5 border-border/40">
-                                    <div className="flex items-start gap-3 mb-4">
-                                        <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 shrink-0">
-                                            <FileText className="w-4 h-4 text-primary" />
+                                {/* Specialty + Clinical context */}
+                                <div className="space-y-4">
+                                    {/* Specialty selector */}
+                                    <GlassCard className="p-5 border-border/40">
+                                        <div className="flex items-start gap-3 mb-4">
+                                            <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 shrink-0">
+                                                <Microscope className="w-4 h-4 text-primary" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-semibold">Especialidade</h4>
+                                                <p className="text-xs text-muted-foreground mt-0.5">Selecione o tipo de análise para um laudo mais preciso.</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <h4 className="text-sm font-semibold">Descreva o Problema</h4>
-                                            <p className="text-xs text-muted-foreground mt-0.5">Informe queixa principal, histórico ou suspeita — a IA usará isso para personalizar o laudo.</p>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            {(Object.values(VISION_SPECIALTIES) as typeof VISION_SPECIALTIES[VisionSpecialty][]).map((s) => (
+                                                <button
+                                                    key={s.id}
+                                                    type="button"
+                                                    onClick={() => setSpecialty(s.id)}
+                                                    className={cn(
+                                                        'flex flex-col items-start gap-0.5 rounded-xl border-2 p-3 text-left transition-all',
+                                                        specialty === s.id
+                                                            ? 'border-primary bg-primary/10 text-primary'
+                                                            : 'border-border/40 bg-muted/20 text-muted-foreground hover:border-border hover:bg-muted/40'
+                                                    )}
+                                                >
+                                                    <span className="text-xs font-semibold">{s.label}</span>
+                                                    <span className="text-[10px] leading-tight opacity-80">{s.description}</span>
+                                                </button>
+                                            ))}
                                         </div>
-                                    </div>
-                                    <Textarea
-                                        value={clinicalContext}
-                                        onChange={(e) => setClinicalContext(e.target.value)}
-                                        placeholder="Ex: Paciente com dor ao mastigar no quadrante superior esquerdo. Suspeita de lesão periapical no dente 26."
-                                        className="resize-none text-sm h-32 bg-muted/20 border-border/40 focus:border-primary/50"
-                                        maxLength={500}
-                                        autoFocus
-                                    />
-                                    {clinicalContext.length > 0 && (
-                                        <p className="text-[10px] text-muted-foreground text-right mt-1">{clinicalContext.length}/500</p>
-                                    )}
-                                    <p className="text-[11px] text-muted-foreground mt-3 italic">Campo opcional — pule se preferir.</p>
-                                </GlassCard>
+                                    </GlassCard>
+
+                                    {/* Clinical context */}
+                                    <GlassCard className="p-5 border-border/40">
+                                        <div className="flex items-start gap-3 mb-4">
+                                            <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 shrink-0">
+                                                <FileText className="w-4 h-4 text-primary" />
+                                            </div>
+                                            <div>
+                                                <h4 className="text-sm font-semibold">Descreva o Problema</h4>
+                                                <p className="text-xs text-muted-foreground mt-0.5">Informe queixa principal, histórico ou suspeita — a IA usará isso para personalizar o laudo.</p>
+                                            </div>
+                                        </div>
+                                        <Textarea
+                                            value={clinicalContext}
+                                            onChange={(e) => setClinicalContext(e.target.value)}
+                                            placeholder="Ex: Paciente com tosse persistente há 3 semanas, febre e dispneia. Suspeita de pneumonia lobar."
+                                            className="resize-none text-sm h-28 bg-muted/20 border-border/40 focus:border-primary/50"
+                                            maxLength={500}
+                                        />
+                                        {clinicalContext.length > 0 && (
+                                            <p className="text-[10px] text-muted-foreground text-right mt-1">{clinicalContext.length}/500</p>
+                                        )}
+                                        <p className="text-[11px] text-muted-foreground mt-3 italic">Campo opcional — pule se preferir.</p>
+                                    </GlassCard>
+                                </div>
                             </div>
 
                             {/* Navigation */}
