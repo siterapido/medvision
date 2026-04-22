@@ -50,18 +50,17 @@ function isRetryableError(error: unknown): boolean {
 }
 
 /**
- * Tenta `generateFn` em cada modelo, com até 2 tentativas por modelo.
- * Erros de parse (Zod/Syntax) e falhas de API/provedor passam ao próximo modelo;
- * retries no mesmo modelo só para erros transitórios (rede, 5xx, rate limit, abort).
+ * Chama apenas o primeiro modelo da lista, sem fallback.
+ * Se falhar, lança erro diretamente (sem tentar outros modelos).
  */
 export async function callWithFallback<T>(
     modelIds: readonly string[],
     generateFn: (modelId: string, signal: AbortSignal) => Promise<T>,
     options?: { estimatedPayloadBytes?: number },
 ): Promise<T> {
+    const modelId = modelIds[0]!
     let lastError: unknown
 
-    // Usa timeout dinâmico baseado no tamanho da imagem ou fixa da env
     let timeoutMs: number
     if (options?.estimatedPayloadBytes) {
         timeoutMs = calculateDynamicTimeout(options.estimatedPayloadBytes)
@@ -70,58 +69,27 @@ export async function callWithFallback<T>(
         timeoutMs = Number.isFinite(envTimeout) && envTimeout >= 10_000 && envTimeout <= 180_000 ? envTimeout : 60_000
     }
 
-    for (let chainIndex = 0; chainIndex < modelIds.length; chainIndex++) {
-        const modelId = modelIds[chainIndex]!
-        for (let attempt = 1; attempt <= 2; attempt++) {
-            const controller = new AbortController()
-            const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
-            const started = performance.now()
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+    const started = performance.now()
 
-            try {
-                visionInfo('model.attempt', { modelId, attempt, maxAttempts: 2, chainIndex, timeoutMs })
-                const result = await generateFn(modelId, controller.signal)
-                clearTimeout(timeoutId)
-                visionInfo('model.success', { modelId, attempt, ms: elapseMs(started) })
-                return result
-            } catch (error) {
-                clearTimeout(timeoutId)
-                lastError = error
-                const ms = elapseMs(started)
+    try {
+        visionInfo('model.attempt', { modelId, attempt: 1, maxAttempts: 1, chainIndex: 0, timeoutMs })
+        const result = await generateFn(modelId, controller.signal)
+        clearTimeout(timeoutId)
+        visionInfo('model.success', { modelId, attempt: 1, ms: elapseMs(started) })
+        return result
+    } catch (error) {
+        clearTimeout(timeoutId)
+        lastError = error
+        const ms = elapseMs(started)
 
-                if (
-                    error instanceof ZodError ||
-                    (error instanceof Error && (error.name === 'ZodError' || error.name === 'SyntaxError'))
-                ) {
-                    const name = error instanceof Error ? error.name : 'ZodError'
-                    visionInfo('model.parse_error', {
-                        modelId,
-                        attempt,
-                        ms,
-                        errorKind: name,
-                    })
-                    break
-                }
-
-                const isRetryable =
-                    isRetryableError(error)
-
-                if (!isRetryable) {
-                    visionInfo('model.failed_non_retryable', {
-                        modelId,
-                        attempt,
-                        ms,
-                        message: error instanceof Error ? error.message.slice(0, 500) : String(error).slice(0, 500),
-                    })
-                    break
-                }
-
-                if (attempt < 2) {
-                    visionInfo('model.retry_scheduled', { modelId, attempt, ms, delayMs: 1000 })
-                    await sleep(1_000)
-                } else {
-                    visionInfo('model.exhausted_retries', { modelId, attempt, ms })
-                }
-            }
+        if (error instanceof ZodError || (error instanceof Error && (error.name === 'ZodError' || error.name === 'SyntaxError'))) {
+            visionInfo('model.parse_error', { modelId, attempt: 1, ms, errorKind: error instanceof Error ? error.name : 'ZodError' })
+        } else if (isRetryableError(error)) {
+            visionInfo('model.failed_retryable', { modelId, attempt: 1, ms, message: error instanceof Error ? error.message.slice(0, 500) : String(error).slice(0, 500) })
+        } else {
+            visionInfo('model.failed_non_retryable', { modelId, attempt: 1, ms, message: error instanceof Error ? error.message.slice(0, 500) : String(error).slice(0, 500) })
         }
     }
 

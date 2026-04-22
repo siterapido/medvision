@@ -1,29 +1,47 @@
 'use client'
 
-import { ChevronDown, GitBranch, Info, Sparkles } from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { GlassCard } from '@/components/ui/glass-card'
-import { Badge } from '@/components/ui/badge'
-import {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
-import { VISION_MODELS_LIST } from '@/lib/ai/openrouter'
-import { cn } from '@/lib/utils'
 
-const PROVIDER_COLORS: Record<string, string> = {
-    Google: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-    Anthropic: 'bg-orange-500/10 text-orange-400 border-orange-500/20',
-    OpenAI: 'bg-green-500/10 text-green-400 border-green-500/20',
-    Perplexity: 'bg-teal-500/10 text-teal-400 border-teal-500/20',
-    Meta: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
-    Qwen: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-    'Z-AI': 'bg-violet-500/10 text-violet-400 border-violet-500/20',
+export interface ModelSelectorProps {
+    mode: 'single' | 'compare'
+    onModeChange: (mode: 'single' | 'compare') => void
+    selectedModel: string
+    onModelChange: (model: string) => void
+    compareModelA: string
+    compareModelB: string
+    onCompareModelAChange: (model: string) => void
+    onCompareModelBChange: (model: string) => void
+}
+
+export function ModelSelector({
+    mode,
+    onModeChange,
+    selectedModel,
+    onModelChange,
+    compareModelA,
+    compareModelB,
+    onCompareModelAChange,
+    onCompareModelBChange,
+}: ModelSelectorProps) {
+    const compareOpen = mode === 'compare'
+
+    return (
+        <GlassCard className="p-4 space-y-4">
+            <div className="flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                <span className="text-sm font-semibold">Modelo de IA</span>
+            </div>
+
+            <div className="flex items-center gap-2 rounded-md bg-muted/50 px-3 py-2 border border-border/50">
+                <span className="text-sm">Kimi k2.6</span>
+            </div>
+
+            {mode === 'single' && selectedModel !== 'moonshotai/kimi-k2.6' && (
+                <input type="hidden" name="model" value={selectedModel} />
+            )}
+        </GlassCard>
+    )
 }
 
 const PROVIDERS = ['Google', 'Anthropic', 'OpenAI', 'Perplexity', 'Meta', 'Qwen', 'Z-AI'] as const
