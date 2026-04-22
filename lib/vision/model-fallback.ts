@@ -11,9 +11,9 @@ function sleep(ms: number): Promise<void> {
  * Adiciona ~15s por MB para processamentos mais longos.
  */
 export function calculateDynamicTimeout(imageDataSizeBytes: number): number {
-    const DEFAULT_TIMEOUT_MS = 60000
-    const MIN_TIMEOUT_MS = 45000
-    const MAX_TIMEOUT_MS = 180000
+    const DEFAULT_TIMEOUT_MS = 90000
+    const MIN_TIMEOUT_MS = 60000
+    const MAX_TIMEOUT_MS = 300000
 
     const estimatedMB = imageDataSizeBytes / (1024 * 1024)
     const additionalMs = Math.min(estimatedMB * 20000, 60000)
@@ -66,7 +66,7 @@ export async function callWithFallback<T>(
         timeoutMs = calculateDynamicTimeout(options.estimatedPayloadBytes)
     } else {
         const envTimeout = Number(process.env.MEDVISION_MODEL_TIMEOUT_MS)
-        timeoutMs = Number.isFinite(envTimeout) && envTimeout >= 10_000 && envTimeout <= 180_000 ? envTimeout : 60_000
+        timeoutMs = Number.isFinite(envTimeout) && envTimeout >= 10_000 && envTimeout <= 300_000 ? envTimeout : 90_000
     }
 
     const controller = new AbortController()
