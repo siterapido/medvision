@@ -1,3 +1,5 @@
+import { withSentryConfig } from "@sentry/nextjs";
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: "standalone",
@@ -28,4 +30,19 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withSentryConfig(nextConfig, {
+  org: "insightfy-dr",
+  project: "medvision",
+  /** Região US (mesmo host usado no dashboard insightfy-dr.sentry.io) */
+  sentryUrl: "https://us.sentry.io",
+  silent: !process.env.CI,
+  tunnelRoute: "/monitoring",
+  widenClientFileUpload: true,
+  webpack: {
+    automaticVercelMonitors: true,
+  },
+  sourcemaps: {
+    /** Evita publicar .map no artefato após o upload; SENTRY_AUTH_TOKEN necessário */
+    deleteSourcemapsAfterUpload: true,
+  },
+});

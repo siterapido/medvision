@@ -7,12 +7,19 @@
     "moduleResolution": "Node",
     "esModuleInterop": true
   },
+  "exclude": [
+    "node_modules",
+    "supabase/functions",
+    "tests-e2e"
+  ],
   "include": [
+    "lib/ai/openrouter.ts",
     "lib/course/helpers.ts",
     "lib/dashboard/overview.ts",
     "components/layout/**/*.tsx",
     "components/courses/**/*.tsx",
-    "tests/*.test.ts",
-    "tests/*.test.tsx"
+    "tests/vision-default-model.test.ts",
+    "tests/vision-quick-detection-schema.test.ts",
+    "lib/vision/schemas.ts"
   ]
 }

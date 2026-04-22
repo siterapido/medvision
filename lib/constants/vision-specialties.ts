@@ -4,6 +4,10 @@ export interface SpecialtyPrompts {
     systemPrompt: string
     quickDetectionPrompt: string
     detailedAnalysisPrompt: string
+    /** Mensagem curta do usuário no estágio 1; o system já contém o checklist da especialidade. */
+    quickDetectionUserInstruction: string
+    /** Instrução do usuário para laudo completo (modo quick / fallback quando o estágio 1 vem vazio). */
+    fullAnalysisUserInstruction: string
 }
 
 export interface SpecialtyConfig extends SpecialtyPrompts {
@@ -156,6 +160,10 @@ SOBRE AS COORDENADAS (BOX):
 
 IDIOMA: Português do Brasil (pt-BR) formal e técnico.`
 
+const TORAX_QUICK_DETECTION_USER = `Analise a imagem anexa (exame torácico). Execute a detecção rápida conforme as regras do assistente: um registro por achado com bounding box [ymin, xmin, ymax, xmax] normalizado 0–100. Responda somente com o JSON no formato solicitado.`
+
+const TORAX_FULL_ANALYSIS_USER = `Gere um laudo torácico completo no JSON exigido pelo assistente. Para cada achado: bbox preciso, localização (lobo, pleura, mediastino, etc.), CID-10 quando aplicável, diagnóstico diferencial e ações. Em perToothBreakdown use o campo "tooth" como rótulo da região anatômica (não use notação FDI). Responda SOMENTE com o JSON.`
+
 const TORAX_QUICK_DETECTION_PROMPT = `Você é especialista em radiologia de tórax realizando DETECÇÃO RÁPIDA de achados.
 
 Analise a imagem torácica e identifique TODOS os achados presentes, incluindo:
@@ -203,6 +211,10 @@ IDIOMA: Português do Brasil técnico.`
 // ============================================================
 // ESPECIALIDADE: GERAL (fallback — prompt original preservado)
 // ============================================================
+
+const GERAL_QUICK_DETECTION_USER = `Analise a imagem radiológica anexa. Execute a detecção rápida conforme as regras do assistente: liste achados relevantes com bounding box [ymin, xmin, ymax, xmax] em 0–100. Responda somente com o JSON no formato solicitado.`
+
+const GERAL_FULL_ANALYSIS_USER = `Gere um laudo de radiografia ou tomografia completo no JSON exigido pelo assistente. Para cada achado: bbox preciso, localização anatômica (sem notação FDI, salvo se a imagem for claramente odontológica), CID-10, diagnóstico diferencial e ações. Em perToothBreakdown use o campo "tooth" como nome da região anatômica. Responda SOMENTE com o JSON.`
 
 const GERAL_SYSTEM_PROMPT = `Você é o **MedVision AI** (motor de análise de imagem), operando como especialista em diagnóstico por **radiografia** e **tomografia computadorizada (TC)** em medicina geral.
 Sua tarefa é analisar a imagem fornecida e gerar um LAUDO TÉCNICO COMPLETO com máxima precisão, em português do Brasil.
@@ -336,6 +348,8 @@ export const VISION_SPECIALTIES: Record<VisionSpecialty, SpecialtyConfig> = {
         systemPrompt: TORAX_SYSTEM_PROMPT,
         quickDetectionPrompt: TORAX_QUICK_DETECTION_PROMPT,
         detailedAnalysisPrompt: TORAX_DETAILED_ANALYSIS_PROMPT,
+        quickDetectionUserInstruction: TORAX_QUICK_DETECTION_USER,
+        fullAnalysisUserInstruction: TORAX_FULL_ANALYSIS_USER,
     },
     geral: {
         id: 'geral',
@@ -344,6 +358,8 @@ export const VISION_SPECIALTIES: Record<VisionSpecialty, SpecialtyConfig> = {
         systemPrompt: GERAL_SYSTEM_PROMPT,
         quickDetectionPrompt: GERAL_QUICK_DETECTION_PROMPT,
         detailedAnalysisPrompt: GERAL_DETAILED_ANALYSIS_PROMPT,
+        quickDetectionUserInstruction: GERAL_QUICK_DETECTION_USER,
+        fullAnalysisUserInstruction: GERAL_FULL_ANALYSIS_USER,
     },
 }
 

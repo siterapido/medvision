@@ -13,6 +13,15 @@ const FIXTURE_JPG = path.join(
   'tests-e2e/fixtures/vision-sample.jpg'
 )
 
+/** Padrão Med Vision; deve coincidir com MODELS.vision (OpenRouter z-ai/glm-5v-turbo). */
+const DEFAULT_VISION_MODEL = 'z-ai/glm-5v-turbo'
+
+const IMAGENS_DE_TESTE_TORAX = [
+  'torax.png',
+  'torax-1.png',
+  'torax-3.png',
+] as const
+
 const runVisionApi = () =>
   process.env.E2E_VISION_ANALYZE === '1' ||
   process.env.E2E_VISION_ANALYZE === 'true'
@@ -46,6 +55,47 @@ async function waitForVisionAnalysisOutcome(page: Page) {
   if (outcome === 'timeout') {
     throw new Error(
       'Timeout aguardando resultado da análise (>150s). Verifique cold start, rede ou fila da API.'
+    )
+  }
+}
+
+/**
+ * Clica em "Analisar Agora" e assegura que a resposta JSON de POST /api/vision/analyze
+ * inclui `modelId` com o modelo padrão (GLM-5V), quando a UI usa o seletor padrão.
+ */
+async function assertVisionResponseUsesDefaultModel(page: Page) {
+  const postPromise = page.waitForResponse(
+    (r) =>
+      r.url().includes('/api/vision/analyze') && r.request().method() === 'POST',
+    { timeout: 150_000 }
+  )
+  await page.getByRole('button', { name: /Analisar Agora/i }).click()
+  const res = await postPromise
+  expect(
+    res.status(),
+    'POST /api/vision/analyze deve concluir com sucesso'
+  ).toBe(200)
+  const data = (await res.json()) as { modelId?: string; error?: string }
+  expect(
+    data.modelId,
+    'Resposta de /api/vision/analyze deve expor modelId = GLM-5V Turbo por defeito'
+  ).toBe(DEFAULT_VISION_MODEL)
+
+  const errorBanner = page.getByText(/Não foi possível completar a análise/i)
+  const exportPdf = page.getByRole('button', { name: /Exportar PDF/i }).first()
+  const uiOutcome = await Promise.race([
+    errorBanner.waitFor({ state: 'visible', timeout: 150_000 }).then(() => 'error' as const),
+    exportPdf.waitFor({ state: 'visible', timeout: 150_000 }).then(() => 'ok' as const),
+  ]).catch(() => 'timeout' as const)
+
+  if (uiOutcome === 'error') {
+    throw new Error(
+      'A API respondeu 200 e modelId GLM, mas a UI mostrou "Não foi possível completar a análise".'
+    )
+  }
+  if (uiOutcome === 'timeout') {
+    throw new Error(
+      'Timeout aguardando UI após resposta 200 de /api/vision/analyze (>150s).'
     )
   }
 }
@@ -150,6 +200,46 @@ test.describe('Odonto Vision (Med Vision)', () => {
       page.getByText(/Laudo|Hipótese|achados|Sem achados significativos/i).first()
     ).toBeVisible({ timeout: 15_000 })
   })
+
+  for (const fileName of IMAGENS_DE_TESTE_TORAX) {
+    test(`TC007 — fluxo com Imagens de teste / ${fileName} (API + modelId padrão)`, async ({
+      page,
+    }, testInfo) => {
+      test.skip(
+        !runVisionApi(),
+        'Defina E2E_VISION_ANALYZE=1 para executar análise real'
+      )
+      testInfo.setTimeout(240_000)
+
+      const imagePath = path.join(process.cwd(), 'Imagens de teste', fileName)
+      await gotoPath(page, '/dashboard/odonto-vision')
+
+      await page.locator('input[type="file"]').setInputFiles(imagePath)
+      await expect(
+        page.getByPlaceholder(/Paciente com dor|queixa principal/i)
+      ).toBeVisible({ timeout: 20_000 })
+
+      await page
+        .getByPlaceholder(/Paciente com dor|queixa principal/i)
+        .fill(
+          `Teste E2E (pasta Imagens de teste): ${fileName} — análise com modelo padrão.`
+        )
+
+      await page.getByRole('button', { name: /^Próximo$/i }).click()
+      await page.getByRole('button', { name: /^Próximo$/i }).click()
+      await page.getByRole('button', { name: /Pular/i }).click()
+
+      await assertVisionResponseUsesDefaultModel(page)
+
+      await expect(
+        page.getByRole('button', { name: /Analisar Outra|Exportar PDF/i }).first()
+      ).toBeVisible()
+
+      await expect(
+        page.getByText(/Laudo|Hipótese|achados|Sem achados significativos/i).first()
+      ).toBeVisible({ timeout: 15_000 })
+    })
+  }
 
   test('TC003 — refinar região após resultado (API real)', async ({
     page,

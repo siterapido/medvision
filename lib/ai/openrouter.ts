@@ -66,8 +66,8 @@ export const MODELS = {
   // Chat principal - GLM-5.1 (modelo padrão)
   chat: 'z-ai/glm-5.1',
 
-  // Visão — Claude Sonnet 4.6 como padrão (Med Vision)
-  vision: 'anthropic/claude-sonnet-4.6',
+  // Visão — GLM-5V Turbo como padrão (Med Vision); ref. https://openrouter.ai/z-ai/glm-5v-turbo
+  vision: 'z-ai/glm-5v-turbo',
 
   // Fallback de visão - Gemini 2.5 Pro (suporte multimodal confirmado)
   visionFallback: 'google/gemini-2.5-pro',
@@ -83,6 +83,9 @@ export const VISION_MODELS_LIST = [
 
 export type VisionModelInfo = typeof VISION_MODELS_LIST[number]
 export const VISION_MODEL_IDS = new Set(VISION_MODELS_LIST.map(m => m.id))
+
+/** Cadeia padrão Med Vision: modelo primário + fallback multimodal. */
+export const DEFAULT_VISION_MODEL_CHAIN = [MODELS.vision, MODELS.visionFallback] as const
 
 /**
  * Cria um modelo OpenRouter com o ID especificado (Chat Completions API)
