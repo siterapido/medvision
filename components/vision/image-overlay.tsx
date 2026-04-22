@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { VisionDetection, VisionAnnotation, AnnotationColor } from '@/lib/types/vision'
 import { DetectionPopover } from '@/components/vision/detection-popover'
+import { DetectionMarkers } from '@/components/vision/detection-markers'
 import { cn } from '@/lib/utils'
 import { getSeverityStyle } from '@/lib/constants/vision'
 
@@ -14,8 +15,10 @@ interface ImageOverlayProps {
     showArrows?: boolean
     showHeatmap?: boolean
     showConfidenceFilter?: boolean
-    /** Quando true, deixa margem à direita no mobile para o botão “Ferramentas” sobre a imagem. */
+    /** Quando true, deixa margem à direita no mobile para o botão "Ferramentas" sobre a imagem. */
     reserveMobileToolbarSlot?: boolean
+    /** Quando true, usa os novos DetectionMarkers com tooltip no hover */
+    useModernMarkers?: boolean
     className?: string
 }
 
@@ -142,6 +145,7 @@ export function ImageOverlay({
     showHeatmap = false,
     showConfidenceFilter = false,
     reserveMobileToolbarSlot = false,
+    useModernMarkers = false,
     className,
 }: ImageOverlayProps) {
     const [hoveredId, setHoveredId] = useState<string | null>(null)
@@ -414,6 +418,16 @@ export function ImageOverlay({
                                 })
                             )}
                         </div>
+                    )}
+
+                    {/* Modern Detection Markers - estilo radiology profissional */}
+                    {useModernMarkers && deduplicatedDetections.length > 0 && (
+                        <DetectionMarkers
+                            detections={deduplicatedDetections}
+                            onMarkerClick={(det) => setSelectedId(prev => prev === det.id ? null : det.id)}
+                            selectedId={selectedId}
+                            className="absolute inset-0"
+                        />
                     )}
 
                     {/* Annotations canvas */}

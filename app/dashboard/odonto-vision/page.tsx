@@ -62,6 +62,7 @@ import { RegionSelector } from '@/components/vision/region-selector'
 import { Textarea } from '@/components/ui/textarea'
 import { validateImageQuality, compressImageForAnalysis, ImageQualityResult } from '@/lib/utils/image-quality-validator'
 import { useAnnotations } from '@/lib/hooks/use-annotations'
+import { useSoundNotification } from '@/lib/hooks/use-sound-notification'
 import { toast } from 'sonner'
 import { generateVisionPDF } from '@/lib/utils/generate-vision-pdf'
 import {
@@ -82,6 +83,7 @@ import type { VisionState } from '@/components/vision/med-vision'
 
 export default function MedVisionPage() {
     const router = useRouter()
+    const { playSuccess } = useSoundNotification()
     const [state, setState] = useState<VisionState>('UPLOAD')
     const [image, setImage] = useState<string | null>(null)
     const [originalImage, setOriginalImage] = useState<string | null>(null)
@@ -417,7 +419,7 @@ export default function MedVisionPage() {
                 console.warn('Auto-save failed:', err)
             })
 
-            setTimeout(() => setState('RESULT'), 500)
+            setTimeout(() => { setState('RESULT'); playSuccess() }, 500)
 
         } catch (error) {
             clearInterval(interval)
@@ -543,7 +545,7 @@ export default function MedVisionPage() {
                 console.warn('Auto-save failed:', err)
             })
 
-            setTimeout(() => setState('RESULT'), 500)
+            setTimeout(() => { setState('RESULT'); playSuccess() }, 500)
 
         } catch (error) {
             clearInterval(interval)
@@ -607,11 +609,10 @@ export default function MedVisionPage() {
                 setExpandedRefinement(updated.length - 1) // auto-expand the new one
                 return updated
             })
-            toast.success('Região re-analisada com sucesso!')
-
-        } catch (error) {
-            console.error('Refinement error:', error)
-            const msg = error instanceof Error ? error.message : 'Erro desconhecido'
+toast.success('Região re-analisada com sucesso!')
+            setState('RESULT')
+            playSuccess()
+        } catch (err) {
             toast.error(`Erro ao refinar região: ${msg}`)
         } finally {
             setIsRefining(false)
@@ -1261,6 +1262,7 @@ export default function MedVisionPage() {
                                                     showHeatmap={showHeatmap}
                                                     showConfidenceFilter
                                                     reserveMobileToolbarSlot
+                                                    useModernMarkers
                                                 />
                                             )}
                                         </div>
