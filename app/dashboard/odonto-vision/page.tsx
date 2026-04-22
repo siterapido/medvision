@@ -836,17 +836,6 @@ export default function MedVisionPage() {
                         >
                             <MedVisionStepIndicator state={state} />
 
-                            <ModelSelector
-                                mode={analysisMode}
-                                onModeChange={setAnalysisMode}
-                                selectedModel={selectedModel}
-                                onModelChange={setSelectedModel}
-                                compareModelA={compareModelA}
-                                compareModelB={compareModelB}
-                                onCompareModelAChange={setCompareModelA}
-                                onCompareModelBChange={setCompareModelB}
-                            />
-
                             {/* Navigation */}
                             <div className="flex gap-3 pt-2">
                                 <Button variant="outline" className="flex-1 h-11 rounded-xl gap-2" onClick={() => setState('DESCRIBE')}>
