@@ -88,6 +88,24 @@ export const VISION_MODEL_IDS = new Set(VISION_MODELS_LIST.map(m => m.id))
 export const DEFAULT_VISION_MODEL_CHAIN = [MODELS.vision, MODELS.visionFallback] as const
 
 /**
+ * Ordem de tentativa: modelo escolhido na UI primeiro, depois os restantes da cadeia padrão (sem duplicar).
+ */
+export function buildVisionModelChain(selectedModel?: string | null): readonly string[] {
+  if (!selectedModel) {
+    return [...DEFAULT_VISION_MODEL_CHAIN]
+  }
+  const inUiList = (VISION_MODEL_IDS as Set<string>).has(selectedModel)
+  const inDefaultChain = (DEFAULT_VISION_MODEL_CHAIN as readonly string[] as string[]).includes(
+    selectedModel,
+  )
+  if (inUiList || inDefaultChain) {
+    const rest = DEFAULT_VISION_MODEL_CHAIN.filter((id) => id !== selectedModel)
+    return [selectedModel, ...rest]
+  }
+  return [...DEFAULT_VISION_MODEL_CHAIN]
+}
+
+/**
  * Cria um modelo OpenRouter com o ID especificado (Chat Completions API)
  */
 export function createModel(modelId: ModelId | string) {

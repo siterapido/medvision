@@ -1,4 +1,6 @@
-import { hasMedVisionOpenRouterKey, VISION_MODEL_IDS } from '@/lib/ai/openrouter'
+import { APICallError } from 'ai'
+
+import { buildVisionModelChain, hasMedVisionOpenRouterKey } from '@/lib/ai/openrouter'
 import { deductCredits } from '@/lib/credits/service'
 import { getSpecialtyConfig } from '@/lib/constants/vision-specialties'
 import { validateAndMergeDetections } from '@/lib/vision/detection-validation'
@@ -10,7 +12,6 @@ import {
     callVisionDetection,
     callVisionRefinement,
     mapAnalysisToResponse,
-    VISION_MODELS,
 } from '@/lib/vision/pipeline'
 import type { VisionAnalysis } from '@/lib/vision/schemas'
 import { createClient } from '@/lib/supabase/server'
@@ -70,7 +71,7 @@ export async function POST(req: Request) {
             })
         }
 
-        const modelsToUse: readonly string[] = model && VISION_MODEL_IDS.has(model) ? [model] : VISION_MODELS
+        const modelsToUse = buildVisionModelChain(typeof model === 'string' ? model : undefined)
 
         let analysis: VisionAnalysis
         let pipelineWarnings: string[] = []
@@ -112,7 +113,11 @@ export async function POST(req: Request) {
                 })),
                 isPreview: true,
             }
-            await deductCredits(user.id, modelsToUse[0], 'vision', 'Preview de detecção')
+            try {
+                await deductCredits(user.id, modelsToUse[0], 'vision', 'Preview de detecção')
+            } catch (e) {
+                console.error('Vision preview: créditos não debitados; resposta enviada mesmo assim:', e)
+            }
             return Response.json(previewResponse)
         } else {
             console.log('Mode: default (two-stage) - usando callTwoStageVisionAnalysis')
@@ -121,7 +126,11 @@ export async function POST(req: Request) {
             pipelineWarnings = twoStage.warnings
         }
 
-        await deductCredits(user.id, modelsToUse[0], 'vision')
+        try {
+            await deductCredits(user.id, modelsToUse[0], 'vision')
+        } catch (e) {
+            console.error('Vision: créditos não debitados; análise concluída e resposta enviada:', e)
+        }
 
         const responseData = mapAnalysisToResponse(analysis, { pipelineWarnings })
         return Response.json({ ...responseData, modelId: modelsToUse[0] })
@@ -132,7 +141,23 @@ export async function POST(req: Request) {
         let statusCode = 500
         let errorDetails = ''
 
-        if (error instanceof Error) {
+        if (APICallError.isInstance(error)) {
+            const bodySnippet = (error.responseBody ?? '').slice(0, 1200)
+            errorDetails = `${error.message} | status=${error.statusCode} | url=${error.url} | body=${bodySnippet}`
+            if (error.statusCode === 401 || error.statusCode === 403) {
+                errorMessage = 'Falha de autenticação com o provedor de IA. Verifique MEDVISION_OPENROUTER_API_KEY / OPENROUTER_API_KEY.'
+            } else if (error.statusCode === 402) {
+                errorMessage = 'Cota ou faturamento do provedor de IA indisponível. Verifique a conta OpenRouter.'
+            } else if (error.statusCode === 429) {
+                errorMessage = 'Rate limit exceeded. Please try again later.'
+                statusCode = 429
+            } else if (
+                error.statusCode === 400 &&
+                (bodySnippet.toLowerCase().includes('model') || error.message.toLowerCase().includes('model'))
+            ) {
+                errorMessage = 'Vision model not available'
+            }
+        } else if (error instanceof Error) {
             errorDetails = error.message
             if (error.message.includes('API key')) {
                 errorMessage = 'API key configuration error'

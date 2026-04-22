@@ -14,11 +14,13 @@
   ],
   "include": [
     "lib/ai/openrouter.ts",
+    "lib/vision/model-fallback.ts",
     "lib/course/helpers.ts",
     "lib/dashboard/overview.ts",
     "components/layout/**/*.tsx",
     "components/courses/**/*.tsx",
     "tests/vision-default-model.test.ts",
+    "tests/vision-model-chain.test.ts",
     "tests/vision-quick-detection-schema.test.ts",
     "lib/vision/schemas.ts"
   ]

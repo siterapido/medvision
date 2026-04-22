@@ -1,10 +1,13 @@
+import { ZodError } from 'zod'
+
 function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
 /**
  * Tenta `generateFn` em cada modelo, com até 2 tentativas por modelo.
- * Erros de parse (Zod/Syntax) passam ao próximo modelo sem retry.
+ * Erros de parse (Zod/Syntax) e falhas de API/provedor passam ao próximo modelo;
+ * retries no mesmo modelo só para erros transitórios (rede, 5xx, rate limit, abort).
  */
 export async function callWithFallback<T>(
     modelIds: readonly string[],
@@ -26,8 +29,12 @@ export async function callWithFallback<T>(
                 clearTimeout(timeoutId)
                 lastError = error
 
-                if (error instanceof Error && (error.name === 'ZodError' || error.name === 'SyntaxError')) {
-                    console.warn(`Model ${modelId} returned a parse error (${error.name}), skipping to next model`)
+                if (
+                    error instanceof ZodError ||
+                    (error instanceof Error && (error.name === 'ZodError' || error.name === 'SyntaxError'))
+                ) {
+                    const name = error instanceof Error ? error.name : 'ZodError'
+                    console.warn(`Model ${modelId} returned a parse error (${name}), skipping to next model`)
                     break
                 }
 
@@ -44,7 +51,10 @@ export async function callWithFallback<T>(
                         error.message.includes('rate limit') ||
                         error.name === 'AbortError')
 
-                if (!isRetryable) throw error
+                if (!isRetryable) {
+                    console.warn(`Model ${modelId} failed (non-retryable), trying next model:`, error)
+                    break
+                }
 
                 if (attempt < 2) {
                     console.warn(`Model ${modelId} failed (attempt ${attempt}/2), retrying in 1000ms...`)

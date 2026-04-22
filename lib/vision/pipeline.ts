@@ -19,8 +19,9 @@ import { DetailedDetectionSchema, QuickDetectionSchema, VisionSchema, type Visio
 
 export const VISION_MODELS = DEFAULT_VISION_MODEL_CHAIN
 
+/** Imagem antes do texto: vários provedores (ex. GLM via OpenRouter) falham com 400 se a ordem for invertida. */
 function buildUserContent(imageData: string, textParts: { type: 'text'; text: string }[]) {
-    return [...textParts, { type: 'image' as const, image: imageData }]
+    return [{ type: 'image' as const, image: imageData }, ...textParts]
 }
 
 function useStructuredVisionOutput(): boolean {
