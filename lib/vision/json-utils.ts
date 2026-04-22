@@ -86,7 +86,7 @@ export function sanitizeClinicalContext(ctx: string): string {
         .slice(0, 1000)
 }
 
-const maxBase64Chars = 5 * 1024 * 1024
+const maxBase64Chars = 10 * 1024 * 1024 // 10MB para acomodar imagens grandes pré-compressão
 
 export function validateImagePayload(imageData: string): { valid: boolean; message?: string } {
     if (imageData.length > maxBase64Chars) {

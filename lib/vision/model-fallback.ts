@@ -57,11 +57,18 @@ function isRetryableError(error: unknown): boolean {
 export async function callWithFallback<T>(
     modelIds: readonly string[],
     generateFn: (modelId: string, signal: AbortSignal) => Promise<T>,
+    options?: { estimatedPayloadBytes?: number },
 ): Promise<T> {
     let lastError: unknown
-    const timeoutMsRaw = Number(process.env.MEDVISION_MODEL_TIMEOUT_MS)
-    const timeoutMs =
-        Number.isFinite(timeoutMsRaw) && timeoutMsRaw >= 10_000 && timeoutMsRaw <= 180_000 ? timeoutMsRaw : 60_000
+
+    // Usa timeout dinâmico baseado no tamanho da imagem ou fixa da env
+    let timeoutMs: number
+    if (options?.estimatedPayloadBytes) {
+        timeoutMs = calculateDynamicTimeout(options.estimatedPayloadBytes)
+    } else {
+        const envTimeout = Number(process.env.MEDVISION_MODEL_TIMEOUT_MS)
+        timeoutMs = Number.isFinite(envTimeout) && envTimeout >= 10_000 && envTimeout <= 180_000 ? envTimeout : 60_000
+    }
 
     for (let chainIndex = 0; chainIndex < modelIds.length; chainIndex++) {
         const modelId = modelIds[chainIndex]!

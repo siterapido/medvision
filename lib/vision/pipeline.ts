@@ -258,7 +258,8 @@ NÃO inclua markdown, code blocks, ou texto fora do JSON.`
         }
     }
 
-    return callWithFallback(models, generateWithModel)
+    const payloadBytes = imageData.length
+    return callWithFallback(models, generateWithModel, { estimatedPayloadBytes: payloadBytes })
 }
 
 export async function callVisionRefinement(
@@ -338,7 +339,8 @@ NÃO inclua markdown, code blocks, ou texto fora do JSON.`
         return VisionSchema.parse(extractJSON(result.text))
     }
 
-    return callWithFallback(models, generateWithModel)
+    const payloadBytes = regionImageData.length
+    return callWithFallback(models, generateWithModel, { estimatedPayloadBytes: payloadBytes })
 }
 
 export async function callVisionDetection(
@@ -428,7 +430,8 @@ ${QUICK_DETECTION_SCHEMA}`
         }
     }
 
-    return callWithFallback(models, generateWithModel)
+    const payloadBytes = imageData.length
+    return callWithFallback(models, generateWithModel, { estimatedPayloadBytes: payloadBytes })
 }
 
 export async function callVisionDetailedAnalysis(
@@ -513,7 +516,8 @@ ${DETAILED_ANALYSIS_SCHEMA}`
         return DetailedDetectionSchema.parse(extractJSON(result.text))
     }
 
-    return callWithFallback(models, generateWithModel)
+    const payloadBytes = imageData.length
+    return callWithFallback(models, generateWithModel, { estimatedPayloadBytes: payloadBytes })
 }
 
 const normalizeLabel = (s: string) => s.toLowerCase().replace(/\s+/g, ' ').trim()
