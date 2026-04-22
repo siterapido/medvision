@@ -1,8 +1,8 @@
 import sharp from 'sharp'
 
-const MAX_EDGE = 1600 // Reduzido de 2048 para imagens menores
-const TARGET_SIZE_BYTES = 1.5 * 1024 * 1024 // 1.5MB target - mais conservador
-const MAX_SIZE_BYTES = 2 * 1024 * 1024 // 2MB hard limit
+const MAX_EDGE = 1024 // Melhorado de 1600 para 1024 (mantém qualidade sem estourar tokens)
+const TARGET_SIZE_BYTES = 1.2 * 1024 * 1024 // 1.2MB target - balance qualidade/tamanho
+const MAX_SIZE_BYTES = 1.5 * 1024 * 1024 // 1.5MB hard limit
 
 /**
  * Compressão agressiva para imagens médicas mantendo qualidade diagnóstica.
@@ -52,9 +52,9 @@ export async function normalizeVisionImageDataUrl(dataUrl: string): Promise<stri
                   })
             : base
 
-        // Stage 2: Tentar WebP primeiro (melhor compressão)
-        // WebP com qualidade 85 é equivalente a JPEG 95 em qualidade visual
-        const webpOut = await pipeline.webp({ quality: 85 }).toBuffer()
+        // Stage 2: Tentar WebP primeiro (melhor compressão com qualidade superior)
+        // WebP com qualidade 80 é equivalente a JPEG 90 em qualidade visual
+        const webpOut = await pipeline.webp({ quality: 80 }).toBuffer()
 
         if (webpOut.length <= TARGET_SIZE_BYTES) {
             return `data:image/webp;base64,${webpOut.toString('base64')}`
@@ -75,7 +75,7 @@ export async function normalizeVisionImageDataUrl(dataUrl: string): Promise<stri
             return `data:image/webp;base64,${out.toString('base64')}`
         }
 
-        // Stage 4: Último recurso - JPEG com qualidade reduzida
+        // Stage 4: Último recurso - JPEG com qualidade melhor
         const jpegOut = await sharp(buf)
             .rotate()
             .resize({
@@ -84,7 +84,7 @@ export async function normalizeVisionImageDataUrl(dataUrl: string): Promise<stri
                 fit: 'inside',
                 withoutEnlargement: true,
             })
-            .jpeg({ quality: 75, mozjpeg: true })
+            .jpeg({ quality: 85, mozjpeg: true })
             .toBuffer()
 
         return `data:image/jpeg;base64,${jpegOut.toString('base64')}`
@@ -120,7 +120,7 @@ export async function compressToMax(dataUrl: string, maxBytes = 500 * 1024): Pro
         const w = im.width ?? 1200
         const h = im.height ?? 1200
 
-        // Reduzir drasticamente e usar WebP
+        // Reduzir para ~1MB e usar WebP com qualidade 75
         const pipeline = sharp(buf)
             .rotate()
             .resize({
@@ -129,11 +129,11 @@ export async function compressToMax(dataUrl: string, maxBytes = 500 * 1024): Pro
                 fit: 'inside',
                 withoutEnlargement: true,
             })
-            .webp({ quality: 70 })
+            .webp({ quality: 75 })
 
         const out = await pipeline.toBuffer()
 
-        // Se ainda muito grande, reducir mais
+        // Se ainda muito grande, reducir para 800 com qualidade 70
         if (out.length > maxBytes) {
             const smaller = await sharp(buf)
                 .rotate()
@@ -143,7 +143,7 @@ export async function compressToMax(dataUrl: string, maxBytes = 500 * 1024): Pro
                     fit: 'inside',
                     withoutEnlargement: true,
                 })
-                .webp({ quality: 60 })
+                .webp({ quality: 70 })
                 .toBuffer()
             return `data:image/webp;base64,${smaller.toString('base64')}`
         }

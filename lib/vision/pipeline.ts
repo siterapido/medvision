@@ -209,7 +209,7 @@ NÃO inclua markdown, code blocks, ou texto fora do JSON.`
         const result = await generateText({
             model: openrouterMedVision(modelId),
             abortSignal: signal,
-            maxOutputTokens: 8000,
+            maxOutputTokens: 10000,
             messages: [
                 {
                     role: 'system' as const,

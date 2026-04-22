@@ -107,3 +107,12 @@ export const DEFAULT_STREAM_CONFIG = {
   temperature: 0.65,
   maxTokens: 8000,
 } as const
+
+/**
+ * Configuração otimizada para análise de imagem (vision)
+ */
+export const VISION_CONFIG = {
+  temperature: 0.5, //Mais baixo para maior precisão factual
+  maxTokens: 10000, // Mais tokens para laudos completos
+  topP: 0.9,
+} as const
