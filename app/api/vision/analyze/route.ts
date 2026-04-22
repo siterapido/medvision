@@ -14,11 +14,22 @@ import {
     mapAnalysisToResponse,
 } from '@/lib/vision/pipeline'
 import type { VisionAnalysis } from '@/lib/vision/schemas'
+import {
+    elapseMs,
+    imagePayloadStats,
+    useStructuredVisionOutputFromEnv,
+    visionError,
+    visionInfo,
+    visionWarn,
+} from '@/lib/vision/vision-log'
+import { classifyVisionError } from '@/lib/vision/vision-errors'
 import { createClient } from '@/lib/supabase/server'
 
 export const maxDuration = 120
 
 export async function POST(req: Request) {
+    const requestStart = performance.now()
+    const requestId = crypto.randomUUID().slice(0, 8)
     try {
         const supabase = await createClient()
         const {
@@ -57,6 +68,7 @@ export async function POST(req: Request) {
 
         const payloadCheck = validateImagePayload(imageData)
         if (!payloadCheck.valid) {
+            visionWarn('request.payload_invalid', { requestId, message: payloadCheck.message })
             return new Response(JSON.stringify({ error: payloadCheck.message }), {
                 status: 413,
                 headers: { 'Content-Type': 'application/json' },
@@ -64,7 +76,7 @@ export async function POST(req: Request) {
         }
 
         if (!hasMedVisionOpenRouterKey()) {
-            console.error('Vision analysis error: configure MEDVISION_OPENROUTER_API_KEY ou OPENROUTER_API_KEY')
+            visionWarn('config.missing_openrouter', { requestId })
             return new Response(JSON.stringify({ error: 'API not configured' }), {
                 status: 500,
                 headers: { 'Content-Type': 'application/json' },
@@ -72,18 +84,30 @@ export async function POST(req: Request) {
         }
 
         const modelsToUse = buildVisionModelChain(typeof model === 'string' ? model : undefined)
+        const payloadStats = imagePayloadStats(imageData)
+        visionInfo('request.start', {
+            requestId,
+            userId8: user.id.slice(0, 8),
+            mode: typeof mode === 'string' ? mode : 'default',
+            specialty: typeof specialty === 'string' ? specialty : 'default',
+            modelChain: modelsToUse.join(' → '),
+            structuredOutput: useStructuredVisionOutputFromEnv(),
+            hasClinicalContext: Boolean(typeof clinicalContext === 'string' && clinicalContext.trim()),
+            clinicalContextChars: typeof clinicalContext === 'string' ? clinicalContext.trim().length : 0,
+            ...payloadStats,
+        })
 
         let analysis: VisionAnalysis
         let pipelineWarnings: string[] = []
 
         if (mode === 'refine' && originalAnalysisSummary) {
-            console.log('Mode: refine - usando callVisionRefinement')
+            visionInfo('request.mode', { requestId, mode: 'refine' })
             analysis = await callVisionRefinement(imageData, originalAnalysisSummary, clinicalContext, modelsToUse, specialtyConfig)
         } else if (mode === 'quick') {
-            console.log('Mode: quick - usando callVisionAI (single-pass)')
+            visionInfo('request.mode', { requestId, mode: 'quick' })
             analysis = await callVisionAI(imageData, clinicalContext, modelsToUse, specialtyConfig)
         } else if (mode === 'preview') {
-            console.log('Mode: preview - usando callVisionDetection (detecção rápida)')
+            visionInfo('request.mode', { requestId, mode: 'preview' })
             const quickResult = await callVisionDetection(imageData, clinicalContext, modelsToUse, specialtyConfig)
             const validatedDetections = validateAndMergeDetections(
                 quickResult.quickDetections.map((d, i) => ({
@@ -116,74 +140,66 @@ export async function POST(req: Request) {
             try {
                 await deductCredits(user.id, modelsToUse[0], 'vision', 'Preview de detecção')
             } catch (e) {
-                console.error('Vision preview: créditos não debitados; resposta enviada mesmo assim:', e)
+                visionWarn('credits.deduct_failed', { requestId, mode: 'preview', message: e instanceof Error ? e.message : String(e) })
             }
+            visionInfo('request.done', {
+                requestId,
+                mode: 'preview',
+                totalMs: elapseMs(requestStart),
+                previewDetections: previewResponse.detections.length,
+            })
             return Response.json(previewResponse)
-        } else {
-            console.log('Mode: default (two-stage) - usando callTwoStageVisionAnalysis')
+        } else if (mode === 'detailed') {
+            visionInfo('request.mode', { requestId, mode: 'detailed_two_stage' })
             const twoStage = await callTwoStageVisionAnalysis(imageData, clinicalContext, modelsToUse, specialtyConfig)
             analysis = twoStage.analysis
             pipelineWarnings = twoStage.warnings
+        } else {
+            visionInfo('request.mode', { requestId, mode: 'default_single_pass' })
+            analysis = await callVisionAI(imageData, clinicalContext, modelsToUse, specialtyConfig)
         }
 
         try {
             await deductCredits(user.id, modelsToUse[0], 'vision')
         } catch (e) {
-            console.error('Vision: créditos não debitados; análise concluída e resposta enviada:', e)
+            visionWarn('credits.deduct_failed', { requestId, message: e instanceof Error ? e.message : String(e) })
         }
 
         const responseData = mapAnalysisToResponse(analysis, { pipelineWarnings })
+        visionInfo('request.done', {
+            requestId,
+            mode: typeof mode === 'string' ? mode : 'default',
+            totalMs: elapseMs(requestStart),
+            detections: analysis.detections.length,
+            precision: responseData.precision,
+            pipelineWarnings: pipelineWarnings.length,
+        })
         return Response.json({ ...responseData, modelId: modelsToUse[0] })
     } catch (error: unknown) {
-        console.error('Vision analysis error:', error)
+        visionError('request.error', error, { requestId })
 
-        let errorMessage = 'Failed to analyze image'
-        let statusCode = 500
-        let errorDetails = ''
-
-        if (APICallError.isInstance(error)) {
-            const bodySnippet = (error.responseBody ?? '').slice(0, 1200)
-            errorDetails = `${error.message} | status=${error.statusCode} | url=${error.url} | body=${bodySnippet}`
-            if (error.statusCode === 401 || error.statusCode === 403) {
-                errorMessage = 'Falha de autenticação com o provedor de IA. Verifique MEDVISION_OPENROUTER_API_KEY / OPENROUTER_API_KEY.'
-            } else if (error.statusCode === 402) {
-                errorMessage = 'Cota ou faturamento do provedor de IA indisponível. Verifique a conta OpenRouter.'
-            } else if (error.statusCode === 429) {
-                errorMessage = 'Rate limit exceeded. Please try again later.'
-                statusCode = 429
-            } else if (
-                error.statusCode === 400 &&
-                (bodySnippet.toLowerCase().includes('model') || error.message.toLowerCase().includes('model'))
-            ) {
-                errorMessage = 'Vision model not available'
-            }
-        } else if (error instanceof Error) {
-            errorDetails = error.message
-            if (error.message.includes('API key')) {
-                errorMessage = 'API key configuration error'
-            } else if (error.message.includes('rate limit') || error.message.includes('429')) {
-                errorMessage = 'Rate limit exceeded. Please try again later.'
-                statusCode = 429
-            } else if (error.message.includes('model') || error.message.includes('not found')) {
-                errorMessage = 'Vision model not available'
-            } else if (error.message.includes('image') || error.message.includes('Invalid')) {
-                errorMessage = 'Invalid image format. Please try a different image.'
-                statusCode = 400
-            }
-        }
-
-        if (error && typeof error === 'object' && 'cause' in error) {
-            console.error('Error cause:', error.cause)
-            errorDetails += ` | Cause: ${JSON.stringify(error.cause)}`
-        }
+        const classified = classifyVisionError(error)
+        const errorDetails =
+            process.env.NODE_ENV === 'development'
+                ? APICallError.isInstance(error)
+                    ? `${error.message} | status=${error.statusCode} | url=${error.url}`
+                    : error instanceof Error
+                      ? error.message
+                      : String(error)
+                : undefined
 
         return new Response(
             JSON.stringify({
-                error: errorMessage,
-                details: process.env.NODE_ENV === 'development' ? errorDetails : undefined,
+                requestId,
+                error: {
+                    code: classified.code,
+                    message: classified.safeMessage,
+                    retryable: classified.retryable,
+                },
+                details: errorDetails,
             }),
             {
-                status: statusCode,
+                status: classified.httpStatus,
                 headers: { 'Content-Type': 'application/json' },
             },
         )

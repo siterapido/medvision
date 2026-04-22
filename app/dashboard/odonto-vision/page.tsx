@@ -378,9 +378,15 @@ export default function MedVisionPage() {
         setAnalysisPrecision(null)
         setComparisonResult(null)
 
+        // Progress com desaceleração natural — não trava mais nos 90%
         const interval = setInterval(() => {
-            setProgress((prev) => (prev < 90 ? prev + 5 : prev))
-        }, 300)
+            setProgress((prev) => {
+                if (prev >= 95) return prev
+                // Incremento diminui conforme avança: rápido no início, lento no fim
+                const increment = prev < 30 ? 4 : prev < 60 ? 3 : prev < 80 ? 1.5 : 0.5
+                return Math.min(95, prev + increment)
+            })
+        }, 500)
 
         try {
             const response = await fetch('/api/vision/analyze', {
@@ -391,7 +397,11 @@ export default function MedVisionPage() {
 
             if (!response.ok) {
                 const errData = await response.json().catch(() => ({}))
-                if (response.status === 401) { router.push('/login'); return }
+                if (response.status === 401) {
+                    clearInterval(interval)
+                    router.push('/login')
+                    return
+                }
                 if (response.status === 402 || errData?.error === 'credits_exhausted') {
                     throw new Error('Créditos insuficientes. Você atingiu o limite mensal do seu plano. Faça upgrade para continuar.')
                 }
@@ -401,7 +411,9 @@ export default function MedVisionPage() {
                     const limitInfo = limit ? ` (${used}/${limit} hoje)` : ''
                     throw new Error(errData?.error || `Limite diário atingido${limitInfo}. Faça upgrade para Pro.`)
                 }
-                throw new Error(errData?.error || `HTTP ${response.status}`)
+                // Extrai mensagem estruturada da API
+                const errorMsg = errData?.error?.message || errData?.error || `Falha na análise (HTTP ${response.status})`
+                throw new Error(typeof errorMsg === 'string' ? errorMsg : 'Falha ao analisar imagem')
             }
 
             const data = await response.json() as VisionAnalysisResult & { precision?: number }
@@ -422,7 +434,7 @@ export default function MedVisionPage() {
             clearInterval(interval)
             console.error(error)
             const msg = error instanceof Error ? error.message : 'Erro desconhecido'
-            toast.error(`Erro ao analisar imagem: ${msg}. Tente novamente.`)
+            toast.error(`Erro na análise: ${msg}`)
             setState('ERROR')
         }
     }
@@ -435,8 +447,12 @@ export default function MedVisionPage() {
         setComparisonResult(null)
 
         const interval = setInterval(() => {
-            setProgress((prev) => (prev < 85 ? prev + 3 : prev))
-        }, 300)
+            setProgress((prev) => {
+                if (prev >= 95) return prev
+                const increment = prev < 30 ? 3 : prev < 60 ? 2 : prev < 80 ? 1 : 0.3
+                return Math.min(95, prev + increment)
+            })
+        }, 500)
 
         try {
             const headers = { 'Content-Type': 'application/json' }
@@ -454,7 +470,11 @@ export default function MedVisionPage() {
             if (!resA.ok || !resB.ok) {
                 const failed = !resA.ok ? resA : resB
                 const errData = await failed.json().catch(() => ({}))
-                if (failed.status === 401) { router.push('/login'); return }
+                if (failed.status === 401) {
+                    clearInterval(interval)
+                    router.push('/login')
+                    return
+                }
                 if (failed.status === 402 || errData?.error === 'credits_exhausted') {
                     throw new Error('Créditos insuficientes. Você atingiu o limite mensal do seu plano. Faça upgrade para continuar.')
                 }
@@ -1019,9 +1039,15 @@ export default function MedVisionPage() {
                                 <div className="flex justify-between text-sm font-medium">
                                     <span className="text-primary flex items-center gap-2">
                                         <Sparkles className="w-4 h-4" />
-                                        Analisando estruturas...
+                                        {progress < 25
+                                            ? 'Processando imagem...'
+                                            : progress < 55
+                                                ? 'Analisando estruturas...'
+                                                : progress < 85
+                                                    ? 'Gerando laudo...'
+                                                    : 'Finalizando análise...'}
                                     </span>
-                                    <span>{progress}%</span>
+                                    <span>{Math.round(progress)}%</span>
                                 </div>
                                 <Progress value={progress} className="h-2" />
                             </div>

@@ -1,5 +1,7 @@
 import assert from "node:assert/strict"
 import { describe, it } from "node:test"
+
+process.env.MEDVISION_VISION_LOG = "0"
 import {
   buildVisionModelChain,
   DEFAULT_VISION_MODEL_CHAIN,

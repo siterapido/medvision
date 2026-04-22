@@ -8,6 +8,13 @@ import { validateAndMergeDetections } from '@/lib/vision/detection-validation'
 import { extractJSON, sanitizeClinicalContext } from '@/lib/vision/json-utils'
 import { callWithFallback } from '@/lib/vision/model-fallback'
 import {
+    elapseMs,
+    imagePayloadStats,
+    useStructuredVisionOutputFromEnv,
+    visionInfo,
+    visionWarn,
+} from '@/lib/vision/vision-log'
+import {
     DETAILED_ANALYSIS_PROMPT,
     DETAILED_ANALYSIS_SCHEMA,
     JSON_SCHEMA_EXAMPLE,
@@ -24,8 +31,68 @@ function buildUserContent(imageData: string, textParts: { type: 'text'; text: st
     return [{ type: 'image' as const, image: imageData }, ...textParts]
 }
 
+function coerceBoxToPercent(box: unknown, scaleHint?: number): number[] | null {
+    if (!Array.isArray(box) || box.length !== 4) return null
+    const nums = box.map((v) => (typeof v === 'number' ? v : Number.NaN))
+    if (nums.some((n) => !Number.isFinite(n))) return null
+
+    // Caso 0–1: normaliza para 0–100
+    const max = Math.max(...nums)
+    let scale = 1
+    if (max > 0 && max <= 1.5) {
+        scale = 100
+    } else if (max > 100) {
+        // Caso provável em pixels (ou escala arbitrária): usa maior valor observado como referência.
+        const ref = scaleHint && scaleHint > 0 ? scaleHint : max
+        scale = 100 / ref
+    }
+
+    const scaled = nums.map((n) => n * scale)
+    const ymin = Math.min(scaled[0], scaled[2])
+    const ymax = Math.max(scaled[0], scaled[2])
+    const xmin = Math.min(scaled[1], scaled[3])
+    const xmax = Math.max(scaled[1], scaled[3])
+
+    return [
+        Math.max(0, Math.min(100, ymin)),
+        Math.max(0, Math.min(100, xmin)),
+        Math.max(0, Math.min(100, ymax)),
+        Math.max(0, Math.min(100, xmax)),
+    ]
+}
+
+function normalizeQuickDetectionPayload(payload: unknown): unknown {
+    if (!payload || typeof payload !== 'object') return payload
+    const p = payload as {
+        quickDetections?: unknown
+    }
+    if (!Array.isArray(p.quickDetections)) return payload
+
+    // Maior coordenada observada (heurística para "pixels" / escala > 100).
+    let globalMax = 0
+    for (const det of p.quickDetections) {
+        if (!det || typeof det !== 'object') continue
+        const b = (det as { box?: unknown }).box
+        if (Array.isArray(b)) {
+            for (const v of b) {
+                const n = typeof v === 'number' ? v : NaN
+                if (Number.isFinite(n)) globalMax = Math.max(globalMax, n)
+            }
+        }
+    }
+
+    const normalized = p.quickDetections.map((det) => {
+        if (!det || typeof det !== 'object') return det
+        const d = det as { box?: unknown }
+        const coerced = coerceBoxToPercent(d.box, globalMax > 100 ? globalMax : undefined)
+        return coerced ? { ...(det as Record<string, unknown>), box: coerced } : det
+    })
+
+    return { ...(payload as Record<string, unknown>), quickDetections: normalized }
+}
+
 function useStructuredVisionOutput(): boolean {
-    return process.env.MEDVISION_STRUCTURED_OUTPUT !== '0'
+    return useStructuredVisionOutputFromEnv()
 }
 
 async function tryGenerateObject<T>(
@@ -35,10 +102,13 @@ async function tryGenerateObject<T>(
     maxOutputTokens: number,
     systemContent: string,
     userContent: ReturnType<typeof buildUserContent>,
+    phase: string,
 ): Promise<T | null> {
     if (!useStructuredVisionOutput()) {
+        visionInfo('skip_structured', { phase, reason: 'MEDVISION_STRUCTURED_OUTPUT=0' })
         return null
     }
+    const t0 = performance.now()
     try {
         const { object } = await generateObject({
             model: openrouterMedVision(modelId),
@@ -50,9 +120,15 @@ async function tryGenerateObject<T>(
                 { role: 'user' as const, content: userContent },
             ],
         })
+        visionInfo('structured_output.ok', { phase, modelId, maxOutputTokens, ms: elapseMs(t0) })
         return object
     } catch (e) {
-        console.warn('generateObject failed, falling back to generateText:', e)
+        visionInfo('structured_output.failed', {
+            phase,
+            modelId,
+            ms: elapseMs(t0),
+            message: e instanceof Error ? e.message.slice(0, 400) : String(e).slice(0, 400),
+        })
         return null
     }
 }
@@ -71,6 +147,14 @@ export async function callVisionAI(
         'Gere um laudo de radiografia ou TC completo no JSON exigido pelo assistente. Responda SOMENTE com o JSON.'
 
     const generateWithModel = async (modelId: string, signal: AbortSignal): Promise<VisionAnalysis> => {
+        const img = imagePayloadStats(imageData)
+        visionInfo('pipeline.full.start', {
+            modelId,
+            ...img,
+            hasClinicalContext: Boolean(safeContext),
+            clinicalContextChars: safeContext?.length ?? 0,
+        })
+
         const userTextParts: { type: 'text'; text: string }[] = [
             {
                 type: 'text' as const,
@@ -92,11 +176,13 @@ ${JSON_SCHEMA_EXAMPLE}
 NÃO inclua markdown, code blocks, ou texto fora do JSON.`
 
         const userContent = buildUserContent(imageData, userTextParts)
-        const structured = await tryGenerateObject(VisionSchema, modelId, signal, 8000, systemContent, userContent)
+        const structured = await tryGenerateObject(VisionSchema, modelId, signal, 8000, systemContent, userContent, 'full_analysis')
         if (structured) {
+            visionInfo('pipeline.full.done', { modelId, path: 'structured' })
             return structured
         }
 
+        const tText = performance.now()
         const result = await generateText({
             model: openrouterMedVision(modelId),
             abortSignal: signal,
@@ -112,7 +198,20 @@ NÃO inclua markdown, code blocks, ou texto fora do JSON.`
                 },
             ],
         })
-
+        const finishReason =
+            'finishReason' in result && typeof (result as { finishReason?: unknown }).finishReason === 'string'
+                ? (result as { finishReason: string }).finishReason
+                : undefined
+        visionInfo('text_path.ok', {
+            phase: 'full_analysis',
+            modelId,
+            textChars: result.text.length,
+            ms: elapseMs(tText),
+            ...(finishReason ? { finishReason } : {}),
+        })
+        if (!result.text.trim()) {
+            throw new Error('empty_response_from_model')
+        }
         return VisionSchema.parse(extractJSON(result.text))
     }
 
@@ -130,6 +229,15 @@ export async function callVisionRefinement(
     const activeSystemPrompt = prompts?.systemPrompt ?? SYSTEM_PROMPT_BASE
 
     const generateWithModel = async (modelId: string, signal: AbortSignal): Promise<VisionAnalysis> => {
+        const img = imagePayloadStats(regionImageData)
+        visionInfo('pipeline.refine.start', {
+            modelId,
+            ...img,
+            hasClinicalContext: Boolean(safeContext),
+            clinicalContextChars: safeContext?.length ?? 0,
+            originalSummaryChars: originalAnalysisSummary.length,
+        })
+
         const userTextParts: { type: 'text'; text: string }[] = [
             {
                 type: 'text' as const,
@@ -158,11 +266,13 @@ ${JSON_SCHEMA_EXAMPLE}
 NÃO inclua markdown, code blocks, ou texto fora do JSON.`
 
         const userContent = buildUserContent(regionImageData, userTextParts)
-        const structured = await tryGenerateObject(VisionSchema, modelId, signal, 4000, systemContent, userContent)
+        const structured = await tryGenerateObject(VisionSchema, modelId, signal, 4000, systemContent, userContent, 'refinement')
         if (structured) {
+            visionInfo('pipeline.refine.done', { modelId, path: 'structured' })
             return structured
         }
 
+        const tText = performance.now()
         const result = await generateText({
             model: openrouterMedVision(modelId),
             abortSignal: signal,
@@ -178,7 +288,10 @@ NÃO inclua markdown, code blocks, ou texto fora do JSON.`
                 },
             ],
         })
-
+        visionInfo('text_path.ok', { phase: 'refinement', modelId, textChars: result.text.length, ms: elapseMs(tText) })
+        if (!result.text.trim()) {
+            throw new Error('empty_response_from_model')
+        }
         return VisionSchema.parse(extractJSON(result.text))
     }
 
@@ -199,6 +312,14 @@ export async function callVisionDetection(
         'Execute a detecção rápida conforme o assistente. Responda somente com o JSON solicitado.'
 
     const generateWithModel = async (modelId: string, signal: AbortSignal) => {
+        const img = imagePayloadStats(imageData)
+        visionInfo('pipeline.quick.start', {
+            modelId,
+            ...img,
+            hasClinicalContext: Boolean(safeContext),
+            clinicalContextChars: safeContext?.length ?? 0,
+        })
+
         const userTextParts: { type: 'text'; text: string }[] = [
             {
                 type: 'text' as const,
@@ -215,11 +336,13 @@ FORMATO: Responda SOMENTE com JSON válido:
 ${QUICK_DETECTION_SCHEMA}`
 
         const userContent = buildUserContent(imageData, userTextParts)
-        const structured = await tryGenerateObject(QuickDetectionSchema, modelId, signal, 2000, systemContent, userContent)
+        const structured = await tryGenerateObject(QuickDetectionSchema, modelId, signal, 2000, systemContent, userContent, 'quick_detection')
         if (structured) {
-            return structured
+            visionInfo('pipeline.quick.structured', { modelId, path: 'structured' })
+            return QuickDetectionSchema.parse(normalizeQuickDetectionPayload(structured))
         }
 
+        const tText = performance.now()
         const result = await generateText({
             model: openrouterMedVision(modelId),
             abortSignal: signal,
@@ -235,8 +358,11 @@ ${QUICK_DETECTION_SCHEMA}`
                 },
             ],
         })
-
-        return QuickDetectionSchema.parse(extractJSON(result.text))
+        visionInfo('text_path.ok', { phase: 'quick_detection', modelId, textChars: result.text.length, ms: elapseMs(tText) })
+        if (!result.text.trim()) {
+            throw new Error('empty_response_from_model')
+        }
+        return QuickDetectionSchema.parse(normalizeQuickDetectionPayload(extractJSON(result.text)))
     }
 
     return callWithFallback(models, generateWithModel)
@@ -257,6 +383,15 @@ export async function callVisionDetailedAnalysis(
     const activeDetailedPrompt = prompts?.detailedAnalysisPrompt ?? DETAILED_ANALYSIS_PROMPT
 
     const generateWithModel = async (modelId: string, signal: AbortSignal) => {
+        const img = imagePayloadStats(imageData)
+        visionInfo('pipeline.detailed.start', {
+            modelId,
+            ...img,
+            detectionCount: quickDetections.length,
+            hasClinicalContext: Boolean(safeContext),
+            clinicalContextChars: safeContext?.length ?? 0,
+        })
+
         const userTextParts: { type: 'text'; text: string }[] = [
             {
                 type: 'text' as const,
@@ -278,11 +413,21 @@ FORMATO: Responda SOMENTE com JSON válido:
 ${DETAILED_ANALYSIS_SCHEMA}`
 
         const userContent = buildUserContent(imageData, userTextParts)
-        const structured = await tryGenerateObject(DetailedDetectionSchema, modelId, signal, 3500, systemContent, userContent)
+        const structured = await tryGenerateObject(
+            DetailedDetectionSchema,
+            modelId,
+            signal,
+            3500,
+            systemContent,
+            userContent,
+            'detailed_analysis',
+        )
         if (structured) {
+            visionInfo('pipeline.detailed.structured', { modelId, path: 'structured', itemCount: structured.detailedAnalysis?.length })
             return structured
         }
 
+        const tText = performance.now()
         const result = await generateText({
             model: openrouterMedVision(modelId),
             abortSignal: signal,
@@ -298,7 +443,10 @@ ${DETAILED_ANALYSIS_SCHEMA}`
                 },
             ],
         })
-
+        visionInfo('text_path.ok', { phase: 'detailed_analysis', modelId, textChars: result.text.length, ms: elapseMs(tText) })
+        if (!result.text.trim()) {
+            throw new Error('empty_response_from_model')
+        }
         return DetailedDetectionSchema.parse(extractJSON(result.text))
     }
 
@@ -327,21 +475,40 @@ export async function callTwoStageVisionAnalysis(
     prompts?: SpecialtyPrompts,
 ): Promise<{ analysis: VisionAnalysis; warnings: string[] }> {
     const warnings: string[] = []
-    console.log('=== ESTÁGIO 1: Detecção Rápida ===')
+    const twoStageT0 = performance.now()
+    const img = imagePayloadStats(imageData)
+    visionInfo('two_stage.start', {
+        ...img,
+        modelChain: models.join(' → '),
+        hasClinicalContext: Boolean(clinicalContext?.trim()),
+        clinicalContextChars: clinicalContext?.trim().length ?? 0,
+        structuredOutput: useStructuredVisionOutput(),
+    })
+
+    visionInfo('two_stage.stage1', { step: 'quick_detection' })
     const quickResult = await callVisionDetection(imageData, clinicalContext, models, prompts)
-    console.log(`Estágio 1 concluído: ${quickResult.quickDetections.length} detecções encontradas`)
+    visionInfo('two_stage.stage1.done', {
+        detectionCount: quickResult.quickDetections.length,
+        imageType: quickResult.meta.imageType,
+        quality: quickResult.meta.quality,
+        qualityScore: quickResult.meta.qualityScore,
+        labels: quickResult.quickDetections.map((d) => d.label).join(', ').slice(0, 500),
+    })
 
     if (quickResult.quickDetections.length === 0) {
         const qualityOk = quickResult.meta.qualityScore >= 45 && quickResult.meta.quality !== 'Inadequada'
 
         if (qualityOk) {
             try {
-                console.log('Estágio 1 vazio com qualidade aceitável — tentando laudo único (revisão).')
+                visionInfo('two_stage.fallback_single_pass', { reason: 'stage1_empty_quality_ok' })
                 const single = await callVisionAI(imageData, clinicalContext, models, prompts)
                 warnings.push('Estágio 1 não retornou caixas delimitadoras; laudo em uma etapa foi usado para revisão.')
+                visionInfo('two_stage.complete', { path: 'single_pass_fallback', totalMs: elapseMs(twoStageT0) })
                 return { analysis: single, warnings }
             } catch (e) {
-                console.warn('Fallback laudo único após estágio 1 vazio falhou:', e)
+                visionWarn('two_stage.fallback_single_pass.failed', {
+                    message: e instanceof Error ? e.message.slice(0, 400) : String(e).slice(0, 400),
+                })
                 Sentry.captureException(e instanceof Error ? e : new Error(String(e)), {
                     tags: { vision_stage: 'single_pass_fallback' },
                     extra: { reason: 'stage1_empty' },
@@ -350,7 +517,7 @@ export async function callTwoStageVisionAnalysis(
             }
         }
 
-        console.log('Nenhuma detecção no Estágio 1, gerando relatório básico...')
+        visionInfo('two_stage.empty_detections', { path: 'basic_report', totalMs: elapseMs(twoStageT0) })
         return {
             analysis: {
                 meta: quickResult.meta,
@@ -369,14 +536,16 @@ export async function callTwoStageVisionAnalysis(
         }
     }
 
-    console.log('=== ESTÁGIO 2: Análise Detalhada ===')
+    visionInfo('two_stage.stage2', { step: 'detailed_analysis', inputDetections: quickResult.quickDetections.length })
     let detailedAnalysis: z.infer<typeof DetailedDetectionSchema>['detailedAnalysis'] = []
     try {
         const detailedResult = await callVisionDetailedAnalysis(imageData, quickResult.quickDetections, clinicalContext, models, prompts)
         detailedAnalysis = detailedResult.detailedAnalysis
-        console.log(`Estágio 2 concluído: ${detailedAnalysis.length} análises detalhadas`)
+        visionInfo('two_stage.stage2.done', { detailedRows: detailedAnalysis.length })
     } catch (err) {
-        console.warn('Estágio 2 falhou, usando apenas resultados do Estágio 1:', err)
+        visionWarn('two_stage.stage2.failed', {
+            message: err instanceof Error ? err.message.slice(0, 400) : String(err).slice(0, 400),
+        })
         warnings.push('Análise detalhada (estágio 2) indisponível; exibindo resumo do estágio 1.')
         Sentry.captureException(err instanceof Error ? err : new Error(String(err)), {
             tags: { vision_stage: '2' },
@@ -406,9 +575,9 @@ export async function callTwoStageVisionAnalysis(
         }
     })
 
-    console.log('=== VALIDAÇÃO: Verificando bounding boxes ===')
+    visionInfo('two_stage.validate', { before: detections.length })
     detections = validateAndMergeDetections(detections) as typeof detections
-    console.log(`Validação concluída: ${detections.length} detecções após validação`)
+    visionInfo('two_stage.validate.done', { after: detections.length })
 
     const perToothBreakdown = Object.entries(
         detections.reduce(
@@ -451,6 +620,13 @@ export async function callTwoStageVisionAnalysis(
     const cleanDetections = detections.map((d) => {
         const { id: _id, _warnings: _w, ...rest } = d as typeof d & { _warnings?: string[] }
         return rest
+    })
+
+    visionInfo('two_stage.complete', {
+        path: 'full_two_stage',
+        totalMs: elapseMs(twoStageT0),
+        finalDetections: cleanDetections.length,
+        warningsCount: warnings.length,
     })
 
     return {

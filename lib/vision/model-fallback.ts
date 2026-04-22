@@ -1,7 +1,37 @@
 import { ZodError } from 'zod'
 
+import { elapseMs, visionInfo } from '@/lib/vision/vision-log'
+
 function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
+}
+
+function isRetryableError(error: unknown): boolean {
+    if (error instanceof Error && error.name === 'AbortError') return true
+
+    const statusCode =
+        error && typeof error === 'object' && 'statusCode' in error && typeof (error as { statusCode?: unknown }).statusCode === 'number'
+            ? (error as { statusCode: number }).statusCode
+            : null
+
+    if (statusCode === 429) return true
+    if (statusCode && statusCode >= 500 && statusCode <= 599) return true
+
+    const msg = error instanceof Error ? error.message.toLowerCase() : String(error).toLowerCase()
+    return (
+        msg.includes('timeout') ||
+        msg.includes('timed out') ||
+        msg.includes('network') ||
+        msg.includes('fetch failed') ||
+        msg.includes('econnreset') ||
+        msg.includes('enotfound') ||
+        msg.includes('eai_again') ||
+        msg.includes('rate limit') ||
+        msg.includes('429') ||
+        msg.includes('503') ||
+        msg.includes('502') ||
+        msg.includes('500')
+    )
 }
 
 /**
@@ -14,53 +44,60 @@ export async function callWithFallback<T>(
     generateFn: (modelId: string, signal: AbortSignal) => Promise<T>,
 ): Promise<T> {
     let lastError: unknown
+    const timeoutMsRaw = Number(process.env.MEDVISION_MODEL_TIMEOUT_MS)
+    const timeoutMs =
+        Number.isFinite(timeoutMsRaw) && timeoutMsRaw >= 10_000 && timeoutMsRaw <= 180_000 ? timeoutMsRaw : 60_000
 
-    for (const modelId of modelIds) {
+    for (let chainIndex = 0; chainIndex < modelIds.length; chainIndex++) {
+        const modelId = modelIds[chainIndex]!
         for (let attempt = 1; attempt <= 2; attempt++) {
             const controller = new AbortController()
-            const timeoutId = setTimeout(() => controller.abort(), 45_000)
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+            const started = performance.now()
 
             try {
-                console.log(`Trying model: ${modelId} (attempt ${attempt}/2)`)
+                visionInfo('model.attempt', { modelId, attempt, maxAttempts: 2, chainIndex, timeoutMs })
                 const result = await generateFn(modelId, controller.signal)
                 clearTimeout(timeoutId)
+                visionInfo('model.success', { modelId, attempt, ms: elapseMs(started) })
                 return result
             } catch (error) {
                 clearTimeout(timeoutId)
                 lastError = error
+                const ms = elapseMs(started)
 
                 if (
                     error instanceof ZodError ||
                     (error instanceof Error && (error.name === 'ZodError' || error.name === 'SyntaxError'))
                 ) {
                     const name = error instanceof Error ? error.name : 'ZodError'
-                    console.warn(`Model ${modelId} returned a parse error (${name}), skipping to next model`)
+                    visionInfo('model.parse_error', {
+                        modelId,
+                        attempt,
+                        ms,
+                        errorKind: name,
+                    })
                     break
                 }
 
                 const isRetryable =
-                    error instanceof Error &&
-                    (error.message.includes('timeout') ||
-                        error.message.includes('network') ||
-                        error.message.includes('503') ||
-                        error.message.includes('502') ||
-                        error.message.includes('500') ||
-                        error.message.includes('429') ||
-                        error.message.includes('ECONNRESET') ||
-                        error.message.includes('fetch failed') ||
-                        error.message.includes('rate limit') ||
-                        error.name === 'AbortError')
+                    isRetryableError(error)
 
                 if (!isRetryable) {
-                    console.warn(`Model ${modelId} failed (non-retryable), trying next model:`, error)
+                    visionInfo('model.failed_non_retryable', {
+                        modelId,
+                        attempt,
+                        ms,
+                        message: error instanceof Error ? error.message.slice(0, 500) : String(error).slice(0, 500),
+                    })
                     break
                 }
 
                 if (attempt < 2) {
-                    console.warn(`Model ${modelId} failed (attempt ${attempt}/2), retrying in 1000ms...`)
+                    visionInfo('model.retry_scheduled', { modelId, attempt, ms, delayMs: 1000 })
                     await sleep(1_000)
                 } else {
-                    console.warn(`Model ${modelId} exhausted retries, trying next model...`)
+                    visionInfo('model.exhausted_retries', { modelId, attempt, ms })
                 }
             }
         }

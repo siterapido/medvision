@@ -18,9 +18,12 @@ const imageTypeEnum = z.enum([
 export const box4 = z
     .array(z.number().min(0).max(100))
     .length(4)
-    .refine((b) => b[0] < b[2] && b[1] < b[3], {
-        message: 'Coordenadas inválidas: ymin deve ser < ymax e xmin deve ser < xmax',
-    })
+    .transform((b) => [
+        Math.min(b[0], b[2]),
+        Math.min(b[1], b[3]),
+        Math.max(b[0], b[2]),
+        Math.max(b[1], b[3]),
+    ])
 
 export const DetectionSchema = z.object({
     label: z
