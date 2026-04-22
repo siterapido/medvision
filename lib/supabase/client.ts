@@ -7,9 +7,14 @@ import type { SupabaseClient } from "@supabase/supabase-js"
 let adapter: ReturnType<typeof createAuthClient> | null = null
 
 function getNeonAuthBaseUrl(): string {
-  if (process.env.NEXT_PUBLIC_NEON_AUTH_BASE_URL) {
-    return process.env.NEXT_PUBLIC_NEON_AUTH_BASE_URL
+  // Em dev local, a URL base *precisa* ser a própria origem do browser para que
+  // o fluxo passe pelo proxy `/api/auth/*` e os cookies sejam gravados no domínio correto.
+  // Se apontar para um domínio externo aqui, a sessão pode “logar” mas o server não enxerga.
+  if (process.env.NODE_ENV === "development" && typeof window !== "undefined") {
+    return window.location.origin
   }
+
+  if (process.env.NEXT_PUBLIC_NEON_AUTH_BASE_URL) return process.env.NEXT_PUBLIC_NEON_AUTH_BASE_URL
   if (process.env.NEXT_PUBLIC_VERCEL_URL) {
     return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`
   }

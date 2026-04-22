@@ -78,6 +78,14 @@ export function LoginForm({ variant = "light" }: LoginFormProps) {
         let profileRow: { role?: string } | null = null
         try {
           const res = await fetch("/api/profile/self", { credentials: "include" })
+          if (res.status === 401) {
+            setError(
+              "Login concluído, mas a sessão não ficou ativa no servidor (cookie não persistiu). " +
+                "Em dev, acesse a app pela mesma origem que o navegador está usando (ex.: `http://localhost:3000` ou o IP/hostname do seu `npm run dev`) e confirme se `NEON_AUTH_BASE_URL` está no `.env.local`. " +
+                "Se `NEXT_PUBLIC_NEON_AUTH_BASE_URL` apontar para outro domínio no dev, remova/ajuste para a própria aplicação.",
+            )
+            return
+          }
           if (res.ok) {
             profileRow = await res.json()
           }
