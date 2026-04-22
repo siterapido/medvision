@@ -78,6 +78,7 @@ export type ModelId = typeof MODELS[keyof typeof MODELS]
 export const VISION_MODELS_LIST = [
   { id: 'openai/gpt-5.4-pro',             name: 'GPT-5.4 Pro',        provider: 'OpenAI' },
   { id: 'anthropic/claude-sonnet-4.6',    name: 'Claude Sonnet 4.6',  provider: 'Anthropic' },
+  { id: 'z-ai/glm-5v-turbo',              name: 'GLM-5V Turbo',       provider: 'Z-AI' },
 ] as const
 
 export type VisionModelInfo = typeof VISION_MODELS_LIST[number]
