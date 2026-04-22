@@ -52,7 +52,7 @@ export function imagePayloadStats(imageData: string) {
     return { payloadChars: chars, approxBytes, approxMb }
 }
 
-export function useStructuredVisionOutputFromEnv(): boolean {
+export function getStructuredVisionOutputFromEnv(): boolean {
     return process.env.MEDVISION_STRUCTURED_OUTPUT !== '0'
 }
 

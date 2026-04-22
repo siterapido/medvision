@@ -63,3 +63,7 @@ export function getSeverityStyle(severity: string): SeverityStyle {
         ptLabel: 'Desconhecido',
     }
 }
+
+/** Texto legal compartilhado entre interface e PDF (Med Vision). */
+export const VISION_CLINICAL_DISCLAIMER_PLAIN =
+    'Uso assistido. Esta análise é gerada por IA e serve como apoio à decisão clínica. Não substitui exame físico, laudo radiológico definitivo nem a avaliação de um profissional habilitado.'

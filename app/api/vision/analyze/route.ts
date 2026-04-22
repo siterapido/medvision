@@ -17,7 +17,7 @@ import type { VisionAnalysis } from '@/lib/vision/schemas'
 import {
     elapseMs,
     imagePayloadStats,
-    useStructuredVisionOutputFromEnv,
+    getStructuredVisionOutputFromEnv,
     visionError,
     visionInfo,
     visionWarn,
@@ -77,7 +77,12 @@ export async function POST(req: Request) {
 
         if (!hasMedVisionOpenRouterKey()) {
             visionWarn('config.missing_openrouter', { requestId })
-            return new Response(JSON.stringify({ error: 'API not configured' }), {
+            return new Response(JSON.stringify({
+                error: {
+                    code: 'VISION_API_NOT_CONFIGURED',
+                    message: 'Serviço de análise de imagem não disponível. Contate o suporte.',
+                }
+            }), {
                 status: 500,
                 headers: { 'Content-Type': 'application/json' },
             })
@@ -91,7 +96,7 @@ export async function POST(req: Request) {
             mode: typeof mode === 'string' ? mode : 'default',
             specialty: typeof specialty === 'string' ? specialty : 'default',
             modelChain: modelsToUse.join(' → '),
-            structuredOutput: useStructuredVisionOutputFromEnv(),
+            structuredOutput: getStructuredVisionOutputFromEnv(),
             hasClinicalContext: Boolean(typeof clinicalContext === 'string' && clinicalContext.trim()),
             clinicalContextChars: typeof clinicalContext === 'string' ? clinicalContext.trim().length : 0,
             ...payloadStats,

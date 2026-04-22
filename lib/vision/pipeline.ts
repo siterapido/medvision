@@ -10,7 +10,7 @@ import { callWithFallback } from '@/lib/vision/model-fallback'
 import {
     elapseMs,
     imagePayloadStats,
-    useStructuredVisionOutputFromEnv,
+    getStructuredVisionOutputFromEnv as useStructuredVisionOutputFromEnv,
     visionInfo,
     visionWarn,
 } from '@/lib/vision/vision-log'
@@ -93,6 +93,29 @@ function normalizeQuickDetectionPayload(payload: unknown): unknown {
 
 function useStructuredVisionOutput(): boolean {
     return useStructuredVisionOutputFromEnv()
+}
+
+/** Tentativa de parse com múltiplas heurísticas para lidar com respostas mal formatadas. */
+function parseWithHeuristics(text: string): unknown {
+    try {
+        return extractJSON(text)
+    } catch {
+        // Tenta extrair apenas a parte relevante
+        const match = text.match(/(?:\{[\s\S]*\}|\[[\s\S]*\])/)
+        if (match) {
+            try {
+                return JSON.parse(match[0])
+            } catch {
+                /* tenta Repair */
+            }
+        }
+        // Tenta JSON simples como último recurso
+        try {
+            return JSON.parse(text)
+        } catch {
+            return null
+        }
+    }
 }
 
 async function tryGenerateObject<T>(
@@ -212,7 +235,27 @@ NÃO inclua markdown, code blocks, ou texto fora do JSON.`
         if (!result.text.trim()) {
             throw new Error('empty_response_from_model')
         }
-        return VisionSchema.parse(extractJSON(result.text))
+
+        // Parse com heurísticas mais flexíveis
+        const parsed = parseWithHeuristics(result.text)
+        if (parsed) {
+            visionInfo('pipeline.full.done', { modelId, path: 'text_fallback' })
+            return VisionSchema.parse(parsed)
+        }
+
+        // Último recurso: tentar extrair mesmo mal formatado
+        try {
+            const extracted = extractJSON(result.text)
+            visionInfo('pipeline.full.done', { modelId, path: 'extract_fallback' })
+            return VisionSchema.parse(extracted)
+        } catch (e) {
+            visionWarn('pipeline.full.parse_failed', {
+                modelId,
+                message: e instanceof Error ? e.message.slice(0, 200) : String(e).slice(0, 200),
+                textPreview: result.text.slice(0, 500),
+            })
+            throw new Error('parse_failed_after_fallbacks')
+        }
     }
 
     return callWithFallback(models, generateWithModel)
@@ -362,7 +405,27 @@ ${QUICK_DETECTION_SCHEMA}`
         if (!result.text.trim()) {
             throw new Error('empty_response_from_model')
         }
-        return QuickDetectionSchema.parse(normalizeQuickDetectionPayload(extractJSON(result.text)))
+
+        // Parse com heurísticas mais flexíveis
+        const parsed = parseWithHeuristics(result.text)
+        if (parsed) {
+            visionInfo('pipeline.quick.done', { modelId, path: 'text_fallback' })
+            return QuickDetectionSchema.parse(normalizeQuickDetectionPayload(parsed))
+        }
+
+        // Último recurso
+        try {
+            const extracted = extractJSON(result.text)
+            visionInfo('pipeline.quick.done', { modelId, path: 'extract_fallback' })
+            return QuickDetectionSchema.parse(normalizeQuickDetectionPayload(extracted))
+        } catch (e) {
+            visionWarn('pipeline.quick.parse_failed', {
+                modelId,
+                message: e instanceof Error ? e.message.slice(0, 200) : String(e).slice(0, 200),
+                textPreview: result.text.slice(0, 300),
+            })
+            throw new Error('quick_parse_failed')
+        }
     }
 
     return callWithFallback(models, generateWithModel)

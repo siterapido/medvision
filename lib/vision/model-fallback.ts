@@ -6,6 +6,21 @@ function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms))
 }
 
+/**
+ * Calcula timeout dinâmico baseado no tamanho estimado da imagem.
+ * Adiciona ~15s por MB para processamentos mais longos.
+ */
+export function calculateDynamicTimeout(imageDataSizeBytes: number): number {
+    const DEFAULT_TIMEOUT_MS = 60000
+    const MIN_TIMEOUT_MS = 45000
+    const MAX_TIMEOUT_MS = 180000
+
+    const estimatedMB = imageDataSizeBytes / (1024 * 1024)
+    const additionalMs = Math.min(estimatedMB * 20000, 60000)
+
+    return Math.min(Math.max(DEFAULT_TIMEOUT_MS + additionalMs, MIN_TIMEOUT_MS), MAX_TIMEOUT_MS)
+}
+
 function isRetryableError(error: unknown): boolean {
     if (error instanceof Error && error.name === 'AbortError') return true
 

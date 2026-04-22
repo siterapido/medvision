@@ -41,7 +41,6 @@ import { useDropzone } from 'react-dropzone'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { Slider } from '@/components/ui/slider'
@@ -72,47 +71,14 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-
-type VisionState = 'UPLOAD' | 'DESCRIBE' | 'MODELS' | 'VALIDATING' | 'CROP' | 'CONFIRM' | 'ANALYZING' | 'RESULT' | 'ERROR'
-
-const WIZARD_STEPS: { key: VisionState; label: string }[] = [
-    { key: 'UPLOAD',   label: 'Imagem'    },
-    { key: 'DESCRIBE', label: 'Problema'  },
-    { key: 'MODELS',   label: 'Modelos'   },
-    { key: 'CROP',     label: 'Ajustes'   },
-    { key: 'CONFIRM',  label: 'Confirmar' },
-]
-
-function StepIndicator({ current }: { current: VisionState }) {
-    const idx = WIZARD_STEPS.findIndex(s => s.key === current)
-    if (idx === -1) return null
-    return (
-        <div className="flex items-center justify-center gap-0 mb-8">
-            {WIZARD_STEPS.map((step, i) => {
-                const done    = i < idx
-                const active  = i === idx
-                return (
-                    <div key={step.key} className="flex items-center">
-                        <div className="flex flex-col items-center gap-1">
-                            <div className={cn(
-                                'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all',
-                                done   ? 'bg-primary border-primary text-primary-foreground'
-                                       : active ? 'border-primary text-primary bg-primary/10'
-                                                : 'border-border text-muted-foreground bg-muted/30'
-                            )}>
-                                {done ? <Check className="w-3.5 h-3.5" /> : i + 1}
-                            </div>
-                            <span className={cn('text-[10px] font-medium hidden sm:block', active ? 'text-primary' : 'text-muted-foreground')}>{step.label}</span>
-                        </div>
-                        {i < WIZARD_STEPS.length - 1 && (
-                            <div className={cn('h-0.5 w-8 sm:w-12 mx-1 mb-4 transition-all', i < idx ? 'bg-primary' : 'bg-border')} />
-                        )}
-                    </div>
-                )
-            })}
-        </div>
-    )
-}
+import {
+    AnalyzingStage,
+    MedVisionStepIndicator,
+    VisionClinicalDisclaimer,
+    VisionErrorBanner,
+    VisionErrorRecovery,
+} from '@/components/vision/med-vision'
+import type { VisionState } from '@/components/vision/med-vision'
 
 export default function MedVisionPage() {
     const router = useRouter()
@@ -175,6 +141,7 @@ export default function MedVisionPage() {
     const [refinements, setRefinements] = useState<VisionRefinement[]>([])
     const [isRefining, setIsRefining] = useState(false)
     const [expandedRefinement, setExpandedRefinement] = useState<number | null>(null)
+    const [imageToolsExpanded, setImageToolsExpanded] = useState(false)
 
     // Generate thumbnail from image
     const generateThumbnail = useCallback(async (imageSrc: string, size: number = 200): Promise<string> => {
@@ -411,8 +378,30 @@ export default function MedVisionPage() {
                     const limitInfo = limit ? ` (${used}/${limit} hoje)` : ''
                     throw new Error(errData?.error || `Limite diário atingido${limitInfo}. Faça upgrade para Pro.`)
                 }
-                // Extrai mensagem estruturada da API
-                const errorMsg = errData?.error?.message || errData?.error || `Falha na análise (HTTP ${response.status})`
+                if (response.status === 413) {
+                    throw new Error('Imagem muito grande. Tente comprimir ou usar uma imagem menor.')
+                }
+                if (response.status === 504) {
+                    throw new Error('Tempo excedido. Tente com uma imagem menor ou tente novamente.')
+                }
+
+                // Extrai mensagem estruturada da API com fallbacks
+                const errorCode = errData?.error?.code
+                const errorMessage = errData?.error?.message
+                const errorDetail = errData?.details
+
+                // Mapeia códigos conhecidos para mensagens amigáveis
+                const errorMessages: Record<string, string> = {
+                    'VISION_PROVIDER_AUTH': 'Erro de configuração. Contate o suporte.',
+                    'VISION_RATE_LIMIT': 'Muitas requisições. Aguarde um momento e tente novamente.',
+                    'VISION_PROVIDER_UNAVAILABLE': 'Serviço de IA temporariamente indisponível. Tente novamente em instantes.',
+                    'VISION_TIMEOUT': 'Tempo excedido ao analisar. Tente com uma imagem menor.',
+                    'VISION_NETWORK': 'Erro de conexão. Verifique sua internet.',
+                    'VISION_PARSE_ERROR': 'Erro ao processar resposta. Tente novamente.',
+                }
+
+                const friendlyMsg = errorCode ? errorMessages[errorCode] : null
+                const errorMsg = friendlyMsg || errorMessage || errorDetail || errData?.error || `Falha na análise (${response.status})`
                 throw new Error(typeof errorMsg === 'string' ? errorMsg : 'Falha ao analisar imagem')
             }
 
@@ -437,6 +426,53 @@ export default function MedVisionPage() {
             toast.error(`Erro na análise: ${msg}`)
             setState('ERROR')
         }
+    }
+
+    // Helper to retry analysis with exponential backoff
+    const retryAnalysis = async (
+        imageData: string,
+        modelId: string,
+        maxRetries = 2
+    ): Promise<VisionAnalysisResult | null> => {
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                const response = await fetch('/api/vision/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        image: imageData,
+                        clinicalContext: clinicalContext || undefined,
+                        model: modelId,
+                        specialty
+                    })
+                })
+
+                if (!response.ok) {
+                    // Non-retryable errors
+                    if (response.status === 401 || response.status === 402 || response.status === 413) {
+                        const errData = await response.json().catch(() => ({}))
+                        throw new Error(errData?.error || `Erro ${response.status}`)
+                    }
+                    // Retryable but max retries reached
+                    if (attempt >= maxRetries) {
+                        throw new Error(`Falha após ${maxRetries} tentativas`)
+                    }
+                    // Wait and retry
+                    const delay = Math.pow(2, attempt) * 1000
+                    await new Promise(r => setTimeout(r, delay))
+                    continue
+                }
+
+                return await response.json() as VisionAnalysisResult & { precision?: number }
+            } catch (e) {
+                if (attempt >= maxRetries) {
+                    throw e
+                }
+                const delay = Math.pow(2, attempt) * 1000
+                await new Promise(r => setTimeout(r, delay))
+            }
+        }
+        return null
     }
 
     const startCompareAnalysis = async (imageData: string, modelA: string, modelB: string) => {
@@ -609,6 +645,7 @@ export default function MedVisionPage() {
         setExpandedRefinement(null)
         setClinicalContext('')
         setComparisonResult(null)
+        setImageToolsExpanded(false)
         clearAnnotations()
         resetCrop()
     }
@@ -641,15 +678,19 @@ export default function MedVisionPage() {
                             exit={{ opacity: 0, y: -20 }}
                             className="w-full"
                         >
-                            <StepIndicator current="UPLOAD" />
+                            <MedVisionStepIndicator state={state} />
+
+                            {state === 'ERROR' && <VisionErrorBanner />}
 
                             {state === 'ERROR' && (
-                                <div className="mb-6 p-4 rounded-xl bg-destructive/10 border border-destructive/20 flex items-start gap-3 text-destructive">
-                                    <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
-                                    <div className="flex-1">
-                                        <p className="text-sm font-medium">Não foi possível completar a análise.</p>
-                                        <p className="text-xs mt-1 opacity-80">Verifique sua conexão e tente novamente.</p>
-                                    </div>
+                                <div className="mb-6">
+                                    <VisionErrorRecovery
+                                        hasImage={Boolean(image)}
+                                        onRetryFromConfirm={() => setState('CONFIRM')}
+                                        onChangeModel={() => setState('MODELS')}
+                                        onBackToCrop={() => setState('CROP')}
+                                        onNewUpload={reset}
+                                    />
                                 </div>
                             )}
 
@@ -702,7 +743,7 @@ export default function MedVisionPage() {
                             exit={{ opacity: 0, x: -40 }}
                             className="w-full space-y-6"
                         >
-                            <StepIndicator current="DESCRIBE" />
+                            <MedVisionStepIndicator state={state} />
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
                                 {/* Image preview */}
@@ -793,7 +834,7 @@ export default function MedVisionPage() {
                             exit={{ opacity: 0, x: -40 }}
                             className="w-full space-y-6"
                         >
-                            <StepIndicator current="MODELS" />
+                            <MedVisionStepIndicator state={state} />
 
                             <ModelSelector
                                 mode={analysisMode}
@@ -820,12 +861,21 @@ export default function MedVisionPage() {
 
                     {/* ─── VALIDATING ─── */}
                     {state === 'VALIDATING' && originalImage && qualityResult && (
-                        <QualityFeedback
-                            result={qualityResult}
-                            imagePreview={originalImage}
-                            onProceed={handleValidationProceed}
-                            onCancel={handleValidationCancel}
-                        />
+                        <motion.div
+                            key="validating"
+                            initial={{ opacity: 0, y: 12 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -12 }}
+                            className="w-full space-y-6"
+                        >
+                            <MedVisionStepIndicator state={state} />
+                            <QualityFeedback
+                                result={qualityResult}
+                                imagePreview={originalImage}
+                                onProceed={handleValidationProceed}
+                                onCancel={handleValidationCancel}
+                            />
+                        </motion.div>
                     )}
 
                     {/* ─── CROP / ADJUST ─── */}
@@ -837,7 +887,7 @@ export default function MedVisionPage() {
                             exit={{ opacity: 0, x: -40 }}
                             className="w-full space-y-6"
                         >
-                            <StepIndicator current="CROP" />
+                            <MedVisionStepIndicator state={state} />
 
                             <GlassCard className="p-6">
                                 <div className="flex items-center justify-between mb-4">
@@ -936,7 +986,7 @@ export default function MedVisionPage() {
                             exit={{ opacity: 0, x: -40 }}
                             className="w-full space-y-6"
                         >
-                            <StepIndicator current="CONFIRM" />
+                            <MedVisionStepIndicator state={state} />
 
                             <GlassCard className="p-6">
                                 <div className="flex items-center gap-3 mb-5">
@@ -1008,49 +1058,17 @@ export default function MedVisionPage() {
                     {state === 'ANALYZING' && (
                         <motion.div
                             key="analyzing"
-                            initial={{ opacity: 0, scale: 0.95 }}
+                            initial={{ opacity: 0, scale: 0.98 }}
                             animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 1.05 }}
-                            className="flex flex-col items-center justify-center min-h-[500px]"
+                            exit={{ opacity: 0, scale: 1.02 }}
+                            className="w-full"
                         >
-                            <div className="relative w-full max-w-xl aspect-video rounded-3xl overflow-hidden border border-border/50 shadow-2xl bg-black/40">
-                                {image && <img src={image} className="w-full h-full object-cover opacity-60 grayscale" alt="Analyzing" />}
-                                <motion.div
-                                    className="absolute left-0 right-0 h-1 bg-primary/60 shadow-[0_0_15px_rgba(var(--primary-rgb),0.8)] z-10"
-                                    animate={{ top: ['0%', '100%', '0%'] }}
-                                    transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                                />
-                                <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[2px]">
-                                    <div className="bg-background/80 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 shadow-xl flex flex-col items-center gap-4">
-                                        <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                                        <div className="text-center">
-                                            <h3 className="font-heading font-bold text-lg">Processando Imagem</h3>
-                                            <p className="text-sm text-muted-foreground">
-                                                {analysisMode === 'compare'
-                                                    ? 'Comparando 2 modelos em paralelo...'
-                                                    : 'Utilizando MedVision AI Engine v4.2'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="w-full max-w-md mt-12 space-y-3">
-                                <div className="flex justify-between text-sm font-medium">
-                                    <span className="text-primary flex items-center gap-2">
-                                        <Sparkles className="w-4 h-4" />
-                                        {progress < 25
-                                            ? 'Processando imagem...'
-                                            : progress < 55
-                                                ? 'Analisando estruturas...'
-                                                : progress < 85
-                                                    ? 'Gerando laudo...'
-                                                    : 'Finalizando análise...'}
-                                    </span>
-                                    <span>{Math.round(progress)}%</span>
-                                </div>
-                                <Progress value={progress} className="h-2" />
-                            </div>
+                            <AnalyzingStage
+                                state={state}
+                                image={image}
+                                progress={progress}
+                                isCompare={analysisMode === 'compare'}
+                            />
                         </motion.div>
                     )}
 
@@ -1062,6 +1080,7 @@ export default function MedVisionPage() {
                             animate={{ opacity: 1 }}
                             className="flex flex-col gap-6 max-w-6xl mx-auto w-full min-w-0"
                         >
+                            <VisionClinicalDisclaimer />
                             {/* Header */}
                             <div className="flex items-center justify-between flex-wrap gap-3">
                                 <div className="flex items-center gap-2">
@@ -1197,6 +1216,7 @@ export default function MedVisionPage() {
                             animate={{ opacity: 1 }}
                             className="flex flex-col gap-8 max-w-4xl mx-auto w-full min-w-0"
                         >
+                            <VisionClinicalDisclaimer />
                             {/* Quality badge (high precision) */}
                             {analysisPrecision !== null && analysisPrecision >= 80 && analysisResult.meta && (
                                 <div className="flex items-center justify-end gap-2">
@@ -1352,64 +1372,93 @@ export default function MedVisionPage() {
                                                         </DropdownMenuContent>
                                                     </DropdownMenu>
                                                 </div>
-                                                <div className="hidden md:flex absolute bottom-4 right-4 gap-2 flex-nowrap shrink-0">
-                                                    <Button
-                                                        size="icon"
-                                                        variant="secondary"
-                                                        className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0"
-                                                        onClick={() => setIsAnnotating(true)}
-                                                        title="Anotar"
-                                                    >
-                                                        <Pencil className="w-4 h-4" />
-                                                    </Button>
-                                                    <Button
-                                                        size="icon"
-                                                        variant="secondary"
-                                                        className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0"
-                                                        onClick={() => setIsSelectingRegion(true)}
-                                                        title="Refinar região"
-                                                    >
-                                                        <Microscope className="w-4 h-4" />
-                                                    </Button>
-                                                    <Button
-                                                        size="icon"
-                                                        variant="secondary"
-                                                        className={cn(
-                                                            "bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0",
-                                                            showHeatmap && "bg-red-500/50 border-red-500/50"
-                                                        )}
-                                                        onClick={() => setShowHeatmap(!showHeatmap)}
-                                                        title="Mapa de calor"
-                                                    >
-                                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill={showHeatmap ? "#ef4444" : "none"} />
-                                                            <circle cx="12" cy="12" r="4" fill={showHeatmap ? "#fca5a5" : "none"} />
-                                                        </svg>
-                                                    </Button>
-                                                    <Button
-                                                        size="icon"
-                                                        variant="secondary"
-                                                        className={cn(
-                                                            "bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0",
-                                                            isPresentationMode && "bg-primary/70 border-primary"
-                                                        )}
-                                                        onClick={() => setIsPresentationMode(!isPresentationMode)}
-                                                        title="Modo apresentação (paciente)"
-                                                    >
-                                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                            <rect x="2" y="3" width="20" height="14" rx="2" />
-                                                            <path d="M8 21h8M12 17v4" />
-                                                        </svg>
-                                                    </Button>
-                                                    <Button
-                                                        size="icon"
-                                                        variant="secondary"
-                                                        className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0"
-                                                        onClick={() => setIsFullscreen(true)}
-                                                        title="Tela cheia"
-                                                    >
-                                                        <Maximize2 className="w-4 h-4" />
-                                                    </Button>
+                                                <div className="hidden md:flex absolute bottom-4 right-4 gap-2 flex-nowrap shrink-0 items-center">
+                                                    {!imageToolsExpanded ? (
+                                                        <Button
+                                                            variant="secondary"
+                                                            className="bg-black/50 backdrop-blur-md border-white/10 hover:bg-black/70 rounded-full h-10 px-3 gap-2 text-xs font-medium"
+                                                            onClick={() => setImageToolsExpanded(true)}
+                                                            title="Mostrar anotar, mapa de calor e mais"
+                                                        >
+                                                            <MoreVertical className="w-4 h-4" />
+                                                            Ferramentas da imagem
+                                                        </Button>
+                                                    ) : (
+                                                        <>
+                                                            <Button
+                                                                size="icon"
+                                                                variant="secondary"
+                                                                className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0"
+                                                                onClick={() => {
+                                                                    setImageToolsExpanded(true)
+                                                                    setIsAnnotating(true)
+                                                                }}
+                                                                title="Anotar"
+                                                            >
+                                                                <Pencil className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button
+                                                                size="icon"
+                                                                variant="secondary"
+                                                                className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0"
+                                                                onClick={() => {
+                                                                    setImageToolsExpanded(true)
+                                                                    setIsSelectingRegion(true)
+                                                                }}
+                                                                title="Refinar região"
+                                                            >
+                                                                <Microscope className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button
+                                                                size="icon"
+                                                                variant="secondary"
+                                                                className={cn(
+                                                                    "bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0",
+                                                                    showHeatmap && "bg-red-500/50 border-red-500/50"
+                                                                )}
+                                                                onClick={() => setShowHeatmap(!showHeatmap)}
+                                                                title="Mapa de calor"
+                                                            >
+                                                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill={showHeatmap ? "#ef4444" : "none"} />
+                                                                    <circle cx="12" cy="12" r="4" fill={showHeatmap ? "#fca5a5" : "none"} />
+                                                                </svg>
+                                                            </Button>
+                                                            <Button
+                                                                size="icon"
+                                                                variant="secondary"
+                                                                className={cn(
+                                                                    "bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0",
+                                                                    isPresentationMode && "bg-primary/70 border-primary"
+                                                                )}
+                                                                onClick={() => setIsPresentationMode(!isPresentationMode)}
+                                                                title="Modo apresentação (paciente)"
+                                                            >
+                                                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                                                    <rect x="2" y="3" width="20" height="14" rx="2" />
+                                                                    <path d="M8 21h8M12 17v4" />
+                                                                </svg>
+                                                            </Button>
+                                                            <Button
+                                                                size="icon"
+                                                                variant="secondary"
+                                                                className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0"
+                                                                onClick={() => setIsFullscreen(true)}
+                                                                title="Tela cheia"
+                                                            >
+                                                                <Maximize2 className="w-4 h-4" />
+                                                            </Button>
+                                                            <Button
+                                                                size="icon"
+                                                                variant="secondary"
+                                                                className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0 h-8 w-8"
+                                                                onClick={() => setImageToolsExpanded(false)}
+                                                                title="Ocultar barra de ferramentas"
+                                                            >
+                                                                <ChevronDown className="w-4 h-4" />
+                                                            </Button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </>
                                         )}

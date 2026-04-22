@@ -1,4 +1,5 @@
 import { jsPDF } from 'jspdf'
+import { VISION_CLINICAL_DISCLAIMER_PLAIN } from '@/lib/constants/vision'
 import { VisionAnalysisResult, VisionRefinement } from '@/lib/types/vision'
 
 interface GeneratePDFOptions {
@@ -60,6 +61,19 @@ export async function generateVisionPDF({ analysisResult, imageBase64, refinemen
   doc.text(currentDate, pageWidth - margin - 30, 25)
 
   yPosition = 45
+
+  doc.setTextColor(mutedColor[0], mutedColor[1], mutedColor[2])
+  doc.setFontSize(8)
+  doc.setFont('helvetica', 'italic')
+  yPosition = addWrappedText(
+    VISION_CLINICAL_DISCLAIMER_PLAIN,
+    margin,
+    yPosition,
+    contentWidth,
+    4.2
+  )
+  yPosition += 6
+  doc.setFont('helvetica', 'normal')
 
   // Image Type Badge
   if (analysisResult.meta?.imageType) {

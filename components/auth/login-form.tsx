@@ -56,12 +56,42 @@ export function LoginForm({ variant = "light" }: LoginFormProps) {
         password,
       })
 
+      // #region agent log
+      fetch('http://127.0.0.1:7488/ingest/88ff5270-51f7-4fd2-964b-ba8036bb3567',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'34a8c1'},body:JSON.stringify({sessionId:'34a8c1',runId:'pre-fix',hypothesisId:'P3',location:'components/auth/login-form.tsx:after-signInWithPassword',message:'login.signInWithPassword.result',data:{hasError:Boolean(signInError),errStatus:(signInError as any)?.status??null,errName:(signInError as any)?.name??null,errMessage:signInError?.message?.slice(0,160)??null,hasUser:Boolean(data?.user)},timestamp:Date.now()})}).catch(()=>{});
+      // #endregion
+
+      // #region agent log
+      fetch("http://127.0.0.1:7488/ingest/88ff5270-51f7-4fd2-964b-ba8036bb3567", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "9ee8f9" },
+        body: JSON.stringify({
+          sessionId: "9ee8f9",
+          runId: "post-fix",
+          hypothesisId: "H2",
+          location: "login-form.tsx:after-signInWithPassword",
+          message: "signInWithPassword result",
+          data: {
+            hasError: !!signInError,
+            errMessage: signInError?.message?.slice(0, 120) ?? null,
+            errStatus: signInError?.status ?? null,
+            hasSessionUser: !!data?.user,
+          },
+          timestamp: Date.now(),
+        }),
+      }).catch(() => {})
+      // #endregion
+
       if (signInError) {
         console.error("Login error details:", {
           message: signInError.message,
           status: signInError.status,
           name: signInError.name
         })
+
+        if (signInError.status === 503 && signInError.message?.toLowerCase().includes("neon_auth_base_url")) {
+          setError("Login indisponível no servidor: configuração de autenticação ausente (NEON_AUTH_BASE_URL).")
+          return
+        }
 
         // Mensagens de erro em português
         if (signInError.message.includes("Invalid login credentials")) {
@@ -78,6 +108,21 @@ export function LoginForm({ variant = "light" }: LoginFormProps) {
         let profileRow: { role?: string } | null = null
         try {
           const res = await fetch("/api/profile/self", { credentials: "include" })
+          // #region agent log
+          fetch("http://127.0.0.1:7488/ingest/88ff5270-51f7-4fd2-964b-ba8036bb3567", {
+            method: "POST",
+            headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "9ee8f9" },
+            body: JSON.stringify({
+              sessionId: "9ee8f9",
+              runId: "post-fix",
+              hypothesisId: "H4",
+              location: "login-form.tsx:profile-self",
+              message: "/api/profile/self response",
+              data: { status: res.status, ok: res.ok },
+              timestamp: Date.now(),
+            }),
+          }).catch(() => {})
+          // #endregion
           if (res.status === 401) {
             setError(
               "Login concluído, mas a sessão não ficou ativa no servidor (cookie não persistiu). " +

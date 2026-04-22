@@ -8,6 +8,21 @@ import { getSql } from "@/lib/db/pool"
  */
 export async function GET() {
   const { user } = await neonAuth()
+  // #region agent log
+  fetch("http://127.0.0.1:7488/ingest/88ff5270-51f7-4fd2-964b-ba8036bb3567", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "9ee8f9" },
+    body: JSON.stringify({
+      sessionId: "9ee8f9",
+      runId: "pre-fix",
+      hypothesisId: "H4",
+      location: "api/profile/self:GET",
+      message: "neonAuth in profile self",
+      data: { hasUser: !!user },
+      timestamp: Date.now(),
+    }),
+  }).catch(() => {})
+  // #endregion
   if (!user) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 })
   }
