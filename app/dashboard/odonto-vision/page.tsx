@@ -688,7 +688,7 @@ toast.success('Região re-analisada com sucesso!')
                                     <VisionErrorRecovery
                                         hasImage={Boolean(image)}
                                         onRetryFromConfirm={() => setState('CONFIRM')}
-                                        onChangeModel={() => setState('MODELS')}
+                                        onChangeModel={() => setState('CROP')}
                                         onBackToCrop={() => setState('CROP')}
                                         onNewUpload={reset}
                                     />
@@ -819,32 +819,9 @@ toast.success('Região re-analisada com sucesso!')
                                 <Button variant="outline" className="flex-1 h-11 rounded-xl gap-2" onClick={() => setState('UPLOAD')}>
                                     <ChevronRight className="w-4 h-4 rotate-180" /> Voltar
                                 </Button>
-                                <Button className="flex-1 h-11 rounded-xl gap-2" onClick={() => setState('MODELS')}>
-                                    Próximo <ChevronRight className="w-4 h-4" />
-                                </Button>
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* ─── STEP 3: MODELS ─── */}
-                    {state === 'MODELS' && originalImage && (
-                        <motion.div
-                            key="models"
-                            initial={{ opacity: 0, x: 40 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -40 }}
-                            className="w-full space-y-6"
-                        >
-                            <MedVisionStepIndicator state={state} />
-
-                            {/* Navigation */}
-                            <div className="flex gap-3 pt-2">
-                                <Button variant="outline" className="flex-1 h-11 rounded-xl gap-2" onClick={() => setState('DESCRIBE')}>
-                                    <ChevronRight className="w-4 h-4 rotate-180" /> Voltar
-                                </Button>
-                                <Button className="flex-1 h-11 rounded-xl gap-2" onClick={() => { setState('CROP'); resetCrop() }}>
-                                    Próximo <ChevronRight className="w-4 h-4" />
-                                </Button>
+<Button className="flex-1 h-11 rounded-xl gap-2" onClick={() => { setState('CROP'); resetCrop() }}>
+                            Próximo <ChevronRight className="w-4 h-4" />
+                        </Button>
                             </div>
                         </motion.div>
                     )}
@@ -939,7 +916,7 @@ toast.success('Região re-analisada com sucesso!')
                                 </div>
 
                                 <div className="flex gap-3 mt-6 pt-4 border-t border-border/30">
-                                    <Button variant="outline" className="h-12 rounded-xl gap-2 px-4" onClick={() => setState('MODELS')}>
+                                    <Button variant="outline" className="h-12 rounded-xl gap-2 px-4" onClick={() => setState('CROP')}>
                                         <ChevronRight className="w-4 h-4 rotate-180" /> Voltar
                                     </Button>
                                     <Button variant="outline" className="flex-1 h-12 rounded-xl gap-2" onClick={handleSkipCrop}>
