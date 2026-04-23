@@ -26,10 +26,19 @@ import {
 } from "@/lib/notifications"
 
 export const dynamic = "force-dynamic"
+/** Lote grande de notificações: margem além do default (10s) */
+export const maxDuration = 120
 
 type Channel = "whatsapp" | "email"
 
-export async function GET() {
+export async function GET(request: Request) {
+  const authHeader = request.headers.get("authorization")
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+    console.warn("[Cron notifications] Tentativa de acesso não autorizado")
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  }
+
   const supabase = createAdminClient()
   const results: ProcessResult[] = []
   const now = new Date()

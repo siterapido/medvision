@@ -1,38 +1,33 @@
 #!/usr/bin/env tsx
 
 /**
- * Script de Validação de Variáveis de Ambiente
- * 
+ * Valida variáveis de ambiente (stack primário: Neon + DATABASE_URL)
+ *
  * Uso: npx tsx scripts/validate-env.ts
  */
 
 import { readFileSync } from "fs"
 import { resolve } from "path"
 import { createClient } from "@supabase/supabase-js"
+import { neon } from "@neondatabase/serverless"
 
-// Carregar .env.local manualmente
 function loadEnvLocal() {
   try {
     const envPath = resolve(process.cwd(), ".env.local")
     const envContent = readFileSync(envPath, "utf-8")
-    
+
     envContent.split("\n").forEach((line) => {
-      // Ignorar comentários e linhas vazias
       if (!line || line.trim().startsWith("#")) return
-      
-      // Parse KEY=VALUE
       const match = line.match(/^([^=]+)=(.*)$/)
       if (match) {
         const key = match[1].trim()
         let value = match[2].trim()
-        
-        // Remover aspas se existirem
-        if ((value.startsWith('"') && value.endsWith('"')) || 
-            (value.startsWith("'") && value.endsWith("'"))) {
+        if (
+          (value.startsWith('"') && value.endsWith('"')) ||
+          (value.startsWith("'") && value.endsWith("'"))
+        ) {
           value = value.slice(1, -1)
         }
-        
-        // Não sobrescrever variáveis já definidas
         if (!process.env[key]) {
           process.env[key] = value
         }
@@ -43,10 +38,8 @@ function loadEnvLocal() {
   }
 }
 
-// Carregar variáveis antes de validar
 loadEnvLocal()
 
-// Cores para output
 const colors = {
   reset: "\x1b[0m",
   red: "\x1b[31m",
@@ -71,147 +64,183 @@ function decodeJWT(token: string): Record<string, unknown> | null {
   }
 }
 
-async function validateEnv() {
-  log("cyan", "\n╔══════════════════════════════════════════════════════════════╗")
-  log("cyan", "║     Validação de Variáveis de Ambiente - MedVision          ║")
-  log("cyan", "╚══════════════════════════════════════════════════════════════╝\n")
+function isValidPostgresUrl(url: string) {
+  return url.startsWith("postgres://") || url.startsWith("postgresql://")
+}
 
-  let hasErrors = false
-  const warnings: string[] = []
-
-  // 1. Verificar NEXT_PUBLIC_SUPABASE_URL
-  log("blue", "📍 Verificando NEXT_PUBLIC_SUPABASE_URL...")
+/** Validação legada (projeto ainda com URL Supabase no .env) */
+async function validateSupabaseLegacy(
+  hasErrors: { v: boolean },
+  warnings: string[]
+) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
   if (!supabaseUrl) {
-    log("red", "❌ NEXT_PUBLIC_SUPABASE_URL não está definida")
-    hasErrors = true
-  } else if (!supabaseUrl.startsWith("https://") || !supabaseUrl.includes(".supabase.co")) {
-    log("red", `❌ NEXT_PUBLIC_SUPABASE_URL parece inválida: ${supabaseUrl}`)
-    hasErrors = true
+    return
+  }
+
+  log("blue", "\n📦 Modo legado: NEXT_PUBLIC_SUPABASE_URL definida — validando chaves...")
+
+  if (!supabaseUrl.startsWith("https://") || !supabaseUrl.includes(".supabase.co")) {
+    log("red", "❌ NEXT_PUBLIC_SUPABASE_URL parece inválida")
+    hasErrors.v = true
   } else {
     const ref = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)
-    if (ref && ref[1]) {
-      log("green", `✅ NEXT_PUBLIC_SUPABASE_URL válida (ref: ${ref[1]})`)
+    if (ref?.[1]) {
+      log("green", `✅ URL Supabase (ref: ${ref[1]})`)
     } else {
-      log("yellow", `⚠️  NEXT_PUBLIC_SUPABASE_URL parece válida, mas formato inesperado`)
+      log("yellow", "⚠️  Formato inesperado em NEXT_PUBLIC_SUPABASE_URL")
       warnings.push("Formato inesperado na URL do Supabase")
     }
   }
 
-  // 2. Verificar NEXT_PUBLIC_SUPABASE_ANON_KEY
-  log("blue", "\n🔑 Verificando NEXT_PUBLIC_SUPABASE_ANON_KEY...")
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!anonKey) {
     log("red", "❌ NEXT_PUBLIC_SUPABASE_ANON_KEY não está definida")
-    hasErrors = true
+    hasErrors.v = true
   } else if (!anonKey.startsWith("eyJ")) {
-    log("red", "❌ NEXT_PUBLIC_SUPABASE_ANON_KEY parece inválida (deve ser um JWT)")
-    hasErrors = true
+    log("red", "❌ NEXT_PUBLIC_SUPABASE_ANON_KEY parece inválida (JWT esperado)")
+    hasErrors.v = true
   } else {
     const decoded = decodeJWT(anonKey)
     if (decoded && decoded.role === "anon") {
-      log("green", `✅ NEXT_PUBLIC_SUPABASE_ANON_KEY válida`)
-      if (decoded.ref && supabaseUrl) {
-        const urlRef = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1]
-        if (decoded.ref === urlRef) {
-          log("green", `✅ ref da chave anon bate com a URL (${decoded.ref})`)
-        } else {
-          log("red", `❌ ref da chave anon (${decoded.ref}) NÃO bate com a URL (${urlRef})`)
-          hasErrors = true
-        }
-      }
+      log("green", "✅ NEXT_PUBLIC_SUPABASE_ANON_KEY válida")
     } else {
-      log("red", "❌ NEXT_PUBLIC_SUPABASE_ANON_KEY inválida ou não é role 'anon'")
-      hasErrors = true
+      log("red", "❌ NEXT_PUBLIC_SUPABASE_ANON_KEY inválida (role não é anon)")
+      hasErrors.v = true
     }
   }
 
-  // 3. Verificar SUPABASE_SERVICE_ROLE_KEY
-  log("blue", "\n🔐 Verificando SUPABASE_SERVICE_ROLE_KEY...")
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!serviceKey) {
     log("red", "❌ SUPABASE_SERVICE_ROLE_KEY não está definida")
-    log("yellow", "   → Esta chave é necessária para criar usuários admin/vendedores")
-    hasErrors = true
+    hasErrors.v = true
   } else if (!serviceKey.startsWith("eyJ")) {
-    log("red", "❌ SUPABASE_SERVICE_ROLE_KEY parece inválida (deve ser um JWT)")
-    hasErrors = true
+    log("red", "❌ SUPABASE_SERVICE_ROLE_KEY parece inválida")
+    hasErrors.v = true
   } else {
     const decoded = decodeJWT(serviceKey)
     if (decoded && decoded.role === "service_role") {
-      log("green", `✅ SUPABASE_SERVICE_ROLE_KEY válida`)
-      if (decoded.ref && supabaseUrl) {
-        const urlRef = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)?.[1]
-        if (decoded.ref === urlRef) {
-          log("green", `✅ ref da service key bate com a URL (${decoded.ref})`)
-        } else {
-          log("red", `❌ ref da service key (${decoded.ref}) NÃO bate com a URL (${urlRef})`)
-          log("yellow", `   → Você está usando uma chave de outro projeto!`)
-          log("yellow", `   → Obtenha a chave correta em: https://supabase.com/dashboard/project/${urlRef}/settings/api`)
-          hasErrors = true
-        }
-      }
+      log("green", "✅ SUPABASE_SERVICE_ROLE_KEY válida")
     } else {
-      log("red", "❌ SUPABASE_SERVICE_ROLE_KEY inválida ou não é role 'service_role'")
-      hasErrors = true
+      log("red", "❌ SUPABASE_SERVICE_ROLE_KEY inválida (role service_role esperada)")
+      hasErrors.v = true
     }
   }
 
-  // 4. Testar conexão com Supabase (se as credenciais básicas existirem)
-  if (supabaseUrl && anonKey && !hasErrors) {
-    log("blue", "\n🌐 Testando conexão com Supabase...")
+  if (supabaseUrl && anonKey && !hasErrors.v) {
+    log("blue", "🌐 Testando conexão Supabase (legado)...")
     try {
       const supabase = createClient(supabaseUrl, anonKey)
-      const { data, error } = await supabase.from("profiles").select("count").limit(1)
-      
+      const { error } = await supabase.from("profiles").select("count").limit(1)
       if (error) {
         if (error.message.includes("relation") && error.message.includes("does not exist")) {
-          log("yellow", `⚠️  Conexão OK, mas tabela 'profiles' não existe`)
-          log("yellow", `   → Execute as migrações: npm run db:push ou aplique manualmente`)
-          warnings.push("Tabela profiles não encontrada")
+          log("yellow", "⚠️  Conexão OK, tabela 'profiles' não encontrada (migrações?)")
+          warnings.push("Tabela profiles não encontrada (legado)")
         } else {
-          log("yellow", `⚠️  Conexão estabelecida, mas erro ao consultar: ${error.message}`)
-          warnings.push(`Erro na consulta: ${error.message}`)
+          log("yellow", `⚠️  ${error.message}`)
+          warnings.push(`Supabase: ${error.message}`)
         }
       } else {
-        log("green", "✅ Conexão com Supabase estabelecida com sucesso")
+        log("green", "✅ Conexão Supabase (legado) ok")
       }
     } catch (error) {
-      log("red", `❌ Erro ao tentar conectar com Supabase: ${error}`)
+      log("red", `❌ ${error}`)
+      hasErrors.v = true
+    }
+  }
+}
+
+async function validateEnv() {
+  log("cyan", "\n╔══════════════════════════════════════════════════════════════╗")
+  log("cyan", "║     Validação de Variáveis de Ambiente - MedVision         ║")
+  log("cyan", "╚══════════════════════════════════════════════════════════════╝\n")
+
+  let hasErrors = false
+  const warnings: string[] = []
+  const errRef = { v: false }
+
+  // 1) Neon / DATABASE_URL (obrigatório no stack atual)
+  log("blue", "🗄️  Verificando DATABASE_URL (Neon/Postgres)...")
+  const databaseUrl = process.env.DATABASE_URL
+  if (!databaseUrl) {
+    log("red", "❌ DATABASE_URL não está definida (necessária para o app e crons)")
+    hasErrors = true
+  } else if (!isValidPostgresUrl(databaseUrl)) {
+    log("red", "❌ DATABASE_URL deve ser postgres:// ou postgresql://")
+    hasErrors = true
+  } else {
+    log("green", "✅ DATABASE_URL com formato de URL PostgreSQL")
+    try {
+      const sql = neon(databaseUrl)
+      await sql`SELECT 1`
+      log("green", "✅ Conexão ao banco (SELECT 1) ok")
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      log("red", `❌ Falha ao conectar com DATABASE_URL: ${msg}`)
       hasErrors = true
     }
   }
 
-  // 5. Verificar outras variáveis importantes
-  log("blue", "\n🔧 Verificando outras variáveis...")
-  
-  const optionalVars = [
+  // 2) Vercel crons (recomendado em produção)
+  log("blue", "\n⏰ Verificando CRON_SECRET (rotas /api/cron/*)...")
+  if (!process.env.CRON_SECRET) {
+    log("yellow", "⚠️  CRON_SECRET não definida — obrigatória na Vercel para crons autenticados")
+    log("yellow", "   → production: adicione em Vercel → Settings → Environment Variables")
+    warnings.push("CRON_SECRET ausente (crons em produção exigem)")
+  } else {
+    if (process.env.CRON_SECRET.length < 16) {
+      log("yellow", "⚠️  CRON_SECRET muito curta (recomendado: ≥ 16 caracteres aleatórios)")
+      warnings.push("CRON_SECRET curta")
+    } else {
+      log("green", "✅ CRON_SECRET definida")
+    }
+  }
+
+  // 3) Supabase só se ainda houver legado
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    await validateSupabaseLegacy(errRef, warnings)
+    hasErrors = hasErrors || errRef.v
+  } else {
+    log("blue", "\n📭 Stack Neon: variáveis Supabase legado omitidas (esperado)")
+  }
+
+  // 4) Outras
+  log("blue", "\n🔧 Outras variáveis...")
+
+  const otherRequired = [
     { name: "NEXT_PUBLIC_SITE_URL", required: true },
     { name: "APP_URL", required: true },
-    { name: "BUNNY_STORAGE_ZONE", required: false },
-    { name: "BUNNY_STORAGE_API_KEY", required: false },
-    { name: "BUNNY_CDN_BASE_URL", required: false },
-    { name: "Z_API_INSTANCE_ID", required: false },
-    { name: "Z_API_TOKEN", required: false },
-    { name: "Z_API_CLIENT_TOKEN", required: false },
-    { name: "OPENAI_API_KEY", required: false },
-  ]
+  ] as const
 
-  for (const { name, required } of optionalVars) {
+  for (const { name, required } of otherRequired) {
+    if (process.env[name]) {
+      log("green", `✅ ${name} definida`)
+    } else if (required) {
+      log("red", `❌ ${name} não está definida (obrigatória)`)
+      hasErrors = true
+    } else {
+      log("yellow", `⚠️  ${name} não está definida`)
+    }
+  }
+
+  const optionalVars = [
+    "BUNNY_STORAGE_ZONE",
+    "BUNNY_STORAGE_API_KEY",
+    "BUNNY_CDN_BASE_URL",
+    "Z_API_INSTANCE_ID",
+    "Z_API_TOKEN",
+    "Z_API_CLIENT_TOKEN",
+    "OPENAI_API_KEY",
+  ]
+  for (const name of optionalVars) {
     if (process.env[name]) {
       log("green", `✅ ${name} definida`)
     } else {
-      if (required) {
-        log("red", `❌ ${name} não está definida (obrigatória)`)
-        hasErrors = true
-      } else {
-        log("yellow", `⚠️  ${name} não está definida (opcional)`)
-      }
+      log("yellow", `⚠️  ${name} não está definida (opcional)`)
     }
   }
 
-  // Validação de completude Z-API
-  log("blue", "\n📱 Verificando configuração Z-API (WhatsApp)...")
+  log("blue", "\n📱 Z-API (WhatsApp)...")
   const zapiInstanceId = process.env.Z_API_INSTANCE_ID
   const zapiToken = process.env.Z_API_TOKEN
   const zapiClientToken = process.env.Z_API_CLIENT_TOKEN
@@ -219,43 +248,35 @@ async function validateEnv() {
   const hasAllZapi = zapiInstanceId && zapiToken && zapiClientToken
 
   if (hasAnyZapi && !hasAllZapi) {
-    log("yellow", "⚠️  Z-API parcialmente configurada:")
-    if (!zapiInstanceId) log("yellow", "   → Z_API_INSTANCE_ID não definida")
-    if (!zapiToken) log("yellow", "   → Z_API_TOKEN não definida")
-    if (!zapiClientToken) log("yellow", "   → Z_API_CLIENT_TOKEN não definida")
-    log("yellow", "   → Todas as 3 variáveis são necessárias para o WhatsApp funcionar")
-    warnings.push("Z-API parcialmente configurada")
+    log("yellow", "⚠️  Z-API parcialmente configurada")
+    if (!zapiInstanceId) log("yellow", "   → Z_API_INSTANCE_ID")
+    if (!zapiToken) log("yellow", "   → Z_API_TOKEN")
+    if (!zapiClientToken) log("yellow", "   → Z_API_CLIENT_TOKEN")
+    warnings.push("Z-API parcial")
   } else if (hasAllZapi) {
-    log("green", "✅ Z-API (WhatsApp) completamente configurada")
+    log("green", "✅ Z-API completa")
   } else {
-    log("yellow", "⚠️  Z-API não configurada (integração WhatsApp desabilitada)")
+    log("yellow", "⚠️  Z-API não configurada (WhatsApp desabilitado)")
   }
 
-  // Resumo
   log("cyan", "\n╔══════════════════════════════════════════════════════════════╗")
   log("cyan", "║                         RESUMO                               ║")
   log("cyan", "╚══════════════════════════════════════════════════════════════╝\n")
 
   if (hasErrors) {
-    log("red", "❌ Foram encontrados ERROS CRÍTICOS na configuração")
-    log("yellow", "\n📝 Próximos passos:")
-    log("yellow", "   1. Corrija os erros apontados acima")
-    log("yellow", "   2. Consulte: docs/TROUBLESHOOTING_ENV.md")
-    log("yellow", "   3. Execute este script novamente para validar")
+    log("red", "❌ Foram encontrados erros críticos na configuração")
+    log("yellow", "\n📝 Dica: veja .env.example e docs/TROUBLESHOOTING_ENV.md se existir")
     process.exit(1)
   } else if (warnings.length > 0) {
-    log("yellow", `⚠️  Configuração funcional, mas com ${warnings.length} aviso(s)`)
+    log("yellow", `⚠️  ${warnings.length} aviso(s)`)
     warnings.forEach((w, i) => log("yellow", `   ${i + 1}. ${w}`))
-    log("green", "\n✅ Você pode prosseguir, mas considere resolver os avisos")
+    log("green", "\n✅ Pode prosseguir; considere corrigir os avisos em produção")
   } else {
-    log("green", "✅ Todas as variáveis de ambiente estão CORRETAS!")
-    log("green", "🚀 Você pode iniciar o servidor com: npm run dev")
+    log("green", "✅ Variáveis ok — npm run dev")
   }
 }
 
-// Executar validação
 validateEnv().catch((error) => {
   console.error("Erro inesperado:", error)
   process.exit(1)
 })
-

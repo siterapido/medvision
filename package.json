@@ -2,6 +2,9 @@
   "name": "medvision",
   "version": "0.1.4",
   "private": true,
+  "engines": {
+    "node": ">=20.9.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/siterapido/medvision.git"
@@ -23,6 +26,7 @@
     "db:diff": "supabase db diff",
     "db:reset": "supabase db reset",
     "test:auth": "tsx scripts/test-db-auth.ts",
+    "test:vision-models": "tsx scripts/test-vision-models.ts",
     "vercel:env": "tsx scripts/update-vercel-env.ts",
     "vercel:env:sync": "tsx scripts/update-vercel-env.ts --sync",
     "vercel:env:add": "tsx scripts/update-vercel-env.ts --add",

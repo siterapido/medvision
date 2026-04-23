@@ -6,59 +6,60 @@ import {
   buildVisionModelChain,
   DEFAULT_VISION_MODEL_CHAIN,
   MODELS,
-  VISION_MODELS_LIST,
 } from "../lib/ai/openrouter"
 import { callWithFallback } from "../lib/vision/model-fallback"
 
-const GLM = "z-ai/glm-5v-turbo"
-const GEMINI = "google/gemini-2.5-pro"
+const KIMI = MODELS.vision
+const QWEN = MODELS.visionQwen
 
 describe("buildVisionModelChain (Med Vision)", () => {
-  it("com GLM selecionado, primário + fallback sem duplicar", () => {
-    const chain = buildVisionModelChain(GLM)
-    assert.deepEqual(chain, [GLM, GEMINI])
+  it("com Kimi (padrão) selecionado, retorna cadeia padrão Kimi → Qwen", () => {
+    const chain = buildVisionModelChain(KIMI)
+    assert.deepEqual(chain, [KIMI, QWEN])
   })
 
-  it("com Gemini selecionado, primário primeiro e GLM como fallback", () => {
-    const chain = buildVisionModelChain(GEMINI)
-    assert.deepEqual(chain, [GEMINI, GLM])
+  it("com Qwen selecionado, primário primeiro e Kimi como fallback", () => {
+    const chain = buildVisionModelChain(QWEN)
+    assert.deepEqual(chain, [QWEN, KIMI])
   })
 
-  it("com modelo da lista da UI fora da cadeia padrão, primário + cadeia padrão completa", () => {
-    const gpt = VISION_MODELS_LIST.find((m) => m.id === "openai/gpt-5.4-pro")
-    assert.ok(gpt, "lista de modelos de visão deve incluir gpt-5.4-pro")
-    const chain = buildVisionModelChain(gpt.id)
-    assert.deepEqual(chain, [gpt.id, ...DEFAULT_VISION_MODEL_CHAIN])
+  it("com modelo customizado fora da lista Kimi/Qwen, primário + cadeia padrão completa", () => {
+    const custom = "openai/gpt-4o"
+    const chain = buildVisionModelChain(custom)
+    assert.deepEqual(chain, [custom, ...DEFAULT_VISION_MODEL_CHAIN])
   })
 
-  it("sem modelo ou inválido: coincide com a cadeia padrão", () => {
+  it("sem seleção (undefined, string vazia): cadeia padrão; id desconhecido vira custom + fallback", () => {
     assert.deepEqual(buildVisionModelChain(), [...DEFAULT_VISION_MODEL_CHAIN])
     assert.deepEqual(buildVisionModelChain(undefined), [...DEFAULT_VISION_MODEL_CHAIN])
     assert.deepEqual(buildVisionModelChain(""), [...DEFAULT_VISION_MODEL_CHAIN])
-    assert.deepEqual(buildVisionModelChain("not-a-vision-model"), [...DEFAULT_VISION_MODEL_CHAIN])
+    assert.deepEqual(buildVisionModelChain("not-a-vision-model"), [
+      "not-a-vision-model",
+      ...DEFAULT_VISION_MODEL_CHAIN,
+    ])
   })
 
-  it("DEFAULT_VISION_MODEL_CHAIN reflete MODELS.vision e fallback", () => {
-    assert.deepEqual(DEFAULT_VISION_MODEL_CHAIN, [MODELS.vision, MODELS.visionFallback])
+  it("DEFAULT_VISION_MODEL_CHAIN é Kimi → Qwen", () => {
+    assert.deepEqual(DEFAULT_VISION_MODEL_CHAIN, [MODELS.vision, MODELS.visionQwen])
   })
 })
 
 describe("callWithFallback", () => {
-  it("erro não-retryable no 1.º modelo tenta o 2.º (não lança cedo demais)", async () => {
-    const e = new Error("Bad Request: parameter")
+  it("erro retryable no 1.º modelo tenta o 2.º", async () => {
+    const e = new Error("timeout after 30s")
     let calls: string[] = []
-    const result = await callWithFallback([GLM, GEMINI] as const, async (modelId) => {
+    const result = await callWithFallback([KIMI, QWEN] as const, async (modelId) => {
       calls.push(modelId)
-      if (modelId === GLM) throw e
+      if (modelId === KIMI) throw e
       return { ok: true, model: modelId }
     })
-    assert.deepEqual(calls, [GLM, GEMINI])
-    assert.deepEqual(result, { ok: true, model: GEMINI })
+    assert.deepEqual(calls, [KIMI, QWEN])
+    assert.deepEqual(result, { ok: true, model: QWEN })
   })
 
   it("escolhe o 1.º quando responde", async () => {
-    const r = await callWithFallback([GLM, GEMINI] as const, async (modelId) => {
-      if (modelId === GLM) return "first"
+    const r = await callWithFallback([KIMI, QWEN] as const, async (modelId) => {
+      if (modelId === KIMI) return "first"
       return "second"
     })
     assert.equal(r, "first")

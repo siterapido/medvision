@@ -149,7 +149,7 @@ function MarkerTooltip({ data }: { data: TooltipData }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.15 }}
-            className="absolute z-50 pointer-events-none"
+            className="absolute z-[100] pointer-events-none"
             style={{
                 left: `${x}%`,
                 top: `${y}%`,
@@ -287,7 +287,15 @@ export function DetectionMarkers({
     if (!markers.length) return null
 
     return (
-        <div className={cn("absolute inset-0 pointer-events-none overflow-visible", className)}>
+        <div
+            className={cn(
+                "absolute inset-0 pointer-events-none overflow-visible",
+                // Pai com z explícito: senão o z-50 do tooltip perde para irmãos (labels z-30) no image-overlay
+                "z-[32]",
+                tooltipData && "z-[60]",
+                className
+            )}
+        >
             <svg
                 className="absolute inset-0 w-full h-full pointer-events-none z-10"
                 viewBox="0 0 100 100"
@@ -341,7 +349,10 @@ export function DetectionMarkers({
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.5 }}
                             transition={{ duration: 0.25, delay: 0.1 }}
-                            className="absolute pointer-events-auto cursor-pointer"
+                            className={cn(
+                                "absolute pointer-events-auto cursor-pointer",
+                                (isHovered || isSelected) && "z-50"
+                            )}
                             style={{
                                 left: `${marker.x}%`,
                                 top: `${marker.y}%`,

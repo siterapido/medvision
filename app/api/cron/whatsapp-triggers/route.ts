@@ -6,6 +6,8 @@
 import { NextResponse } from 'next/server'
 import { checkAndSendTriggers } from '@/lib/whatsapp/triggers'
 
+export const maxDuration = 60
+
 export async function GET(request: Request) {
   // Verify CRON_SECRET for security
   const authHeader = request.headers.get('authorization')

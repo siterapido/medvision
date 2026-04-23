@@ -5,10 +5,12 @@ import { createAdminClient } from "@/lib/supabase/admin"
 // Cron job para atualizar estágios do pipeline automaticamente
 // Executa diariamente às 7h00
 
+export const maxDuration = 60
+
 export async function GET(request: Request) {
-  // Verify cron secret for security
   const authHeader = request.headers.get("authorization")
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 

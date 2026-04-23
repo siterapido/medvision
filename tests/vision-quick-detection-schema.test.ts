@@ -22,23 +22,22 @@ describe('QuickDetectionSchema (box4)', () => {
         assert.equal(parsed.quickDetections.length, 1)
     })
 
-    it('rejeita box com ymin >= ymax', () => {
-        assert.throws(() =>
-            QuickDetectionSchema.parse({
-                meta: {
-                    imageType: 'Desconhecido',
-                    quality: 'Aceitável',
-                    qualityScore: 50,
+    it('normaliza box quando as extremidades vêm invertidas (transform em box4)', () => {
+        const parsed = QuickDetectionSchema.parse({
+            meta: {
+                imageType: 'Desconhecido',
+                quality: 'Aceitável',
+                qualityScore: 50,
+            },
+            quickDetections: [
+                {
+                    label: 'Teste',
+                    box: [50, 10, 40, 20],
+                    severity: 'normal',
+                    confidence: 0.5,
                 },
-                quickDetections: [
-                    {
-                        label: 'Teste',
-                        box: [50, 10, 40, 20],
-                        severity: 'normal',
-                        confidence: 0.5,
-                    },
-                ],
-            }),
-        )
+            ],
+        })
+        assert.deepEqual(parsed.quickDetections[0]?.box, [40, 10, 50, 20])
     })
 })

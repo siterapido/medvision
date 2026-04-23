@@ -543,10 +543,10 @@ export function ImageOverlay({
                                             exit={{ opacity: 0 }}
                                             transition={{ duration: 0.35, delay: 0.3 + i * 0.08 }}
                                             className={cn(
-                                                "absolute px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-semibold text-white uppercase tracking-normal shadow-md pointer-events-auto cursor-pointer select-none",
+                                                "absolute z-10 px-1.5 py-0.5 rounded text-[8px] sm:text-[9px] font-semibold text-white uppercase tracking-normal shadow-md pointer-events-auto cursor-pointer select-none",
                                                 "whitespace-normal break-words sm:whitespace-nowrap",
                                                 sevStyle.label,
-                                                (isHovered || isSelected) ? "ring-2 ring-white/80 scale-105" : ""
+                                                (isHovered || isSelected) ? "z-50 ring-2 ring-white/80 scale-105" : ""
                                             )}
                                             style={{ left: `${pos.x}%`, top: `${pos.y}%`, maxWidth: 'min(40%, 92%)' }}
                                             onMouseEnter={() => setHoveredId(det.id)}
