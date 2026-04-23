@@ -2,6 +2,7 @@ import { APICallError } from 'ai'
 
 import { buildVisionModelChain, hasMedVisionOpenRouterKey } from '@/lib/ai/openrouter'
 import { deductCredits } from '@/lib/credits/service'
+import { ImageInadequateError } from '@/lib/vision/pipeline'
 import { getSpecialtyConfig } from '@/lib/constants/vision-specialties'
 import { validateAndMergeDetections } from '@/lib/vision/detection-validation'
 import { validateImagePayload } from '@/lib/vision/json-utils'
@@ -30,6 +31,10 @@ export const maxDuration = 300
 export async function POST(req: Request) {
     const requestStart = performance.now()
     const requestId = crypto.randomUUID().slice(0, 8)
+    let userId: string | undefined
+    let modelsToUse: string[] = []
+    let imageData: string = ''
+
     try {
         const supabase = await createClient()
         const {
@@ -41,6 +46,7 @@ export async function POST(req: Request) {
                 headers: { 'Content-Type': 'application/json' },
             })
         }
+        userId = user.id
 
         const body = await req.json()
         const { image, clinicalContext, mode, originalAnalysisSummary, model, specialty } = body
@@ -53,7 +59,7 @@ export async function POST(req: Request) {
             })
         }
 
-        let imageData = image
+        imageData = image
         if (!image.startsWith('data:') && !image.startsWith('http')) {
             imageData = `data:image/jpeg;base64,${image}`
         }
@@ -193,6 +199,18 @@ export async function POST(req: Request) {
         visionError('request.error', error, { requestId })
 
         const classified = classifyVisionError(error)
+        const skipCredits = error instanceof ImageInadequateError
+
+        if (!skipCredits && userId) {
+            try {
+                await deductCredits(userId, modelsToUse[0] || 'default', 'vision')
+            } catch (e) {
+                visionWarn('credits.deduct_failed', { requestId, message: e instanceof Error ? e.message : String(e) })
+            }
+        } else if (skipCredits) {
+            visionInfo('request.skipped_credits', { requestId, reason: 'inadequate_image' })
+        }
+
         const errorDetails =
             process.env.NODE_ENV === 'development'
                 ? APICallError.isInstance(error)
@@ -209,6 +227,7 @@ export async function POST(req: Request) {
                     code: classified.code,
                     message: classified.safeMessage,
                     retryable: classified.retryable,
+                    ...(classified.details ? { details: classified.details } : {}),
                 },
                 details: errorDetails,
             }),

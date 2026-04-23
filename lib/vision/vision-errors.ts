@@ -1,5 +1,6 @@
 import { APICallError } from 'ai'
 import { ZodError } from 'zod'
+import { ImageInadequateError } from '@/lib/vision/pipeline'
 
 export type VisionErrorKind =
     | 'unauthorized'
@@ -9,6 +10,7 @@ export type VisionErrorKind =
     | 'network'
     | 'parse_error'
     | 'bad_request'
+    | 'inadequate_image'
     | 'unknown'
 
 export type VisionErrorClassification = {
@@ -17,6 +19,7 @@ export type VisionErrorClassification = {
     httpStatus: number
     code: string
     safeMessage: string
+    details?: string
 }
 
 function lowerMessage(err: unknown): string {
@@ -119,6 +122,17 @@ export function classifyVisionError(err: unknown): VisionErrorClassification {
 
     if (status && status >= 500 && status <= 599) {
         return { kind: 'provider_unavailable', retryable: true, httpStatus: 502, code: 'VISION_PROVIDER_UNAVAILABLE', safeMessage: 'Provedor temporariamente indisponível. Tente novamente.' }
+    }
+
+    if (err instanceof ImageInadequateError) {
+        return {
+            kind: 'inadequate_image',
+            retryable: false,
+            httpStatus: 422,
+            code: 'INADEQUATE_IMAGE',
+            safeMessage: err.message,
+            details: err.details,
+        }
     }
 
     if (msg.includes('image') || msg.includes('invalid')) {

@@ -57,6 +57,7 @@ const DEFAULT_COMPARE_MODEL_B =
     VISION_MODELS_LIST.find(m => m.id !== MODELS.vision)?.id ?? MODELS.vision
 import { ImageOverlay } from '@/components/vision/image-overlay'
 import { QualityFeedback } from '@/components/vision/quality-feedback'
+import { InadequateImageError } from '@/components/vision/inadequate-image-error'
 import { AnnotationToolbar } from '@/components/vision/annotation-toolbar'
 import { AnnotationCanvas } from '@/components/vision/annotation-canvas'
 import { RegionSelector } from '@/components/vision/region-selector'
@@ -118,6 +119,9 @@ export default function MedVisionPage() {
 
     // Quality validation state
     const [qualityResult, setQualityResult] = useState<ImageQualityResult | null>(null)
+
+    // Inadequate image error state
+    const [inadequateImageError, setInadequateImageError] = useState<{ reason: string; details?: string } | null>(null)
 
     // Annotation state
     const [isAnnotating, setIsAnnotating] = useState(false)
@@ -430,10 +434,19 @@ export default function MedVisionPage() {
                     'VISION_TIMEOUT': 'Tempo excedido ao analisar. Tente com uma imagem menor.',
                     'VISION_NETWORK': 'Erro de conexão. Verifique sua internet.',
                     'VISION_PARSE_ERROR': 'Erro ao processar resposta. Tente novamente.',
+                    'INADEQUATE_IMAGE': 'Esta imagem não é adequada para análise.',
                 }
 
                 const friendlyMsg = errorCode ? errorMessages[errorCode] : null
                 const errorMsg = friendlyMsg || errorMessage || errorDetail || errData?.error || `Falha na análise (${response.status})`
+
+                if (errorCode === 'INADEQUATE_IMAGE') {
+                    setInadequateImageError({
+                        reason: typeof errorMsg === 'string' ? errorMsg : errorMessages['INADEQUATE_IMAGE'],
+                        details: errData?.error?.details,
+                    })
+                }
+
                 throw new Error(typeof errorMsg === 'string' ? errorMsg : 'Falha ao analisar imagem')
             }
 
@@ -538,6 +551,9 @@ export default function MedVisionPage() {
             if (!resA.ok || !resB.ok) {
                 const failed = !resA.ok ? resA : resB
                 const errData = await failed.json().catch(() => ({}))
+                const errorCode = errData?.error?.code
+                const errorMessage = errData?.error?.message
+
                 if (failed.status === 401) {
                     clearInterval(interval)
                     router.push('/login')
@@ -551,6 +567,13 @@ export default function MedVisionPage() {
                     const used = errData?.used
                     const limitInfo = limit ? ` (${used}/${limit} hoje)` : ''
                     throw new Error(errData?.error || `Limite diário atingido${limitInfo}. Faça upgrade para Pro.`)
+                }
+                if (errorCode === 'INADEQUATE_IMAGE') {
+                    setInadequateImageError({
+                        reason: errorMessage || 'Esta imagem não é adequada para análise.',
+                        details: errData?.error?.details,
+                    })
+                    throw new Error('INADEQUATE_IMAGE')
                 }
                 throw new Error(errData?.error || `HTTP ${failed.status}`)
             }
@@ -677,6 +700,7 @@ toast.success('Região re-analisada com sucesso!')
         setClinicalContext('')
         setComparisonResult(null)
         setImageToolsExpanded(false)
+        setInadequateImageError(null)
         clearAnnotations()
         resetCrop()
     }
@@ -713,7 +737,23 @@ toast.success('Região re-analisada com sucesso!')
 
                             {state === 'ERROR' && <VisionErrorBanner />}
 
-                            {state === 'ERROR' && (
+                            {state === 'ERROR' && inadequateImageError ? (
+                                <div className="mb-6">
+                                    <InadequateImageError
+                                        reason={inadequateImageError.reason}
+                                        details={inadequateImageError.details}
+                                        hasImage={Boolean(image)}
+                                        onTryAgain={() => {
+                                            setInadequateImageError(null)
+                                            if (image) setState('CONFIRM')
+                                        }}
+                                        onNewUpload={() => {
+                                            setInadequateImageError(null)
+                                            reset()
+                                        }}
+                                    />
+                                </div>
+                            ) : state === 'ERROR' && (
                                 <div className="mb-6">
                                     <VisionErrorRecovery
                                         hasImage={Boolean(image)}
@@ -787,6 +827,18 @@ toast.success('Região re-analisada com sucesso!')
 
                                 {/* Specialty + Clinical context */}
                                 <div className="space-y-4">
+                                    {/* Model selector */}
+                                    <ModelSelector
+                                        mode={analysisMode}
+                                        onModeChange={setAnalysisMode}
+                                        selectedModel={selectedModel}
+                                        onModelChange={setSelectedModel}
+                                        compareModelA={compareModelA}
+                                        compareModelB={compareModelB}
+                                        onCompareModelAChange={setCompareModelA}
+                                        onCompareModelBChange={setCompareModelB}
+                                    />
+
                                     {/* Specialty selector */}
                                     <GlassCard className="p-5 border-border/40">
                                         <div className="flex items-start gap-3 mb-4">

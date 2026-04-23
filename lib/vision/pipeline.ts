@@ -26,6 +26,60 @@ import { DetailedDetectionSchema, QuickDetectionSchema, VisionSchema, type Visio
 
 export const VISION_MODELS = DEFAULT_VISION_MODEL_CHAIN
 
+export class ImageInadequateError extends Error {
+    details: string
+    constructor(reason: string, details: string) {
+        super(`inadequate_image: ${reason}`)
+        this.name = 'ImageInadequateError'
+        this.details = details
+    }
+}
+
+function checkImageAdequacy(imageData: string): { adequate: boolean; reason: string; details: string } {
+    const chars = imageData.length
+    const approxBytes = Math.round(chars * 0.75)
+
+    if (approxBytes < 5000) {
+        return {
+            adequate: false,
+            reason: 'Imagem corrompida ou com dados insuficientes.',
+            details: `Tamanho: ~${approxBytes} bytes. Mínimo: 5KB.`,
+        }
+    }
+
+    if (approxBytes > 50 * 1024 * 1024) {
+        return {
+            adequate: false,
+            reason: 'Imagem muito grande para análise.',
+            details: `Tamanho: ~${Math.round(approxBytes / 1024 / 1024)}MB. Máximo recomendado: 50MB.`,
+        }
+    }
+
+    const base64Header = imageData.match(/^data:image\/(\w+);base64,/)
+    if (!base64Header) {
+        return {
+            adequate: false,
+            reason: 'Formato de imagem inválido.',
+            details: 'A imagem deve estar no formato data URL (base64).',
+        }
+    }
+
+    const mimeType = base64Header[1]
+    if (!['jpeg', 'jpg', 'png', 'webp', 'gif', 'bmp'].includes(mimeType.toLowerCase())) {
+        return {
+            adequate: false,
+            reason: 'Tipo de imagem não suportado.',
+            details: `Formato: ${mimeType}. Suportados: JPEG, PNG, WebP, GIF, BMP.`,
+        }
+    }
+
+    return { adequate: true, reason: '', details: '' }
+}
+
+async function checkImageAdequacyAsync(imageData: string): Promise<{ adequate: boolean; reason: string; details: string }> {
+    return checkImageAdequacy(imageData)
+}
+
 /** Imagem antes do texto: vários provedores (ex. GLM via OpenRouter) falham com 400 se a ordem for invertida. */
 function buildUserContent(imageData: string, textParts: { type: 'text'; text: string }[]) {
     return [{ type: 'image' as const, image: imageData }, ...textParts]
@@ -162,6 +216,11 @@ export async function callVisionAI(
     models: readonly string[] = VISION_MODELS,
     prompts?: SpecialtyPrompts,
 ): Promise<VisionAnalysis> {
+    const inadequateCheck = await checkImageAdequacyAsync(imageData)
+    if (!inadequateCheck.adequate) {
+        throw new ImageInadequateError(inadequateCheck.reason, inadequateCheck.details)
+    }
+
     const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
     const activeSystemPrompt = prompts?.systemPrompt ?? SYSTEM_PROMPT_BASE
 
@@ -349,6 +408,11 @@ export async function callVisionDetection(
     models: readonly string[] = VISION_MODELS,
     prompts?: SpecialtyPrompts,
 ): Promise<z.infer<typeof QuickDetectionSchema>> {
+    const inadequateCheck = checkImageAdequacy(imageData)
+    if (!inadequateCheck.adequate) {
+        throw new ImageInadequateError(inadequateCheck.reason, inadequateCheck.details)
+    }
+
     const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
     const activeQuickPrompt = prompts?.quickDetectionPrompt ?? QUICK_DETECTION_PROMPT
 
