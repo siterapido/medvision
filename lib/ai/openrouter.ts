@@ -86,14 +86,27 @@ export const VISION_MODELS_LIST = [
 export type VisionModelInfo = typeof VISION_MODELS_LIST[number]
 export const VISION_MODEL_IDS = new Set(VISION_MODELS_LIST.map(m => m.id))
 
-/** Cadeia padrão Med Vision: apenas Kimi k2.6, sem fallback */
-export const DEFAULT_VISION_MODEL_CHAIN = [MODELS.vision] as const
+/** Cadeia padrão Med Vision: Kimi k2.6 com Qwen3 como fallback */
+export const DEFAULT_VISION_MODEL_CHAIN = [MODELS.vision, MODELS.visionQwen] as const
 
 /**
- * Retorna apenas o modelo único (Kimi k2.6).
+ * Retorna a cadeia de modelos com fallback.
+ * Se o modelo selecionado for diferente do padrão, usa ele como primeiro e o outro como fallback.
  */
-export function buildVisionModelChain(_selectedModel?: string | null): readonly string[] {
-  return [...DEFAULT_VISION_MODEL_CHAIN]
+export function buildVisionModelChain(selectedModel?: string | null): readonly string[] {
+  const defaultModels = [...DEFAULT_VISION_MODEL_CHAIN]
+  
+  if (selectedModel && selectedModel !== MODELS.vision && selectedModel !== MODELS.visionQwen) {
+    // Modelo customizado: usa ele primeiro, depois os defaults como fallback
+    return [selectedModel, ...defaultModels]
+  }
+  
+  if (selectedModel === MODELS.visionQwen) {
+    // Se usuário escolheu Qwen como principal, usa ele primeiro com Kimi como fallback
+    return [MODELS.visionQwen, MODELS.vision]
+  }
+  
+  return defaultModels // Kimi → Qwen
 }
 
 /**
