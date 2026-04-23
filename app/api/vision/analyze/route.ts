@@ -67,8 +67,8 @@ export async function POST(req: Request) {
         }
 
         const beforeCompressionStats = imagePayloadStats(imageData)
-        if (beforeCompressionStats.sizeBytes > 2 * 1024 * 1024) {
-            visionInfo('request.compress_aggressive', { requestId, originalBytes: beforeCompressionStats.sizeBytes })
+        if (beforeCompressionStats.approxBytes > 2 * 1024 * 1024) {
+            visionInfo('request.compress_aggressive', { requestId, originalBytes: beforeCompressionStats.approxBytes })
             imageData = await compressToMax(imageData, 500 * 1024)
         }
 
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
 
         const modelsToUse = buildVisionModelChain(typeof model === 'string' ? model : undefined)
         const payloadStats = imagePayloadStats(imageData)
-        const wasCompressed = beforeCompressionStats.sizeBytes > 2 * 1024 * 1024
+        const wasCompressed = beforeCompressionStats.approxBytes > 2 * 1024 * 1024
         visionInfo('request.start', {
             requestId,
             userId8: user.id.slice(0, 8),
@@ -107,7 +107,7 @@ export async function POST(req: Request) {
             hasClinicalContext: Boolean(typeof clinicalContext === 'string' && clinicalContext.trim()),
             clinicalContextChars: typeof clinicalContext === 'string' ? clinicalContext.trim().length : 0,
             wasCompressed,
-            originalBytes: beforeCompressionStats.sizeBytes,
+            originalBytes: beforeCompressionStats.approxBytes,
             ...payloadStats,
         })
 
