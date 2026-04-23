@@ -613,7 +613,7 @@ toast.success('Região re-analisada com sucesso!')
             setState('RESULT')
             playSuccess()
         } catch (err) {
-            toast.error(`Erro ao refinar região: ${msg}`)
+            toast.error(`Erro ao refinar região: ${err}`)
         } finally {
             setIsRefining(false)
         }
