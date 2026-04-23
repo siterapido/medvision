@@ -86,7 +86,7 @@ export default function StudioPage() {
                 exam: '/dashboard/biblioteca/simulado',
                 flashcards: '/dashboard/biblioteca/flashcards',
                 mindmap: '/dashboard/biblioteca/mapas',
-                vision: '/dashboard/biblioteca/laudos',
+                vision: '/dashboard/laudos',
             }
 
             router.push(redirectMap[type] || `/dashboard/biblioteca?highlight=${result.artifact.id}`)

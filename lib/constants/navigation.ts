@@ -5,6 +5,7 @@ import {
   FileText,
   Users,
   Award,
+  ScanText,
 } from "lucide-react"
 
 export interface NavItem {
@@ -21,6 +22,7 @@ export interface NavItem {
 /** Navegação do app: ferramenta principal Med Vision (imagens). */
 export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard/odonto-vision", label: "Med Vision", icon: Eye },
+  { href: "/dashboard/laudos", label: "Laudos", icon: ScanText },
 ]
 
 export const BOTTOM_NAV_ITEMS: NavItem[] = []
