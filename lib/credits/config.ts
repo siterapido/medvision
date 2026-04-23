@@ -42,6 +42,7 @@ export const MODEL_COSTS: Record<string, number> = {
   'meta-llama/llama-3.1-8b-instruct':  2,
   'meta-llama/llama-4-maverick':        8,
   'qwen/qwen2.5-vl-72b-instruct':       8,
+  'qwen/qwen3-vl-235b-a22b-thinking':  12,
 }
 
 /** Custo padrão para modelos não mapeados */

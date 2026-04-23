@@ -61,13 +61,16 @@ export function hasMedVisionOpenRouterKey(): boolean {
   )
 }
 
-// Modelos disponíveis via OpenRouter - APENAS Kimi k2.6
+// Modelos disponíveis via OpenRouter - Kimi k2.6 e Qwen3 VL
 export const MODELS = {
   // Chat principal
   chat: 'moonshotai/kimi-k2.6',
 
-  // Visão — Kimi k2.6 (único modelo ativo)
+  // Visão — Kimi k2.6 (padrão)
   vision: 'moonshotai/kimi-k2.6',
+
+  // Qwen3 VL (alternativa)
+  visionQwen: 'qwen/qwen3-vl-235b-a22b-thinking',
 
   // Fallback desativado (mesmo modelo)
   visionFallback: 'moonshotai/kimi-k2.6',
@@ -77,6 +80,7 @@ export type ModelId = typeof MODELS[keyof typeof MODELS]
 
 export const VISION_MODELS_LIST = [
   { id: 'moonshotai/kimi-k2.6', name: 'Kimi k2.6', provider: 'Moonshot' },
+  { id: 'qwen/qwen3-vl-235b-a22b-thinking', name: 'Qwen3 VL 235B', provider: 'Qwen' },
 ] as const
 
 export type VisionModelInfo = typeof VISION_MODELS_LIST[number]
