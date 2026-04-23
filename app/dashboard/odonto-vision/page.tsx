@@ -36,6 +36,7 @@ import {
     ChevronUp,
     Microscope,
     MoreVertical,
+    Box,
 } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { GlassCard } from '@/components/ui/glass-card'
@@ -112,6 +113,7 @@ export default function MedVisionPage() {
     const [crop, setCrop] = useState<CropType>()
     const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
     const [zoom, setZoom] = useState(1)
+    const [originalImageDims, setOriginalImageDims] = useState({ width: 0, height: 0 })
     const cropImgRef = useRef<HTMLImageElement>(null)
 
     // Quality validation state
@@ -279,6 +281,13 @@ export default function MedVisionPage() {
 
         if (!completedCrop || completedCrop.width === 0) {
             setImage(originalImage)
+            
+            // Get original image dimensions
+            const img = new Image()
+            img.src = originalImage
+            await new Promise((resolve) => { img.onload = resolve })
+            setOriginalImageDims({ width: img.width, height: img.height })
+            
             setState('CONFIRM')
             return
         }
@@ -286,6 +295,13 @@ export default function MedVisionPage() {
         try {
             const croppedImage = await createCroppedImage(completedCrop)
             setImage(croppedImage)
+            
+            // Get cropped image dimensions
+            const img = new Image()
+            img.src = croppedImage
+            await new Promise((resolve) => { img.onload = resolve })
+            setOriginalImageDims({ width: img.width, height: img.height })
+            
             setState('CONFIRM')
         } catch (error) {
             console.error('Error cropping image:', error)
@@ -293,9 +309,16 @@ export default function MedVisionPage() {
         }
     }, [originalImage, completedCrop, createCroppedImage])
 
-    const handleSkipCrop = useCallback(() => {
+    const handleSkipCrop = useCallback(async () => {
         if (!originalImage) return
         setImage(originalImage)
+        
+        // Get original image dimensions
+        const img = new Image()
+        img.src = originalImage
+        await new Promise((resolve) => { img.onload = resolve })
+        setOriginalImageDims({ width: img.width, height: img.height })
+        
         setState('CONFIRM')
     }, [originalImage])
 
@@ -311,6 +334,13 @@ export default function MedVisionPage() {
             try {
                 const imageBase64 = await readImageAsBase64(file)
                 const compressed = await compressImageForAnalysis(imageBase64, 1280, 0.88)
+                
+                // Get original image dimensions
+                const img = new Image()
+                img.src = compressed
+                await new Promise((resolve) => { img.onload = resolve })
+                setOriginalImageDims({ width: img.width, height: img.height })
+                
                 setOriginalImage(compressed)
                 setImage(compressed)
                 const result = await validateImageQuality(compressed)
@@ -856,21 +886,21 @@ toast.success('Região re-analisada com sucesso!')
                         >
                             <MedVisionStepIndicator state={state} />
 
-                            <GlassCard className="p-6">
-                                <div className="flex items-center justify-between mb-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
-                                            <Crop className="w-5 h-5 text-primary" />
+                            <GlassCard className="p-4 sm:p-6">
+                                <div className="flex items-center justify-between mb-3 sm:mb-4">
+                                    <div className="flex items-center gap-2 sm:gap-3">
+                                        <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 border border-primary/20">
+                                            <Crop className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
                                         </div>
                                         <div>
-                                            <h3 className="text-lg font-heading font-bold">Recortar Imagem</h3>
-                                            <p className="text-xs text-muted-foreground">Ajuste a área de interesse para melhor análise</p>
+                                            <h3 className="text-sm sm:text-lg font-heading font-bold">Recortar Área</h3>
+                                            <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Toque para ajustar a região de interesse</p>
                                         </div>
                                     </div>
-                                    <Badge variant="outline" className="text-xs">Opcional</Badge>
+                                    <Badge variant="outline" className="text-[10px] sm:text-xs">Opcional</Badge>
                                 </div>
 
-                                <div className="relative w-full aspect-video rounded-xl overflow-hidden bg-black/90 border border-border/50 flex items-center justify-center [&_.ReactCrop]:max-h-full [&_.ReactCrop]:max-w-full [&_.ReactCrop__crop-selection]:border-primary [&_.ReactCrop__crop-selection]:border-2 [&_.ReactCrop__drag-handle]:bg-primary [&_.ReactCrop__drag-handle]:w-3 [&_.ReactCrop__drag-handle]:h-3 [&_.ReactCrop__drag-handle]:rounded-sm">
+                                <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-black/90 border border-border/50 flex items-center justify-center [&_.ReactCrop__crop-selection]:border-primary [&_.ReactCrop__crop-selection]:border-2 [&_.ReactCrop__drag-handle]:bg-primary [&_.ReactCrop__drag-handle]:w-3 [&_.ReactCrop__drag-handle]:h-3 [&_.ReactCrop__drag-handle]:rounded-sm">
                                     <ReactCrop
                                         crop={crop}
                                         onChange={(c) => setCrop(c)}
@@ -881,15 +911,36 @@ toast.success('Região re-analisada com sucesso!')
                                             ref={cropImgRef}
                                             src={originalImage}
                                             alt="Imagem para recorte"
-                                            className="max-h-[60vh] object-contain"
+                                            className="max-h-[50vh] object-contain"
                                             style={{ transform: `scale(${zoom})`, transformOrigin: 'center' }}
                                         />
                                     </ReactCrop>
+                                    
+                                    {/* Image dimensions overlay */}
+                                    <div className="absolute top-2 left-2 flex gap-1.5">
+                                        <div className="px-2 py-1 rounded-md bg-black/70 backdrop-blur-sm border border-white/10 flex items-center gap-1.5">
+                                            <Box className="w-3 h-3 text-muted-foreground" />
+                                            <span className="text-[10px] font-mono text-white">
+                                                {originalImageDims.width} × {originalImageDims.height}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    {/* Crop dimensions indicator */}
+                                    {completedCrop && completedCrop.width > 0 && (
+                                        <div className="absolute bottom-2 left-2 px-2 py-1 rounded-md bg-primary/90 backdrop-blur-sm flex items-center gap-1.5">
+                                            <Crop className="w-3 h-3 text-white" />
+                                            <span className="text-[10px] font-mono text-white font-semibold">
+                                                {Math.round(completedCrop.width)} × {Math.round(completedCrop.height)}
+                                            </span>
+                                        </div>
+                                    )}
                                 </div>
 
-                                <div className="mt-6 space-y-4">
-                                    <div className="flex items-center gap-4">
-                                        <ZoomOut className="w-4 h-4 text-muted-foreground" />
+                                {/* Zoom controls - mobile friendly */}
+                                <div className="mt-4 space-y-3">
+                                    <div className="flex items-center gap-3">
+                                        <ZoomOut className="w-4 h-4 text-muted-foreground shrink-0" />
                                         <Slider
                                             value={[zoom]}
                                             min={1}
@@ -898,8 +949,8 @@ toast.success('Região re-analisada com sucesso!')
                                             onValueChange={(value) => setZoom(value[0])}
                                             className="flex-1"
                                         />
-                                        <ZoomIn className="w-4 h-4 text-muted-foreground" />
-                                        <span className="text-xs text-muted-foreground w-12 text-right">{Math.round(zoom * 100)}%</span>
+                                        <ZoomIn className="w-4 h-4 text-muted-foreground shrink-0" />
+                                        <span className="text-xs text-muted-foreground w-12 text-right tabular-nums">{Math.round(zoom * 100)}%</span>
                                     </div>
 
                                     <div className="flex items-center justify-center">
@@ -907,23 +958,29 @@ toast.success('Região re-analisada com sucesso!')
                                             variant="ghost"
                                             size="sm"
                                             onClick={resetCrop}
-                                            className="text-xs gap-2"
+                                            className="text-xs gap-1.5 h-8"
                                         >
                                             <RotateCcw className="w-3 h-3" />
-                                            Resetar
+                                            Resetar área
                                         </Button>
                                     </div>
                                 </div>
 
-                                <div className="flex gap-3 mt-6 pt-4 border-t border-border/30">
-                                    <Button variant="outline" className="h-12 rounded-xl gap-2 px-4" onClick={() => setState('CROP')}>
-                                        <ChevronRight className="w-4 h-4 rotate-180" /> Voltar
+                                {/* Action buttons - mobile friendly */}
+                                <div className="flex gap-2 mt-4 pt-4 border-t border-border/30">
+                                    <Button variant="outline" className="h-11 rounded-xl gap-1.5 px-3" onClick={() => setState('CROP')}>
+                                        <ChevronRight className="w-4 h-4 rotate-180" /> 
+                                        <span className="hidden sm:inline">Voltar</span>
                                     </Button>
-                                    <Button variant="outline" className="flex-1 h-12 rounded-xl gap-2" onClick={handleSkipCrop}>
-                                        <X className="w-4 h-4" /> Pular
+                                    <Button variant="outline" className="h-11 rounded-xl gap-1.5 flex-1" onClick={handleSkipCrop}>
+                                        <X className="w-4 h-4" /> 
+                                        <span className="hidden sm:inline">Usar imagem completa</span>
+                                        <span className="sm:hidden">Pular</span>
                                     </Button>
-                                    <Button className="flex-1 h-12 rounded-xl gap-2 bg-primary hover:bg-primary/90" onClick={handleCropConfirm}>
-                                        <Check className="w-4 h-4" /> Confirmar
+                                    <Button className="h-11 rounded-xl gap-1.5 flex-1 bg-primary hover:bg-primary/90" onClick={handleCropConfirm}>
+                                        <Check className="w-4 h-4" />
+                                        <span className="hidden sm:inline">Confirmar</span>
+                                        <span className="sm:hidden">Ok</span>
                                     </Button>
                                 </div>
                             </GlassCard>
