@@ -5,7 +5,6 @@
 export type VisionState =
     | 'UPLOAD'
     | 'DESCRIBE'
-    | 'MODELS'
     | 'VALIDATING'
     | 'CROP'
     | 'CONFIRM'
@@ -16,7 +15,6 @@ export type VisionState =
 export const WIZARD_STEPS: { key: Exclude<VisionState, 'VALIDATING' | 'ANALYZING' | 'RESULT' | 'ERROR'>; label: string }[] = [
     { key: 'UPLOAD', label: 'Imagem' },
     { key: 'DESCRIBE', label: 'Problema' },
-    { key: 'MODELS', label: 'Modelos' },
     { key: 'CROP', label: 'Ajustes' },
     { key: 'CONFIRM', label: 'Confirmar' },
 ]
@@ -31,8 +29,6 @@ export function mapVisionStateToWizardStep(state: VisionState): VisionWizardStep
             return 'UPLOAD'
         case 'DESCRIBE':
             return 'DESCRIBE'
-        case 'MODELS':
-            return 'MODELS'
         case 'VALIDATING':
         case 'CROP':
             return 'CROP'
