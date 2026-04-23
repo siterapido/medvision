@@ -5,7 +5,7 @@ import { deductCredits } from '@/lib/credits/service'
 import { getSpecialtyConfig } from '@/lib/constants/vision-specialties'
 import { validateAndMergeDetections } from '@/lib/vision/detection-validation'
 import { validateImagePayload } from '@/lib/vision/json-utils'
-import { normalizeVisionImageDataUrl } from '@/lib/vision/normalize-image'
+import { normalizeVisionImageDataUrl, compressToMax } from '@/lib/vision/normalize-image'
 import {
     callTwoStageVisionAnalysis,
     callVisionAI,
@@ -25,7 +25,7 @@ import {
 import { classifyVisionError } from '@/lib/vision/vision-errors'
 import { createClient } from '@/lib/supabase/server'
 
-export const maxDuration = 120
+export const maxDuration = 300
 
 export async function POST(req: Request) {
     const requestStart = performance.now()
@@ -66,6 +66,12 @@ export async function POST(req: Request) {
             }
         }
 
+        const beforeCompressionStats = imagePayloadStats(imageData)
+        if (beforeCompressionStats.sizeBytes > 2 * 1024 * 1024) {
+            visionInfo('request.compress_aggressive', { requestId, originalBytes: beforeCompressionStats.sizeBytes })
+            imageData = await compressToMax(imageData, 500 * 1024)
+        }
+
         const payloadCheck = validateImagePayload(imageData)
         if (!payloadCheck.valid) {
             visionWarn('request.payload_invalid', { requestId, message: payloadCheck.message })
@@ -90,6 +96,7 @@ export async function POST(req: Request) {
 
         const modelsToUse = buildVisionModelChain(typeof model === 'string' ? model : undefined)
         const payloadStats = imagePayloadStats(imageData)
+        const wasCompressed = beforeCompressionStats.sizeBytes > 2 * 1024 * 1024
         visionInfo('request.start', {
             requestId,
             userId8: user.id.slice(0, 8),
@@ -99,6 +106,8 @@ export async function POST(req: Request) {
             structuredOutput: getStructuredVisionOutputFromEnv(),
             hasClinicalContext: Boolean(typeof clinicalContext === 'string' && clinicalContext.trim()),
             clinicalContextChars: typeof clinicalContext === 'string' ? clinicalContext.trim().length : 0,
+            wasCompressed,
+            originalBytes: beforeCompressionStats.sizeBytes,
             ...payloadStats,
         })
 
