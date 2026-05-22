@@ -22,6 +22,9 @@
     "tests/vision-default-model.test.ts",
     "tests/vision-model-chain.test.ts",
     "tests/vision-quick-detection-schema.test.ts",
+    "tests/vision-specialties.test.ts",
+    "lib/constants/vision-specialties.ts",
+    "lib/constants/vision-specialties/**/*.ts",
     "lib/vision/schemas.ts"
   ]
 }

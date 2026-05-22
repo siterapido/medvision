@@ -40,6 +40,7 @@ import {
 } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { GlassCard } from '@/components/ui/glass-card'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
@@ -50,7 +51,7 @@ import { getSeverityStyle } from '@/lib/constants/vision'
 import { VisionAnalysisResult, VisionArtifactContent, VisionRefinement, BoundingBox, VisionComparisonResult } from '@/lib/types/vision'
 import { ModelSelector } from '@/components/vision/model-selector'
 import { MODELS, VISION_MODELS_LIST } from '@/lib/ai/openrouter'
-import { VISION_SPECIALTIES, type VisionSpecialty } from '@/lib/constants/vision-specialties'
+import { VISION_SPECIALTIES, VISION_SPECIALTY_ORDER, type VisionSpecialty } from '@/lib/constants/vision-specialties'
 
 /** Segundo modelo para modo comparar (distinto do padrão). */
 const DEFAULT_COMPARE_MODEL_B =
@@ -101,7 +102,7 @@ export default function MedVisionPage() {
     const [previousAnalyses, setPreviousAnalyses] = useState<{id: string; title: string; date: string; content: any}[]>([])
     const [isSaving, setIsSaving] = useState(false)
     const [clinicalContext, setClinicalContext] = useState('')
-    const [specialty, setSpecialty] = useState<VisionSpecialty>('torax')
+    const [specialty, setSpecialty] = useState<VisionSpecialty>('geral')
 
     // Model selection state
     const [analysisMode, setAnalysisMode] = useState<'single' | 'compare'>('single')
@@ -150,6 +151,8 @@ export default function MedVisionPage() {
     const [isRefining, setIsRefining] = useState(false)
     const [expandedRefinement, setExpandedRefinement] = useState<number | null>(null)
     const [imageToolsExpanded, setImageToolsExpanded] = useState(false)
+    /** Após análise: alternar entre exame (imagem) e laudo em texto. */
+    const [resultMainTab, setResultMainTab] = useState<'image' | 'laudo'>('image')
 
     // Generate thumbnail from image
     const generateThumbnail = useCallback(async (imageSrc: string, size: number = 200): Promise<string> => {
@@ -703,6 +706,7 @@ toast.success('Região re-analisada com sucesso!')
         setInadequateImageError(null)
         clearAnnotations()
         resetCrop()
+        setResultMainTab('image')
     }
 
     return (
@@ -851,7 +855,7 @@ toast.success('Região re-analisada com sucesso!')
                                             </div>
                                         </div>
                                         <div className="grid grid-cols-2 gap-2">
-                                            {(Object.values(VISION_SPECIALTIES) as typeof VISION_SPECIALTIES[VisionSpecialty][]).map((s) => (
+                                            {VISION_SPECIALTY_ORDER.map((id) => VISION_SPECIALTIES[id]).map((s) => (
                                                 <button
                                                     key={s.id}
                                                     type="button"
@@ -1328,8 +1332,36 @@ toast.success('Região re-analisada com sucesso!')
                                 </div>
                             )}
 
-                            {/* Image with Detections */}
-                            <div className="space-y-4">
+                            <Tabs
+                                value={resultMainTab}
+                                onValueChange={(v) => setResultMainTab(v as 'image' | 'laudo')}
+                                className="w-full flex flex-col gap-4"
+                            >
+                                <TabsList
+                                    className="grid h-12 w-full max-w-md grid-cols-2 gap-0 rounded-2xl border border-border/50 bg-muted/30 p-1.5"
+                                >
+                                    <TabsTrigger
+                                        value="image"
+                                        className="gap-2 rounded-xl text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                                    >
+                                        <ImageIcon className="h-4 w-4 shrink-0" aria-hidden />
+                                        Radiografia
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="laudo"
+                                        className="gap-2 rounded-xl text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                                    >
+                                        <FileText className="h-4 w-4 shrink-0" aria-hidden />
+                                        <span>Laudo</span>
+                                        {analysisResult.findings.length > 0 && (
+                                            <span className="ml-0.5 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-primary">
+                                                {analysisResult.findings.length}
+                                            </span>
+                                        )}
+                                    </TabsTrigger>
+                                </TabsList>
+
+                                <TabsContent value="image" className="mt-0 space-y-4 outline-none">
                                 <GlassCard className="p-1 overflow-hidden min-w-0">
                                     <div
                                         className="relative aspect-[4/3] rounded-lg overflow-hidden border border-border/50 bg-black/5 min-w-0"
@@ -1613,15 +1645,16 @@ toast.success('Região re-analisada com sucesso!')
                                         <Download className="w-4 h-4" /> Exportar PDF
                                     </Button>
                                 </div>
-                            </div>
+                                </TabsContent>
 
-                            {/* ─── LAUDO ─── */}
-                            <div className="space-y-6">
+                            {/* Laudo: texto e refinamentos (aba) */}
+                                <TabsContent value="laudo" className="mt-0 max-w-3xl w-full self-center space-y-6 outline-none">
+                            <div className="space-y-6 w-full">
                                 <GlassCard className="p-6 flex flex-col">
                                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/30">
                                         <div>
-                                            <h2 className="text-xl font-heading font-bold">Laudo AI</h2>
-                                            <p className="text-xs text-muted-foreground">MedVision AI Engine v4.2</p>
+                                            <h2 className="text-xl font-heading font-bold">Laudo clínico</h2>
+                                            <p className="text-xs text-muted-foreground">Texto completo e achados alinhados à radiografia</p>
                                         </div>
                                         <div className="flex flex-wrap gap-2 justify-end">
                                             {analysisResult.meta && (
@@ -1967,6 +2000,8 @@ toast.success('Região re-analisada com sucesso!')
                                     </div>
                                 )}
                             </div>
+                                </TabsContent>
+                            </Tabs>
                         </motion.div>
                     )}
                 </AnimatePresence>
