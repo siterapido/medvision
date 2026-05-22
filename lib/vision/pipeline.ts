@@ -85,6 +85,39 @@ function buildUserContent(imageData: string, textParts: { type: 'text'; text: st
     return [{ type: 'image' as const, image: imageData }, ...textParts]
 }
 
+function contextLogFields(userContext?: string | null, clinicalContext?: string) {
+    const trimmedUser = userContext?.trim()
+    const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
+    return {
+        hasClinicalContext: Boolean(trimmedUser || safeContext),
+        clinicalContextChars: trimmedUser?.length ?? safeContext?.length ?? 0,
+    }
+}
+
+function appendUserContextParts(
+    userTextParts: { type: 'text'; text: string }[],
+    options: {
+        userContext?: string | null
+        clinicalContext?: string
+        legacyFormat?: 'full' | 'short'
+    },
+) {
+    if (options.userContext?.trim()) {
+        userTextParts.push({ type: 'text' as const, text: options.userContext.trim() })
+        return
+    }
+    const safeContext = options.clinicalContext?.trim() ? sanitizeClinicalContext(options.clinicalContext) : null
+    if (!safeContext) return
+    if (options.legacyFormat === 'full') {
+        userTextParts.push({
+            type: 'text' as const,
+            text: `CONTEXTO CLÍNICO FORNECIDO PELO PROFISSIONAL:\n${safeContext}\n\nConsidere este contexto ao formular hipóteses diagnósticas e recomendações.`,
+        })
+    } else {
+        userTextParts.push({ type: 'text' as const, text: `CONTEXTO CLÍNICO: ${safeContext}` })
+    }
+}
+
 function coerceBoxToPercent(box: unknown, scaleHint?: number): number[] | null {
     if (!Array.isArray(box) || box.length !== 4) return null
     const nums = box.map((v) => (typeof v === 'number' ? v : Number.NaN))
@@ -215,13 +248,13 @@ export async function callVisionAI(
     clinicalContext?: string,
     models: readonly string[] = VISION_MODELS,
     prompts?: SpecialtyPrompts,
+    userContext?: string | null,
 ): Promise<VisionAnalysis> {
     const inadequateCheck = await checkImageAdequacyAsync(imageData)
     if (!inadequateCheck.adequate) {
         throw new ImageInadequateError(inadequateCheck.reason, inadequateCheck.details)
     }
 
-    const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
     const activeSystemPrompt = prompts?.systemPrompt ?? SYSTEM_PROMPT_BASE
 
     const fullInstruction =
@@ -233,8 +266,7 @@ export async function callVisionAI(
         visionInfo('pipeline.full.start', {
             modelId,
             ...img,
-            hasClinicalContext: Boolean(safeContext),
-            clinicalContextChars: safeContext?.length ?? 0,
+            ...contextLogFields(userContext, clinicalContext),
         })
 
         const userTextParts: { type: 'text'; text: string }[] = [
@@ -243,12 +275,7 @@ export async function callVisionAI(
                 text: fullInstruction,
             },
         ]
-        if (safeContext) {
-            userTextParts.push({
-                type: 'text' as const,
-                text: `CONTEXTO CLÍNICO FORNECIDO PELO PROFISSIONAL:\n${safeContext}\n\nConsidere este contexto ao formular hipóteses diagnósticas e recomendações.`,
-            })
-        }
+        appendUserContextParts(userTextParts, { userContext, clinicalContext, legacyFormat: 'full' })
 
         const systemContent = `${activeSystemPrompt}
 
@@ -327,8 +354,8 @@ export async function callVisionRefinement(
     clinicalContext?: string,
     models: readonly string[] = VISION_MODELS,
     prompts?: SpecialtyPrompts,
+    userContext?: string | null,
 ): Promise<VisionAnalysis> {
-    const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
     const activeSystemPrompt = prompts?.systemPrompt ?? SYSTEM_PROMPT_BASE
 
     const generateWithModel = async (modelId: string, signal: AbortSignal): Promise<VisionAnalysis> => {
@@ -336,8 +363,7 @@ export async function callVisionRefinement(
         visionInfo('pipeline.refine.start', {
             modelId,
             ...img,
-            hasClinicalContext: Boolean(safeContext),
-            clinicalContextChars: safeContext?.length ?? 0,
+            ...contextLogFields(userContext, clinicalContext),
             originalSummaryChars: originalAnalysisSummary.length,
         })
 
@@ -347,9 +373,7 @@ export async function callVisionRefinement(
                 text: 'RE-ANALISE esta região específica com máximo detalhe e precisão. Identifique achados sutis, forneça descrições técnicas aprofundadas, CID-10, diagnósticos diferenciais e ações recomendadas. As coordenadas devem ser relativas a esta imagem recortada. Responda SOMENTE com o JSON.',
             },
         ]
-        if (safeContext) {
-            userTextParts.push({ type: 'text' as const, text: `CONTEXTO CLÍNICO: ${safeContext}` })
-        }
+        appendUserContextParts(userTextParts, { userContext, clinicalContext, legacyFormat: 'short' })
 
         const systemContent = `${activeSystemPrompt}
 
@@ -407,13 +431,13 @@ export async function callVisionDetection(
     clinicalContext?: string,
     models: readonly string[] = VISION_MODELS,
     prompts?: SpecialtyPrompts,
+    userContext?: string | null,
 ): Promise<z.infer<typeof QuickDetectionSchema>> {
     const inadequateCheck = checkImageAdequacy(imageData)
     if (!inadequateCheck.adequate) {
         throw new ImageInadequateError(inadequateCheck.reason, inadequateCheck.details)
     }
 
-    const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
     const activeQuickPrompt = prompts?.quickDetectionPrompt ?? QUICK_DETECTION_PROMPT
 
     const quickUser =
@@ -425,8 +449,7 @@ export async function callVisionDetection(
         visionInfo('pipeline.quick.start', {
             modelId,
             ...img,
-            hasClinicalContext: Boolean(safeContext),
-            clinicalContextChars: safeContext?.length ?? 0,
+            ...contextLogFields(userContext, clinicalContext),
         })
 
         const userTextParts: { type: 'text'; text: string }[] = [
@@ -435,9 +458,7 @@ export async function callVisionDetection(
                 text: quickUser,
             },
         ]
-        if (safeContext) {
-            userTextParts.push({ type: 'text' as const, text: `CONTEXTO CLÍNICO: ${safeContext}` })
-        }
+        appendUserContextParts(userTextParts, { userContext, clinicalContext, legacyFormat: 'short' })
 
         const systemContent = `${activeQuickPrompt}
 
@@ -504,12 +525,12 @@ export async function callVisionDetailedAnalysis(
     clinicalContext?: string,
     models: readonly string[] = VISION_MODELS,
     prompts?: SpecialtyPrompts,
+    userContext?: string | null,
 ): Promise<z.infer<typeof DetailedDetectionSchema>> {
     const detectionsSummary = quickDetections
         .map((d, i) => `${i}: ${d.label} (${d.anatomicalRegion || 'N/A'}) - ${d.severity} - confiança ${Math.round(d.confidence * 100)}%`)
         .join('\n')
 
-    const safeContext = clinicalContext?.trim() ? sanitizeClinicalContext(clinicalContext) : null
     const activeDetailedPrompt = prompts?.detailedAnalysisPrompt ?? DETAILED_ANALYSIS_PROMPT
 
     const generateWithModel = async (modelId: string, signal: AbortSignal) => {
@@ -518,8 +539,7 @@ export async function callVisionDetailedAnalysis(
             modelId,
             ...img,
             detectionCount: quickDetections.length,
-            hasClinicalContext: Boolean(safeContext),
-            clinicalContextChars: safeContext?.length ?? 0,
+            ...contextLogFields(userContext, clinicalContext),
         })
 
         const userTextParts: { type: 'text'; text: string }[] = [
@@ -528,9 +548,7 @@ export async function callVisionDetailedAnalysis(
                 text: `Forneça análise detalhada para cada uma das ${quickDetections.length} detecções listadas acima. Para cada uma: CID-10, dados radiológicos quando aplicável, diagnóstico diferencial, significância clínica, ações recomendadas e descrição técnica.`,
             },
         ]
-        if (safeContext) {
-            userTextParts.push({ type: 'text' as const, text: `CONTEXTO CLÍNICO: ${safeContext}` })
-        }
+        appendUserContextParts(userTextParts, { userContext, clinicalContext, legacyFormat: 'short' })
 
         const systemContent = `${activeDetailedPrompt}
 
@@ -604,6 +622,7 @@ export async function callTwoStageVisionAnalysis(
     clinicalContext?: string,
     models: readonly string[] = VISION_MODELS,
     prompts?: SpecialtyPrompts,
+    userContext?: string | null,
 ): Promise<{ analysis: VisionAnalysis; warnings: string[] }> {
     const warnings: string[] = []
     const twoStageT0 = performance.now()
@@ -611,13 +630,12 @@ export async function callTwoStageVisionAnalysis(
     visionInfo('two_stage.start', {
         ...img,
         modelChain: models.join(' → '),
-        hasClinicalContext: Boolean(clinicalContext?.trim()),
-        clinicalContextChars: clinicalContext?.trim().length ?? 0,
+        ...contextLogFields(userContext, clinicalContext),
         structuredOutput: useStructuredVisionOutput(),
     })
 
     visionInfo('two_stage.stage1', { step: 'quick_detection' })
-    const quickResult = await callVisionDetection(imageData, clinicalContext, models, prompts)
+    const quickResult = await callVisionDetection(imageData, clinicalContext, models, prompts, userContext)
     visionInfo('two_stage.stage1.done', {
         detectionCount: quickResult.quickDetections.length,
         imageType: quickResult.meta.imageType,
@@ -632,7 +650,7 @@ export async function callTwoStageVisionAnalysis(
         if (qualityOk) {
             try {
                 visionInfo('two_stage.fallback_single_pass', { reason: 'stage1_empty_quality_ok' })
-                const single = await callVisionAI(imageData, clinicalContext, models, prompts)
+                const single = await callVisionAI(imageData, clinicalContext, models, prompts, userContext)
                 warnings.push('Estágio 1 não retornou caixas delimitadoras; laudo em uma etapa foi usado para revisão.')
                 visionInfo('two_stage.complete', { path: 'single_pass_fallback', totalMs: elapseMs(twoStageT0) })
                 return { analysis: single, warnings }
@@ -670,7 +688,7 @@ export async function callTwoStageVisionAnalysis(
     visionInfo('two_stage.stage2', { step: 'detailed_analysis', inputDetections: quickResult.quickDetections.length })
     let detailedAnalysis: z.infer<typeof DetailedDetectionSchema>['detailedAnalysis'] = []
     try {
-        const detailedResult = await callVisionDetailedAnalysis(imageData, quickResult.quickDetections, clinicalContext, models, prompts)
+        const detailedResult = await callVisionDetailedAnalysis(imageData, quickResult.quickDetections, clinicalContext, models, prompts, userContext)
         detailedAnalysis = detailedResult.detailedAnalysis
         visionInfo('two_stage.stage2.done', { detailedRows: detailedAnalysis.length })
     } catch (err) {

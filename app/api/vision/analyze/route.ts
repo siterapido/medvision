@@ -2,8 +2,10 @@ import { APICallError } from 'ai'
 
 import { buildVisionModelChain, hasMedVisionOpenRouterKey } from '@/lib/ai/openrouter'
 import { deductCredits } from '@/lib/credits/service'
-import { ImageInadequateError } from '@/lib/vision/pipeline'
 import { getSpecialtyConfig } from '@/lib/constants/vision-specialties'
+import { buildVisionUserContext } from '@/lib/vision/build-analysis-context'
+import { ImageInadequateError } from '@/lib/vision/pipeline'
+import { visionAnalysisRequestSchema } from '@/lib/types/vision-analysis-request'
 import { validateAndMergeDetections } from '@/lib/vision/detection-validation'
 import { validateImagePayload } from '@/lib/vision/json-utils'
 import { normalizeVisionImageDataUrl, compressToMax } from '@/lib/vision/normalize-image'
@@ -49,15 +51,38 @@ export async function POST(req: Request) {
         userId = user.id
 
         const body = await req.json()
-        const { image, clinicalContext, mode, originalAnalysisSummary, model, specialty } = body
-        const specialtyConfig = getSpecialtyConfig(specialty)
-
-        if (!image) {
-            return new Response(JSON.stringify({ error: 'Image data is required' }), {
+        const parsed = visionAnalysisRequestSchema.safeParse(body)
+        if (!parsed.success) {
+            return new Response(JSON.stringify({ error: parsed.error.flatten() }), {
                 status: 400,
                 headers: { 'Content-Type': 'application/json' },
             })
         }
+
+        const {
+            image,
+            clinicalContext,
+            specialty,
+            modality,
+            reportDepth,
+            focusTags,
+            patientAge,
+            patientSex,
+            reportSections,
+            mode,
+            originalAnalysisSummary,
+        } = parsed.data
+
+        const specialtyConfig = getSpecialtyConfig(specialty)
+        const userContext = buildVisionUserContext({
+            clinicalContext,
+            modality,
+            reportDepth,
+            focusTags,
+            patientAge,
+            patientSex,
+            reportSections,
+        })
 
         imageData = image
         if (!image.startsWith('data:') && !image.startsWith('http')) {
@@ -100,18 +125,20 @@ export async function POST(req: Request) {
             })
         }
 
-        const modelsToUse = buildVisionModelChain(typeof model === 'string' ? model : undefined)
+        modelsToUse = buildVisionModelChain()
         const payloadStats = imagePayloadStats(imageData)
         const wasCompressed = beforeCompressionStats.approxBytes > 2 * 1024 * 1024
+        const hasContext = Boolean(userContext?.trim() || clinicalContext?.trim())
+        const contextChars = userContext?.length ?? clinicalContext?.trim().length ?? 0
         visionInfo('request.start', {
             requestId,
             userId8: user.id.slice(0, 8),
-            mode: typeof mode === 'string' ? mode : 'default',
-            specialty: typeof specialty === 'string' ? specialty : 'default',
+            mode: mode ?? 'default',
+            specialty: specialty ?? 'default',
             modelChain: modelsToUse.join(' → '),
             structuredOutput: getStructuredVisionOutputFromEnv(),
-            hasClinicalContext: Boolean(typeof clinicalContext === 'string' && clinicalContext.trim()),
-            clinicalContextChars: typeof clinicalContext === 'string' ? clinicalContext.trim().length : 0,
+            hasClinicalContext: hasContext,
+            clinicalContextChars: contextChars,
             wasCompressed,
             originalBytes: beforeCompressionStats.approxBytes,
             ...payloadStats,
@@ -122,13 +149,13 @@ export async function POST(req: Request) {
 
         if (mode === 'refine' && originalAnalysisSummary) {
             visionInfo('request.mode', { requestId, mode: 'refine' })
-            analysis = await callVisionRefinement(imageData, originalAnalysisSummary, clinicalContext, modelsToUse, specialtyConfig)
+            analysis = await callVisionRefinement(imageData, originalAnalysisSummary, clinicalContext, modelsToUse, specialtyConfig, userContext)
         } else if (mode === 'quick') {
             visionInfo('request.mode', { requestId, mode: 'quick' })
-            analysis = await callVisionAI(imageData, clinicalContext, modelsToUse, specialtyConfig)
+            analysis = await callVisionAI(imageData, clinicalContext, modelsToUse, specialtyConfig, userContext)
         } else if (mode === 'preview') {
             visionInfo('request.mode', { requestId, mode: 'preview' })
-            const quickResult = await callVisionDetection(imageData, clinicalContext, modelsToUse, specialtyConfig)
+            const quickResult = await callVisionDetection(imageData, clinicalContext, modelsToUse, specialtyConfig, userContext)
             const validatedDetections = validateAndMergeDetections(
                 quickResult.quickDetections.map((d, i) => ({
                     id: `det-${i}`,
@@ -171,12 +198,12 @@ export async function POST(req: Request) {
             return Response.json(previewResponse)
         } else if (mode === 'detailed') {
             visionInfo('request.mode', { requestId, mode: 'detailed_two_stage' })
-            const twoStage = await callTwoStageVisionAnalysis(imageData, clinicalContext, modelsToUse, specialtyConfig)
+            const twoStage = await callTwoStageVisionAnalysis(imageData, clinicalContext, modelsToUse, specialtyConfig, userContext)
             analysis = twoStage.analysis
             pipelineWarnings = twoStage.warnings
         } else {
             visionInfo('request.mode', { requestId, mode: 'default_single_pass' })
-            analysis = await callVisionAI(imageData, clinicalContext, modelsToUse, specialtyConfig)
+            analysis = await callVisionAI(imageData, clinicalContext, modelsToUse, specialtyConfig, userContext)
         }
 
         try {
@@ -188,7 +215,7 @@ export async function POST(req: Request) {
         const responseData = mapAnalysisToResponse(analysis, { pipelineWarnings })
         visionInfo('request.done', {
             requestId,
-            mode: typeof mode === 'string' ? mode : 'default',
+            mode: mode ?? 'default',
             totalMs: elapseMs(requestStart),
             detections: analysis.detections.length,
             precision: responseData.precision,
