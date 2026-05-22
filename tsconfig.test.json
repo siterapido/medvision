@@ -23,6 +23,11 @@
     "tests/vision-model-chain.test.ts",
     "tests/vision-quick-detection-schema.test.ts",
     "tests/vision-specialties.test.ts",
+    "tests/vision-analysis-context.test.ts",
+    "lib/constants/vision-analysis-options.ts",
+    "lib/types/vision-analysis-request.ts",
+    "lib/vision/build-analysis-context.ts",
+    "lib/vision/json-utils.ts",
     "lib/constants/vision-specialties.ts",
     "lib/constants/vision-specialties/**/*.ts",
     "lib/vision/schemas.ts"
