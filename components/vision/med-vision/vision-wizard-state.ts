@@ -1,53 +1,39 @@
 /**
- * Estados do assistente Med Vision (upload → resultado).
- * Usado pelo indicador de passos e subtítulos de fase.
+ * Estados do assistente Med Vision (fluxo em 2 etapas).
  */
 export type VisionState =
     | 'UPLOAD'
-    | 'DESCRIBE'
-    | 'VALIDATING'
-    | 'CROP'
-    | 'CONFIRM'
+    | 'CONFIGURE'
+    | 'REVIEW'
     | 'ANALYZING'
     | 'RESULT'
     | 'ERROR'
 
-export const WIZARD_STEPS: { key: Exclude<VisionState, 'VALIDATING' | 'ANALYZING' | 'RESULT' | 'ERROR'>; label: string }[] = [
-    { key: 'UPLOAD', label: 'Imagem' },
-    { key: 'DESCRIBE', label: 'Problema' },
-    { key: 'CROP', label: 'Ajustes' },
-    { key: 'CONFIRM', label: 'Confirmar' },
-]
+export const WIZARD_STEPS = [
+    { key: 'CONFIGURE', label: 'Personalizar' },
+    { key: 'REVIEW', label: 'Revisar e analisar' },
+] as const
 
 export type VisionWizardStepKey = (typeof WIZARD_STEPS)[number]['key']
 
 /** Passo do indicador linear associado ao estado atual. */
 export function mapVisionStateToWizardStep(state: VisionState): VisionWizardStepKey {
     switch (state) {
-        case 'UPLOAD':
-        case 'ERROR':
-            return 'UPLOAD'
-        case 'DESCRIBE':
-            return 'DESCRIBE'
-        case 'VALIDATING':
-        case 'CROP':
-            return 'CROP'
-        case 'CONFIRM':
+        case 'REVIEW':
         case 'ANALYZING':
         case 'RESULT':
-            return 'CONFIRM'
+        case 'ERROR':
+            return 'REVIEW'
         default:
-            return 'UPLOAD'
+            return 'CONFIGURE'
     }
 }
 
-/** Subtítulo opcional para sub-fases (análise, validação). */
+/** Subtítulo opcional para sub-fases (análise). */
 export function getVisionPhaseSubtitle(state: VisionState): string | undefined {
     switch (state) {
         case 'ANALYZING':
             return 'A análise pode levar até cerca de 2 minutos. Não feche esta página.'
-        case 'VALIDATING':
-            return 'Verificando qualidade da imagem…'
         default:
             return undefined
     }

@@ -160,7 +160,7 @@ export async function validateImageQuality(imageBase64: string): Promise<ImageQu
  */
 export async function compressImageForAnalysis(
     imageBase64: string,
-    maxDimension = 1280,
+    maxDimension = 1024,
     quality = 0.85
 ): Promise<string> {
     const img = new Image()

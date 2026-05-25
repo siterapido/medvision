@@ -125,7 +125,7 @@ export async function POST(req: Request) {
             })
         }
 
-        modelsToUse = buildVisionModelChain()
+        modelsToUse = [...buildVisionModelChain()]
         const payloadStats = imagePayloadStats(imageData)
         const wasCompressed = beforeCompressionStats.approxBytes > 2 * 1024 * 1024
         const hasContext = Boolean(userContext?.trim() || clinicalContext?.trim())

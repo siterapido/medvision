@@ -1,5 +1,5 @@
 import { jsPDF } from 'jspdf'
-import { VISION_CLINICAL_DISCLAIMER_PLAIN } from '@/lib/constants/vision'
+import { MEDVISION_AI_LABEL, VISION_CLINICAL_DISCLAIMER_PLAIN } from '@/lib/constants/vision'
 import { VisionAnalysisResult, VisionRefinement } from '@/lib/types/vision'
 
 interface GeneratePDFOptions {
@@ -93,6 +93,9 @@ export async function generateVisionPDF({ analysisResult, imageBase64, refinemen
   doc.setFontSize(10.5)
   doc.setFont('helvetica', 'normal')
   doc.text('Laudo de análise assistida por inteligência artificial', margin, 26.5)
+
+  doc.setFontSize(9)
+  doc.text(`Motor: ${MEDVISION_AI_LABEL}`, margin, 33)
 
   const reportId = Math.random().toString(36).slice(2, 8).toUpperCase()
   const currentDate = new Date().toLocaleDateString('pt-BR', {

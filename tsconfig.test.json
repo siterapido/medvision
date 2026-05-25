@@ -24,6 +24,8 @@
     "tests/vision-quick-detection-schema.test.ts",
     "tests/vision-specialties.test.ts",
     "tests/vision-analysis-context.test.ts",
+    "tests/vision-wizard-state.test.ts",
+    "components/vision/med-vision/vision-wizard-state.ts",
     "lib/constants/vision-analysis-options.ts",
     "lib/types/vision-analysis-request.ts",
     "lib/vision/build-analysis-context.ts",

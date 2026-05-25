@@ -1,24 +1,22 @@
 'use client'
 
 import { Button } from '@/components/ui/button'
-import { AlertTriangle, ChevronRight, Crop, RefreshCcw, Sliders } from 'lucide-react'
+import { AlertTriangle, ChevronRight, Crop, RefreshCcw } from 'lucide-react'
 
 type VisionErrorRecoveryProps = {
     hasImage: boolean
-    onRetryFromConfirm: () => void
-    onChangeModel: () => void
-    onBackToCrop: () => void
+    onRetry: () => void
+    onBackToReview: () => void
     onNewUpload: () => void
 }
 
 /**
- * Ações após falha na análise, sem perder contexto (imagem e texto clínico permanecem no estado).
+ * Ações após falha na análise, sem perder contexto (imagem e personalização permanecem no estado).
  */
 export function VisionErrorRecovery({
     hasImage,
-    onRetryFromConfirm,
-    onChangeModel,
-    onBackToCrop,
+    onRetry,
+    onBackToReview,
     onNewUpload,
 }: VisionErrorRecoveryProps) {
     if (!hasImage) {
@@ -34,22 +32,22 @@ export function VisionErrorRecovery({
     return (
         <div className="space-y-3 w-full max-w-lg mx-auto">
             <p className="text-[11px] text-center text-muted-foreground">
-                A imagem e o contexto clínico foram mantidos. Escolha como prefere continuar:
+                A imagem e as opções de personalização foram mantidas. Escolha como prefere continuar:
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <Button className="h-11 rounded-xl gap-2" onClick={onRetryFromConfirm}>
+                <Button className="h-11 rounded-xl gap-2" onClick={onRetry}>
                     <RefreshCcw className="w-4 h-4" />
                     Tentar novamente
                 </Button>
-                <Button variant="outline" className="h-11 rounded-xl gap-2" onClick={onChangeModel}>
-                    <Sliders className="w-4 h-4" />
-                    Trocar modelo
-                </Button>
-                <Button variant="outline" className="h-11 rounded-xl gap-2" onClick={onBackToCrop}>
+                <Button variant="outline" className="h-11 rounded-xl gap-2" onClick={onBackToReview}>
                     <Crop className="w-4 h-4" />
-                    Voltar ao recorte
+                    Voltar à revisão
                 </Button>
-                <Button variant="ghost" className="h-11 rounded-xl gap-2 text-muted-foreground" onClick={onNewUpload}>
+                <Button
+                    variant="ghost"
+                    className="h-11 rounded-xl gap-2 text-muted-foreground sm:col-span-2"
+                    onClick={onNewUpload}
+                >
                     Nova imagem
                     <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -65,7 +63,7 @@ export function VisionErrorBanner() {
             <div className="flex-1">
                 <p className="text-sm font-medium">Não foi possível completar a análise.</p>
                 <p className="text-xs mt-1 opacity-80">
-                    Verifique sua conexão ou tente outro modelo. Se o erro persistir, tente uma imagem menor ou contate o suporte.
+                    Verifique sua conexão. Se o erro persistir, tente uma imagem menor ou contate o suporte.
                 </p>
             </div>
         </div>

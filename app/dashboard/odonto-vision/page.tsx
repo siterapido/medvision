@@ -3,40 +3,31 @@
 import { useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'motion/react'
-import ReactCrop, { type Crop as CropType, type PixelCrop } from 'react-image-crop'
-import 'react-image-crop/dist/ReactCrop.css'
 import {
-    FileUp,
     Search,
-    FileText,
     Scan,
     AlertCircle,
     CheckCircle2,
     Download,
     RefreshCcw,
     Maximize2,
-    Image as ImageIcon,
     Loader2,
     ChevronRight,
     Sparkles,
-    Info,
     AlertTriangle,
-    Crop,
-    ZoomIn,
-    ZoomOut,
-    RotateCcw,
-    Check,
-    X,
     Save,
     ExternalLink,
     Pencil,
-    GitBranch,
     Tag,
     ChevronDown,
     ChevronUp,
-    Microscope,
     MoreVertical,
-    Box,
+    Image as ImageIcon,
+    FileText,
+    Microscope,
+    Info,
+    GitBranch,
+    X,
 } from 'lucide-react'
 import { useDropzone } from 'react-dropzone'
 import { GlassCard } from '@/components/ui/glass-card'
@@ -48,21 +39,14 @@ import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
 import { Slider } from '@/components/ui/slider'
 import { cn } from '@/lib/utils'
 import { getSeverityStyle } from '@/lib/constants/vision'
-import { VisionAnalysisResult, VisionArtifactContent, VisionRefinement, BoundingBox, VisionComparisonResult } from '@/lib/types/vision'
-import { ModelSelector } from '@/components/vision/model-selector'
-import { MODELS, VISION_MODELS_LIST } from '@/lib/ai/openrouter'
-import { VISION_SPECIALTIES, VISION_SPECIALTY_ORDER, type VisionSpecialty } from '@/lib/constants/vision-specialties'
-
-/** Segundo modelo para modo comparar (distinto do padrão). */
-const DEFAULT_COMPARE_MODEL_B =
-    VISION_MODELS_LIST.find(m => m.id !== MODELS.vision)?.id ?? MODELS.vision
+import { VisionAnalysisResult, VisionArtifactContent, VisionRefinement, BoundingBox } from '@/lib/types/vision'
+import { DEFAULT_REPORT_SECTIONS } from '@/lib/constants/vision-analysis-options'
+import type { MedVisionAnalysisConfig } from '@/lib/types/vision-analysis-request'
 import { ImageOverlay } from '@/components/vision/image-overlay'
-import { QualityFeedback } from '@/components/vision/quality-feedback'
 import { InadequateImageError } from '@/components/vision/inadequate-image-error'
 import { AnnotationToolbar } from '@/components/vision/annotation-toolbar'
 import { AnnotationCanvas } from '@/components/vision/annotation-canvas'
 import { RegionSelector } from '@/components/vision/region-selector'
-import { Textarea } from '@/components/ui/textarea'
 import { validateImageQuality, compressImageForAnalysis, ImageQualityResult } from '@/lib/utils/image-quality-validator'
 import { useAnnotations } from '@/lib/hooks/use-annotations'
 import { useSoundNotification } from '@/lib/hooks/use-sound-notification'
@@ -77,17 +61,28 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {
     AnalyzingStage,
+    MedVisionConfigureStep,
+    MedVisionReviewStep,
     MedVisionStepIndicator,
     VisionClinicalDisclaimer,
     VisionErrorBanner,
     VisionErrorRecovery,
+    type VisionState,
 } from '@/components/vision/med-vision'
-import type { VisionState } from '@/components/vision/med-vision'
+
+const DEFAULT_ANALYSIS_CONFIG: MedVisionAnalysisConfig = {
+    specialty: 'geral',
+    clinicalContext: '',
+    modality: 'rx',
+    reportDepth: 'completo',
+    focusTags: [],
+    reportSections: { ...DEFAULT_REPORT_SECTIONS },
+}
 
 export default function MedVisionPage() {
     const router = useRouter()
     const { playSuccess } = useSoundNotification()
-    const [state, setState] = useState<VisionState>('UPLOAD')
+    const [state, setState] = useState<VisionState>('CONFIGURE')
     const [image, setImage] = useState<string | null>(null)
     const [originalImage, setOriginalImage] = useState<string | null>(null)
     const [progress, setProgress] = useState(0)
@@ -101,22 +96,7 @@ export default function MedVisionPage() {
     const [comparisonItems, setComparisonItems] = useState<VisionAnalysisResult[]>([])
     const [previousAnalyses, setPreviousAnalyses] = useState<{id: string; title: string; date: string; content: any}[]>([])
     const [isSaving, setIsSaving] = useState(false)
-    const [clinicalContext, setClinicalContext] = useState('')
-    const [specialty, setSpecialty] = useState<VisionSpecialty>('geral')
-
-    // Model selection state
-    const [analysisMode, setAnalysisMode] = useState<'single' | 'compare'>('single')
-    const [selectedModel, setSelectedModel] = useState<string>(MODELS.vision)
-    const [compareModelA, setCompareModelA] = useState<string>(MODELS.vision)
-    const [compareModelB, setCompareModelB] = useState<string>(DEFAULT_COMPARE_MODEL_B)
-    const [comparisonResult, setComparisonResult] = useState<VisionComparisonResult | null>(null)
-
-    // Crop states
-    const [crop, setCrop] = useState<CropType>()
-    const [completedCrop, setCompletedCrop] = useState<PixelCrop>()
-    const [zoom, setZoom] = useState(1)
-    const [originalImageDims, setOriginalImageDims] = useState({ width: 0, height: 0 })
-    const cropImgRef = useRef<HTMLImageElement>(null)
+    const [config, setConfig] = useState<MedVisionAnalysisConfig>(DEFAULT_ANALYSIS_CONFIG)
 
     // Quality validation state
     const [qualityResult, setQualityResult] = useState<ImageQualityResult | null>(null)
@@ -240,29 +220,7 @@ export default function MedVisionPage() {
         })
     }
 
-    const createCroppedImage = useCallback(async (pixelCrop: PixelCrop): Promise<string> => {
-        const imgEl = cropImgRef.current
-        if (!imgEl) throw new Error('Image ref not available')
-
-        const canvas = document.createElement('canvas')
-        const ctx = canvas.getContext('2d')
-        if (!ctx) throw new Error('Could not get canvas context')
-
-        const scaleX = imgEl.naturalWidth / (imgEl.width * zoom)
-        const scaleY = imgEl.naturalHeight / (imgEl.height * zoom)
-
-        const cropX = pixelCrop.x * scaleX
-        const cropY = pixelCrop.y * scaleY
-        const cropW = pixelCrop.width * scaleX
-        const cropH = pixelCrop.height * scaleY
-
-        canvas.width = cropW
-        canvas.height = cropH
-        ctx.drawImage(imgEl, cropX, cropY, cropW, cropH, 0, 0, cropW, cropH)
-        return canvas.toDataURL('image/jpeg', 0.95)
-    }, [zoom])
-
-    // Crop a region from an existing base64 image by percentage coords
+    // Recorte de região para refinamento (resultado)
     const cropRegionFromImage = useCallback(async (imageSrc: string, box: BoundingBox): Promise<string> => {
         const img = new Image()
         img.src = imageSrc
@@ -283,107 +241,50 @@ export default function MedVisionPage() {
         return canvas.toDataURL('image/jpeg', 0.92)
     }, [])
 
-    const handleCropConfirm = useCallback(async () => {
-        if (!originalImage) return
-
-        if (!completedCrop || completedCrop.width === 0) {
-            setImage(originalImage)
-            
-            // Get original image dimensions
-            const img = new Image()
-            img.src = originalImage
-            await new Promise((resolve) => { img.onload = resolve })
-            setOriginalImageDims({ width: img.width, height: img.height })
-            
-            setState('CONFIRM')
-            return
-        }
-
-        try {
-            const croppedImage = await createCroppedImage(completedCrop)
-            setImage(croppedImage)
-            
-            // Get cropped image dimensions
-            const img = new Image()
-            img.src = croppedImage
-            await new Promise((resolve) => { img.onload = resolve })
-            setOriginalImageDims({ width: img.width, height: img.height })
-            
-            setState('CONFIRM')
-        } catch (error) {
-            console.error('Error cropping image:', error)
-            toast.error('Erro ao recortar imagem')
-        }
-    }, [originalImage, completedCrop, createCroppedImage])
-
-    const handleSkipCrop = useCallback(async () => {
-        if (!originalImage) return
-        setImage(originalImage)
-        
-        // Get original image dimensions
-        const img = new Image()
-        img.src = originalImage
-        await new Promise((resolve) => { img.onload = resolve })
-        setOriginalImageDims({ width: img.width, height: img.height })
-        
-        setState('CONFIRM')
-    }, [originalImage])
-
-    const resetCrop = useCallback(() => {
-        setCrop(undefined)
-        setCompletedCrop(undefined)
-        setZoom(1)
-    }, [])
-
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
         const file = acceptedFiles[0]
         if (file) {
             try {
                 const imageBase64 = await readImageAsBase64(file)
-                const compressed = await compressImageForAnalysis(imageBase64, 1280, 0.88)
-                
-                // Get original image dimensions
-                const img = new Image()
-                img.src = compressed
-                await new Promise((resolve) => { img.onload = resolve })
-                setOriginalImageDims({ width: img.width, height: img.height })
-                
+                const compressed = await compressImageForAnalysis(imageBase64, 1024, 0.85)
                 setOriginalImage(compressed)
                 setImage(compressed)
                 const result = await validateImageQuality(compressed)
                 setQualityResult(result)
-                setState('DESCRIBE')
-                resetCrop()
+                setState('CONFIGURE')
             } catch (error) {
                 console.error("Error processing image:", error)
                 toast.error("Erro ao processar imagem. Tente outro arquivo.")
-                setState('UPLOAD')
+                setState('CONFIGURE')
             }
         }
-    }, [resetCrop])
-
-    const handleValidationProceed = useCallback(() => {
-        setState('DESCRIBE')
-        resetCrop()
-    }, [resetCrop])
-
-    const handleValidationCancel = useCallback(() => {
-        setOriginalImage(null)
-        setImage(null)
-        setQualityResult(null)
-        setState('UPLOAD')
     }, [])
 
-    const getModelName = (modelId: string) =>
-        VISION_MODELS_LIST.find(m => m.id === modelId)?.name ?? modelId
+    const patchConfig = useCallback((patch: Partial<MedVisionAnalysisConfig>) => {
+        setConfig((prev) => ({ ...prev, ...patch }))
+    }, [])
 
-    const startSingleAnalysis = async (imageData: string, modelId: string) => {
+    const buildAnalysisBody = useCallback(
+        (imageData: string, extra?: Record<string, unknown>) => ({
+            image: imageData,
+            specialty: config.specialty,
+            clinicalContext: config.clinicalContext.trim() || undefined,
+            modality: config.modality,
+            reportDepth: config.reportDepth,
+            focusTags: config.focusTags.length ? config.focusTags : undefined,
+            patientAge: config.patientAge,
+            patientSex: config.patientSex,
+            reportSections: config.reportSections,
+            ...extra,
+        }),
+        [config],
+    )
+
+    const startSingleAnalysis = async (imageData: string) => {
         setState('ANALYZING')
         setProgress(0)
         setAnalysisResult(null)
         setAnalysisPrecision(null)
-        setComparisonResult(null)
-
         // Progress com desaceleração natural — não trava mais nos 90%
         const interval = setInterval(() => {
             setProgress((prev) => {
@@ -398,7 +299,7 @@ export default function MedVisionPage() {
             const response = await fetch('/api/vision/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: imageData, clinicalContext: clinicalContext || undefined, model: modelId, specialty })
+                body: JSON.stringify(buildAnalysisBody(imageData))
             })
 
             if (!response.ok) {
@@ -479,7 +380,6 @@ export default function MedVisionPage() {
     // Helper to retry analysis with exponential backoff
     const retryAnalysis = async (
         imageData: string,
-        modelId: string,
         maxRetries = 2
     ): Promise<VisionAnalysisResult | null> => {
         for (let attempt = 1; attempt <= maxRetries; attempt++) {
@@ -487,12 +387,7 @@ export default function MedVisionPage() {
                 const response = await fetch('/api/vision/analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        image: imageData,
-                        clinicalContext: clinicalContext || undefined,
-                        model: modelId,
-                        specialty
-                    })
+                    body: JSON.stringify(buildAnalysisBody(imageData))
                 })
 
                 if (!response.ok) {
@@ -523,101 +418,8 @@ export default function MedVisionPage() {
         return null
     }
 
-    const startCompareAnalysis = async (imageData: string, modelA: string, modelB: string) => {
-        setState('ANALYZING')
-        setProgress(0)
-        setAnalysisResult(null)
-        setAnalysisPrecision(null)
-        setComparisonResult(null)
-
-        const interval = setInterval(() => {
-            setProgress((prev) => {
-                if (prev >= 95) return prev
-                const increment = prev < 30 ? 3 : prev < 60 ? 2 : prev < 80 ? 1 : 0.3
-                return Math.min(95, prev + increment)
-            })
-        }, 500)
-
-        try {
-            const headers = { 'Content-Type': 'application/json' }
-            const [resA, resB] = await Promise.all([
-                fetch('/api/vision/analyze', {
-                    method: 'POST', headers,
-                    body: JSON.stringify({ image: imageData, clinicalContext: clinicalContext || undefined, model: modelA, specialty })
-                }),
-                fetch('/api/vision/analyze', {
-                    method: 'POST', headers,
-                    body: JSON.stringify({ image: imageData, clinicalContext: clinicalContext || undefined, model: modelB, specialty })
-                }),
-            ])
-
-            if (!resA.ok || !resB.ok) {
-                const failed = !resA.ok ? resA : resB
-                const errData = await failed.json().catch(() => ({}))
-                const errorCode = errData?.error?.code
-                const errorMessage = errData?.error?.message
-
-                if (failed.status === 401) {
-                    clearInterval(interval)
-                    router.push('/login')
-                    return
-                }
-                if (failed.status === 402 || errData?.error === 'credits_exhausted') {
-                    throw new Error('Créditos insuficientes. Você atingiu o limite mensal do seu plano. Faça upgrade para continuar.')
-                }
-                if (failed.status === 429) {
-                    const limit = errData?.limit
-                    const used = errData?.used
-                    const limitInfo = limit ? ` (${used}/${limit} hoje)` : ''
-                    throw new Error(errData?.error || `Limite diário atingido${limitInfo}. Faça upgrade para Pro.`)
-                }
-                if (errorCode === 'INADEQUATE_IMAGE') {
-                    setInadequateImageError({
-                        reason: errorMessage || 'Esta imagem não é adequada para análise.',
-                        details: errData?.error?.details,
-                    })
-                    throw new Error('INADEQUATE_IMAGE')
-                }
-                throw new Error(errData?.error || `HTTP ${failed.status}`)
-            }
-
-            const [dataA, dataB] = await Promise.all([
-                resA.json() as Promise<VisionAnalysisResult & { precision?: number }>,
-                resB.json() as Promise<VisionAnalysisResult & { precision?: number }>,
-            ])
-
-            clearInterval(interval)
-            setProgress(100)
-
-            setComparisonResult({
-                modelA: { modelId: modelA, modelName: getModelName(modelA), result: dataA, precision: dataA.precision ?? null },
-                modelB: { modelId: modelB, modelName: getModelName(modelB), result: dataB, precision: dataB.precision ?? null },
-            })
-
-            // Auto-save model A result as the canonical artifact
-            performSave(imageData, dataA, []).then(() => {
-                setIsSaved(true)
-            }).catch((err) => {
-                console.warn('Auto-save failed:', err)
-            })
-
-            setTimeout(() => { setState('RESULT'); playSuccess() }, 500)
-
-        } catch (error) {
-            clearInterval(interval)
-            console.error(error)
-            const msg = error instanceof Error ? error.message : 'Erro desconhecido'
-            toast.error(`Erro ao comparar modelos: ${msg}. Tente novamente.`)
-            setState('ERROR')
-        }
-    }
-
     const startAnalysis = (imageData: string) => {
-        if (analysisMode === 'compare') {
-            startCompareAnalysis(imageData, compareModelA, compareModelB)
-        } else {
-            startSingleAnalysis(imageData, selectedModel)
-        }
+        startSingleAnalysis(imageData)
     }
 
     // Handle region refinement
@@ -637,13 +439,12 @@ export default function MedVisionPage() {
             const response = await fetch('/api/vision/analyze', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    image: regionImage,
-                    clinicalContext: clinicalContext || undefined,
-                    mode: 'refine',
-                    originalAnalysisSummary,
-                    specialty,
-                })
+                body: JSON.stringify(
+                    buildAnalysisBody(regionImage, {
+                        mode: 'refine',
+                        originalAnalysisSummary,
+                    }),
+                )
             })
 
             if (!response.ok) {
@@ -673,7 +474,7 @@ toast.success('Região re-analisada com sucesso!')
         } finally {
             setIsRefining(false)
         }
-    }, [image, analysisResult, clinicalContext, cropRegionFromImage])
+    }, [image, analysisResult, buildAnalysisBody, cropRegionFromImage])
 
     const removeRefinement = useCallback((index: number) => {
         setRefinements(prev => prev.filter((_, i) => i !== index))
@@ -687,7 +488,7 @@ toast.success('Região re-analisada com sucesso!')
     })
 
     const reset = () => {
-        setState('UPLOAD')
+        setState('CONFIGURE')
         setImage(null)
         setOriginalImage(null)
         setProgress(0)
@@ -700,12 +501,10 @@ toast.success('Região re-analisada com sucesso!')
         setIsSelectingRegion(false)
         setRefinements([])
         setExpandedRefinement(null)
-        setClinicalContext('')
-        setComparisonResult(null)
+        setConfig(DEFAULT_ANALYSIS_CONFIG)
         setImageToolsExpanded(false)
         setInadequateImageError(null)
         clearAnnotations()
-        resetCrop()
         setResultMainTab('image')
     }
 
@@ -728,413 +527,71 @@ toast.success('Região re-analisada com sucesso!')
 
             <div className="grid grid-cols-1 gap-8 min-w-0">
                 <AnimatePresence mode="wait">
-                    {/* ─── UPLOAD / ERROR ─── */}
-                    {(state === 'UPLOAD' || state === 'ERROR') && (
-                        <motion.div
-                            key="upload"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                            className="w-full"
-                        >
+                    {state === 'ERROR' && (
+                        <motion.div key="error" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="w-full space-y-6">
                             <MedVisionStepIndicator state={state} />
-
-                            {state === 'ERROR' && <VisionErrorBanner />}
-
-                            {state === 'ERROR' && inadequateImageError ? (
-                                <div className="mb-6">
-                                    <InadequateImageError
-                                        reason={inadequateImageError.reason}
-                                        details={inadequateImageError.details}
-                                        hasImage={Boolean(image)}
-                                        onTryAgain={() => {
-                                            setInadequateImageError(null)
-                                            if (image) setState('CONFIRM')
-                                        }}
-                                        onNewUpload={() => {
-                                            setInadequateImageError(null)
-                                            reset()
-                                        }}
-                                    />
-                                </div>
-                            ) : state === 'ERROR' && (
-                                <div className="mb-6">
-                                    <VisionErrorRecovery
-                                        hasImage={Boolean(image)}
-                                        onRetryFromConfirm={() => setState('CONFIRM')}
-                                        onChangeModel={() => setState('CROP')}
-                                        onBackToCrop={() => setState('CROP')}
-                                        onNewUpload={reset}
-                                    />
-                                </div>
-                            )}
-
-                            <GlassCard className="p-6 md:p-12 border-dashed border-2 flex flex-col items-center justify-center text-center group cursor-pointer hover:border-primary/40 transition-all duration-500 min-h-[260px] md:min-h-[400px]"
-                                {...getRootProps()}
-                            >
-                                <input {...getInputProps()} />
-                                <div className="relative mb-4 md:mb-6">
-                                    <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-                                    <div className="relative h-14 w-14 md:h-20 md:w-20 rounded-2xl bg-muted/50 flex items-center justify-center border border-border/50 group-hover:scale-110 group-hover:border-primary/50 group-hover:bg-primary/5 transition-all duration-500">
-                                        <FileUp className="h-7 w-7 md:h-10 md:w-10 text-muted-foreground group-hover:text-primary transition-colors" />
-                                    </div>
-                                </div>
-                                <h3 className="text-lg md:text-xl font-medium mb-1.5 md:mb-2 group-hover:text-primary transition-colors">
-                                    {isDragActive ? 'Solte a imagem agora' : 'Arraste e solte sua imagem'}
-                                </h3>
-                                <p className="text-muted-foreground text-sm md:text-base max-w-xs mx-auto mb-5 md:mb-8">
-                                    Suporta radiografias periapicais, panorâmicas e fotos clínicas (PNG, JPG).
-                                </p>
-                                <Button variant="outline" className="rounded-full px-6 md:px-8 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
-                                    Selecionar arquivo
-                                </Button>
-                            </GlassCard>
-
-                            {/* Tips Section */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-                                {[
-                                    { icon: Info, title: 'Alta Resolução', desc: 'Imagens nítidas garantem mais precisão na detecção.' },
-                                    { icon: ImageIcon, title: 'Enquadramento', desc: 'Centralize a área de interesse para melhor análise.' },
-                                    { icon: CheckCircle2, title: 'Segurança', desc: 'Dados criptografados e conformidade com LGPD.' },
-                                ].map((tip, i) => (
-                                    <GlassCard key={i} className="p-4 flex gap-4 items-start bg-muted/20 border-border/30">
-                                        <tip.icon className="w-5 h-5 text-primary shrink-0" />
-                                        <div>
-                                            <h4 className="text-sm font-semibold">{tip.title}</h4>
-                                            <p className="text-xs text-muted-foreground leading-relaxed">{tip.desc}</p>
-                                        </div>
-                                    </GlassCard>
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* ─── STEP 2: DESCRIBE ─── */}
-                    {state === 'DESCRIBE' && originalImage && (
-                        <motion.div
-                            key="describe"
-                            initial={{ opacity: 0, x: 40 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -40 }}
-                            className="w-full space-y-6"
-                        >
-                            <MedVisionStepIndicator state={state} />
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                                {/* Image preview */}
-                                <GlassCard className="p-4">
-                                    <p className="text-xs text-muted-foreground mb-3 font-medium">Imagem selecionada</p>
-                                    <div className="rounded-xl overflow-hidden border border-border/40 bg-black/20">
-                                        <img src={originalImage} alt="Preview" className="w-full object-contain max-h-[300px]" />
-                                    </div>
-                                </GlassCard>
-
-                                {/* Specialty + Clinical context */}
-                                <div className="space-y-4">
-                                    {/* Model selector */}
-                                    <ModelSelector
-                                        mode={analysisMode}
-                                        onModeChange={setAnalysisMode}
-                                        selectedModel={selectedModel}
-                                        onModelChange={setSelectedModel}
-                                        compareModelA={compareModelA}
-                                        compareModelB={compareModelB}
-                                        onCompareModelAChange={setCompareModelA}
-                                        onCompareModelBChange={setCompareModelB}
-                                    />
-
-                                    {/* Specialty selector */}
-                                    <GlassCard className="p-5 border-border/40">
-                                        <div className="flex items-start gap-3 mb-4">
-                                            <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 shrink-0">
-                                                <Microscope className="w-4 h-4 text-primary" />
-                                            </div>
-                                            <div>
-                                                <h4 className="text-sm font-semibold">Especialidade</h4>
-                                                <p className="text-xs text-muted-foreground mt-0.5">Selecione o tipo de análise para um laudo mais preciso.</p>
-                                            </div>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2">
-                                            {VISION_SPECIALTY_ORDER.map((id) => VISION_SPECIALTIES[id]).map((s) => (
-                                                <button
-                                                    key={s.id}
-                                                    type="button"
-                                                    onClick={() => setSpecialty(s.id)}
-                                                    className={cn(
-                                                        'flex flex-col items-start gap-0.5 rounded-xl border-2 p-3 text-left transition-all',
-                                                        specialty === s.id
-                                                            ? 'border-primary bg-primary/10 text-primary'
-                                                            : 'border-border/40 bg-muted/20 text-muted-foreground hover:border-border hover:bg-muted/40'
-                                                    )}
-                                                >
-                                                    <span className="text-xs font-semibold">{s.label}</span>
-                                                    <span className="text-[10px] leading-tight opacity-80">{s.description}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </GlassCard>
-
-                                    {/* Clinical context */}
-                                    <GlassCard className="p-5 border-border/40">
-                                        <div className="flex items-start gap-3 mb-4">
-                                            <div className="p-1.5 rounded-lg bg-primary/10 border border-primary/20 shrink-0">
-                                                <FileText className="w-4 h-4 text-primary" />
-                                            </div>
-                                            <div>
-                                                <h4 className="text-sm font-semibold">Descreva o Problema</h4>
-                                                <p className="text-xs text-muted-foreground mt-0.5">Informe queixa principal, histórico ou suspeita — a IA usará isso para personalizar o laudo.</p>
-                                            </div>
-                                        </div>
-                                        <Textarea
-                                            value={clinicalContext}
-                                            onChange={(e) => setClinicalContext(e.target.value)}
-                                            placeholder="Ex: Paciente com tosse persistente há 3 semanas, febre e dispneia. Suspeita de pneumonia lobar."
-                                            className="resize-none text-sm h-28 bg-muted/20 border-border/40 focus:border-primary/50"
-                                            maxLength={500}
-                                        />
-                                        {clinicalContext.length > 0 && (
-                                            <p className="text-[10px] text-muted-foreground text-right mt-1">{clinicalContext.length}/500</p>
-                                        )}
-                                        <p className="text-[11px] text-muted-foreground mt-3 italic">Campo opcional — pule se preferir.</p>
-                                    </GlassCard>
-                                </div>
-                            </div>
-
-                            {/* Navigation */}
-                            <div className="flex gap-3 pt-2">
-                                <Button variant="outline" className="flex-1 h-11 rounded-xl gap-2" onClick={() => setState('UPLOAD')}>
-                                    <ChevronRight className="w-4 h-4 rotate-180" /> Voltar
-                                </Button>
-<Button className="flex-1 h-11 rounded-xl gap-2" onClick={() => { setState('CROP'); resetCrop() }}>
-                            Próximo <ChevronRight className="w-4 h-4" />
-                        </Button>
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* ─── VALIDATING ─── */}
-                    {state === 'VALIDATING' && originalImage && qualityResult && (
-                        <motion.div
-                            key="validating"
-                            initial={{ opacity: 0, y: 12 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -12 }}
-                            className="w-full space-y-6"
-                        >
-                            <MedVisionStepIndicator state={state} />
-                            <QualityFeedback
-                                result={qualityResult}
-                                imagePreview={originalImage}
-                                onProceed={handleValidationProceed}
-                                onCancel={handleValidationCancel}
-                            />
-                        </motion.div>
-                    )}
-
-                    {/* ─── CROP / ADJUST ─── */}
-                    {state === 'CROP' && originalImage && (
-                        <motion.div
-                            key="crop"
-                            initial={{ opacity: 0, x: 40 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -40 }}
-                            className="w-full space-y-6"
-                        >
-                            <MedVisionStepIndicator state={state} />
-
-                            <GlassCard className="p-4 sm:p-6">
-                                <div className="flex items-center justify-between mb-3 sm:mb-4">
-                                    <div className="flex items-center gap-2 sm:gap-3">
-                                        <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 border border-primary/20">
-                                            <Crop className="w-4 h-4 sm:w-5 sm:h-5 text-primary" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-sm sm:text-lg font-heading font-bold">Recortar Área</h3>
-                                            <p className="text-[10px] sm:text-xs text-muted-foreground hidden sm:block">Toque para ajustar a região de interesse</p>
-                                        </div>
-                                    </div>
-                                    <Badge variant="outline" className="text-[10px] sm:text-xs">Opcional</Badge>
-                                </div>
-
-                                <div className="relative w-full aspect-[4/3] rounded-xl overflow-hidden bg-black/90 border border-border/50 flex items-center justify-center [&_.ReactCrop__crop-selection]:border-primary [&_.ReactCrop__crop-selection]:border-2 [&_.ReactCrop__drag-handle]:bg-primary [&_.ReactCrop__drag-handle]:w-3 [&_.ReactCrop__drag-handle]:h-3 [&_.ReactCrop__drag-handle]:rounded-sm">
-                                    <ReactCrop
-                                        crop={crop}
-                                        onChange={(c) => setCrop(c)}
-                                        onComplete={(c) => setCompletedCrop(c)}
-                                        className="max-h-full"
-                                    >
-                                        <img
-                                            ref={cropImgRef}
-                                            src={originalImage}
-                                            alt="Imagem para recorte"
-                                            className="max-h-[50vh] object-contain"
-                                            style={{ transform: `scale(${zoom})`, transformOrigin: 'center' }}
-                                        />
-                                    </ReactCrop>
-                                    
-                                    {/* Image dimensions overlay */}
-                                    <div className="absolute top-2 left-2 flex gap-1.5">
-                                        <div className="px-2 py-1 rounded-md bg-black/70 backdrop-blur-sm border border-white/10 flex items-center gap-1.5">
-                                            <Box className="w-3 h-3 text-muted-foreground" />
-                                            <span className="text-[10px] font-mono text-white">
-                                                {originalImageDims.width} × {originalImageDims.height}
-                                            </span>
-                                        </div>
-                                    </div>
-
-                                    {/* Crop dimensions indicator */}
-                                    {completedCrop && completedCrop.width > 0 && (
-                                        <div className="absolute bottom-2 left-2 px-2 py-1 rounded-md bg-primary/90 backdrop-blur-sm flex items-center gap-1.5">
-                                            <Crop className="w-3 h-3 text-white" />
-                                            <span className="text-[10px] font-mono text-white font-semibold">
-                                                {Math.round(completedCrop.width)} × {Math.round(completedCrop.height)}
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-
-                                {/* Zoom controls - mobile friendly */}
-                                <div className="mt-4 space-y-3">
-                                    <div className="flex items-center gap-3">
-                                        <ZoomOut className="w-4 h-4 text-muted-foreground shrink-0" />
-                                        <Slider
-                                            value={[zoom]}
-                                            min={1}
-                                            max={3}
-                                            step={0.1}
-                                            onValueChange={(value) => setZoom(value[0])}
-                                            className="flex-1"
-                                        />
-                                        <ZoomIn className="w-4 h-4 text-muted-foreground shrink-0" />
-                                        <span className="text-xs text-muted-foreground w-12 text-right tabular-nums">{Math.round(zoom * 100)}%</span>
-                                    </div>
-
-                                    <div className="flex items-center justify-center">
-                                        <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={resetCrop}
-                                            className="text-xs gap-1.5 h-8"
-                                        >
-                                            <RotateCcw className="w-3 h-3" />
-                                            Resetar área
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                {/* Action buttons - mobile friendly */}
-                                <div className="flex gap-2 mt-4 pt-4 border-t border-border/30">
-                                    <Button variant="outline" className="h-11 rounded-xl gap-1.5 px-3" onClick={() => setState('CROP')}>
-                                        <ChevronRight className="w-4 h-4 rotate-180" /> 
-                                        <span className="hidden sm:inline">Voltar</span>
-                                    </Button>
-                                    <Button variant="outline" className="h-11 rounded-xl gap-1.5 flex-1" onClick={handleSkipCrop}>
-                                        <X className="w-4 h-4" /> 
-                                        <span className="hidden sm:inline">Usar imagem completa</span>
-                                        <span className="sm:hidden">Pular</span>
-                                    </Button>
-                                    <Button className="h-11 rounded-xl gap-1.5 flex-1 bg-primary hover:bg-primary/90" onClick={handleCropConfirm}>
-                                        <Check className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Confirmar</span>
-                                        <span className="sm:hidden">Ok</span>
-                                    </Button>
-                                </div>
-                            </GlassCard>
-
-                            {qualityResult && qualityResult.warnings.length > 0 && (
-                                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-start gap-3">
-                                    <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                                    <div>
-                                        <p className="text-sm font-medium text-amber-500">Imagem com qualidade reduzida</p>
-                                        <ul className="mt-1.5 space-y-0.5">
-                                            {qualityResult.warnings.map((w, i) => (
-                                                <li key={i} className="text-xs text-muted-foreground">• {w.message}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
+                            <VisionErrorBanner />
+                            {inadequateImageError ? (
+                                <InadequateImageError
+                                    reason={inadequateImageError.reason}
+                                    details={inadequateImageError.details}
+                                    hasImage={Boolean(image)}
+                                    onTryAgain={() => {
+                                        setInadequateImageError(null)
+                                        if (image) setState('REVIEW')
+                                    }}
+                                    onNewUpload={() => {
+                                        setInadequateImageError(null)
+                                        reset()
+                                    }}
+                                />
+                            ) : (
+                                <VisionErrorRecovery
+                                    hasImage={Boolean(image)}
+                                    onRetry={() => image && startAnalysis(image)}
+                                    onBackToReview={() => setState('REVIEW')}
+                                    onNewUpload={reset}
+                                />
                             )}
                         </motion.div>
                     )}
 
-                    {/* ─── STEP 5: CONFIRM ─── */}
-                    {state === 'CONFIRM' && image && (
-                        <motion.div
-                            key="confirm"
-                            initial={{ opacity: 0, x: 40 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -40 }}
-                            className="w-full space-y-6"
-                        >
-                            <MedVisionStepIndicator state={state} />
-
-                            <GlassCard className="p-6">
-                                <div className="flex items-center gap-3 mb-5">
-                                    <div className="p-2 rounded-xl bg-primary/10 border border-primary/20">
-                                        <Microscope className="w-5 h-5 text-primary" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-lg font-heading font-bold">Confirmar Análise</h3>
-                                        <p className="text-xs text-muted-foreground">Revise as configurações antes de iniciar.</p>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {/* Image preview */}
-                                    <div>
-                                        <p className="text-xs text-muted-foreground font-medium mb-2">Imagem a analisar</p>
-                                        <div className="rounded-xl overflow-hidden border border-border/40 bg-black/20">
-                                            <img src={image} alt="Preview final" className="w-full object-contain max-h-[240px]" />
-                                        </div>
-                                    </div>
-
-                                    {/* Summary */}
-                                    <div className="space-y-3">
-                                        <div className="p-3 rounded-xl bg-muted/30 border border-border/40">
-                                            <p className="text-[11px] text-muted-foreground font-medium mb-1">Modelo</p>
-                                            {analysisMode === 'compare' ? (
-                                                <div className="space-y-0.5">
-                                                    <p className="text-sm font-semibold">{getModelName(compareModelA)}</p>
-                                                    <p className="text-xs text-muted-foreground">vs</p>
-                                                    <p className="text-sm font-semibold">{getModelName(compareModelB)}</p>
-                                                </div>
-                                            ) : (
-                                                <p className="text-sm font-semibold">{getModelName(selectedModel)}</p>
-                                            )}
-                                        </div>
-
-                                        <div className="p-3 rounded-xl bg-muted/30 border border-border/40">
-                                            <p className="text-[11px] text-muted-foreground font-medium mb-1">Contexto clínico</p>
-                                            {clinicalContext ? (
-                                                <p className="text-sm leading-snug line-clamp-3">{clinicalContext}</p>
-                                            ) : (
-                                                <p className="text-sm text-muted-foreground italic">Não informado</p>
-                                            )}
-                                        </div>
-
-                                        {analysisMode === 'compare' && (
-                                            <div className="flex items-start gap-2 rounded-xl bg-amber-500/10 border border-amber-500/20 px-3 py-2">
-                                                <AlertTriangle className="h-3.5 w-3.5 text-amber-400 mt-0.5 shrink-0" />
-                                                <p className="text-[11px] text-amber-400 leading-snug">Comparação consome 2 análises do seu limite diário.</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </GlassCard>
-
-                            {/* Navigation */}
-                            <div className="flex gap-3">
-                                <Button variant="outline" className="flex-1 h-12 rounded-xl gap-2" onClick={() => setState('CROP')}>
-                                    <ChevronRight className="w-4 h-4 rotate-180" /> Voltar
-                                </Button>
-                                <Button className="flex-1 h-12 rounded-xl gap-2 bg-primary hover:bg-primary/90 font-semibold text-base" onClick={() => startAnalysis(image)}>
-                                    <Sparkles className="w-4 h-4" /> Analisar Agora
-                                </Button>
-                            </div>
-                        </motion.div>
+                    {state === 'CONFIGURE' && (
+                        <MedVisionConfigureStep
+                            state={state}
+                            originalImage={originalImage}
+                            config={config}
+                            onConfigChange={patchConfig}
+                            qualityResult={qualityResult}
+                            getRootProps={getRootProps}
+                            getInputProps={getInputProps}
+                            isDragActive={isDragActive}
+                            onBack={() => {
+                                setOriginalImage(null)
+                                setImage(null)
+                                setQualityResult(null)
+                            }}
+                            onContinue={() => {
+                                if (originalImage) {
+                                    setImage(originalImage)
+                                    setState('REVIEW')
+                                }
+                            }}
+                        />
                     )}
 
-                    {/* ─── ANALYZING ─── */}
+                    {state === 'REVIEW' && originalImage && image && (
+                        <MedVisionReviewStep
+                            state={state}
+                            originalImage={originalImage}
+                            image={image}
+                            config={config}
+                            onBack={() => setState('CONFIGURE')}
+                            onAnalyze={startAnalysis}
+                            onImageReady={setImage}
+                        />
+                    )}
+
                     {state === 'ANALYZING' && (
                         <motion.div
                             key="analyzing"
@@ -1143,153 +600,12 @@ toast.success('Região re-analisada com sucesso!')
                             exit={{ opacity: 0, scale: 1.02 }}
                             className="w-full"
                         >
-                            <AnalyzingStage
-                                state={state}
-                                image={image}
-                                progress={progress}
-                                isCompare={analysisMode === 'compare'}
-                            />
+                            <AnalyzingStage state={state} image={image} progress={progress} />
                         </motion.div>
                     )}
 
-                    {/* ─── RESULT: Comparison Mode ─── */}
-                    {state === 'RESULT' && analysisMode === 'compare' && comparisonResult && (
-                        <motion.div
-                            key="result-compare"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            className="flex flex-col gap-6 max-w-6xl mx-auto w-full min-w-0"
-                        >
-                            <VisionClinicalDisclaimer />
-                            {/* Header */}
-                            <div className="flex items-center justify-between flex-wrap gap-3">
-                                <div className="flex items-center gap-2">
-                                    <GitBranch className="w-5 h-5 text-primary" />
-                                    <h2 className="text-xl font-heading font-bold">Comparação de Modelos</h2>
-                                </div>
-                                <div className="flex flex-wrap gap-2 text-xs text-muted-foreground">
-                                    <span>
-                                        {comparisonResult.modelA.result.detections.length} detecções ({comparisonResult.modelA.modelName})
-                                    </span>
-                                    <span>vs</span>
-                                    <span>
-                                        {comparisonResult.modelB.result.detections.length} detecções ({comparisonResult.modelB.modelName})
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Side-by-side columns */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                {([
-                                    { side: comparisonResult.modelA, letter: 'A' },
-                                    { side: comparisonResult.modelB, letter: 'B' },
-                                ] as const).map(({ side, letter }) => (
-                                    <div key={letter} className="flex flex-col gap-4">
-                                        {/* Model badge */}
-                                        <div className="flex items-center gap-2 flex-wrap">
-                                            <Badge className="text-xs px-2 py-0.5">Modelo {letter}</Badge>
-                                            <span className="text-sm font-semibold">{side.modelName}</span>
-                                            {side.precision !== null && (
-                                                <Badge
-                                                    variant="outline"
-                                                    className={cn('text-[10px] h-5 px-1.5 font-bold',
-                                                        side.precision >= 80 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
-                                                            : side.precision >= 60 ? 'bg-amber-500/10 text-amber-500 border-amber-500/30'
-                                                                : 'bg-red-500/10 text-red-400 border-red-400/30'
-                                                    )}
-                                                >
-                                                    Precisão {side.precision}%
-                                                </Badge>
-                                            )}
-                                        </div>
-
-                                        {/* Image overlay */}
-                                        <GlassCard className="p-1 overflow-hidden min-w-0">
-                                            <div className="relative aspect-[4/3] rounded-lg overflow-hidden bg-black/5 min-w-0">
-                                                {image && (
-                                                    <ImageOverlay
-                                                        src={image}
-                                                        detections={side.result.detections}
-                                                        showConfidenceFilter
-                                                    />
-                                                )}
-                                            </div>
-                                        </GlassCard>
-
-                                        {/* Findings */}
-                                        <GlassCard className="p-4 space-y-3">
-                                            <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                                                <AlertCircle className="w-3 h-3" /> Achados ({side.result.findings.length})
-                                            </h4>
-                                            {side.result.findings.length === 0 ? (
-                                                <p className="text-xs text-muted-foreground">Nenhum achado detectado.</p>
-                                            ) : (
-                                                <div className="space-y-1.5">
-                                                    {side.result.findings.slice(0, 5).map((f, i) => (
-                                                        <div key={i} className="flex items-center justify-between p-2 rounded-lg bg-muted/30 border border-border/20 text-xs">
-                                                            <span className="font-medium truncate mr-2">{f.type}</span>
-                                                            <Badge variant="outline" className={cn('shrink-0 text-[9px] h-4 px-1', f.color.replace('text-', 'text-'))}>
-                                                                {f.level}
-                                                            </Badge>
-                                                        </div>
-                                                    ))}
-                                                    {side.result.findings.length > 5 && (
-                                                        <p className="text-[10px] text-muted-foreground">+{side.result.findings.length - 5} achados</p>
-                                                    )}
-                                                </div>
-                                            )}
-                                        </GlassCard>
-
-                                        {/* Diagnostic hypothesis */}
-                                        {side.result.report?.diagnosticHypothesis && (
-                                            <GlassCard className="p-4">
-                                                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Hipótese Diagnóstica</h4>
-                                                <p className="text-xs leading-relaxed">{side.result.report.diagnosticHypothesis}</p>
-                                            </GlassCard>
-                                        )}
-
-                                        {/* Recommendations */}
-                                        {side.result.report?.recommendations && side.result.report.recommendations.length > 0 && (
-                                            <GlassCard className="p-4">
-                                                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Recomendações</h4>
-                                                <ol className="space-y-1">
-                                                    {side.result.report.recommendations.slice(0, 4).map((rec, i) => (
-                                                        <li key={i} className="flex gap-2 text-xs">
-                                                            <span className="shrink-0 text-primary font-semibold">{i + 1}.</span>
-                                                            <span className="leading-relaxed">{rec}</span>
-                                                        </li>
-                                                    ))}
-                                                </ol>
-                                            </GlassCard>
-                                        )}
-                                    </div>
-                                ))}
-                            </div>
-
-                            {/* Action buttons */}
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 w-full min-w-0">
-                                <Button variant="outline" className="w-full rounded-xl h-12 gap-2" onClick={reset}>
-                                    <RefreshCcw className="w-4 h-4" /> Analisar Outra
-                                </Button>
-                                <Button
-                                    className="w-full rounded-xl h-12 gap-2 bg-primary hover:bg-primary/90"
-                                    onClick={() => {
-                                        if (comparisonResult && image) {
-                                            toast.promise(
-                                                generateVisionPDF({ analysisResult: comparisonResult.modelA.result, imageBase64: image, refinements }),
-                                                { loading: 'Gerando PDF (Modelo A)...', success: 'PDF gerado!', error: 'Erro ao gerar PDF' }
-                                            )
-                                        }
-                                    }}
-                                >
-                                    <Download className="w-4 h-4" /> Exportar PDF (Modelo A)
-                                </Button>
-                            </div>
-                        </motion.div>
-                    )}
-
-                    {/* ─── RESULT: Single Mode ─── */}
-                    {state === 'RESULT' && analysisMode === 'single' && analysisResult && (
+                    {/* ─── RESULT ─── */}
+                    {state === 'RESULT' && analysisResult && (
                         <motion.div
                             key="result"
                             initial={{ opacity: 0 }}

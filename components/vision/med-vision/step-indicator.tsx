@@ -16,8 +16,8 @@ type MedVisionStepIndicatorProps = {
 }
 
 /**
- * Indicador linear dos 4 passos (Imagem → Problema → Ajustes → Confirmar).
- * Durante ANÁLISE, o passo "Confirmar" permanece destacado; em RESULT, todos aparecem concluídos.
+ * Indicador linear dos 2 passos (Personalizar → Revisar e analisar).
+ * Durante ANÁLISE, o passo "Revisar" permanece destacado; em RESULT, todos aparecem concluídos.
  */
 export function MedVisionStepIndicator({ state, className }: MedVisionStepIndicatorProps) {
     const stepKey = mapVisionStateToWizardStep(state)

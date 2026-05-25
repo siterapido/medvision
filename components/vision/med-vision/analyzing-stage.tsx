@@ -3,17 +3,18 @@
 import { motion } from 'motion/react'
 import { Loader2, Sparkles } from 'lucide-react'
 import { Progress } from '@/components/ui/progress'
+import { MEDVISION_AI_LABEL } from '@/lib/constants/vision'
 import { MedVisionStepIndicator } from '@/components/vision/med-vision/step-indicator'
+import { MedVisionAiBadge } from '@/components/vision/med-vision/med-vision-ai-badge'
 import type { VisionState } from '@/components/vision/med-vision/vision-wizard-state'
 
 type AnalyzingStageProps = {
     state: VisionState
     image: string | null
     progress: number
-    isCompare: boolean
 }
 
-export function AnalyzingStage({ state, image, progress, isCompare }: AnalyzingStageProps) {
+export function AnalyzingStage({ state, image, progress }: AnalyzingStageProps) {
     return (
         <div className="w-full space-y-4">
             <MedVisionStepIndicator state={state} />
@@ -37,12 +38,11 @@ export function AnalyzingStage({ state, image, progress, isCompare }: AnalyzingS
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/20 backdrop-blur-[2px]">
                         <div className="bg-background/80 backdrop-blur-md px-6 py-4 rounded-2xl border border-white/10 shadow-xl flex flex-col items-center gap-4 max-w-sm mx-2">
                             <Loader2 className="w-8 h-8 text-primary animate-spin" aria-hidden />
+                            <MedVisionAiBadge />
                             <div className="text-center space-y-1">
                                 <h3 className="font-heading font-bold text-lg">Processando imagem</h3>
                                 <p className="text-sm text-muted-foreground">
-                                    {isCompare
-                                        ? 'Comparando dois modelos em paralelo. Aguarde.'
-                                        : 'Enviando para o motor de análise Med Vision…'}
+                                    Analisando com {MEDVISION_AI_LABEL}…
                                 </p>
                                 <p className="text-[11px] text-muted-foreground/90 pt-1">
                                     Dica: análises complexas podem levar até cerca de 2 minutos.
