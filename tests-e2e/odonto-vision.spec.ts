@@ -1,6 +1,8 @@
 /**
  * E2E — Med Vision / Odonto Vision (/dashboard/odonto-vision)
- * Alinhado a testsprite_tests/testsprite_frontend_test_plan.json (TC001–TC006)
+ * Fluxo UI: PERSONALIZAR (upload + formulário) → REVISÃO (opcional crop) → ANALISAR → resultado.
+ *
+ * Caminho revisão → análise: "Revisar análise" → "Usar imagem inteira" ou confirmar recorte → "Analisar agora".
  *
  * Sessão: projeto `chromium-odonto` + auth.setup.ts (storageState).
  * Análise real (API): defina E2E_VISION_ANALYZE=1 e credenciais válidas.
@@ -37,9 +39,9 @@ async function gotoPath(
   })
 }
 
-/** Após "Analisar Agora", aguarda resultado ou erro explícito da UI (evita timeout opaco). */
+/** Após "Analisar agora", aguarda resultado ou erro explícito da UI (evita timeout opaco). */
 async function waitForVisionAnalysisOutcome(page: Page) {
-  await page.getByRole('button', { name: /Analisar Agora/i }).click()
+  await page.getByRole('button', { name: /Analisar agora/i }).click()
   const errorBanner = page.getByText(/Não foi possível completar a análise/i)
   const exportPdf = page.getByRole('button', { name: /Exportar PDF/i }).first()
   const outcome = await Promise.race([
@@ -60,8 +62,8 @@ async function waitForVisionAnalysisOutcome(page: Page) {
 }
 
 /**
- * Clica em "Analisar Agora" e assegura que a resposta JSON de POST /api/vision/analyze
- * inclui `modelId` com o modelo padrão (GLM-5V), quando a UI usa o seletor padrão.
+ * Clica em "Analisar agora" na etapa de revisão e assegura que POST /api/vision/analyze
+ * retorna `modelId` com o modelo padrão (mesmo sem seletor de modelo na UI).
  */
 async function assertVisionResponseUsesDefaultModel(page: Page) {
   const postPromise = page.waitForResponse(
@@ -69,7 +71,7 @@ async function assertVisionResponseUsesDefaultModel(page: Page) {
       r.url().includes('/api/vision/analyze') && r.request().method() === 'POST',
     { timeout: 150_000 }
   )
-  await page.getByRole('button', { name: /Analisar Agora/i }).click()
+  await page.getByRole('button', { name: /Analisar agora/i }).click()
   const res = await postPromise
   expect(
     res.status(),
@@ -117,11 +119,12 @@ test.describe('Odonto Vision (Med Vision)', () => {
     ).toBeVisible()
   })
 
-  test('TC005 — sem imagem não há ação de analisar', async ({ page }) => {
+  test('TC005 — sem imagem não há botão Analisar agora', async ({ page }) => {
     await gotoPath(page, '/dashboard/odonto-vision')
-    await expect(page.getByRole('button', { name: /Analisar Agora/i })).toHaveCount(
-      0
-    )
+    // Na etapa de personalização pré-upload o CTA principal é apenas upload/Revisar.
+    await expect(
+      page.getByRole('button', { name: /Analisar agora/i })
+    ).toHaveCount(0)
   })
 
   test('TC006 — sem resultado não há exportação de PDF', async ({ page }) => {
@@ -131,39 +134,28 @@ test.describe('Odonto Vision (Med Vision)', () => {
     ).toHaveCount(0)
   })
 
-  test('TC004 — contexto permanece após ajuste no passo de recorte', async ({
-    page,
-  }) => {
+  test('TC004 — contexto permanece na etapa de revisão', async ({ page }) => {
     await gotoPath(page, '/dashboard/odonto-vision')
 
     await page.locator('input[type="file"]').setInputFiles(FIXTURE_JPG)
     await expect(
-      page.getByPlaceholder(/Paciente com dor|queixa principal/i)
+      page.getByPlaceholder(/tosse persistente|queixa principal/i)
     ).toBeVisible({ timeout: 20_000 })
 
     const marker = `E2E contexto ${Date.now()}`
-    await page.getByPlaceholder(/Paciente com dor|queixa principal/i).fill(marker)
+    await page.getByPlaceholder(/tosse persistente|queixa principal/i).fill(marker)
 
-    await page.getByRole('button', { name: /^Próximo$/i }).click()
-    await expect(page.getByText(/Modo de análise|modelo/i).first()).toBeVisible({
+    await page.getByRole('button', { name: /Revisar análise/i }).click()
+    await expect(page.getByText(/Ajustar região|Resumo da análise/i).first()).toBeVisible({
       timeout: 10_000,
     })
 
-    await page.getByRole('button', { name: /^Próximo$/i }).click()
-    await expect(
-      page.getByRole('heading', { name: /Recortar Imagem/i })
-    ).toBeVisible()
-
-    const slider = page.locator('[role="slider"]').first()
-    await slider.click()
-    await page.keyboard.press('ArrowRight')
-    await page.keyboard.press('ArrowRight')
-
-    await page.getByRole('button', { name: /Confirmar/i }).click()
-
-    await expect(page.getByText(/Confirmar Análise/i)).toBeVisible()
     await expect(page.getByText(marker)).toBeVisible()
-    await expect(page.getByText(/^Modelo$/i).first()).toBeVisible()
+    await expect(page.getByText(/MedVision IA 0\.1/i)).toBeVisible()
+    // Fluxo atual não expõe seletor de modelo na UI (apenas MedVision IA 0.1).
+    await expect(
+      page.getByRole('combobox', { name: /modelo\b/i })
+    ).toHaveCount(0)
   })
 
   test('TC001 — fluxo completo até resultado (API real)', async ({
@@ -179,17 +171,15 @@ test.describe('Odonto Vision (Med Vision)', () => {
 
     await page.locator('input[type="file"]').setInputFiles(FIXTURE_JPG)
     await expect(
-      page.getByPlaceholder(/Paciente com dor|queixa principal/i)
+      page.getByPlaceholder(/tosse persistente|queixa principal/i)
     ).toBeVisible({ timeout: 20_000 })
 
     await page
-      .getByPlaceholder(/Paciente com dor|queixa principal/i)
+      .getByPlaceholder(/tosse persistente|queixa principal/i)
       .fill('Teste E2E: radiografia para análise automatizada.')
 
-    await page.getByRole('button', { name: /^Próximo$/i }).click()
-    await page.getByRole('button', { name: /^Próximo$/i }).click()
-    await page.getByRole('button', { name: /Pular/i }).click()
-
+    await page.getByRole('button', { name: /Revisar análise/i }).click()
+    await page.getByRole('button', { name: /Usar imagem inteira/i }).click()
     await waitForVisionAnalysisOutcome(page)
 
     await expect(
@@ -216,18 +206,17 @@ test.describe('Odonto Vision (Med Vision)', () => {
 
       await page.locator('input[type="file"]').setInputFiles(imagePath)
       await expect(
-        page.getByPlaceholder(/Paciente com dor|queixa principal/i)
+        page.getByPlaceholder(/tosse persistente|queixa principal/i)
       ).toBeVisible({ timeout: 20_000 })
 
       await page
-        .getByPlaceholder(/Paciente com dor|queixa principal/i)
+        .getByPlaceholder(/tosse persistente|queixa principal/i)
         .fill(
-          `Teste E2E (pasta Imagens de teste): ${fileName} — análise com modelo padrão.`
+          `Teste E2E (pasta Imagens de teste): ${fileName} — análise MedVision IA 0.1.`
         )
 
-      await page.getByRole('button', { name: /^Próximo$/i }).click()
-      await page.getByRole('button', { name: /^Próximo$/i }).click()
-      await page.getByRole('button', { name: /Pular/i }).click()
+      await page.getByRole('button', { name: /Revisar análise/i }).click()
+      await page.getByRole('button', { name: /Usar imagem inteira/i }).click()
 
       await assertVisionResponseUsesDefaultModel(page)
 
@@ -254,11 +243,15 @@ test.describe('Odonto Vision (Med Vision)', () => {
 
     await page.locator('input[type="file"]').setInputFiles(FIXTURE_JPG)
     await expect(
-      page.getByPlaceholder(/Paciente com dor|queixa principal/i)
+      page.getByPlaceholder(/tosse persistente|queixa principal/i)
     ).toBeVisible({ timeout: 20_000 })
-    await page.getByRole('button', { name: /^Próximo$/i }).click()
-    await page.getByRole('button', { name: /^Próximo$/i }).click()
-    await page.getByRole('button', { name: /Pular/i }).click()
+
+    await page
+      .getByPlaceholder(/tosse persistente|queixa principal/i)
+      .fill('Teste E2E TC003 — contexto clínico para refinamento de região.')
+
+    await page.getByRole('button', { name: /Revisar análise/i }).click()
+    await page.getByRole('button', { name: /Usar imagem inteira/i }).click()
 
     await waitForVisionAnalysisOutcome(page)
 
