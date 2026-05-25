@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { Search, Loader2, AlertCircle, SearchX, Sparkles, ArrowUpRight, Clock } from "lucide-react"
+import { Search, Loader2, AlertCircle, SearchX, Scan, ArrowUpRight, Clock } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -138,26 +138,23 @@ export function ArtifactList({
             </div>
 
             {isLoading ? (
-                <div className="flex flex-col items-center justify-center py-20 gap-4">
-                    <div className="relative">
-                        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-                        <div className="absolute inset-0 blur-xl bg-primary/20 rounded-full" />
-                    </div>
-                    <p className="text-sm font-medium text-muted-foreground animate-pulse">Sincronizando biblioteca...</p>
+                <div className="flex flex-col items-center justify-center gap-4 py-20">
+                    <Loader2 className="h-10 w-10 animate-spin text-primary motion-reduce:animate-none" />
+                    <p className="text-sm font-medium text-muted-foreground">Sincronizando laudos...</p>
                 </div>
             ) : error ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center glass-card rounded-3xl p-10 max-w-md mx-auto">
+                <div className="mx-auto flex max-w-md flex-col items-center justify-center rounded-2xl border border-border bg-card p-10 py-20 text-center shadow-sm">
                     <AlertCircle className="h-12 w-12 text-red-500/80 mb-4" />
                     <h3 className="text-lg font-bold">Erro na conexão</h3>
                     <p className="text-sm text-muted-foreground mt-2 mb-6">Não conseguimos recuperar seus artefatos no momento.</p>
-                    <Button onClick={() => mutate()} variant="default" className="rounded-xl px-8 shadow-lg shadow-primary/20">
+                    <Button onClick={() => mutate()} variant="default" className="rounded-xl px-8">
                         Tentar Novamente
                     </Button>
                 </div>
             ) : data.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-24 text-center glass-card rounded-[2rem] p-12 max-w-xl mx-auto border-dashed border-white/10">
-                    <div className="p-5 rounded-full bg-muted/30 border border-border/20 mb-6 shrink-0">
-                        {searchTerm ? <SearchX className="h-10 w-10 text-muted-foreground/60" /> : <Sparkles className="h-10 w-10 text-primary/40" />}
+                <div className="mx-auto flex max-w-xl flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-12 py-24 text-center">
+                    <div className="mb-6 shrink-0 rounded-full border border-border bg-muted p-5">
+                        {searchTerm ? <SearchX className="h-10 w-10 text-muted-foreground" /> : <Scan className="h-10 w-10 text-primary/70" />}
                     </div>
                     <h3 className="text-xl font-bold">
                         {searchTerm ? "Nenhuma correspondência" : (title ? `Nenhum ${title} encontrado` : emptyMessage)}
@@ -167,7 +164,7 @@ export function ArtifactList({
                             ? "Não encontramos itens com esse termo. Tente usar palavras-chave mais genéricas."
                             : (description || "Seus artefatos aparecerão aqui.")}
                     </p>
-                    <Button onClick={() => searchTerm ? setSearchTerm("") : onEmptyAction?.()} className="rounded-xl px-10 h-12 gap-2 shadow-xl shadow-primary/20">
+                    <Button onClick={() => searchTerm ? setSearchTerm("") : onEmptyAction?.()} className="h-11 gap-2 rounded-xl px-10">
                         {searchTerm ? "Limpar Busca" : emptyActionLabel} {searchTerm ? null : <ArrowUpRight className="h-4 w-4" />}
                     </Button>
                 </div>
@@ -230,7 +227,7 @@ export function ArtifactList({
                                         {new Date(selectedArtifact.createdAt).toLocaleString("pt-BR")}
                                     </div>
                                     <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary border border-primary/20">
-                                        <Sparkles className="h-3 w-3" />
+                                        <Scan className="h-3 w-3" />
                                         {selectedArtifact.aiContext.agent}
                                     </div>
                                 </div>

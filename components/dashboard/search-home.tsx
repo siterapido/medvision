@@ -6,12 +6,13 @@ import { Logo } from "@/components/logo"
 import { cn } from "@/lib/utils"
 import { ArrowRight, Search, Sparkles } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
+import { MED_VISION_HREF } from "@/lib/constants/navigation"
 
 const SUGGESTIONS = [
-  "Como tratar uma pulpite irreversível?",
-  "Quais os protocolos para clareamento dental?",
-  "Gerar um termo de consentimento para implante",
-  "Resumir o artigo sobre adesivos dentinários",
+  "Como descrever lesao periapical em radiografia?",
+  "Quais achados sugerem carie proximal no RX?",
+  "Gerar laudo de tomografia de seios da face",
+  "Resumir criterios de qualidade de imagem em RX",
 ]
 
 export function SearchHome() {
@@ -24,7 +25,7 @@ export function SearchHome() {
     // Redireciona para o chat com a query inicial (simulando o comportamento do Perplexity)
     // Precisaremos garantir que o componente de chat saiba lidar com query params ou state
     // Por enquanto, vamos assumir que passar via URL query param funciona ou implementar depois
-    router.push(`/dashboard/odonto-vision`)
+    router.push(MED_VISION_HREF)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -62,7 +63,7 @@ export function SearchHome() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Pergunte qualquer coisa sobre odontologia..."
+            placeholder="Pergunte sobre radiografia, tomografia ou laudo..."
             className="w-full min-h-[60px] max-h-[200px] resize-none border-none bg-transparent px-4 py-3 text-lg placeholder:text-muted-foreground/50 focus-visible:ring-0 font-jakarta"
             rows={1}
           />

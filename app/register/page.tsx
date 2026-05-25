@@ -140,7 +140,7 @@ export default function RegisterPage({ searchParams }: RegisterPageProps) {
                     <span className="text-[#34d399] text-xs font-semibold">Plataforma de IA</span>
                   </div>
                   <h1 className="text-2xl font-bold text-white mb-2">Crie sua conta</h1>
-                  <p className="text-slate-400 text-sm">Comece sua jornada com IA odontologica</p>
+                  <p className="text-slate-400 text-sm">Comece com IA para radiografia, tomografia e laudos</p>
                 </div>
 
                 {/* Form */}

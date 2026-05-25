@@ -7,6 +7,7 @@ import { useSidebar } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
+import { MED_VISION_HREF } from '@/lib/constants/navigation'
 
 export function SidebarHeader() {
   const { state, toggleSidebar } = useSidebar()
@@ -18,7 +19,7 @@ export function SidebarHeader() {
       isCollapsed ? 'flex-col gap-2' : 'justify-between'
     )}>
       <Link
-        href="/dashboard/odonto-vision"
+        href={MED_VISION_HREF}
         className="relative flex items-center justify-center group"
       >
         <Logo
@@ -27,7 +28,7 @@ export function SidebarHeader() {
           variant="auto"
           className="transition-transform duration-300 group-hover:scale-105"
         />
-        <div className="absolute inset-0 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full" />
+        <div className="absolute inset-0 rounded-full bg-primary/5 opacity-0 transition-opacity group-hover:opacity-100" />
       </Link>
 
       {/* Toggle button - Perplexity style */}

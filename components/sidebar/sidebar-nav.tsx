@@ -38,10 +38,8 @@ export function SidebarNav({ role, planType }: SidebarNavProps) {
   // Short labels for collapsed state (Perplexity-style)
   const getShortLabel = (label: string) => {
     const shortLabels: Record<string, string> = {
-      'Med Vision': 'Vision',
-      'Odonto Vision': 'Vision',
+      'Med Vision': 'Med',
       'Biblioteca': 'Biblioteca',
-      'OdontoFlix': 'Flix',
       'Radiografia': 'Radiografia',
       'Certificados': 'Certific.',
       'Histórico': 'Histórico',
@@ -70,7 +68,7 @@ export function SidebarNav({ role, planType }: SidebarNavProps) {
       <SidebarGroup>
         {!isCollapsed && (
           <SidebarGroupLabel className="text-xs font-medium text-[var(--sidebar-text-tertiary)] uppercase tracking-wider">
-            Navegacao
+            Navegação
           </SidebarGroupLabel>
         )}
         <SidebarGroupContent>
@@ -144,7 +142,7 @@ export function SidebarNav({ role, planType }: SidebarNavProps) {
         <SidebarGroup className="mt-4">
           {!isCollapsed && (
             <SidebarGroupLabel className="text-xs font-medium text-[var(--sidebar-text-tertiary)] uppercase tracking-wider">
-              Painel Admin
+              Painel admin
             </SidebarGroupLabel>
           )}
           <SidebarGroupContent>

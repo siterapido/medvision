@@ -21,8 +21,8 @@ import {
     Tag,
     ChevronDown,
     ChevronUp,
-    MoreVertical,
     Image as ImageIcon,
+    Wrench,
     FileText,
     Microscope,
     Info,
@@ -53,12 +53,10 @@ import { useSoundNotification } from '@/lib/hooks/use-sound-notification'
 import { toast } from 'sonner'
 import { generateVisionPDF } from '@/lib/utils/generate-vision-pdf'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+    Collapsible,
+    CollapsibleContent,
+    CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import {
     AnalyzingStage,
     MedVisionConfigureStep,
@@ -130,9 +128,9 @@ export default function MedVisionPage() {
     const [refinements, setRefinements] = useState<VisionRefinement[]>([])
     const [isRefining, setIsRefining] = useState(false)
     const [expandedRefinement, setExpandedRefinement] = useState<number | null>(null)
-    const [imageToolsExpanded, setImageToolsExpanded] = useState(false)
-    /** Após análise: radiografia, laudo ou conduta recomendada. */
-    const [resultMainTab, setResultMainTab] = useState<'image' | 'laudo' | 'conduta'>('image')
+    const [advancedToolsOpen, setAdvancedToolsOpen] = useState(false)
+    /** Após análise: laudo (padrão), radiografia ou conduta. */
+    const [resultMainTab, setResultMainTab] = useState<'image' | 'laudo' | 'conduta'>('laudo')
 
     // Generate thumbnail from image
     const generateThumbnail = useCallback(async (imageSrc: string, size: number = 200): Promise<string> => {
@@ -179,7 +177,7 @@ export default function MedVisionPage() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                title: `Laudo Vision: ${imageType} - ${date}`,
+                title: `Laudo Med Vision: ${imageType} - ${date}`,
                 description: analysisData.report?.diagnosticHypothesis?.slice(0, 200) || 'Análise de imagem (radiografia ou tomografia)',
                 type: 'vision',
                 content
@@ -366,7 +364,12 @@ export default function MedVisionPage() {
                 console.warn('Auto-save failed:', err)
             })
 
-            setTimeout(() => { setState('RESULT'); playSuccess() }, 500)
+            setTimeout(() => {
+                setResultMainTab('laudo')
+                setAdvancedToolsOpen(false)
+                setState('RESULT')
+                playSuccess()
+            }, 500)
 
         } catch (error) {
             clearInterval(interval)
@@ -481,6 +484,27 @@ toast.success('Região re-analisada com sucesso!')
         setExpandedRefinement(prev => prev === index ? null : prev !== null && prev > index ? prev - 1 : prev)
     }, [])
 
+    const openComparisonPicker = useCallback(async () => {
+        setIsComparing(true)
+        try {
+            const res = await fetch('/api/artifacts?type=vision&limit=20')
+            const data = await res.json()
+            if (data.items) {
+                setPreviousAnalyses(
+                    data.items.map((item: { id: string; title: string; createdAt: string; content: unknown }) => ({
+                        id: item.id,
+                        title: item.title,
+                        date: new Date(item.createdAt).toLocaleDateString('pt-BR'),
+                        content: item.content,
+                    })),
+                )
+            }
+        } catch (e) {
+            console.error('Error loading previous analyses:', e)
+            toast.error('Não foi possível carregar análises anteriores.')
+        }
+    }, [])
+
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
         accept: { 'image/*': [] },
@@ -502,14 +526,17 @@ toast.success('Região re-analisada com sucesso!')
         setRefinements([])
         setExpandedRefinement(null)
         setConfig(DEFAULT_ANALYSIS_CONFIG)
-        setImageToolsExpanded(false)
+        setAdvancedToolsOpen(false)
         setInadequateImageError(null)
         clearAnnotations()
-        setResultMainTab('image')
+        setResultMainTab('laudo')
     }
 
     return (
-        <div className="pb-4 pt-4 px-3 md:pb-20 md:pt-6 md:px-8 max-w-6xl mx-auto w-full min-w-0">
+        <div
+            data-surface="product"
+            className="mx-auto w-full min-w-0 max-w-6xl px-3 pb-4 pt-4 md:px-8 md:pb-20 md:pt-6"
+        >
             {/* Header */}
             <header className="mb-5 md:mb-10 space-y-1.5">
                 <div className="flex items-center gap-2.5">
@@ -520,8 +547,8 @@ toast.success('Região re-analisada com sucesso!')
                         Med Vision
                     </h1>
                 </div>
-                <p className="text-muted-foreground text-xs md:text-base max-w-2xl">
-                    Envie radiografias ou fotos intraorais para uma análise profunda assistida por inteligência artificial.
+                <p className="max-w-2xl text-xs text-muted-foreground md:text-base">
+                    Envie radiografias ou tomografias para laudo assistido por IA. Revise achados antes de salvar ou exportar.
                 </p>
             </header>
 
@@ -595,10 +622,11 @@ toast.success('Região re-analisada com sucesso!')
                     {state === 'ANALYZING' && (
                         <motion.div
                             key="analyzing"
-                            initial={{ opacity: 0, scale: 0.98 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 1.02 }}
-                            className="w-full"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
+                            className="w-full motion-reduce:transition-none"
                         >
                             <AnalyzingStage state={state} image={image} progress={progress} />
                         </motion.div>
@@ -657,13 +685,6 @@ toast.success('Região re-analisada com sucesso!')
                                     className="grid h-12 w-full max-w-2xl grid-cols-3 gap-0 rounded-2xl border border-border/50 bg-muted/30 p-1.5"
                                 >
                                     <TabsTrigger
-                                        value="image"
-                                        className="gap-2 rounded-xl text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
-                                    >
-                                        <ImageIcon className="h-4 w-4 shrink-0" aria-hidden />
-                                        Radiografia
-                                    </TabsTrigger>
-                                    <TabsTrigger
                                         value="laudo"
                                         className="gap-2 rounded-xl text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
                                     >
@@ -674,6 +695,13 @@ toast.success('Região re-analisada com sucesso!')
                                                 {analysisResult.findings.length}
                                             </span>
                                         )}
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="image"
+                                        className="gap-2 rounded-xl text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                                    >
+                                        <ImageIcon className="h-4 w-4 shrink-0" aria-hidden />
+                                        Radiografia
                                     </TabsTrigger>
                                     <TabsTrigger
                                         value="conduta"
@@ -689,8 +717,97 @@ toast.success('Região re-analisada com sucesso!')
                                     </TabsTrigger>
                                 </TabsList>
 
+                                <Collapsible
+                                    open={advancedToolsOpen}
+                                    onOpenChange={setAdvancedToolsOpen}
+                                    className="w-full max-w-2xl"
+                                >
+                                    <CollapsibleTrigger asChild>
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            className="h-11 w-full justify-between rounded-xl px-4"
+                                        >
+                                            <span className="flex items-center gap-2 text-sm font-medium">
+                                                <Wrench className="h-4 w-4 shrink-0" aria-hidden />
+                                                Ferramentas avançadas
+                                            </span>
+                                            <ChevronDown
+                                                className={cn(
+                                                    'h-4 w-4 shrink-0 text-muted-foreground transition-transform motion-reduce:transition-none',
+                                                    advancedToolsOpen && 'rotate-180',
+                                                )}
+                                                aria-hidden
+                                            />
+                                        </Button>
+                                    </CollapsibleTrigger>
+                                    <CollapsibleContent className="pt-3">
+                                        <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="h-11 justify-start gap-2 rounded-xl text-xs"
+                                                onClick={() => setIsAnnotating(true)}
+                                                disabled={isRefining || isSelectingRegion}
+                                            >
+                                                <Pencil className="h-4 w-4 shrink-0" />
+                                                Anotar
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="h-11 justify-start gap-2 rounded-xl text-xs"
+                                                onClick={() => setIsSelectingRegion(true)}
+                                                disabled={isRefining || isAnnotating || isSelectingRegion}
+                                            >
+                                                <Microscope className="h-4 w-4 shrink-0" />
+                                                Refinar região
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className={cn(
+                                                    'h-11 justify-start gap-2 rounded-xl text-xs',
+                                                    showHeatmap && 'border-red-500/40 bg-red-500/10',
+                                                )}
+                                                onClick={() => setShowHeatmap(!showHeatmap)}
+                                            >
+                                                Mapa de calor
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className={cn(
+                                                    'h-11 justify-start gap-2 rounded-xl text-xs',
+                                                    isPresentationMode && 'border-primary/40 bg-primary/10',
+                                                )}
+                                                onClick={() => setIsPresentationMode(!isPresentationMode)}
+                                            >
+                                                Modo apresentação
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="h-11 justify-start gap-2 rounded-xl text-xs"
+                                                onClick={() => setIsFullscreen(true)}
+                                            >
+                                                <Maximize2 className="h-4 w-4 shrink-0" />
+                                                Tela cheia
+                                            </Button>
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                className="h-11 justify-start gap-2 rounded-xl text-xs"
+                                                onClick={openComparisonPicker}
+                                            >
+                                                Comparar análises
+                                            </Button>
+                                        </div>
+                                    </CollapsibleContent>
+                                </Collapsible>
+
                                 <TabsContent value="image" className="mt-0 space-y-4 outline-none">
-                                <GlassCard className="p-1 overflow-hidden min-w-0">
+                                <div className="min-w-0 overflow-hidden rounded-2xl border border-border bg-card p-1">
                                     <div
                                         className="relative aspect-[4/3] rounded-lg overflow-hidden border border-border/50 bg-black/5 min-w-0"
                                         ref={(el) => {
@@ -767,140 +884,8 @@ toast.success('Região re-analisada com sucesso!')
                                             </div>
                                         )}
 
-                                        {/* Action buttons — desktop: ícones; mobile: menu compacto */}
-                                        {!isAnnotating && !isSelectingRegion && !isRefining && (
-                                            <>
-                                                <div className="md:hidden absolute bottom-2 right-2 z-30">
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button
-                                                                size="icon"
-                                                                variant="secondary"
-                                                                className="bg-black/50 backdrop-blur-md border-white/10 hover:bg-black/70 rounded-full h-10 w-10"
-                                                                aria-label="Ferramentas da imagem"
-                                                            >
-                                                                <MoreVertical className="w-4 h-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end" className="w-52">
-                                                            <DropdownMenuItem onClick={() => setIsAnnotating(true)}>
-                                                                <Pencil className="w-4 h-4 mr-2" /> Anotar
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem onClick={() => setIsSelectingRegion(true)}>
-                                                                <Microscope className="w-4 h-4 mr-2" /> Refinar região
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem onClick={() => setShowHeatmap(!showHeatmap)}>
-                                                                <span className="mr-2 inline-flex h-4 w-4 items-center justify-center">
-                                                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill={showHeatmap ? "#ef4444" : "none"} />
-                                                                        <circle cx="12" cy="12" r="4" fill={showHeatmap ? "#fca5a5" : "none"} />
-                                                                    </svg>
-                                                                </span>
-                                                                Mapa de calor {showHeatmap ? '(ligado)' : '(desligado)'}
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuItem onClick={() => setIsPresentationMode(!isPresentationMode)}>
-                                                                <span className="mr-2 text-xs">{isPresentationMode ? '✓' : '○'}</span>
-                                                                Modo apresentação
-                                                            </DropdownMenuItem>
-                                                            <DropdownMenuSeparator />
-                                                            <DropdownMenuItem onClick={() => setIsFullscreen(true)}>
-                                                                <Maximize2 className="w-4 h-4 mr-2" /> Tela cheia
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </div>
-                                                <div className="hidden md:flex absolute bottom-4 right-4 gap-2 flex-nowrap shrink-0 items-center">
-                                                    {!imageToolsExpanded ? (
-                                                        <Button
-                                                            variant="secondary"
-                                                            className="bg-black/50 backdrop-blur-md border-white/10 hover:bg-black/70 rounded-full h-10 px-3 gap-2 text-xs font-medium"
-                                                            onClick={() => setImageToolsExpanded(true)}
-                                                            title="Mostrar anotar, mapa de calor e mais"
-                                                        >
-                                                            <MoreVertical className="w-4 h-4" />
-                                                            Ferramentas da imagem
-                                                        </Button>
-                                                    ) : (
-                                                        <>
-                                                            <Button
-                                                                size="icon"
-                                                                variant="secondary"
-                                                                className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0"
-                                                                onClick={() => {
-                                                                    setImageToolsExpanded(true)
-                                                                    setIsAnnotating(true)
-                                                                }}
-                                                                title="Anotar"
-                                                            >
-                                                                <Pencil className="w-4 h-4" />
-                                                            </Button>
-                                                            <Button
-                                                                size="icon"
-                                                                variant="secondary"
-                                                                className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0"
-                                                                onClick={() => {
-                                                                    setImageToolsExpanded(true)
-                                                                    setIsSelectingRegion(true)
-                                                                }}
-                                                                title="Refinar região"
-                                                            >
-                                                                <Microscope className="w-4 h-4" />
-                                                            </Button>
-                                                            <Button
-                                                                size="icon"
-                                                                variant="secondary"
-                                                                className={cn(
-                                                                    "bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0",
-                                                                    showHeatmap && "bg-red-500/50 border-red-500/50"
-                                                                )}
-                                                                onClick={() => setShowHeatmap(!showHeatmap)}
-                                                                title="Mapa de calor"
-                                                            >
-                                                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill={showHeatmap ? "#ef4444" : "none"} />
-                                                                    <circle cx="12" cy="12" r="4" fill={showHeatmap ? "#fca5a5" : "none"} />
-                                                                </svg>
-                                                            </Button>
-                                                            <Button
-                                                                size="icon"
-                                                                variant="secondary"
-                                                                className={cn(
-                                                                    "bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0",
-                                                                    isPresentationMode && "bg-primary/70 border-primary"
-                                                                )}
-                                                                onClick={() => setIsPresentationMode(!isPresentationMode)}
-                                                                title="Modo apresentação (paciente)"
-                                                            >
-                                                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                                                    <rect x="2" y="3" width="20" height="14" rx="2" />
-                                                                    <path d="M8 21h8M12 17v4" />
-                                                                </svg>
-                                                            </Button>
-                                                            <Button
-                                                                size="icon"
-                                                                variant="secondary"
-                                                                className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0"
-                                                                onClick={() => setIsFullscreen(true)}
-                                                                title="Tela cheia"
-                                                            >
-                                                                <Maximize2 className="w-4 h-4" />
-                                                            </Button>
-                                                            <Button
-                                                                size="icon"
-                                                                variant="secondary"
-                                                                className="bg-black/40 backdrop-blur-md border-white/10 hover:bg-black/60 rounded-full shrink-0 h-8 w-8"
-                                                                onClick={() => setImageToolsExpanded(false)}
-                                                                title="Ocultar barra de ferramentas"
-                                                            >
-                                                                <ChevronDown className="w-4 h-4" />
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </>
-                                        )}
                                     </div>
-                                </GlassCard>
+                                </div>
 
                                 {/* Tip for clickable balloons */}
                                 {analysisResult.detections.length > 0 && (
@@ -921,45 +906,9 @@ toast.success('Região re-analisada com sucesso!')
                                     </div>
                                 )}
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 w-full min-w-0">
-                                    <Button variant="outline" className="w-full rounded-xl h-12 gap-2" onClick={reset}>
-                                        <RefreshCcw className="w-4 h-4" /> Analisar Outra
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        className="w-full rounded-xl h-12 gap-2"
-                                        onClick={() => setIsSelectingRegion(true)}
-                                        disabled={isRefining || isAnnotating || isSelectingRegion}
-                                    >
-                                        <Microscope className="w-4 h-4" /> Refinar Região
-                                    </Button>
-                                    <Button
-                                        variant="outline"
-                                        className="w-full rounded-xl h-12 gap-2"
-                                        onClick={async () => {
-                                            setIsComparing(true)
-                                            try {
-                                                const res = await fetch('/api/artifacts?type=vision&limit=20')
-                                                const data = await res.json()
-                                                if (data.items) {
-                                                    setPreviousAnalyses(data.items.map((item: any) => ({
-                                                        id: item.id,
-                                                        title: item.title,
-                                                        date: new Date(item.createdAt).toLocaleDateString('pt-BR'),
-                                                        content: item.content
-                                                    })))
-                                                }
-                                            } catch (e) {
-                                                console.error('Error loading previous analyses:', e)
-                                            }
-                                        }}
-                                    >
-                                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                            <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
-                                            <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
-                                        </svg> Comparar
-                                    </Button>
-                                </div>
+                                <Button variant="outline" className="w-full max-w-2xl rounded-xl h-12 gap-2" onClick={reset}>
+                                    <RefreshCcw className="w-4 h-4" /> Analisar outra imagem
+                                </Button>
                                 </TabsContent>
 
                             {/* Laudo: texto e refinamentos (aba) */}
@@ -1163,7 +1112,7 @@ toast.success('Região re-analisada com sucesso!')
                                                 <Download className="w-3 h-3" /> PDF do Laudo
                                             </Button>
                                             {isSaved ? (
-                                                <Button size="sm" variant="outline" className="h-8 text-xs gap-1 text-green-600 border-green-600/30 hover:bg-green-500/10" onClick={() => router.push('/dashboard/biblioteca')}>
+                                                <Button size="sm" variant="outline" className="h-8 text-xs gap-1 text-green-600 border-green-600/30 hover:bg-green-500/10" onClick={() => router.push('/dashboard/laudos')}>
                                                     <ExternalLink className="w-3 h-3" /> Ver na Biblioteca
                                                 </Button>
                                             ) : (

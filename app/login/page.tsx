@@ -5,7 +5,10 @@ import { Brain, Sparkles, Shield, Zap } from "lucide-react"
 
 export default function LoginPage() {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-x-hidden bg-white">
+    <div
+      data-surface="product"
+      className="relative flex min-h-screen items-center justify-center overflow-x-hidden bg-white"
+    >
       {/* Brilho muito suave no topo — só para não ficar “papel chapado”; quase imperceptível */}
       <div
         className="pointer-events-none fixed inset-0 z-0"
@@ -21,7 +24,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="text-center mb-6 sm:mb-8">
           <Link href="/" className="inline-block">
-            <Logo variant="white" width={140} height={30} />
+            <Logo variant="auto" width={140} height={30} />
           </Link>
         </div>
 

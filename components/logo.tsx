@@ -14,15 +14,19 @@ interface LogoProps {
 }
 
 export function Logo({ width = 120, height = 40, className = '', variant = 'auto', iconOnly = false }: LogoProps) {
-  // Renderiza o logo como texto "MedVision"
   const textSizeClass = width && width < 50 ? 'text-sm' : 'text-xl'
+  const colorClass =
+    variant === 'white'
+      ? 'text-white'
+      : 'text-emerald-700 dark:text-emerald-400'
 
   return (
     <div
-      className={`font-bold ${textSizeClass} bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent ${className}`}
+      className={`font-bold ${textSizeClass} ${colorClass} ${className}`}
       style={{ width, height }}
+      aria-label="MedVision"
     >
-      MedVision
+      {iconOnly ? 'MV' : 'MedVision'}
     </div>
   )
 }

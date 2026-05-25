@@ -146,7 +146,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
             <Label htmlFor="especialidade" className="text-slate-200">Especialidade</Label>
             <Input
               id="especialidade"
-              placeholder="Ex: Ortodontia, Implantodontia..."
+              placeholder="Ex: Radiologia, Tomografia, RX..."
               {...form.register("especialidade")}
               disabled={isPending}
               className="bg-slate-950 border-slate-800 text-slate-50 placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20"

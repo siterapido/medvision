@@ -21,6 +21,7 @@ export function SiteFrame({ children }: SiteFrameProps) {
   const isAuthRoute = AUTH_ROUTES.some(r => pathname.startsWith(r))
   const isChatOrArtifactRoute =
     pathname.startsWith("/dashboard/odonto-vision") ||
+    pathname.startsWith("/dashboard/med-vision") ||
     pathname.includes("/dashboard/pesquisas") ||
     pathname.includes("/dashboard/resumos") ||
     pathname.includes("/dashboard/questionarios") ||

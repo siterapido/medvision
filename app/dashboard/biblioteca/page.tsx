@@ -1,13 +1,5 @@
-"use client"
+import { redirect } from "next/navigation"
 
-import * as React from "react"
-import { UnavailablePage } from "@/components/unavailable-page"
-
-export default function BibliotecaHub() {
-    return (
-        <UnavailablePage
-            title="Biblioteca Digital"
-            description="Nossa biblioteca está passando por uma atualização completa para oferecer a melhor experiência de estudo. Em breve ela estará disponível com novos recursos."
-        />
-    )
+export default function BibliotecaHubPage() {
+    redirect("/dashboard/odonto-vision")
 }

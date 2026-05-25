@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 
 export const metadata = {
     title: 'Chat | MedVision',
-    description: 'Converse com seu tutor inteligente de Odontologia',
+    description: 'Assistente de IA para radiologia, laudos e duvidas clinicas',
 }
 
 export default async function ChatPage({

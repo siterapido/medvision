@@ -131,7 +131,7 @@ export default async function PerfilPage() {
                       <Sparkles className="h-5 w-5 text-cyan-400" />
                     </div>
                     <p className="font-semibold text-cyan-400">Faça o Upgrade Agora</p>
-                    <p className="text-xs text-slate-400">Desbloqueie todo o potencial da IA na Odontologia</p>
+                    <p className="text-xs text-slate-400">Desbloqueie laudos e análises ilimitadas no Med Vision</p>
                   </div>
                 </div>
               ) : (

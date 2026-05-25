@@ -35,6 +35,7 @@ export function DashboardShell({ children, className }: DashboardShellProps) {
 
   return (
     <div
+      data-surface="product"
       className={cn(
         'flex flex-col bg-void min-h-0',
         needsFullHeight ? 'h-full overflow-hidden' : 'flex-1',

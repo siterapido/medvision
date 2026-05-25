@@ -1,129 +1,64 @@
 "use client"
+
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { ArtifactList } from "@/components/biblioteca/artifact-list"
-import { Scan, ArrowLeft } from "lucide-react"
+import { Scan, ArrowLeft, ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { toast } from "sonner"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { LaudoEditor } from "@/components/artifacts/laudo-editor"
-import { GenerationOverlay } from "@/components/artifacts/generation-overlay"
+import { MED_VISION_HREF } from "@/lib/constants/navigation"
 
 export default function LaudosPage() {
     const router = useRouter()
-    const [creationOpen, setCreationOpen] = React.useState(false)
-    const [isGenerating, setIsGenerating] = React.useState(false)
-    const [showOverlay, setShowOverlay] = React.useState(false)
 
-    const handleGenerate = async (data: Record<string, unknown>, imageFile: File | null) => {
-        setIsGenerating(true)
-        setShowOverlay(true)
-        setCreationOpen(false)
-
-        try {
-            let imageBase64 = ''
-            if (imageFile) {
-                const reader = new FileReader()
-                imageBase64 = await new Promise((resolve) => {
-                    reader.onloadend = () => resolve(reader.result as string)
-                    reader.readAsDataURL(imageFile)
-                })
-            }
-
-            const response = await fetch('/api/artifacts/generate', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type: 'vision', config: { ...data, imageBase64 } })
-            })
-
-            if (!response.ok) {
-                const errorData = await response.json()
-                throw new Error(errorData.error || 'Falha na geração')
-            }
-
-            toast.success("Laudo gerado com sucesso!", {
-                description: "A análise está pronta para revisão."
-            })
-
-            setShowOverlay(false)
-            setIsGenerating(false)
-            router.refresh()
-        } catch (error) {
-            console.error('Generation error:', error)
-            toast.error("Erro ao gerar laudo", {
-                description: error instanceof Error ? error.message : "Tente novamente."
-            })
-            setIsGenerating(false)
-            setShowOverlay(false)
-        }
-    }
+    const goToMedVision = React.useCallback(() => {
+        router.push(MED_VISION_HREF)
+    }, [router])
 
     return (
-        <div className="container mx-auto px-4 py-8 space-y-8 max-w-[1600px]">
-
-            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div className="flex items-center gap-4">
-                    <Link href="/dashboard">
-                        <Button variant="ghost" size="icon" className="rounded-xl">
+        <div
+            data-surface="product"
+            className="container mx-auto max-w-[1600px] min-w-0 space-y-8 px-4 py-6 md:py-8"
+        >
+            <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+                <div className="flex min-w-0 items-center gap-3 md:gap-4">
+                    <Link href={MED_VISION_HREF}>
+                        <Button variant="ghost" size="icon" className="shrink-0 rounded-xl" aria-label="Voltar ao Med Vision">
                             <ArrowLeft className="h-5 w-5" />
                         </Button>
                     </Link>
-                    <div>
-                        <h1 className="text-3xl font-heading font-bold flex items-center gap-2">
-                            <Scan className="h-8 w-8 text-sky-400" />
+                    <div className="min-w-0">
+                        <h1 className="flex items-center gap-2 font-heading text-2xl font-bold tracking-tight text-foreground md:text-3xl">
+                            <span className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/20 bg-primary/10 md:h-10 md:w-10">
+                                <Scan className="h-4 w-4 text-primary md:h-5 md:w-5" aria-hidden />
+                            </span>
                             Laudos
                         </h1>
-                        <p className="text-muted-foreground mt-1">
-                            Histórico de análises de imagens radiográficas e fotografias clínicas.
+                        <p className="mt-1 text-sm text-muted-foreground md:text-base">
+                            Histórico integrado às análises do Med Vision. Nova análise com imagem, laudo e aba Radiografia.
                         </p>
                     </div>
                 </div>
 
                 <Button
-                    className="rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-lg shadow-sky-500/20"
-                    onClick={() => setCreationOpen(true)}
+                    asChild
+                    className="w-full rounded-xl bg-primary text-primary-foreground shadow-md shadow-primary/20 hover:bg-primary/90 md:w-auto"
                 >
-                    <Scan className="mr-2 h-4 w-4" /> Nova Análise
+                    <Link href={MED_VISION_HREF} className="inline-flex items-center justify-center gap-2">
+                        <ImageIcon className="h-4 w-4" />
+                        Abrir Med Vision
+                    </Link>
                 </Button>
             </div>
 
-            <ArtifactList type="vision" emptyMessage="Nenhum laudo encontrado" emptyActionLabel="Nova Análise" onEmptyAction={() => setCreationOpen(true)} />
-
-            <Dialog open={creationOpen} onOpenChange={setCreationOpen}>
-                <DialogContent className="glass-card border-white/10 sm:max-w-[700px] p-0 rounded-[2rem] overflow-hidden bg-card/95 backdrop-blur-2xl max-h-[90vh] overflow-y-auto">
-                    <div className="p-8 border-b border-white/5 bg-muted/10">
-                        <DialogHeader>
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="p-2 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-500">
-                                    <Scan className="h-5 w-5" />
-                                </div>
-                                <DialogTitle className="text-2xl font-bold text-foreground">
-                                    Nova Análise Vision
-                                </DialogTitle>
-                            </div>
-                            <DialogDescription className="text-muted-foreground">
-                                Faça upload de uma imagem radiográfica para análise por IA.
-                            </DialogDescription>
-                        </DialogHeader>
-                    </div>
-                    <div className="p-8">
-                        <LaudoEditor
-                            onSubmit={handleGenerate}
-                            isLoading={isGenerating}
-                        />
-                    </div>
-                </DialogContent>
-            </Dialog>
-
-            <GenerationOverlay
-                isOpen={showOverlay}
-                onClose={() => {
-                    if (!isGenerating) setShowOverlay(false)
-                }}
-                type="vision"
-                title="Analisando Imagem"
-            />
+            <div className="rounded-2xl border border-border bg-card p-3 md:p-5">
+                <ArtifactList
+                    type="vision"
+                    emptyMessage="Nenhum laudo salvo ainda"
+                    emptyActionLabel="Ir ao Med Vision"
+                    onEmptyAction={goToMedVision}
+                />
+            </div>
         </div>
     )
 }

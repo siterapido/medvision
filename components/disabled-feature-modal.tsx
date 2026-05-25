@@ -32,9 +32,9 @@ const featureConfig = {
   },
   odontoflix: {
     icon: MonitorPlay,
-    title: 'OdontoFlix em Desenvolvimento',
-    description: 'Estamos finalizando a plataforma de streaming de cursos com novos conteúdos.',
-    message: 'Em breve você terá acesso a aulas em vídeo com os melhores especialistas em odontologia.',
+    title: 'Cursos em Desenvolvimento',
+    description: 'Estamos finalizando a plataforma de streaming com conteúdos em radiologia.',
+    message: 'Em breve você terá acesso a aulas em vídeo com especialistas em laudo e imagem.',
   },
   certificados: {
     icon: FileBadge,

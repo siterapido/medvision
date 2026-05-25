@@ -1,15 +1,5 @@
-import { HistoricoListEnhanced } from "@/components/historico"
-import { Metadata } from "next"
+import { redirect } from "next/navigation"
 
-export const metadata: Metadata = {
-    title: "Historico de Conversas | MedVision",
-    description: "Acesse suas conversas anteriores e memorias.",
-}
-
-export default function HistoryPage() {
-    return (
-        <div className="h-full bg-[var(--canvas)]">
-            <HistoricoListEnhanced />
-        </div>
-    )
+export default function HistoricoPage() {
+    redirect("/dashboard/odonto-vision")
 }

@@ -2,7 +2,6 @@
 
 import { motion } from 'motion/react'
 import { ChevronRight, FileUp } from 'lucide-react'
-import { GlassCard } from '@/components/ui/glass-card'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { MedVisionStepIndicator } from '@/components/vision/med-vision/step-indicator'
@@ -48,23 +47,23 @@ export function MedVisionConfigureStep({
 
             {!originalImage ? (
                 <div {...getRootProps()} className="outline-none">
-                    <GlassCard
+                    <div
                         className={cn(
-                            'p-8 md:p-12 border-dashed border-2 cursor-pointer transition-all text-center',
-                            isDragActive ? 'border-primary bg-primary/5' : 'border-border/50 hover:border-primary/50',
+                            'rounded-xl border border-border bg-card p-8 md:p-12 border-dashed border-2 cursor-pointer transition-colors text-center',
+                            isDragActive ? 'border-primary bg-primary/5' : 'hover:border-primary/40',
                         )}
                     >
                         <input {...getInputProps()} />
                         <FileUp className="w-10 h-10 text-primary mx-auto mb-4" />
                         <p className="text-sm font-medium">Arraste uma imagem ou clique para selecionar</p>
                         <p className="text-xs text-muted-foreground mt-1">Radiografia, TC ou foto clínica</p>
-                    </GlassCard>
+                    </div>
                 </div>
             ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
-                    <GlassCard className="p-4">
+                    <div className="rounded-xl border border-border bg-card p-4">
                         <p className="text-xs text-muted-foreground mb-3 font-medium">Imagem selecionada</p>
-                        <div className="rounded-xl overflow-hidden border border-border/40 bg-black/20">
+                        <div className="rounded-xl overflow-hidden border border-border bg-muted/30">
                             <img
                                 src={originalImage}
                                 alt="Preview"
@@ -79,7 +78,7 @@ export function MedVisionConfigureStep({
                         >
                             Trocar imagem
                         </Button>
-                    </GlassCard>
+                    </div>
                     <MedVisionConfigForm
                         config={config}
                         onChange={onConfigChange}
