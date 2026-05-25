@@ -43,7 +43,7 @@ async function gotoPath(
 async function waitForVisionAnalysisOutcome(page: Page) {
   await page.getByRole('button', { name: /Analisar agora/i }).click()
   const errorBanner = page.getByText(/Não foi possível completar a análise/i)
-  const exportPdf = page.getByRole('button', { name: /Exportar PDF/i }).first()
+  const exportPdf = page.getByRole('tab', { name: /Laudo/i }).first()
   const outcome = await Promise.race([
     errorBanner.waitFor({ state: 'visible', timeout: 150_000 }).then(() => 'error' as const),
     exportPdf.waitFor({ state: 'visible', timeout: 150_000 }).then(() => 'ok' as const),
@@ -84,7 +84,7 @@ async function assertVisionResponseUsesDefaultModel(page: Page) {
   ).toBe(DEFAULT_VISION_MODEL)
 
   const errorBanner = page.getByText(/Não foi possível completar a análise/i)
-  const exportPdf = page.getByRole('button', { name: /Exportar PDF/i }).first()
+  const exportPdf = page.getByRole('tab', { name: /Laudo/i }).first()
   const uiOutcome = await Promise.race([
     errorBanner.waitFor({ state: 'visible', timeout: 150_000 }).then(() => 'error' as const),
     exportPdf.waitFor({ state: 'visible', timeout: 150_000 }).then(() => 'ok' as const),
@@ -130,7 +130,7 @@ test.describe('Odonto Vision (Med Vision)', () => {
   test('TC006 — sem resultado não há exportação de PDF', async ({ page }) => {
     await gotoPath(page, '/dashboard/odonto-vision')
     await expect(
-      page.getByRole('button', { name: /Exportar PDF/i })
+      page.getByRole('button', { name: /PDF do Laudo|PDF da Conduta|Exportar PDF/i })
     ).toHaveCount(0)
   })
 
@@ -183,7 +183,7 @@ test.describe('Odonto Vision (Med Vision)', () => {
     await waitForVisionAnalysisOutcome(page)
 
     await expect(
-      page.getByRole('button', { name: /Analisar Outra|Exportar PDF/i }).first()
+      page.getByRole('button', { name: /Analisar Outra/i }).first()
     ).toBeVisible()
 
     await expect(
@@ -221,7 +221,7 @@ test.describe('Odonto Vision (Med Vision)', () => {
       await assertVisionResponseUsesDefaultModel(page)
 
       await expect(
-        page.getByRole('button', { name: /Analisar Outra|Exportar PDF/i }).first()
+        page.getByRole('button', { name: /Analisar Outra/i }).first()
       ).toBeVisible()
 
       await expect(

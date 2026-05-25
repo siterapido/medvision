@@ -131,8 +131,8 @@ export default function MedVisionPage() {
     const [isRefining, setIsRefining] = useState(false)
     const [expandedRefinement, setExpandedRefinement] = useState<number | null>(null)
     const [imageToolsExpanded, setImageToolsExpanded] = useState(false)
-    /** Após análise: alternar entre exame (imagem) e laudo em texto. */
-    const [resultMainTab, setResultMainTab] = useState<'image' | 'laudo'>('image')
+    /** Após análise: radiografia, laudo ou conduta recomendada. */
+    const [resultMainTab, setResultMainTab] = useState<'image' | 'laudo' | 'conduta'>('image')
 
     // Generate thumbnail from image
     const generateThumbnail = useCallback(async (imageSrc: string, size: number = 200): Promise<string> => {
@@ -650,11 +650,11 @@ toast.success('Região re-analisada com sucesso!')
 
                             <Tabs
                                 value={resultMainTab}
-                                onValueChange={(v) => setResultMainTab(v as 'image' | 'laudo')}
+                                onValueChange={(v) => setResultMainTab(v as 'image' | 'laudo' | 'conduta')}
                                 className="w-full flex flex-col gap-4"
                             >
                                 <TabsList
-                                    className="grid h-12 w-full max-w-md grid-cols-2 gap-0 rounded-2xl border border-border/50 bg-muted/30 p-1.5"
+                                    className="grid h-12 w-full max-w-2xl grid-cols-3 gap-0 rounded-2xl border border-border/50 bg-muted/30 p-1.5"
                                 >
                                     <TabsTrigger
                                         value="image"
@@ -672,6 +672,18 @@ toast.success('Região re-analisada com sucesso!')
                                         {analysisResult.findings.length > 0 && (
                                             <span className="ml-0.5 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-primary">
                                                 {analysisResult.findings.length}
+                                            </span>
+                                        )}
+                                    </TabsTrigger>
+                                    <TabsTrigger
+                                        value="conduta"
+                                        className="gap-2 rounded-xl text-sm font-semibold data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-sm"
+                                    >
+                                        <CheckCircle2 className="h-4 w-4 shrink-0" aria-hidden />
+                                        Conduta
+                                        {analysisResult.report?.recommendations && analysisResult.report.recommendations.length > 0 && (
+                                            <span className="ml-0.5 rounded-full bg-primary/15 px-1.5 py-0.5 text-[10px] font-bold tabular-nums text-primary">
+                                                {analysisResult.report.recommendations.length}
                                             </span>
                                         )}
                                     </TabsTrigger>
@@ -947,19 +959,6 @@ toast.success('Região re-analisada com sucesso!')
                                             <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
                                         </svg> Comparar
                                     </Button>
-                                    <Button
-                                        className="w-full rounded-xl h-12 gap-2 bg-primary hover:bg-primary/90"
-                                        onClick={() => {
-                                            if (analysisResult && image) {
-                                                toast.promise(
-                                                    generateVisionPDF({ analysisResult, imageBase64: image, refinements }),
-                                                    { loading: 'Gerando PDF...', success: 'PDF gerado!', error: 'Erro ao gerar PDF' }
-                                                )
-                                            }
-                                        }}
-                                    >
-                                        <Download className="w-4 h-4" /> Exportar PDF
-                                    </Button>
                                 </div>
                                 </TabsContent>
 
@@ -1123,19 +1122,6 @@ toast.success('Região re-analisada com sucesso!')
                                                     </section>
                                                 )}
 
-                                                <section className="space-y-3">
-                                                    <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                                                        <CheckCircle2 className="w-3 h-3" /> Conduta Recomendada
-                                                    </h4>
-                                                    <ul className="space-y-2">
-                                                        {analysisResult.report.recommendations.map((rec, i) => (
-                                                            <li key={i} className="flex gap-2 text-sm items-start">
-                                                                <ChevronRight className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                                                                <span className="text-foreground">{rec}</span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                </section>
                                             </>
                                         )}
 
@@ -1152,7 +1138,7 @@ toast.success('Região re-analisada com sucesso!')
                                         )}
                                     </div>
 
-                                    <div className="mt-6 pt-4 border-t border-border/30 flex items-center justify-between gap-3">
+                                    <div className="mt-6 pt-4 border-t border-border/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                                         <div className="flex items-center gap-3">
                                             <img src="https://ui-avatars.com/api/?name=IA&background=0284c7&color=fff" className="w-10 h-10 rounded-full border border-primary/20" alt="IA" />
                                             <div>
@@ -1160,16 +1146,33 @@ toast.success('Região re-analisada com sucesso!')
                                                 <p className="text-[10px] text-muted-foreground">CRM Virtual: 0001-AI</p>
                                             </div>
                                         </div>
-                                        {isSaved ? (
-                                            <Button size="sm" variant="outline" className="h-8 text-xs gap-1 text-green-600 border-green-600/30 hover:bg-green-500/10" onClick={() => router.push('/dashboard/biblioteca')}>
-                                                <ExternalLink className="w-3 h-3" /> Ver na Biblioteca
+                                        <div className="flex flex-wrap items-center gap-2 justify-end">
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-8 text-xs gap-1"
+                                                onClick={() => {
+                                                    if (analysisResult && image) {
+                                                        toast.promise(
+                                                            generateVisionPDF({ analysisResult, imageBase64: image, refinements, variant: 'laudo' }),
+                                                            { loading: 'Gerando PDF do laudo...', success: 'PDF do laudo gerado!', error: 'Erro ao gerar PDF' }
+                                                        )
+                                                    }
+                                                }}
+                                            >
+                                                <Download className="w-3 h-3" /> PDF do Laudo
                                             </Button>
-                                        ) : (
-                                            <Button size="sm" variant="ghost" className="h-8 text-xs gap-1" onClick={saveToLibrary} disabled={isSaving}>
-                                                {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                                                {isSaving ? 'Salvando...' : 'Salvar na Biblioteca'}
-                                            </Button>
-                                        )}
+                                            {isSaved ? (
+                                                <Button size="sm" variant="outline" className="h-8 text-xs gap-1 text-green-600 border-green-600/30 hover:bg-green-500/10" onClick={() => router.push('/dashboard/biblioteca')}>
+                                                    <ExternalLink className="w-3 h-3" /> Ver na Biblioteca
+                                                </Button>
+                                            ) : (
+                                                <Button size="sm" variant="ghost" className="h-8 text-xs gap-1" onClick={saveToLibrary} disabled={isSaving}>
+                                                    {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
+                                                    {isSaving ? 'Salvando...' : 'Salvar na Biblioteca'}
+                                                </Button>
+                                            )}
+                                        </div>
                                     </div>
                                 </GlassCard>
 
@@ -1316,6 +1319,74 @@ toast.success('Região re-analisada com sucesso!')
                                     </div>
                                 )}
                             </div>
+                                </TabsContent>
+
+                                <TabsContent value="conduta" className="mt-0 max-w-3xl w-full self-center space-y-6 outline-none">
+                                    <GlassCard className="p-6 flex flex-col">
+                                        <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/30">
+                                            <div>
+                                                <h2 className="text-xl font-heading font-bold">Conduta recomendada</h2>
+                                                <p className="text-xs text-muted-foreground">Orientações clínicas derivadas da análise</p>
+                                            </div>
+                                            {analysisResult.meta && (
+                                                <Badge variant="outline" className="text-[10px] h-5 px-1.5">
+                                                    {analysisResult.meta.imageType}
+                                                </Badge>
+                                            )}
+                                        </div>
+
+                                        {analysisResult.report?.diagnosticHypothesis && (
+                                            <section className="space-y-2 mb-6">
+                                                <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+                                                    <FileText className="w-3 h-3" /> Hipótese Diagnóstica
+                                                </h4>
+                                                <div className="text-sm font-medium text-primary/80 leading-relaxed bg-primary/5 p-3 rounded-lg border border-primary/10">
+                                                    {analysisResult.report.diagnosticHypothesis}
+                                                </div>
+                                            </section>
+                                        )}
+
+                                        {analysisResult.report?.recommendations && analysisResult.report.recommendations.length > 0 ? (
+                                            <ul className="space-y-3">
+                                                {analysisResult.report.recommendations.map((rec, i) => (
+                                                    <li key={i} className="flex gap-3 text-sm items-start p-3 rounded-lg bg-muted/30 border border-border/30">
+                                                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary text-xs font-bold">
+                                                            {i + 1}
+                                                        </span>
+                                                        <span className="text-foreground leading-relaxed pt-0.5">{rec}</span>
+                                                    </li>
+                                                ))}
+                                            </ul>
+                                        ) : (
+                                            <p className="text-sm text-muted-foreground italic">Nenhuma conduta recomendada foi gerada para esta análise.</p>
+                                        )}
+
+                                        <div className="mt-6 pt-4 border-t border-border/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                            <div className="flex items-center gap-3">
+                                                <img src="https://ui-avatars.com/api/?name=IA&background=0284c7&color=fff" className="w-10 h-10 rounded-full border border-primary/20" alt="IA" />
+                                                <div>
+                                                    <p className="text-sm font-bold">MedVision AI</p>
+                                                    <p className="text-[10px] text-muted-foreground">CRM Virtual: 0001-AI</p>
+                                                </div>
+                                            </div>
+                                            <Button
+                                                size="sm"
+                                                variant="outline"
+                                                className="h-8 text-xs gap-1"
+                                                disabled={!analysisResult.report?.recommendations?.length}
+                                                onClick={() => {
+                                                    if (analysisResult && image) {
+                                                        toast.promise(
+                                                            generateVisionPDF({ analysisResult, imageBase64: image, refinements, variant: 'conduta' }),
+                                                            { loading: 'Gerando PDF da conduta...', success: 'PDF da conduta gerado!', error: 'Erro ao gerar PDF' }
+                                                        )
+                                                    }
+                                                }}
+                                            >
+                                                <Download className="w-3 h-3" /> PDF da Conduta
+                                            </Button>
+                                        </div>
+                                    </GlassCard>
                                 </TabsContent>
                             </Tabs>
                         </motion.div>

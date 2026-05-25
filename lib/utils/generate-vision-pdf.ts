@@ -2,10 +2,13 @@ import { jsPDF } from 'jspdf'
 import { MEDVISION_AI_LABEL, VISION_CLINICAL_DISCLAIMER_PLAIN } from '@/lib/constants/vision'
 import { VisionAnalysisResult, VisionRefinement } from '@/lib/types/vision'
 
+export type VisionPDFVariant = 'laudo' | 'conduta'
+
 interface GeneratePDFOptions {
   analysisResult: VisionAnalysisResult
   imageBase64: string
   refinements?: VisionRefinement[]
+  variant?: VisionPDFVariant
 }
 
 /** Med Vision primary #0891b2, hover #0e7490 (design system) */
@@ -51,7 +54,13 @@ function fitContain(
   return { w: naturalW * scale, h: naturalH * scale }
 }
 
-export async function generateVisionPDF({ analysisResult, imageBase64, refinements = [] }: GeneratePDFOptions): Promise<void> {
+export async function generateVisionPDF({
+  analysisResult,
+  imageBase64,
+  refinements = [],
+  variant = 'laudo',
+}: GeneratePDFOptions): Promise<void> {
+  const isConduta = variant === 'conduta'
   const doc = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -92,7 +101,13 @@ export async function generateVisionPDF({ analysisResult, imageBase64, refinemen
 
   doc.setFontSize(10.5)
   doc.setFont('helvetica', 'normal')
-  doc.text('Laudo de análise assistida por inteligência artificial', margin, 26.5)
+  doc.text(
+    isConduta
+      ? 'Conduta recomendada — análise assistida por inteligência artificial'
+      : 'Laudo de análise assistida por inteligência artificial',
+    margin,
+    26.5
+  )
 
   doc.setFontSize(9)
   doc.text(`Motor: ${MEDVISION_AI_LABEL}`, margin, 33)
@@ -142,8 +157,8 @@ export async function generateVisionPDF({ analysisResult, imageBase64, refinemen
     yPosition += 16
   }
 
-  // Main image (proportional, no stretch)
-  if (imageBase64) {
+  // Main image (proportional, no stretch) — apenas no PDF de laudo
+  if (!isConduta && imageBase64) {
     try {
       const imgFmt = getJsPdfImageFormat(imageBase64)
       const maxW = contentWidth
@@ -185,8 +200,31 @@ export async function generateVisionPDF({ analysisResult, imageBase64, refinemen
     }
   }
 
+  if (isConduta && analysisResult.report?.diagnosticHypothesis) {
+    doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
+    doc.rect(margin, yPosition, 4, 8, 'F')
+    doc.setTextColor(textColor[0], textColor[1], textColor[2])
+    doc.setFontSize(11.5)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Hipótese diagnóstica', margin + 8, yPosition + 5.5)
+    yPosition += 12
+
+    doc.setFillColor(ACCENT_TINT[0], ACCENT_TINT[1], ACCENT_TINT[2])
+    const diagLines = doc.splitTextToSize(analysisResult.report.diagnosticHypothesis, contentWidth - 10)
+    const diagHeight = diagLines.length * 6 + 8
+    doc.setDrawColor(180, 220, 228)
+    doc.setLineWidth(0.25)
+    doc.roundedRect(margin, yPosition, contentWidth, diagHeight, 3, 3, 'FD')
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.setTextColor(primaryDark[0], primaryDark[1], primaryDark[2])
+    doc.text(diagLines, margin + 5, yPosition + 7)
+    yPosition += diagHeight + 10
+  }
+
   // Section: Principais achados
-  if (analysisResult.findings && analysisResult.findings.length > 0) {
+  if (!isConduta && analysisResult.findings && analysisResult.findings.length > 0) {
     doc.setFillColor(primaryColor[0], primaryColor[1], primaryColor[2])
     doc.rect(margin, yPosition, 4, 8, 'F')
     doc.setTextColor(textColor[0], textColor[1], textColor[2])
@@ -233,7 +271,7 @@ export async function generateVisionPDF({ analysisResult, imageBase64, refinemen
     yPosition += 5
   }
 
-  if (analysisResult.report?.technicalAnalysis) {
+  if (!isConduta && analysisResult.report?.technicalAnalysis) {
     if (yPosition > pageHeight - 60) {
       doc.addPage()
       yPosition = margin
@@ -254,7 +292,7 @@ export async function generateVisionPDF({ analysisResult, imageBase64, refinemen
     yPosition += 10
   }
 
-  if (analysisResult.report?.detailedFindings) {
+  if (!isConduta && analysisResult.report?.detailedFindings) {
     if (yPosition > pageHeight - 60) {
       doc.addPage()
       yPosition = margin
@@ -275,7 +313,7 @@ export async function generateVisionPDF({ analysisResult, imageBase64, refinemen
     yPosition += 10
   }
 
-  if (analysisResult.report?.diagnosticHypothesis) {
+  if (!isConduta && analysisResult.report?.diagnosticHypothesis) {
     if (yPosition > pageHeight - 50) {
       doc.addPage()
       yPosition = margin
@@ -303,7 +341,7 @@ export async function generateVisionPDF({ analysisResult, imageBase64, refinemen
     yPosition += diagHeight + 10
   }
 
-  if (analysisResult.report?.differentialDiagnosis) {
+  if (!isConduta && analysisResult.report?.differentialDiagnosis) {
     if (yPosition > pageHeight - 60) {
       doc.addPage()
       yPosition = margin
@@ -324,7 +362,7 @@ export async function generateVisionPDF({ analysisResult, imageBase64, refinemen
     yPosition += 10
   }
 
-  if (analysisResult.report?.perToothBreakdown && analysisResult.report.perToothBreakdown.length > 0) {
+  if (!isConduta && analysisResult.report?.perToothBreakdown && analysisResult.report.perToothBreakdown.length > 0) {
     if (yPosition > pageHeight - 80) {
       doc.addPage()
       yPosition = margin
@@ -379,7 +417,7 @@ export async function generateVisionPDF({ analysisResult, imageBase64, refinemen
     yPosition += 5
   }
 
-  if (analysisResult.report?.recommendations && analysisResult.report.recommendations.length > 0) {
+  if (isConduta && analysisResult.report?.recommendations && analysisResult.report.recommendations.length > 0) {
     if (yPosition > pageHeight - 60) {
       doc.addPage()
       yPosition = margin
@@ -410,7 +448,7 @@ export async function generateVisionPDF({ analysisResult, imageBase64, refinemen
     })
   }
 
-  if (refinements.length > 0) {
+  if (!isConduta && refinements.length > 0) {
     doc.addPage()
     yPosition = margin
 
@@ -551,5 +589,5 @@ export async function generateVisionPDF({ analysisResult, imageBase64, refinemen
   const fw = doc.getTextWidth(footerRight)
   doc.text(footerRight, pageWidth - margin - fw, footerY + 10.5)
 
-  doc.save(`laudo-medvision-${reportId}.pdf`)
+  doc.save(isConduta ? `conduta-medvision-${reportId}.pdf` : `laudo-medvision-${reportId}.pdf`)
 }
