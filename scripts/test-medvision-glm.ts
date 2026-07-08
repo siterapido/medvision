@@ -15,12 +15,12 @@ async function toPngDataUrl(path: string): Promise<string> {
 }
 
 async function main() {
-    const { MODELS, hasMedVisionOpenRouterKey } = await import('@/lib/ai/openrouter')
+    const { MODELS, hasMedVisionOpenCodeGoKey } = await import('@/lib/ai/opencode-go')
     const { callVisionDetection } = await import('@/lib/vision/pipeline')
 
-    if (!hasMedVisionOpenRouterKey()) {
+    if (!hasMedVisionOpenCodeGoKey()) {
         throw new Error(
-            'OpenRouter API key ausente. Defina MEDVISION_OPENROUTER_API_KEY (ou OPENROUTER_API_KEY) em .env.local ou no ambiente.',
+            'OpenCode Go API key ausente. Defina OPENCODE_API_KEY (ou MEDVISION_OPENCODE_API_KEY) em .env.local ou no ambiente.',
         )
     }
 
@@ -30,13 +30,13 @@ async function main() {
         'Imagens de teste/torax-3.png',
     ] as const
 
-    const modelId = MODELS.vision // z-ai/glm-5v-turbo
+    const modelId = MODELS.vision // kimi-k2.6 via OpenCode Go
     console.log('[medvision-glm] modelo:', modelId)
 
     for (const imgPath of images) {
         const t0 = performance.now()
         const imageData = await toPngDataUrl(imgPath)
-        const result = await callVisionDetection(imageData, 'Teste automático (GLM).', [modelId])
+        const result = await callVisionDetection(imageData, 'Teste automático (OpenCode Go).', [modelId])
         const ms = Math.round(performance.now() - t0)
         console.log('[medvision-glm] ok:', { imgPath, ms, detections: result.quickDetections.length, quality: result.meta.quality })
     }
@@ -46,4 +46,3 @@ main().catch((err) => {
     console.error('[medvision-glm] falhou:', err instanceof Error ? err.message : String(err))
     process.exitCode = 1
 })
-

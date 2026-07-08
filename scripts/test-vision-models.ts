@@ -1,7 +1,7 @@
 /**
- * Smoke test: chama callVisionDetection uma vez por modelo (Kimi k2.6 e Qwen3 VL).
+ * Smoke test: chama callVisionDetection uma vez por modelo (Kimi k2.6 e GLM 5.2).
  * Uso: npx tsx scripts/test-vision-models.ts [caminho/imagem.png]
- * Requer MEDVISION_OPENROUTER_API_KEY ou OPENROUTER_API_KEY.
+ * Requer OPENCODE_API_KEY ou MEDVISION_OPENCODE_API_KEY.
  */
 import { readFile } from 'node:fs/promises'
 
@@ -23,12 +23,12 @@ async function toPngDataUrl(path: string): Promise<string> {
 }
 
 async function main() {
-    const { MODELS, hasMedVisionOpenRouterKey } = await import('@/lib/ai/openrouter')
+    const { MODELS, hasMedVisionOpenCodeGoKey } = await import('@/lib/ai/opencode-go')
     const { callVisionDetection } = await import('@/lib/vision/pipeline')
 
-    if (!hasMedVisionOpenRouterKey()) {
+    if (!hasMedVisionOpenCodeGoKey()) {
         throw new Error(
-            'OpenRouter API key ausente. Defina MEDVISION_OPENROUTER_API_KEY (ou OPENROUTER_API_KEY) em .env.local.',
+            'OpenCode Go API key ausente. Defina OPENCODE_API_KEY (ou MEDVISION_OPENCODE_API_KEY) em .env.local.',
         )
     }
 
@@ -42,7 +42,7 @@ async function main() {
         console.log('[vision-models] usando PNG mínimo embutido (passe um .png como argumento para teste realista)')
     }
 
-    const models = [MODELS.vision, MODELS.visionQwen] as const
+    const models = [MODELS.vision, MODELS.visionAlt] as const
     console.log('[vision-models] modelos:', [...models].join(' | '))
 
     for (const modelId of models) {

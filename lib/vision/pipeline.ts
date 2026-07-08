@@ -2,7 +2,7 @@ import { generateObject, generateText } from 'ai'
 import * as Sentry from '@sentry/nextjs'
 import type { z } from 'zod'
 import type { ZodType } from 'zod'
-import { openrouterMedVision, DEFAULT_VISION_MODEL_CHAIN } from '@/lib/ai/openrouter'
+import { opencodeGoMedVision, DEFAULT_VISION_MODEL_CHAIN } from '@/lib/ai/opencode-go'
 import type { SpecialtyPrompts } from '@/lib/constants/vision-specialties'
 import { validateAndMergeDetections } from '@/lib/vision/detection-validation'
 import { extractJSON, sanitizeClinicalContext } from '@/lib/vision/json-utils'
@@ -17,6 +17,7 @@ import {
 import {
     DETAILED_ANALYSIS_PROMPT,
     DETAILED_ANALYSIS_SCHEMA,
+    FEW_SHOT_EXAMPLES,
     JSON_SCHEMA_EXAMPLE,
     QUICK_DETECTION_PROMPT,
     QUICK_DETECTION_SCHEMA,
@@ -25,6 +26,10 @@ import {
 import { DetailedDetectionSchema, QuickDetectionSchema, VisionSchema, type VisionAnalysis } from '@/lib/vision/schemas'
 
 export const VISION_MODELS = DEFAULT_VISION_MODEL_CHAIN
+
+/** Tracks consecutive structured output failures per model for alerting (P1-8). */
+const structuredOutputFailures = new Map<string, number>()
+const STRUCTURED_OUTPUT_BACKOFF_COUNT = 3
 
 export class ImageInadequateError extends Error {
     details: string
@@ -108,13 +113,16 @@ function appendUserContextParts(
     }
     const safeContext = options.clinicalContext?.trim() ? sanitizeClinicalContext(options.clinicalContext) : null
     if (!safeContext) return
+    // Wrapping em XML delimiters conforme instruções no prompt do sistema (P1-2)
     if (options.legacyFormat === 'full') {
         userTextParts.push({
             type: 'text' as const,
-            text: `CONTEXTO CLÍNICO FORNECIDO PELO PROFISSIONAL:\n${safeContext}\n\nConsidere este contexto ao formular hipóteses diagnósticas e recomendações.`,
+            text: `<clinical_context>
+${safeContext}
+</clinical_context>`,
         })
     } else {
-        userTextParts.push({ type: 'text' as const, text: `CONTEXTO CLÍNICO: ${safeContext}` })
+        userTextParts.push({ type: 'text' as const, text: `<clinical_context>${safeContext}</clinical_context>` })
     }
 }
 
@@ -205,6 +213,15 @@ function parseWithHeuristics(text: string): unknown {
     }
 }
 
+/**
+ * Se o modelo falhou structured output STRUCTURED_OUTPUT_BACKOFF_COUNT+ vezes consecutivas,
+ * pula structured output para evitar timeout desperdiçado (P1-8).
+ */
+function shouldSkipStructuredOutput(modelId: string): boolean {
+    const failures = structuredOutputFailures.get(modelId) ?? 0
+    return failures >= STRUCTURED_OUTPUT_BACKOFF_COUNT
+}
+
 async function tryGenerateObject<T>(
     schema: ZodType<T>,
     modelId: string,
@@ -218,10 +235,14 @@ async function tryGenerateObject<T>(
         visionInfo('skip_structured', { phase, reason: 'MEDVISION_STRUCTURED_OUTPUT=0' })
         return null
     }
+    if (shouldSkipStructuredOutput(modelId)) {
+        visionInfo('skip_structured', { phase, modelId, reason: `backoff_after_${STRUCTURED_OUTPUT_BACKOFF_COUNT}_consecutive_failures` })
+        return null
+    }
     const t0 = performance.now()
     try {
         const { object } = await generateObject({
-            model: openrouterMedVision(modelId),
+            model: opencodeGoMedVision(modelId),
             schema,
             abortSignal: signal,
             maxOutputTokens,
@@ -230,15 +251,28 @@ async function tryGenerateObject<T>(
                 { role: 'user' as const, content: userContent },
             ],
         })
+        // Reset counter on success
+        structuredOutputFailures.delete(modelId)
         visionInfo('structured_output.ok', { phase, modelId, maxOutputTokens, ms: elapseMs(t0) })
         return object
     } catch (e) {
+        const failures = (structuredOutputFailures.get(modelId) ?? 0) + 1
+        structuredOutputFailures.set(modelId, failures)
+        const wasAlerted = failures >= STRUCTURED_OUTPUT_BACKOFF_COUNT
         visionInfo('structured_output.failed', {
             phase,
             modelId,
             ms: elapseMs(t0),
+            consecutiveFailures: failures,
+            alerting: wasAlerted,
             message: e instanceof Error ? e.message.slice(0, 400) : String(e).slice(0, 400),
         })
+        if (wasAlerted) {
+            Sentry.captureMessage(`Vision structured output backoff: ${modelId} failed ${failures}x consecutively`, {
+                level: 'warning',
+                extra: { phase, modelId, consecutiveFailures: failures },
+            })
+        }
         return null
     }
 }
@@ -282,6 +316,9 @@ export async function callVisionAI(
 FORMATO DE RESPOSTA: Responda SOMENTE com JSON válido seguindo este schema exato:
 ${JSON_SCHEMA_EXAMPLE}
 
+EXEMPLOS DE REFERÊNCIA (few-shot):
+${FEW_SHOT_EXAMPLES}
+
 NÃO inclua markdown, code blocks, ou texto fora do JSON.`
 
         const userContent = buildUserContent(imageData, userTextParts)
@@ -293,7 +330,7 @@ NÃO inclua markdown, code blocks, ou texto fora do JSON.`
 
         const tText = performance.now()
         const result = await generateText({
-            model: openrouterMedVision(modelId),
+            model: opencodeGoMedVision(modelId),
             abortSignal: signal,
             maxOutputTokens: 10000,
             messages: [
@@ -401,7 +438,7 @@ NÃO inclua markdown, code blocks, ou texto fora do JSON.`
 
         const tText = performance.now()
         const result = await generateText({
-            model: openrouterMedVision(modelId),
+            model: opencodeGoMedVision(modelId),
             abortSignal: signal,
             maxOutputTokens: 4000,
             messages: [
@@ -474,7 +511,7 @@ ${QUICK_DETECTION_SCHEMA}`
 
         const tText = performance.now()
         const result = await generateText({
-            model: openrouterMedVision(modelId),
+            model: opencodeGoMedVision(modelId),
             abortSignal: signal,
             maxOutputTokens: 2000,
             messages: [
@@ -577,7 +614,7 @@ ${DETAILED_ANALYSIS_SCHEMA}`
 
         const tText = performance.now()
         const result = await generateText({
-            model: openrouterMedVision(modelId),
+            model: opencodeGoMedVision(modelId),
             abortSignal: signal,
             maxOutputTokens: 3500,
             messages: [

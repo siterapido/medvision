@@ -25,8 +25,14 @@ const openrouterProvider = createOpenAI({
 })
 
 /**
- * OpenRouter dedicado ao Med Vision (análise de imagem em /api/vision/analyze).
- * Usa MEDVISION_OPENROUTER_API_KEY se definida; senão cai no OPENROUTER_API_KEY.
+ * OpenRouter model factory — always uses Chat Completions API.
+ * Usage: openrouter('google/gemini-2.0-flash-001')
+ */
+export const openrouter = (modelId: string) => openrouterProvider.chat(modelId)
+
+/**
+ * OpenRouter dedicado ao Med Vision — legado; visão migrou para OpenCode Go.
+ * Mantido apenas se algum fluxo ainda referenciar; prefira @/lib/ai/opencode-go.
  */
 const medVisionOpenRouterKey =
   process.env.MEDVISION_OPENROUTER_API_KEY ?? process.env.OPENROUTER_API_KEY
@@ -41,19 +47,11 @@ const openrouterMedVisionProvider = createOpenAI({
   },
 })
 
-/**
- * OpenRouter model factory — always uses Chat Completions API.
- * Usage: openrouter('google/gemini-2.0-flash-001')
- */
-export const openrouter = (modelId: string) => openrouterProvider.chat(modelId)
-
-/**
- * Mesmo contrato que `openrouter`, mas com chave opcionalmente separada (Med Vision / visão).
- */
+/** @deprecated Use opencodeGoMedVision de @/lib/ai/opencode-go */
 export const openrouterMedVision = (modelId: string) =>
   openrouterMedVisionProvider.chat(modelId)
 
-/** True se a rota de visão tiver alguma chave OpenRouter disponível. */
+/** @deprecated Use hasMedVisionOpenCodeGoKey de @/lib/ai/opencode-go */
 export function hasMedVisionOpenRouterKey(): boolean {
   return Boolean(
     process.env.MEDVISION_OPENROUTER_API_KEY?.trim() ||
@@ -61,53 +59,12 @@ export function hasMedVisionOpenRouterKey(): boolean {
   )
 }
 
-// Modelos disponíveis via OpenRouter - Kimi k2.6 e Qwen3 VL
+// Modelos disponíveis via OpenRouter — chat e embeddings
 export const MODELS = {
-  // Chat principal
   chat: 'moonshotai/kimi-k2.6',
-
-  // Visão — Kimi k2.6 (padrão)
-  vision: 'moonshotai/kimi-k2.6',
-
-  // Qwen3 VL (alternativa)
-  visionQwen: 'qwen/qwen3-vl-235b-a22b-thinking',
-
-  // Fallback desativado (mesmo modelo)
-  visionFallback: 'moonshotai/kimi-k2.6',
 } as const
 
 export type ModelId = typeof MODELS[keyof typeof MODELS]
-
-export const VISION_MODELS_LIST = [
-  { id: 'moonshotai/kimi-k2.6', name: 'Kimi k2.6', provider: 'Moonshot' },
-  { id: 'qwen/qwen3-vl-235b-a22b-thinking', name: 'Qwen3 VL 235B', provider: 'Qwen' },
-] as const
-
-export type VisionModelInfo = typeof VISION_MODELS_LIST[number]
-export const VISION_MODEL_IDS = new Set(VISION_MODELS_LIST.map(m => m.id))
-
-/** Cadeia padrão Med Vision: Kimi k2.6 com Qwen3 como fallback */
-export const DEFAULT_VISION_MODEL_CHAIN = [MODELS.vision, MODELS.visionQwen] as const
-
-/**
- * Retorna a cadeia de modelos com fallback.
- * Se o modelo selecionado for diferente do padrão, usa ele como primeiro e o outro como fallback.
- */
-export function buildVisionModelChain(selectedModel?: string | null): readonly string[] {
-  const defaultModels = [...DEFAULT_VISION_MODEL_CHAIN]
-  
-  if (selectedModel && selectedModel !== MODELS.vision && selectedModel !== MODELS.visionQwen) {
-    // Modelo customizado: usa ele primeiro, depois os defaults como fallback
-    return [selectedModel, ...defaultModels]
-  }
-  
-  if (selectedModel === MODELS.visionQwen) {
-    // Se usuário escolheu Qwen como principal, usa ele primeiro com Kimi como fallback
-    return [MODELS.visionQwen, MODELS.vision]
-  }
-  
-  return defaultModels // Kimi → Qwen
-}
 
 /**
  * Cria um modelo OpenRouter com o ID especificado (Chat Completions API)

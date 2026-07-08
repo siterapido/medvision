@@ -5,6 +5,7 @@ import { ImageInadequateError } from '@/lib/vision/pipeline'
 export type VisionErrorKind =
     | 'unauthorized'
     | 'rate_limited'
+    | 'rate_limited_user'
     | 'provider_unavailable'
     | 'timeout'
     | 'network'

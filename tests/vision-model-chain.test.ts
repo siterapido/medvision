@@ -6,25 +6,25 @@ import {
   buildVisionModelChain,
   DEFAULT_VISION_MODEL_CHAIN,
   MODELS,
-} from "../lib/ai/openrouter"
+} from "../lib/ai/opencode-go"
 import { callWithFallback } from "../lib/vision/model-fallback"
 
 const KIMI = MODELS.vision
-const QWEN = MODELS.visionQwen
+const GLM = MODELS.visionAlt
 
-describe("buildVisionModelChain (Med Vision)", () => {
-  it("com Kimi (padrão) selecionado, retorna cadeia padrão Kimi → Qwen", () => {
+describe("buildVisionModelChain (Med Vision / OpenCode Go)", () => {
+  it("com Kimi (padrão) selecionado, retorna cadeia padrão Kimi → Kimi k2.7", () => {
     const chain = buildVisionModelChain(KIMI)
-    assert.deepEqual(chain, [KIMI, QWEN])
+    assert.deepEqual(chain, [KIMI, GLM])
   })
 
-  it("com Qwen selecionado, primário primeiro e Kimi como fallback", () => {
-    const chain = buildVisionModelChain(QWEN)
-    assert.deepEqual(chain, [QWEN, KIMI])
+  it("com Kimi k2.7 selecionado, primário primeiro e Kimi k2.6 como fallback", () => {
+    const chain = buildVisionModelChain(GLM)
+    assert.deepEqual(chain, [GLM, KIMI])
   })
 
-  it("com modelo customizado fora da lista Kimi/Qwen, primário + cadeia padrão completa", () => {
-    const custom = "openai/gpt-4o"
+  it("com modelo customizado fora da lista Kimi/GLM, primário + cadeia padrão completa", () => {
+    const custom = "deepseek-v4-flash"
     const chain = buildVisionModelChain(custom)
     assert.deepEqual(chain, [custom, ...DEFAULT_VISION_MODEL_CHAIN])
   })
@@ -39,8 +39,8 @@ describe("buildVisionModelChain (Med Vision)", () => {
     ])
   })
 
-  it("DEFAULT_VISION_MODEL_CHAIN é Kimi → Qwen", () => {
-    assert.deepEqual(DEFAULT_VISION_MODEL_CHAIN, [MODELS.vision, MODELS.visionQwen])
+  it("DEFAULT_VISION_MODEL_CHAIN é Kimi → Kimi k2.7", () => {
+    assert.deepEqual(DEFAULT_VISION_MODEL_CHAIN, [MODELS.vision, MODELS.visionAlt])
   })
 })
 
@@ -48,17 +48,17 @@ describe("callWithFallback", () => {
   it("erro retryable no 1.º modelo tenta o 2.º", async () => {
     const e = new Error("timeout after 30s")
     let calls: string[] = []
-    const result = await callWithFallback([KIMI, QWEN] as const, async (modelId) => {
+    const result = await callWithFallback([KIMI, GLM] as const, async (modelId) => {
       calls.push(modelId)
       if (modelId === KIMI) throw e
       return { ok: true, model: modelId }
     })
-    assert.deepEqual(calls, [KIMI, QWEN])
-    assert.deepEqual(result, { ok: true, model: QWEN })
+    assert.deepEqual(calls, [KIMI, GLM])
+    assert.deepEqual(result, { ok: true, model: GLM })
   })
 
   it("escolhe o 1.º quando responde", async () => {
-    const r = await callWithFallback([KIMI, QWEN] as const, async (modelId) => {
+    const r = await callWithFallback([KIMI, GLM] as const, async (modelId) => {
       if (modelId === KIMI) return "first"
       return "second"
     })

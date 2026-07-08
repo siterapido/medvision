@@ -15,8 +15,8 @@ const FIXTURE_JPG = path.join(
   'tests-e2e/fixtures/vision-sample.jpg'
 )
 
-/** Padrão Med Vision; deve coincidir com MODELS.vision (OpenRouter z-ai/glm-5v-turbo). */
-const DEFAULT_VISION_MODEL = 'z-ai/glm-5v-turbo'
+/** Padrão Med Vision; deve coincidir com MODELS.vision (OpenCode Go kimi-k2.6). */
+const DEFAULT_VISION_MODEL = 'kimi-k2.6'
 
 const IMAGENS_DE_TESTE_TORAX = [
   'torax.png',
