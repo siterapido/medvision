@@ -71,14 +71,14 @@ const response = await fetch('/api/chat', {
 
 | Variável | Descrição | Obrigatório |
 |----------|-----------|--------------|
-| `OPENROUTER_API_KEY` | Chave da API OpenRouter | Sim |
-| `OPENROUTER_VISION_MODEL` | Modelo de visão (padrão: `qwen/qwen2-vl-72b-instruct`) | Não |
+| `OPENCODE_API_KEY` | Chave OpenCode Go para `/api/vision/analyze` | Sim |
+| `MEDVISION_OPENCODE_API_KEY` | Chave dedicada Med Vision (opcional; senão usa `OPENCODE_API_KEY`) | Não |
 
 ### Modelo Utilizado
 
-- **Provider:** OpenRouter
-- **Modelo Padrão:** `qwen/qwen2-vl-72b-instruct`
-- **Fallback:** `anthropic/claude-3.5-sonnet`
+- **Provider:** [OpenCode Go](https://opencode.ai/docs/go/) (`lib/ai/opencode-go.ts`)
+- **Modelo Padrão:** `kimi-k2.6`
+- **Fallback:** `kimi-k2.7-code`
 
 ---
 

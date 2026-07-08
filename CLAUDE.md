@@ -360,7 +360,8 @@ npm run vercel:env:*          # Gerenciar env vars
 | Serviço | Uso | Key |
 | --- | --- | --- |
 | OpenAI | Chat, análise, geração | `OPENAI_API_KEY` |
-| OpenRouter | Fallback LLM | `OPENROUTER_API_KEY` |
+| OpenRouter | Chat, embeddings, agentes | `OPENROUTER_API_KEY` |
+| OpenCode Go | Med Vision (análise de imagem) | `OPENCODE_API_KEY` |
 | Perplexity | Research agent | `PERPLEXITY_API_KEY` |
 | Supabase | Database, Auth, Storage | `NEXT_PUBLIC_SUPABASE_URL` |
 | Bunny CDN | Video streaming | `BUNNY_ACCESS_KEY` |
