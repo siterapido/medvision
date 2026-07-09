@@ -23,6 +23,12 @@ Store `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.lo
 
 ## Orientação de Idioma
 Todas as respostas automatizadas e comunicações nos PRs devem ser redigidas em português brasileiro, mantendo tom profissional e direto.
+
+## Design (MedVision produto autenticado)
+- Direção aprovada: **laudo-first clínico**, light-first, tech médico discreto — spec em `docs/superpowers/specs/2026-07-09-medvision-rebranding-laudo-first-design.md`.
+- Escopo do rebrand: login, shell, Med Vision, Laudos, perfil/config. Landing/admin fora.
+- `UI_UX_GUIDE.md` e `.interface-design/system.md` ainda descrevem Odonto GPT dark/cyan; preferir a spec acima até o system.md ser atualizado na implementação.
+
 ## AI Context References
 - Documentation index: `.context/docs/README.md`
 - Agent playbooks: `.context/agents/README.md`
