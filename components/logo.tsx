@@ -18,7 +18,7 @@ export function Logo({ width = 120, height = 40, className = '', variant = 'auto
   const colorClass =
     variant === 'white'
       ? 'text-white'
-      : 'text-emerald-700 dark:text-emerald-400'
+      : 'text-ink dark:text-white'
 
   return (
     <div

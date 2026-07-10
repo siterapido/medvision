@@ -102,7 +102,7 @@ export function ArtifactList({
 
         const success = await deleteArtifact(artifactToDelete)
         if (success) {
-            toast.success("Conhecimento removido da sua biblioteca")
+            toast.success(isDense ? "Laudo removido" : "Conhecimento removido da sua biblioteca")
             mutate()
         } else {
             toast.error("Houve um problema ao remover este item")
@@ -334,9 +334,13 @@ export function ArtifactList({
                         : "glass-card border-border/80 rounded-3xl bg-background/80 backdrop-blur-2xl"
                 )}>
                     <AlertDialogHeader>
-                        <AlertDialogTitle className="text-xl font-bold">Expurgar Conhecimento?</AlertDialogTitle>
+                        <AlertDialogTitle className="text-xl font-bold">
+                            {isDense ? "Remover laudo?" : "Expurgar Conhecimento?"}
+                        </AlertDialogTitle>
                         <AlertDialogDescription className="text-base">
-                            Esta ação removerá permanentemente este artefato da sua biblioteca digital. Deseja prosseguir?
+                            {isDense
+                                ? "Esta ação remove permanentemente o laudo salvo. Deseja continuar?"
+                                : "Esta ação removerá permanentemente este artefato da sua biblioteca digital. Deseja prosseguir?"}
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="gap-2 sm:gap-0">

@@ -22,7 +22,7 @@ export default function LoginPage() {
               <h1 className="mb-1.5 text-xl font-semibold tracking-tight text-ink sm:mb-2 sm:text-2xl">
                 Bem-vindo de volta
               </h1>
-              <p className="text-sm text-ink-muted">Entre para acessar sua conta</p>
+              <p className="text-sm text-ink-muted">Acesso ao ambiente clínico MedVision</p>
             </div>
 
             <LoginForm variant="light" />

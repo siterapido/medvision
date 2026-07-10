@@ -121,10 +121,10 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cro">CRO</Label>
+              <Label htmlFor="cro">CRM</Label>
               <Input
                 id="cro"
-                placeholder="Seu CRO"
+                placeholder="Seu CRM"
                 {...form.register("cro")}
                 disabled={isPending}
               />

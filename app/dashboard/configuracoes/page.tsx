@@ -65,7 +65,7 @@ export default function ConfiguracoesPage() {
           <div className="flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center sm:justify-between md:px-6">
             <div className="space-y-0.5">
               <Label className="text-sm font-medium text-ink">Perfil do usuário</Label>
-              <p className="text-sm text-ink-muted">Nome, CRO e especialidade.</p>
+              <p className="text-sm text-ink-muted">Nome, CRM e especialidade.</p>
             </div>
             <Button asChild variant="outline" size="sm" className="shrink-0">
               <Link href="/dashboard/perfil">Editar perfil</Link>

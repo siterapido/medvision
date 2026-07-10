@@ -11,12 +11,14 @@
  * Visivel apenas em mobile (<768px)
  */
 
-import { Menu, Sparkles } from 'lucide-react'
+import { Menu } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
+import { Logo } from '@/components/logo'
 import { useSidebar } from '@/components/ui/sidebar'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
+import { MED_VISION_HREF } from '@/lib/constants/navigation'
 
 interface MobileFloatingHeaderProps {
   userName?: string
@@ -45,9 +47,9 @@ export function MobileFloatingHeader({
       className={cn(
         'fixed top-0 left-0 right-0 z-40 md:hidden',
         'h-[52px] pt-[env(safe-area-inset-top)]',
-        'bg-background/95 backdrop-blur-xl',
-        'border-b transition-colors duration-200',
-        menuAberto ? 'border-violet-500/50' : 'border-border/50',
+        'bg-background',
+        'border-b border-rule transition-colors duration-200',
+        menuAberto ? 'border-signal/30' : undefined,
         'flex items-center justify-between px-3',
         className
       )}
@@ -60,8 +62,8 @@ export function MobileFloatingHeader({
         className={cn(
           'size-9 rounded-lg border border-transparent transition-colors',
           menuAberto
-            ? 'border-violet-500/55 bg-violet-500/10 text-violet-300 hover:bg-violet-500/15 hover:text-violet-200 [&_svg]:text-violet-300'
-            : 'text-muted-foreground hover:border-violet-500/30 hover:text-foreground'
+            ? 'border-signal/40 bg-signal/8 text-signal hover:bg-signal/12 hover:text-signal'
+            : 'text-muted-foreground hover:border-signal/25 hover:text-foreground'
         )}
         aria-label="Abrir menu"
       >
@@ -70,13 +72,11 @@ export function MobileFloatingHeader({
 
       {/* Center: Logo */}
       <Link
-        href="/dashboard"
-        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 max-w-[40%] overflow-hidden"
+        href={MED_VISION_HREF}
+        className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center max-w-[40%] overflow-hidden"
+        aria-label="MedVision"
       >
-        <Sparkles className="size-5 text-primary" />
-        <span className="text-sm font-semibold text-foreground">
-          Odonto<span className="text-primary">GPT</span>
-        </span>
+        <Logo width={100} height={24} variant="auto" className="text-ink" />
       </Link>
 
       {/* Right: User avatar or settings */}

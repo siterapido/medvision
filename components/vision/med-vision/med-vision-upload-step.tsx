@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 
-/** Tipos de imagem aceitos para upload odontológico. */
+/** Tipos de imagem aceitos para upload clínico (RX, TC, foto). */
 const DEFAULT_ACCEPTED_TYPES = {
   'image/jpeg': ['.jpg', '.jpeg'],
   'image/png': ['.png'],

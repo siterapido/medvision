@@ -13,7 +13,6 @@ import {
     Maximize2,
     Loader2,
     ChevronRight,
-    Sparkles,
     AlertTriangle,
     Save,
     ExternalLink,
@@ -194,15 +193,15 @@ export default function MedVisionPage() {
         try {
             await performSave(image, analysisResult, annotations, refinements)
             setIsSaved(true)
-            toast.success('Salvo na biblioteca!', {
+            toast.success('Laudo salvo', {
                 action: {
-                    label: 'Ver na Biblioteca',
-                    onClick: () => router.push('/dashboard/biblioteca')
+                    label: 'Ver em Laudos',
+                    onClick: () => router.push('/dashboard/laudos')
                 }
             })
         } catch (error) {
             console.error('Error saving:', error)
-            toast.error('Erro ao salvar na biblioteca')
+            toast.error('Erro ao salvar o laudo')
         } finally {
             setIsSaving(false)
         }
@@ -532,7 +531,7 @@ toast.success('Região re-analisada com sucesso!')
                     </h1>
                 </div>
                 <p className="max-w-2xl text-xs text-ink-muted md:text-base">
-                    Envie radiografias ou tomografias para laudo assistido por IA. Revise achados antes de salvar ou exportar.
+                    Envie radiografias ou tomografias, revise achados e exporte o laudo.
                 </p>
             </header>
 
@@ -855,8 +854,8 @@ toast.success('Região re-analisada com sucesso!')
 
                                         {/* Refining overlay */}
                                         {isRefining && (
-                                            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-                                                <div className="bg-background/90 backdrop-blur-md px-6 py-4 rounded-2xl border border-border shadow-xl flex flex-col items-center gap-3">
+                                            <div className="absolute inset-0 z-50 flex items-center justify-center bg-black/60">
+                                                <div className="bg-background px-6 py-4 rounded-2xl border border-border shadow-xl flex flex-col items-center gap-3">
                                                     <Loader2 className="w-7 h-7 text-primary animate-spin" />
                                                     <div className="text-center">
                                                         <p className="font-bold text-sm">Re-analisando Região</p>
@@ -945,7 +944,7 @@ toast.success('Região re-analisada com sucesso!')
                                                     Precisão {analysisPrecision}%
                                                 </Badge>
                                             )}
-                                            <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">Concluído</Badge>
+                                            <Badge variant="outline" className="bg-clinical-ok/10 text-clinical-ok border-clinical-ok/30">Concluído</Badge>
                                         </div>
                                     </div>
 
@@ -1113,13 +1112,13 @@ toast.success('Região re-analisada com sucesso!')
                                                 <Download className="w-3 h-3" /> PDF do Laudo
                                             </Button>
                                             {isSaved ? (
-                                                <Button size="sm" variant="outline" className="h-8 text-xs gap-1 text-green-600 border-green-600/30 hover:bg-green-500/10" onClick={() => router.push('/dashboard/laudos')}>
-                                                    <ExternalLink className="w-3 h-3" /> Ver na Biblioteca
+                                                <Button size="sm" variant="outline" className="h-8 text-xs gap-1 text-clinical-ok border-clinical-ok/30 hover:bg-clinical-ok/10" onClick={() => router.push('/dashboard/laudos')}>
+                                                    <ExternalLink className="w-3 h-3" /> Ver em Laudos
                                                 </Button>
                                             ) : (
                                                 <Button size="sm" variant="ghost" className="h-8 text-xs gap-1" onClick={saveToLibrary} disabled={isSaving}>
                                                     {isSaving ? <Loader2 className="w-3 h-3 animate-spin" /> : <Save className="w-3 h-3" />}
-                                                    {isSaving ? 'Salvando...' : 'Salvar na Biblioteca'}
+                                                    {isSaving ? 'Salvando...' : 'Salvar laudo'}
                                                 </Button>
                                             )}
                                         </div>
@@ -1374,7 +1373,7 @@ toast.success('Região re-analisada com sucesso!')
                     <div className="space-y-4 mt-4">
                         {previousAnalyses.length === 0 ? (
                             <p className="text-muted-foreground text-center py-8">
-                                Nenhuma análise anterior encontrada na biblioteca.
+                                Nenhuma análise anterior encontrada nos laudos salvos.
                             </p>
                         ) : (
                             <>
@@ -1423,8 +1422,8 @@ toast.success('Região re-analisada com sucesso!')
                                             return (
                                                 <div className="space-y-3 text-sm">
                                                     <div className="grid grid-cols-3 gap-2">
-                                                        <div className="p-2 rounded bg-green-500/10 border border-green-500/20">
-                                                            <p className="font-medium text-green-600">{newTeeth.length}</p>
+                                                        <div className="p-2 rounded bg-clinical-ok/10 border border-clinical-ok/25">
+                                                            <p className="font-medium text-clinical-ok">{newTeeth.length}</p>
                                                             <p className="text-xs text-muted-foreground">Novos achados</p>
                                                         </div>
                                                         <div className="p-2 rounded bg-amber-500/10 border border-amber-500/20">
@@ -1437,10 +1436,10 @@ toast.success('Região re-analisada com sucesso!')
                                                         </div>
                                                     </div>
                                                     {newTeeth.length > 0 && (
-                                                        <p className="text-xs"><span className="font-medium text-green-600">Novos:</span> Dentes {newTeeth.join(', ')}</p>
+                                                        <p className="text-xs"><span className="font-medium text-clinical-ok">Novos:</span> Regiões {newTeeth.join(', ')}</p>
                                                     )}
                                                     {resolvedTeeth.length > 0 && (
-                                                        <p className="text-xs"><span className="font-medium text-blue-600">Resolvidos:</span> Dentes {resolvedTeeth.join(', ')}</p>
+                                                        <p className="text-xs"><span className="font-medium text-blue-600">Resolvidos:</span> Regiões {resolvedTeeth.join(', ')}</p>
                                                     )}
                                                 </div>
                                             )

@@ -25,10 +25,11 @@ Store `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.lo
 Todas as respostas automatizadas e comunicações nos PRs devem ser redigidas em português brasileiro, mantendo tom profissional e direto.
 
 ## Design (MedVision produto autenticado)
-- Direção aprovada: **laudo-first clínico**, light-first, tech médico discreto — spec em `docs/superpowers/specs/2026-07-09-medvision-rebranding-laudo-first-design.md`.
-- Contexto Impeccable: `PRODUCT.md` (register product). `DESIGN.md` ainda ausente — gerar com `/impeccable document` quando tokens laudo-first estiverem no CSS.
-- Escopo do rebrand: login, shell, Med Vision, Laudos, perfil/config. Landing/admin fora.
-- `UI_UX_GUIDE.md` e `.interface-design/system.md` ainda descrevem Odonto GPT dark/cyan; preferir a spec acima até o system.md ser atualizado na implementação.
+- Spec vigente: `docs/superpowers/specs/2026-07-10-medvision-ui-simplify-laudo-first-design.md` (supersede 2026-07-09). Plano: `docs/superpowers/plans/2026-07-10-medvision-ui-simplify-laudo-first.md`.
+- Direção: **laudo-first clínico**, light-first, tokens `--paper`/`--signal`/`--ink` em `app/globals.css`. IA nos bastidores.
+- Escopo user: login, shell, Med Vision, Laudos, perfil/config. Legado fora do nav → 404 limpo (não deletar rotas).
+- Admin: nav sem Cursos/Materiais (código pode ficar). Landing/assinar/dark mode fora desta fase.
+- Impeccable: `PRODUCT.md`. `DESIGN.md` ausente — `/impeccable document` quando UI estabilizar.
 
 ## AI Context References
 - Documentation index: `.context/docs/README.md`

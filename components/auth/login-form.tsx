@@ -282,7 +282,7 @@ export function LoginForm({ variant = "light" }: LoginFormProps) {
           </>
         ) : (
           <>
-            {envReady ? "Entrar na plataforma" : "Configuração pendente"}
+            {envReady ? "Entrar no MedVision" : "Configuração pendente"}
             {envReady && <ArrowRight className="ml-2 h-5 w-5" />}
           </>
         )}
