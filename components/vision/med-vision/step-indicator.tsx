@@ -15,6 +15,8 @@ type MedVisionStepIndicatorProps = {
     className?: string
 }
 
+const SURFACE_PANEL = 'border-rule bg-surface'
+
 /**
  * Indicador linear dos 2 passos (Personalizar → Revisar e analisar).
  * Durante ANÁLISE, o passo "Revisar" permanece destacado; em RESULT, todos aparecem concluídos.
@@ -36,12 +38,12 @@ export function MedVisionStepIndicator({ state, className }: MedVisionStepIndica
                             <div className="flex flex-col items-center gap-1">
                                 <div
                                     className={cn(
-                                        'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold border-2 transition-all',
+                                        'w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold border transition-colors',
                                         done
-                                            ? 'bg-primary border-primary text-primary-foreground'
+                                            ? 'bg-signal border-signal text-surface-raised'
                                             : active
-                                              ? 'border-primary text-primary bg-primary/10'
-                                              : 'border-border text-muted-foreground bg-muted/30',
+                                              ? 'border-signal text-signal bg-signal/8'
+                                              : cn('border text-ink-muted', SURFACE_PANEL),
                                     )}
                                 >
                                     {done ? <Check className="w-3.5 h-3.5" /> : i + 1}
@@ -49,7 +51,7 @@ export function MedVisionStepIndicator({ state, className }: MedVisionStepIndica
                                 <span
                                     className={cn(
                                         'text-[10px] font-medium hidden sm:block max-w-[4.5rem] text-center leading-tight',
-                                        active || done ? 'text-primary' : 'text-muted-foreground',
+                                        active || done ? 'text-ink' : 'text-ink-muted',
                                     )}
                                 >
                                     {step.label}
@@ -58,8 +60,8 @@ export function MedVisionStepIndicator({ state, className }: MedVisionStepIndica
                             {i < WIZARD_STEPS.length - 1 && (
                                 <div
                                     className={cn(
-                                        'h-0.5 w-6 sm:w-10 mx-0.5 sm:mx-1 mb-4 sm:mb-5 transition-all',
-                                        i < idx || allComplete ? 'bg-primary' : 'bg-border',
+                                        'h-px w-6 sm:w-10 mx-0.5 sm:mx-1 mb-4 sm:mb-5 transition-colors',
+                                        i < idx || allComplete ? 'bg-signal' : 'bg-rule',
                                     )}
                                 />
                             )}
@@ -68,7 +70,7 @@ export function MedVisionStepIndicator({ state, className }: MedVisionStepIndica
                 })}
             </div>
             {phase && (
-                <p className="text-center text-[11px] text-muted-foreground max-w-md mx-auto px-2">{phase}</p>
+                <p className="text-center text-[11px] text-ink-muted max-w-md mx-auto px-2">{phase}</p>
             )}
         </div>
     )

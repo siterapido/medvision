@@ -1,6 +1,5 @@
 'use client'
 
-import { Sparkles } from 'lucide-react'
 import { MEDVISION_AI_LABEL } from '@/lib/constants/vision'
 import { cn } from '@/lib/utils'
 
@@ -8,16 +7,14 @@ type MedVisionAiBadgeProps = {
     className?: string
 }
 
+/** Status discreto — apoio à análise, sem hero de IA. */
 export function MedVisionAiBadge({ className }: MedVisionAiBadgeProps) {
     return (
-        <div
-            className={cn(
-                'inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary',
-                className,
-            )}
+        <p
+            role="status"
+            className={cn('text-[11px] font-medium text-ink-muted tracking-tight', className)}
         >
-            <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden />
-            <span>{MEDVISION_AI_LABEL}</span>
-        </div>
+            {MEDVISION_AI_LABEL}
+        </p>
     )
 }

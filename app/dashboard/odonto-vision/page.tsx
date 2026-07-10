@@ -29,8 +29,7 @@ import {
     GitBranch,
     X,
 } from 'lucide-react'
-import { useDropzone } from 'react-dropzone'
-import { GlassCard } from '@/components/ui/glass-card'
+import type { UploadFile } from '@/components/vision/med-vision'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -209,14 +208,6 @@ export default function MedVisionPage() {
         }
     }, [analysisResult, image, isSaving, isSaved, annotations, refinements, performSave, router])
 
-    const readImageAsBase64 = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader()
-            reader.readAsDataURL(file)
-            reader.onload = () => resolve(reader.result as string)
-            reader.onerror = (err) => reject(err)
-        })
-    }
 
     // Recorte de região para refinamento (resultado)
     const cropRegionFromImage = useCallback(async (imageSrc: string, box: BoundingBox): Promise<string> => {
@@ -239,12 +230,11 @@ export default function MedVisionPage() {
         return canvas.toDataURL('image/jpeg', 0.92)
     }, [])
 
-    const onDrop = useCallback(async (acceptedFiles: File[]) => {
-        const file = acceptedFiles[0]
-        if (file) {
+    const handleImagesAccepted = useCallback(async (uploadedFiles: UploadFile[]) => {
+        const uploadFile = uploadedFiles[0]
+        if (uploadFile) {
             try {
-                const imageBase64 = await readImageAsBase64(file)
-                const compressed = await compressImageForAnalysis(imageBase64, 1024, 0.85)
+                const compressed = await compressImageForAnalysis(uploadFile.base64, 1024, 0.85)
                 setOriginalImage(compressed)
                 setImage(compressed)
                 const result = await validateImageQuality(compressed)
@@ -505,12 +495,6 @@ toast.success('Região re-analisada com sucesso!')
         }
     }, [])
 
-    const { getRootProps, getInputProps, isDragActive } = useDropzone({
-        onDrop,
-        accept: { 'image/*': [] },
-        multiple: false
-    })
-
     const reset = () => {
         setState('CONFIGURE')
         setImage(null)
@@ -540,14 +524,14 @@ toast.success('Região re-analisada com sucesso!')
             {/* Header */}
             <header className="mb-5 md:mb-10 space-y-1.5">
                 <div className="flex items-center gap-2.5">
-                    <div className="p-1.5 md:p-2 rounded-xl bg-primary/10 border border-primary/20">
-                        <Scan className="w-5 h-5 md:w-6 md:h-6 text-primary" />
+                    <div className="p-1.5 md:p-2 rounded-xl border border-rule bg-surface">
+                        <Scan className="w-5 h-5 md:w-6 md:h-6 text-signal" />
                     </div>
-                    <h1 className="text-2xl md:text-3xl font-heading font-bold tracking-tight text-foreground">
+                    <h1 className="text-2xl md:text-3xl font-heading font-semibold tracking-tight text-ink">
                         Med Vision
                     </h1>
                 </div>
-                <p className="max-w-2xl text-xs text-muted-foreground md:text-base">
+                <p className="max-w-2xl text-xs text-ink-muted md:text-base">
                     Envie radiografias ou tomografias para laudo assistido por IA. Revise achados antes de salvar ou exportar.
                 </p>
             </header>
@@ -590,9 +574,7 @@ toast.success('Região re-analisada com sucesso!')
                             config={config}
                             onConfigChange={patchConfig}
                             qualityResult={qualityResult}
-                            getRootProps={getRootProps}
-                            getInputProps={getInputProps}
-                            isDragActive={isDragActive}
+                            onImageAccepted={handleImagesAccepted}
                             onBack={() => {
                                 setOriginalImage(null)
                                 setImage(null)
@@ -638,14 +620,14 @@ toast.success('Região re-analisada com sucesso!')
                             key="result"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
-                            className="flex flex-col gap-8 max-w-4xl mx-auto w-full min-w-0"
+                            className="flex flex-col gap-8 max-w-6xl mx-auto w-full min-w-0"
                         >
                             <VisionClinicalDisclaimer />
                             {/* Quality badge (high precision) */}
                             {analysisPrecision !== null && analysisPrecision >= 80 && analysisResult.meta && (
                                 <div className="flex items-center justify-end gap-2">
                                     <span className="text-[10px] text-muted-foreground">Qualidade da imagem:</span>
-                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-500 border border-emerald-500/30">
+                                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-clinical-ok/10 text-clinical-ok border border-clinical-ok/30">
                                         {analysisResult.meta.quality} · {analysisPrecision}%
                                     </span>
                                 </div>
@@ -682,7 +664,7 @@ toast.success('Região re-analisada com sucesso!')
                                 className="w-full flex flex-col gap-4"
                             >
                                 <TabsList
-                                    className="grid h-12 w-full max-w-2xl grid-cols-3 gap-0 rounded-2xl border border-border/50 bg-muted/30 p-1.5"
+                                    className="grid h-12 w-full max-w-2xl grid-cols-3 gap-0 rounded-xl border border-rule bg-surface p-1.5"
                                 >
                                     <TabsTrigger
                                         value="laudo"
@@ -897,10 +879,10 @@ toast.success('Região re-analisada com sucesso!')
 
                                 {/* No findings state */}
                                 {analysisResult.detections.length === 0 && (
-                                    <div className="flex items-center gap-3 p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/20">
-                                        <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
+                                    <div className="flex items-center gap-3 p-4 rounded-xl bg-clinical-ok/10 border border-clinical-ok/25">
+                                        <CheckCircle2 className="w-5 h-5 text-clinical-ok shrink-0" />
                                         <div>
-                                            <p className="text-sm font-semibold text-emerald-500">Sem achados significativos</p>
+                                            <p className="text-sm font-semibold text-clinical-ok">Sem achados significativos</p>
                                             <p className="text-xs text-muted-foreground mt-0.5">A análise não identificou patologias ou achados com confiança suficiente nesta imagem.</p>
                                         </div>
                                     </div>
@@ -912,9 +894,34 @@ toast.success('Região re-analisada com sucesso!')
                                 </TabsContent>
 
                             {/* Laudo: texto e refinamentos (aba) */}
-                                <TabsContent value="laudo" className="mt-0 max-w-3xl w-full self-center space-y-6 outline-none">
+                                <TabsContent value="laudo" className="mt-0 w-full outline-none">
+                            <div className="flex flex-col lg:flex-row gap-6 w-full">
+                                <div className="lg:w-[40%] lg:sticky lg:top-24 lg:self-start space-y-4 min-w-0">
+                                    <div className="rounded-xl border border-rule bg-surface-raised p-1">
+                                        <div className="relative aspect-[4/3] rounded-lg overflow-hidden border border-rule bg-surface min-w-0">
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                {image && (
+                                                    <ImageOverlay
+                                                        src={image}
+                                                        detections={analysisResult.detections}
+                                                        annotations={annotations}
+                                                        showHeatmap={showHeatmap}
+                                                        showConfidenceFilter
+                                                        useModernMarkers
+                                                    />
+                                                )}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {analysisResult.detections.length > 0 && (
+                                        <p className="text-[11px] text-ink-muted text-center">
+                                            Imagem com achados marcados — revise ao lado antes de exportar.
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="lg:w-[60%] min-w-0">
                             <div className="space-y-6 w-full">
-                                <GlassCard className="p-6 flex flex-col">
+                                <div className="rounded-xl border border-rule bg-surface-raised p-6 flex flex-col">
                                     <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/30">
                                         <div>
                                             <h2 className="text-xl font-heading font-bold">Laudo clínico</h2>
@@ -930,7 +937,7 @@ toast.success('Região re-analisada com sucesso!')
                                                 <Badge
                                                     variant="outline"
                                                     className={cn('text-[10px] h-5 px-1.5 font-bold',
-                                                        analysisPrecision >= 80 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/30'
+                                                        analysisPrecision >= 80 ? 'bg-clinical-ok/10 text-clinical-ok border-clinical-ok/30'
                                                             : analysisPrecision >= 60 ? 'bg-amber-500/10 text-amber-500 border-amber-500/30'
                                                                 : 'bg-red-500/10 text-red-400 border-red-400/30'
                                                     )}
@@ -972,7 +979,7 @@ toast.success('Região re-analisada com sucesso!')
                                                             <div className="flex items-center gap-2 shrink-0 ml-2">
                                                                 {finding.confidence !== undefined && (
                                                                     <span className={cn('text-[9px] font-semibold px-1.5 py-0.5 rounded-full border',
-                                                                        finding.confidence >= 0.8 ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20'
+                                                                        finding.confidence >= 0.8 ? 'bg-clinical-ok/10 text-clinical-ok border-clinical-ok/20'
                                                                             : finding.confidence >= 0.6 ? 'bg-amber-500/10 text-amber-500 border-amber-500/20'
                                                                                 : 'bg-red-400/10 text-red-400 border-red-400/20'
                                                                     )}>
@@ -1087,14 +1094,8 @@ toast.success('Região re-analisada com sucesso!')
                                         )}
                                     </div>
 
-                                    <div className="mt-6 pt-4 border-t border-border/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                        <div className="flex items-center gap-3">
-                                            <img src="https://ui-avatars.com/api/?name=IA&background=0284c7&color=fff" className="w-10 h-10 rounded-full border border-primary/20" alt="IA" />
-                                            <div>
-                                                <p className="text-sm font-bold">MedVision AI</p>
-                                                <p className="text-[10px] text-muted-foreground">CRM Virtual: 0001-AI</p>
-                                            </div>
-                                        </div>
+                                    <div className="mt-6 pt-4 border-t border-rule flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                        <p className="text-[11px] text-ink-muted">Laudo gerado por análise assistida</p>
                                         <div className="flex flex-wrap items-center gap-2 justify-end">
                                             <Button
                                                 size="sm"
@@ -1123,7 +1124,7 @@ toast.success('Região re-analisada com sucesso!')
                                             )}
                                         </div>
                                     </div>
-                                </GlassCard>
+                                </div>
 
                                 {/* ─── REFINAMENTOS ─── */}
                                 {refinements.length > 0 && (
@@ -1136,7 +1137,7 @@ toast.success('Região re-analisada com sucesso!')
                                         </div>
 
                                         {refinements.map((ref, idx) => (
-                                            <GlassCard key={idx} className="overflow-hidden">
+                                            <div key={idx} className="rounded-xl border border-rule bg-surface-raised overflow-hidden">
                                                 <button
                                                     className="w-full p-4 flex items-center gap-4 hover:bg-muted/20 transition-colors text-left"
                                                     onClick={() => setExpandedRefinement(prev => prev === idx ? null : idx)}
@@ -1263,15 +1264,17 @@ toast.success('Região re-analisada com sucesso!')
                                                         </motion.div>
                                                     )}
                                                 </AnimatePresence>
-                                            </GlassCard>
+                                            </div>
                                         ))}
                                     </div>
                                 )}
                             </div>
+                                </div>
+                            </div>
                                 </TabsContent>
 
                                 <TabsContent value="conduta" className="mt-0 max-w-3xl w-full self-center space-y-6 outline-none">
-                                    <GlassCard className="p-6 flex flex-col">
+                                    <div className="rounded-xl border border-rule bg-surface-raised p-6 flex flex-col">
                                         <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/30">
                                             <div>
                                                 <h2 className="text-xl font-heading font-bold">Conduta recomendada</h2>
@@ -1310,14 +1313,8 @@ toast.success('Região re-analisada com sucesso!')
                                             <p className="text-sm text-muted-foreground italic">Nenhuma conduta recomendada foi gerada para esta análise.</p>
                                         )}
 
-                                        <div className="mt-6 pt-4 border-t border-border/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                                            <div className="flex items-center gap-3">
-                                                <img src="https://ui-avatars.com/api/?name=IA&background=0284c7&color=fff" className="w-10 h-10 rounded-full border border-primary/20" alt="IA" />
-                                                <div>
-                                                    <p className="text-sm font-bold">MedVision AI</p>
-                                                    <p className="text-[10px] text-muted-foreground">CRM Virtual: 0001-AI</p>
-                                                </div>
-                                            </div>
+                                        <div className="mt-6 pt-4 border-t border-rule flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                            <p className="text-[11px] text-ink-muted">Conduta derivada da análise assistida</p>
                                             <Button
                                                 size="sm"
                                                 variant="outline"
@@ -1335,7 +1332,7 @@ toast.success('Região re-analisada com sucesso!')
                                                 <Download className="w-3 h-3" /> PDF da Conduta
                                             </Button>
                                         </div>
-                                    </GlassCard>
+                                    </div>
                                 </TabsContent>
                             </Tabs>
                         </motion.div>

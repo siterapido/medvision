@@ -1,10 +1,10 @@
 'use client'
 
-import { GlassCard } from '@/components/ui/glass-card'
 import { VISION_MODALITIES, VISION_REPORT_DEPTHS } from '@/lib/constants/vision-analysis-options'
 import { VISION_SPECIALTIES } from '@/lib/constants/vision-specialties'
 import type { MedVisionAnalysisConfig } from '@/lib/types/vision-analysis-request'
 import { MedVisionAiBadge } from '@/components/vision/med-vision/med-vision-ai-badge'
+import { cn } from '@/lib/utils'
 
 function formatPayloadSizeKb(dataUrl: string): string | null {
     const comma = dataUrl.indexOf(',')
@@ -18,6 +18,8 @@ type MedVisionAnalysisSummaryProps = {
     config: MedVisionAnalysisConfig
     imageDataUrl?: string | null
 }
+
+const PANEL = 'rounded-xl border border-rule bg-surface-raised'
 
 export function MedVisionAnalysisSummary({ config, imageDataUrl }: MedVisionAnalysisSummaryProps) {
     const modalityLabel =
@@ -37,9 +39,11 @@ export function MedVisionAnalysisSummary({ config, imageDataUrl }: MedVisionAnal
     ).filter(Boolean) as string[]
 
     return (
-        <GlassCard className="p-5 border-border/40 space-y-3">
-            <h4 className="text-sm font-semibold">Resumo da análise</h4>
-            <MedVisionAiBadge />
+        <div className={cn(PANEL, 'p-5 space-y-3')}>
+            <div className="flex items-center justify-between gap-2">
+                <h4 className="text-sm font-semibold text-ink">Resumo da análise</h4>
+                <MedVisionAiBadge />
+            </div>
 
             <SummaryRow label="Especialidade" value={specialtyLabel} />
             <SummaryRow label="Modalidade" value={modalityLabel} />
@@ -69,15 +73,15 @@ export function MedVisionAnalysisSummary({ config, imageDataUrl }: MedVisionAnal
                 value={sectionsOn.length ? sectionsOn.join(', ') : 'Nenhuma'}
             />
             {sizeLabel && <SummaryRow label="Imagem enviada" value={sizeLabel} />}
-        </GlassCard>
+        </div>
     )
 }
 
 function SummaryRow({ label, value }: { label: string; value: string }) {
     return (
-        <div className="p-2.5 rounded-lg bg-muted/30 border border-border/40">
-            <p className="text-[11px] text-muted-foreground font-medium mb-0.5">{label}</p>
-            <p className="text-sm leading-snug">{value}</p>
+        <div className="p-2.5 rounded-lg border border-rule bg-surface">
+            <p className="text-[11px] text-ink-muted font-medium mb-0.5">{label}</p>
+            <p className="text-sm leading-snug text-ink">{value}</p>
         </div>
     )
 }
