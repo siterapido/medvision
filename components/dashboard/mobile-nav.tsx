@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import { NAV_ITEMS, BOTTOM_NAV_ITEMS } from '@/lib/constants/navigation'
 import { UserProfile } from './user-profile'
-import { ThemeToggle } from './theme-toggle'
 import { Menu, X } from 'lucide-react'
 import { AnimatePresence, motion } from 'motion/react'
 import { Logo } from '@/components/logo'
@@ -117,11 +116,6 @@ export function MobileNav({ user }: { user: any }) {
                                             <span className="font-medium text-sm text-center text-foreground">{item.label}</span>
                                         </Link>
                                     ))}
-                                </div>
-
-                                <div className="flex items-center justify-between p-5 rounded-xl bg-surface-raised border border-border">
-                                    <span className="font-medium px-2 text-foreground">Aparência</span>
-                                    <ThemeToggle collapsed={false} />
                                 </div>
 
                             </div>

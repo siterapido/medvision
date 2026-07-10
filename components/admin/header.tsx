@@ -2,7 +2,6 @@
 
 import { Menu } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { ThemeToggle } from "@/components/dashboard/theme-toggle"
 
 interface AdminHeaderProps {
   isSidebarVisible?: boolean
@@ -17,34 +16,28 @@ export function AdminHeader({
 
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 sticky top-0 z-40 px-4 py-3 transition-colors duration-200 md:px-6">
-      <div className="flex w-full items-center justify-between gap-3">
-        <div className="flex items-center gap-3">
-          {onToggleSidebar && (
-            <button
-              type="button"
-              onClick={onToggleSidebar}
-              aria-label={toggleLabel}
-              aria-controls="admin-sidebar"
-              aria-expanded={isSidebarVisible}
-              title="Alternar menu lateral"
-              className={cn(
-                'group flex h-9 w-9 items-center justify-center rounded-lg border bg-secondary/50 text-muted-foreground transition-all duration-200 hover:bg-secondary hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 md:hidden',
-                isSidebarVisible
-                  ? 'border-violet-500/55 text-violet-300 [&_svg]:text-violet-300'
-                  : 'border-border hover:border-violet-500/40'
-              )}
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-          )}
-          <h2 className="text-sm font-semibold tracking-tight text-foreground sm:text-base">
-            Painel Administrativo
-          </h2>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <ThemeToggle collapsed={true} />
-        </div>
+      <div className="flex w-full items-center gap-3">
+        {onToggleSidebar && (
+          <button
+            type="button"
+            onClick={onToggleSidebar}
+            aria-label={toggleLabel}
+            aria-controls="admin-sidebar"
+            aria-expanded={isSidebarVisible}
+            title="Alternar menu lateral"
+            className={cn(
+              'group flex h-9 w-9 items-center justify-center rounded-lg border bg-secondary/50 text-muted-foreground transition-all duration-200 hover:bg-secondary hover:text-foreground focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-violet-500 md:hidden',
+              isSidebarVisible
+                ? 'border-violet-500/55 text-violet-300 [&_svg]:text-violet-300'
+                : 'border-border hover:border-violet-500/40'
+            )}
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        )}
+        <h2 className="text-sm font-semibold tracking-tight text-foreground sm:text-base">
+          Painel Administrativo
+        </h2>
       </div>
     </header>
   )

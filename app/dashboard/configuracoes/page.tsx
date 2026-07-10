@@ -1,22 +1,11 @@
 "use client"
 
-import { useTheme } from "next-themes"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Button } from "@/components/ui/button"
-import { Moon, Sun, Laptop } from "lucide-react"
-import { cn } from "@/lib/utils"
 import Link from "next/link"
 
-const themeOptions = [
-  { value: "light", label: "Claro", icon: Sun },
-  { value: "dark", label: "Escuro", icon: Moon },
-  { value: "system", label: "Sistema", icon: Laptop },
-] as const
-
 export default function ConfiguracoesPage() {
-  const { theme, setTheme } = useTheme()
-
   return (
     <div
       data-surface="product"
@@ -32,31 +21,6 @@ export default function ConfiguracoesPage() {
       </div>
 
       <div className="space-y-6">
-        <section className="rounded-xl border border-rule bg-surface-raised">
-          <div className="border-b border-rule px-5 py-4 md:px-6">
-            <h2 className="font-heading text-base font-semibold text-ink">Aparência</h2>
-            <p className="mt-0.5 text-sm text-ink-muted">Tema de exibição do MedVision.</p>
-          </div>
-          <div className="flex flex-wrap gap-2 px-5 py-4 md:px-6">
-            {themeOptions.map(({ value, label, icon: Icon }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setTheme(value)}
-                className={cn(
-                  "inline-flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
-                  theme === value
-                    ? "border-signal/40 bg-signal/8 text-ink"
-                    : "border-rule bg-surface text-ink-muted hover:border-signal/25 hover:text-ink"
-                )}
-              >
-                <Icon className="h-4 w-4" aria-hidden />
-                {label}
-              </button>
-            ))}
-          </div>
-        </section>
-
         <section className="rounded-xl border border-rule bg-surface-raised">
           <div className="border-b border-rule px-5 py-4 md:px-6">
             <h2 className="font-heading text-base font-semibold text-ink">Conta</h2>

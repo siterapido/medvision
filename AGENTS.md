@@ -29,7 +29,7 @@ Todas as respostas automatizadas e comunicações nos PRs devem ser redigidas em
 - Landing + login: composição compartilhada `components/marketing/auth-shell.tsx` — spec `docs/superpowers/specs/2026-07-10-medvision-landing-login-auth-shell-design.md`. `/` = hero mínimo + Entrar; `/login` = mesmo shell + form.
 - Direção: **laudo-first clínico**, light-first, tokens `--paper`/`--signal`/`--ink` em `app/globals.css`. IA nos bastidores.
 - Escopo user: login, shell, Med Vision, Laudos, perfil/config. Legado fora do nav → 404 limpo (não deletar rotas).
-- Admin: nav sem Cursos/Materiais (código pode ficar). `/assinar` e dark mode ainda fora.
+- Admin: nav sem Cursos/Materiais (código pode ficar). `/assinar` ainda fora. Dark mode removido (light-only).
 - Impeccable: `PRODUCT.md`. `DESIGN.md` ausente — `/impeccable document` quando UI estabilizar.
 
 ## AI Context References

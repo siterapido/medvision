@@ -4,7 +4,6 @@ import type { Metadata } from "next"
 import { Analytics } from "@vercel/analytics/next"
 import { Plus_Jakarta_Sans, Outfit } from 'next/font/google'
 import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
 import EnvWarning from "@/components/env-warning"
 import { SiteFrame } from "@/components/layout/site-frame"
 
@@ -41,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="pt-BR" suppressHydrationWarning>
+    <html lang="pt-BR" className="light" style={{ colorScheme: "light" }}>
       <head>
         {/* DNS prefetch para melhor performance quando os recursos forem necessários */}
         <link rel="dns-prefetch" href="https://cdn.converteai.net" />
@@ -50,17 +49,10 @@ export default function RootLayout({
         <link rel="dns-prefetch" href="https://api.vturb.com.br" />
       </head>
       <body className={`${plusJakarta.variable} ${outfit.variable} font-sans antialiased app-shell`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark" // Prefer dark mode for Perplexity aesthetic
-          enableSystem={true}
-          disableTransitionOnChange
-        >
-          <EnvWarning />
-          <SiteFrame>
-            {children}
-          </SiteFrame>
-        </ThemeProvider>
+        <EnvWarning />
+        <SiteFrame>
+          {children}
+        </SiteFrame>
         <Analytics />
       </body>
     </html>
