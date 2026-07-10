@@ -92,4 +92,4 @@ export const spacingClass: Record<keyof typeof spacing, string> = {
  * shadow-xl     — elevação máxima (overlays, sheets)
  */
 
-export { spacing as default, colors }
+export default spacing
