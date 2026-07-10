@@ -1,7 +1,7 @@
 # MedVision Rebranding — Laudo-first clínico
 
 **Data:** 2026-07-09  
-**Status:** aprovado (brainstorming)  
+**Status:** supersedido por `2026-07-10-medvision-ui-simplify-laudo-first-design.md`  
 **Registro:** product (app autenticado)  
 **Direção:** opção 1 — Laudo-first clínico (tech médico discreto)
 
