@@ -19,7 +19,12 @@ Linting plus manual walkthroughs of the login → dashboard → admin flows are 
 Use the conventional format seen in history (`feat(auth): …`, `fix(chat): …`). PRs must explain the user-facing impact, call out touched routes/components, and mention new files under `supabase/migrations`. Attach screenshots for UI changes, link the relevant doc or issue, and run `npm run lint && npm run build` before requesting review.
 
 ## Supabase & Configuration Tips
-Store `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local` (never commit secrets). Evolve schemas with the Supabase CLI (`supabase db diff` / `supabase db push`) and commit the generated SQL under `supabase/migrations`, updating `SUPABASE_SETUP.md` if prerequisites change.
+Store `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local` (never commit secrets). Evolve schemas by committing SQL under `supabase/migrations`. **DB runtime = Neon** (`DATABASE_URL` / `DATABASE_URL_UNPOOLED` na Vercel). `supabase db push` pode falhar se o projeto Supabase remoto foi removido — aplicar SQL no Neon com `@neondatabase/serverless` + `DATABASE_URL_UNPOOLED` (statement-by-statement; Neon HTTP não aceita multi-command num prepared statement). Auth: Neon Auth (`NEON_AUTH_*`).
+
+## Med Vision (laudo)
+- Rota canônica: `/dashboard/med-vision` (`MED_VISION_HREF`). `/dashboard/odonto-vision` só redirect.
+- Wizard: `components/vision/med-vision/med-vision-page.tsx`. Análise preferencial: `POST /api/vision/analyze-async` → poll `/api/vision/runs/[runId]` (`workflows/vision-analyze.ts` + `workflow` package). Sync `/api/vision/analyze` permanece como fallback.
+- Artefatos `type: vision` + migrations `20260710*` (`vision_usage_log`, `vision_cache`, assinatura/audit/orgs).
 
 ## Orientação de Idioma
 Todas as respostas automatizadas e comunicações nos PRs devem ser redigidas em português brasileiro, mantendo tom profissional e direto.
