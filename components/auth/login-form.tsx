@@ -94,9 +94,21 @@ export function LoginForm({ variant = "light" }: LoginFormProps) {
         }
 
         // Mensagens de erro em português
-        if (signInError.message.includes("Invalid login credentials")) {
+        const errMsg = signInError.message.toLowerCase()
+        if (
+          errMsg.includes("invalid login credentials") ||
+          errMsg.includes("invalid email or password") ||
+          (signInError as { code?: string }).code === "INVALID_EMAIL_OR_PASSWORD"
+        ) {
           setError("Email ou senha incorretos. Por favor, tente novamente.")
-        } else if (signInError.message.includes("Email not confirmed")) {
+        } else if (
+          errMsg.includes("failed to retrieve user session") ||
+          errMsg.includes("no active session found")
+        ) {
+          setError(
+            "Login aceito, mas a sessão não foi salva no navegador. Tente novamente, use outro navegador ou limpe os cookies do site.",
+          )
+        } else if (errMsg.includes("email not confirmed") || errMsg.includes("email not verified")) {
           setError("Por favor, confirme seu email antes de fazer login.")
         } else {
           setError("Erro ao fazer login. Por favor, tente novamente.")
@@ -178,7 +190,7 @@ export function LoginForm({ variant = "light" }: LoginFormProps) {
       <div className="space-y-2">
         <Label
           htmlFor="email"
-          className={cn("text-sm font-medium", isLight ? "text-slate-800" : "text-slate-300")}
+          className={cn("text-sm font-medium", isLight ? "text-ink" : "text-slate-300")}
         >
           Email
         </Label>
@@ -191,10 +203,10 @@ export function LoginForm({ variant = "light" }: LoginFormProps) {
           required
           disabled={isLoading}
           className={cn(
-            "h-12 px-4 rounded-xl transition-all",
+            "h-12 px-4 rounded-xl transition-colors",
             isLight
-              ? "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-emerald-500 focus:ring-emerald-500/20"
-              : "bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20"
+              ? "border-border bg-surface-raised text-foreground placeholder:text-muted-foreground focus:border-signal focus:ring-signal/20"
+              : "bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-signal focus:ring-signal/20"
           )}
         />
       </div>
@@ -203,7 +215,7 @@ export function LoginForm({ variant = "light" }: LoginFormProps) {
         <div className="flex items-center justify-between">
           <Label
             htmlFor="password"
-            className={cn("text-sm font-medium", isLight ? "text-slate-800" : "text-slate-300")}
+            className={cn("text-sm font-medium", isLight ? "text-ink" : "text-slate-300")}
           >
             Senha
           </Label>
@@ -213,8 +225,8 @@ export function LoginForm({ variant = "light" }: LoginFormProps) {
             className={cn(
               "text-xs font-medium transition-colors",
               isLight
-                ? "text-emerald-700 hover:text-emerald-800"
-                : "text-[#34d399] hover:text-[#6ee7b7]"
+                ? "text-signal hover:text-signal/80"
+                : "text-signal hover:text-signal/80"
             )}
           >
             Esqueceu a senha?
@@ -230,10 +242,10 @@ export function LoginForm({ variant = "light" }: LoginFormProps) {
             required
             disabled={isLoading}
             className={cn(
-              "h-12 px-4 pr-12 rounded-xl transition-all",
+              "h-12 px-4 pr-12 rounded-xl transition-colors",
               isLight
-                ? "border-slate-200 bg-white text-slate-900 placeholder:text-slate-400 shadow-sm focus:border-emerald-500 focus:ring-emerald-500/20"
-                : "bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20"
+                ? "border-border bg-surface-raised text-foreground placeholder:text-muted-foreground focus:border-signal focus:ring-signal/20"
+                : "bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-signal focus:ring-signal/20"
             )}
           />
           <button
@@ -256,12 +268,11 @@ export function LoginForm({ variant = "light" }: LoginFormProps) {
       <Button
         type="submit"
         className={cn(
-          "w-full h-12 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] border-0 text-white",
-          isLight && "shadow-emerald-900/15 hover:shadow-emerald-900/25 focus-visible:ring-2 focus-visible:ring-emerald-600/40"
+          "w-full h-12 font-semibold rounded-xl transition-colors",
+          isLight
+            ? "bg-signal text-surface-raised hover:bg-signal/90 focus-visible:ring-2 focus-visible:ring-signal/30"
+            : "bg-signal text-surface-raised hover:bg-signal/90"
         )}
-        style={{
-          background: "linear-gradient(135deg, #059669 0%, #10b981 100%)",
-        }}
         disabled={isLoading || !envReady}
       >
         {isLoading ? (

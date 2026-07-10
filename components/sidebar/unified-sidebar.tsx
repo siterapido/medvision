@@ -33,10 +33,7 @@ export function UnifiedSidebar({ user }: UnifiedSidebarProps) {
   return (
     <Sidebar
       collapsible="icon"
-      className={cn(
-        'border-r border-sidebar-border',
-        'bg-transparent'
-      )}
+      className="border-r border-sidebar-border bg-sidebar"
     >
       <BaseSidebarHeader className={cn(
         isCollapsed ? 'p-2' : 'p-4'

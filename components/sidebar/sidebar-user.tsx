@@ -2,12 +2,10 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Settings, LogOut, Moon, Sun, Bell, ChevronUp, User } from 'lucide-react'
-import { useTheme } from 'next-themes'
+import { Settings, LogOut, ChevronUp, User } from 'lucide-react'
 import { createClient } from '@/lib/supabase/client'
 import { isTrialExpired, getRemainingTrialDays } from '@/lib/trial'
 import { toast } from 'sonner'
-import { useEffect, useState } from 'react'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -19,11 +17,9 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  useSidebar,
 } from '@/components/ui/sidebar'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 
 interface SidebarUserProps {
   user?: {
@@ -39,15 +35,7 @@ interface SidebarUserProps {
 
 export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
   const router = useRouter()
-  const { theme, setTheme } = useTheme()
-  const { isMobile } = useSidebar()
   const supabase = createClient()
-  const [isMounted, setIsMounted] = useState(false)
-
-  // Only render theme-dependent content after hydration
-  useEffect(() => {
-    setIsMounted(true)
-  }, [])
 
   const handleLogout = async () => {
     try {
@@ -60,18 +48,12 @@ export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
     }
   }
 
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark')
-  }
-
   const initials = user?.name
     ?.split(' ')
     .map(n => n[0])
     .join('')
     .toUpperCase()
     .slice(0, 2) || user?.email?.[0]?.toUpperCase() || '?'
-
-      .slice(0, 2) || user?.email?.[0]?.toUpperCase() || '?'
 
   if (collapsed) {
     return (
@@ -85,11 +67,11 @@ export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
             >
               <Avatar className="h-7 w-7">
                 <AvatarImage src={user?.avatar_url || undefined} alt={user?.name || 'User'} />
-                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                <AvatarFallback className="bg-sidebar-accent text-sidebar-foreground text-xs">
                   {initials}
                 </AvatarFallback>
               </Avatar>
-              <span className="text-[10px] leading-tight text-[var(--sidebar-text-secondary)]">
+              <span className="text-[10px] leading-tight text-muted-foreground">
                 Conta
               </span>
             </Button>
@@ -98,7 +80,7 @@ export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
             <div className="flex items-center gap-2 p-2">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user?.avatar_url || undefined} alt={user?.name || 'User'} />
-                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                <AvatarFallback className="bg-sidebar-accent text-sidebar-foreground text-xs">
                   {initials}
                 </AvatarFallback>
               </Avatar>
@@ -143,27 +125,31 @@ export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="hover:bg-[var(--sidebar-hover)] data-[state=open]:bg-[var(--sidebar-hover)]"
+              className="hover:bg-sidebar-accent data-[state=open]:bg-sidebar-accent"
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={user?.avatar_url || undefined} alt={user?.name || 'User'} />
-                <AvatarFallback className="rounded-lg bg-primary/10 text-primary">
+                <AvatarFallback className="rounded-lg bg-sidebar-accent text-sidebar-foreground">
                   {initials}
                 </AvatarFallback>
               </Avatar>
               <div className="flex flex-col flex-1 text-left">
-                <span className="text-sm font-medium text-[var(--sidebar-text-primary)] truncate">
+                <span className="text-sm font-medium text-sidebar-foreground truncate">
                   {user?.name || 'Usuario'}
                 </span>
-                <span className="text-xs text-[var(--sidebar-text-tertiary)] truncate">
-                  {user?.plan_type === 'premium' 
-                    ? 'Premium Pro' 
-                    : !isTrialExpired(user?.trial_ends_at) 
-                      ? `${getRemainingTrialDays(user?.trial_ends_at)} dias de teste`
-                      : 'Plano Basic'}
+                <span className="text-xs text-muted-foreground truncate">
+                  {user?.plan_type === 'pro'
+                    ? 'Plano Pro'
+                    : user?.plan_type === 'premium'
+                      ? 'Premium Pro'
+                      : user?.plan_type === 'basic'
+                        ? 'Plano Basic'
+                        : !isTrialExpired(user?.trial_ends_at)
+                          ? `${getRemainingTrialDays(user?.trial_ends_at)} dias de teste`
+                          : 'Plano Basic'}
                 </span>
               </div>
-              <ChevronUp className="h-4 w-4 text-[var(--sidebar-text-tertiary)]" />
+              <ChevronUp className="h-4 w-4 text-muted-foreground" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -174,7 +160,7 @@ export function SidebarUser({ user, collapsed = false }: SidebarUserProps) {
             <div className="flex items-center gap-2 p-2 border-b">
               <Avatar className="h-8 w-8">
                 <AvatarImage src={user?.avatar_url || undefined} alt={user?.name || 'User'} />
-                <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                <AvatarFallback className="bg-sidebar-accent text-sidebar-foreground text-xs">
                   {initials}
                 </AvatarFallback>
               </Avatar>

@@ -67,7 +67,7 @@ export function SidebarNav({ role, planType }: SidebarNavProps) {
     <>
       <SidebarGroup>
         {!isCollapsed && (
-          <SidebarGroupLabel className="text-xs font-medium text-[var(--sidebar-text-tertiary)] uppercase tracking-wider">
+          <SidebarGroupLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
             Navegação
           </SidebarGroupLabel>
         )}
@@ -83,9 +83,9 @@ export function SidebarNav({ role, planType }: SidebarNavProps) {
                     isActive={active}
                     tooltip={isCollapsed ? undefined : item.label}
                     className={cn(
-                      'transition-all duration-200',
-                      active && 'bg-[var(--sidebar-active)] text-primary font-medium',
-                      !active && !item.disabled && 'hover:bg-[var(--sidebar-hover)]',
+                      'transition-colors duration-200',
+                      active && 'bg-sidebar-accent text-sidebar-foreground font-medium',
+                      !active && !item.disabled && 'hover:bg-sidebar-accent/60',
                       item.disabled && 'opacity-60 cursor-not-allowed'
                     )}
                   >
@@ -94,12 +94,12 @@ export function SidebarNav({ role, planType }: SidebarNavProps) {
                         <item.icon className={cn(
                           'shrink-0',
                           isCollapsed ? 'h-5 w-5' : 'h-4 w-4',
-                          'text-[var(--sidebar-text-secondary)]'
+                          'text-muted-foreground'
                         )} />
                         {!isCollapsed && (
                           <div className="flex flex-1 items-center justify-between overflow-hidden">
                             <span className={cn(
-                              'text-[var(--sidebar-text-secondary)] truncate'
+                              'text-muted-foreground truncate'
                             )}>
                               {item.label}
                             </span>
@@ -116,17 +116,14 @@ export function SidebarNav({ role, planType }: SidebarNavProps) {
                         <item.icon className={cn(
                           'shrink-0',
                           isCollapsed ? 'h-5 w-5' : 'h-4 w-4',
-                          active ? 'text-primary' : 'text-[var(--sidebar-text-secondary)]'
+                          active ? 'text-sidebar-foreground' : 'text-muted-foreground'
                         )} />
                         <span className={cn(
-                          active ? 'text-[var(--sidebar-text-primary)]' : 'text-[var(--sidebar-text-secondary)]',
+                          active ? 'text-sidebar-foreground' : 'text-muted-foreground',
                           isCollapsed && 'text-[10px] leading-tight'
                         )}>
                           {isCollapsed ? getShortLabel(item.label) : item.label}
                         </span>
-                        {active && !isCollapsed && (
-                          <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
-                        )}
                       </Link>
                     )}
                   </SidebarMenuButton>
@@ -141,7 +138,7 @@ export function SidebarNav({ role, planType }: SidebarNavProps) {
       {isAdmin && (
         <SidebarGroup className="mt-4">
           {!isCollapsed && (
-            <SidebarGroupLabel className="text-xs font-medium text-[var(--sidebar-text-tertiary)] uppercase tracking-wider">
+            <SidebarGroupLabel className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
               Painel admin
             </SidebarGroupLabel>
           )}
@@ -156,26 +153,23 @@ export function SidebarNav({ role, planType }: SidebarNavProps) {
                       isActive={active}
                       tooltip={isCollapsed ? undefined : item.label}
                       className={cn(
-                        'transition-all duration-200',
-                        active && 'bg-[var(--sidebar-active)] text-primary font-medium',
-                        !active && 'hover:bg-[var(--sidebar-hover)]'
+                        'transition-colors duration-200',
+                        active && 'bg-sidebar-accent text-sidebar-foreground font-medium',
+                        !active && 'hover:bg-sidebar-accent/60'
                       )}
                     >
                       <Link href={item.href}>
                         <item.icon className={cn(
                           'shrink-0',
                           isCollapsed ? 'h-5 w-5' : 'h-4 w-4',
-                          active ? 'text-primary' : 'text-[var(--sidebar-text-secondary)]'
+                          active ? 'text-sidebar-foreground' : 'text-muted-foreground'
                         )} />
                         <span className={cn(
-                          active ? 'text-[var(--sidebar-text-primary)]' : 'text-[var(--sidebar-text-secondary)]',
+                          active ? 'text-sidebar-foreground' : 'text-muted-foreground',
                           isCollapsed && 'text-[10px] leading-tight'
                         )}>
                           {isCollapsed ? getShortLabel(item.label) : item.label}
                         </span>
-                        {active && !isCollapsed && (
-                          <div className="ml-auto h-1.5 w-1.5 rounded-full bg-primary" />
-                        )}
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>

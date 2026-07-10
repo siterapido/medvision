@@ -20,15 +20,14 @@ export function SidebarHeader() {
     )}>
       <Link
         href={MED_VISION_HREF}
-        className="relative flex items-center justify-center group"
+        className="flex items-center justify-center"
       >
         <Logo
           width={isCollapsed ? 32 : 120}
           height={isCollapsed ? 32 : 32}
           variant="auto"
-          className="transition-transform duration-300 group-hover:scale-105"
+          className="text-ink"
         />
-        <div className="absolute inset-0 rounded-full bg-primary/5 opacity-0 transition-opacity group-hover:opacity-100" />
       </Link>
 
       {/* Toggle button - Perplexity style */}

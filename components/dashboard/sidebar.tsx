@@ -63,8 +63,8 @@ export function Sidebar({ user }: SidebarProps) {
       <aside
         className={cn(
           'fixed inset-y-0 left-0 z-50 hidden lg:flex flex-col',
-          'bg-sidebar border-r border-sidebar-border backdrop-blur-xl',
-          'transition-all duration-300 cubic-bezier(0.2, 0.8, 0.2, 1)', // Smooth implementation
+          'bg-sidebar border-r border-sidebar-border',
+          'transition-all duration-300 cubic-bezier(0.2, 0.8, 0.2, 1)',
           isCollapsed ? 'w-20' : 'w-72'
         )}
       >
@@ -73,9 +73,8 @@ export function Sidebar({ user }: SidebarProps) {
           "flex items-center justify-between px-6 py-10",
           isCollapsed ? "justify-center px-0" : ""
         )}>
-          <Link href="/dashboard/odonto-vision" className="relative flex items-center justify-center group">
-            <Logo width={isCollapsed ? 40 : 120} height={isCollapsed ? 40 : 40} variant="white" className="transition-transform duration-300 group-hover:scale-105" />
-            <div className="absolute inset-0 bg-primary/5 blur-3xl opacity-0 group-hover:opacity-100 transition-opacity rounded-full"></div>
+          <Link href="/dashboard/odonto-vision" className="flex items-center justify-center">
+            <Logo width={isCollapsed ? 40 : 120} height={isCollapsed ? 40 : 40} variant="auto" className="text-ink" />
           </Link>
 
           {!isCollapsed && (
@@ -111,8 +110,8 @@ export function Sidebar({ user }: SidebarProps) {
                 className={cn(
                   'group flex items-center rounded-xl text-sm font-medium transition-all duration-200',
                   active
-                    ? 'bg-sidebar-accent text-sidebar-foreground font-semibold'
-                    : 'text-sidebar-muted hover:text-sidebar-foreground hover:bg-sidebar-accent/50',
+                    ? 'bg-sidebar-accent text-sidebar-foreground font-medium'
+                    : 'text-muted-foreground hover:text-sidebar-foreground hover:bg-sidebar-accent/60',
                   isCollapsed
                     ? 'flex-col justify-center gap-1 p-2 h-auto min-h-[64px]'
                     : 'flex-row gap-3 px-3 py-2.5'
@@ -127,7 +126,7 @@ export function Sidebar({ user }: SidebarProps) {
                   <item.icon className={cn(
                     "shrink-0 transition-all duration-300",
                     isCollapsed ? "h-6 w-6" : "h-5 w-5",
-                    active ? "text-primary stroke-[2.5px]" : "group-hover:text-sidebar-foreground stroke-[1.5px]"
+                    active ? "text-sidebar-foreground stroke-[2px]" : "group-hover:text-sidebar-foreground stroke-[1.5px]"
                   )} />
                   {/* Active Indicator handled purely by color/font now */}
                 </div>
@@ -139,18 +138,13 @@ export function Sidebar({ user }: SidebarProps) {
                 ) : (
                   <span className="truncate flex-1 font-sans">{item.label}</span>
                 )}
-
-                {/* Active Indicator (Dot) - Only in expanded or refined for collapsed */}
-                {active && !isCollapsed && (
-                  <div className="h-1.5 w-1.5 rounded-full bg-primary" />
-                )}
               </Link>
             )
           })}
         </nav>
 
         {/* Bottom Section */}
-        <div className="p-2 border-t border-sidebar-border bg-sidebar/50 backdrop-blur-sm space-y-1">
+        <div className="p-2 border-t border-sidebar-border bg-sidebar space-y-1">
           {BOTTOM_NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
