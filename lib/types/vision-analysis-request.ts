@@ -68,4 +68,6 @@ export type MedVisionAnalysisConfig = {
   patientAge?: number
   patientSex?: VisionPatientSex
   reportSections: VisionReportSections
+  /** ID interno do paciente (agrupamento em Laudos; não é PHI). */
+  patientKey?: string
 }

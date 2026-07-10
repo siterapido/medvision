@@ -7,9 +7,29 @@ import { Scan, ImageIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { MED_VISION_HREF } from "@/lib/constants/navigation"
+import { useArtifacts } from "@/lib/hooks/use-artifacts"
+import { cn } from "@/lib/utils"
 
 export default function LaudosPage() {
     const router = useRouter()
+    const [patientFilter, setPatientFilter] = React.useState<string | null>(null)
+
+    const { data } = useArtifacts({
+        type: "vision",
+        sortBy: "createdAt",
+        sortOrder: "desc",
+        page: 1,
+        limit: 100,
+    })
+
+    const patientKeys = React.useMemo(() => {
+        const keys = new Set<string>()
+        for (const item of data) {
+            const key = item.patientKey?.trim()
+            if (key) keys.add(key)
+        }
+        return Array.from(keys).sort((a, b) => a.localeCompare(b, "pt-BR"))
+    }, [data])
 
     const goToMedVision = React.useCallback(() => {
         router.push(MED_VISION_HREF)
@@ -41,12 +61,47 @@ export default function LaudosPage() {
                 </Button>
             </div>
 
+            {patientKeys.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-medium text-ink-muted">Paciente:</span>
+                    <button
+                        type="button"
+                        onClick={() => setPatientFilter(null)}
+                        className={cn(
+                            "rounded-lg border px-2.5 py-1 text-xs transition-colors",
+                            patientFilter === null
+                                ? "border-signal bg-signal/10 text-ink"
+                                : "border-rule bg-surface text-ink-muted hover:bg-surface-raised",
+                        )}
+                    >
+                        Todos
+                    </button>
+                    {patientKeys.map((key) => (
+                        <button
+                            key={key}
+                            type="button"
+                            onClick={() => setPatientFilter(key)}
+                            className={cn(
+                                "rounded-lg border px-2.5 py-1 text-xs transition-colors",
+                                patientFilter === key
+                                    ? "border-signal bg-signal/10 text-ink"
+                                    : "border-rule bg-surface text-ink-muted hover:bg-surface-raised",
+                            )}
+                        >
+                            {key}
+                        </button>
+                    ))}
+                </div>
+            )}
+
             <ArtifactList
                 type="vision"
                 variant="dense"
                 emptyMessage="Nenhum laudo salvo ainda."
                 emptyActionLabel="Ir ao Med Vision"
                 onEmptyAction={goToMedVision}
+                patientKeyFilter={patientFilter}
+                groupByPatient={!patientFilter && patientKeys.length > 0}
             />
         </div>
     )

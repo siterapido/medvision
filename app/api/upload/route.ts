@@ -1,19 +1,23 @@
-
 import { NextRequest, NextResponse } from 'next/server'
 import { uploadChatImage } from '@/lib/bunny/upload'
 import { createClient } from '@/lib/supabase/server'
+import { getDevBypassUserIfActive } from '@/lib/dev-auth-server'
 
 export async function POST(req: NextRequest) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
 
-    if (!user) {
-        // Para desenvolvimento sem login poder funcionar se necessário, 
-        // comente o return abaixo. Mas em produção deve ter user.
-        // return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    const devUser =
+        !user && process.env.NODE_ENV === 'development'
+            ? await getDevBypassUserIfActive()
+            : null
+
+    const effectiveUser = user ?? devUser
+    if (!effectiveUser) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
-    // Fallback ID for dev if no user
-    const userId = user?.id || 'dev-user'
+
+    const userId = effectiveUser.id
 
     try {
         const formData = await req.formData()

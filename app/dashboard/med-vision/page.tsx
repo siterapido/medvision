@@ -1,6 +1,5 @@
-import { redirect } from "next/navigation"
+import MedVisionPage from "@/components/vision/med-vision/med-vision-page"
 
-/** Alias de rota para compatibilidade com favoritos /dashboard/med-vision */
-export default function MedVisionAliasPage() {
-  redirect("/dashboard/odonto-vision")
+export default function Page() {
+  return <MedVisionPage />
 }

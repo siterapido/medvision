@@ -2,7 +2,7 @@
 
 import * as React from "react"
 import { motion, AnimatePresence } from "motion/react"
-import { Search, Loader2, AlertCircle, SearchX, Scan, ArrowUpRight, Clock } from "lucide-react"
+import { Search, Loader2, AlertCircle, SearchX, Scan, ArrowUpRight, Clock, PenLine } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -31,6 +31,10 @@ import { ArtifactRenderer } from "@/components/artifacts/artifact-renderer"
 import { convertToRenderArtifact, getIconForType, getLabelForType } from "@/lib/utils/artifact-utils"
 import { cn } from "@/lib/utils"
 import { toast } from "sonner"
+import { generateVisionPDF } from "@/lib/utils/generate-vision-pdf"
+import { fetchVisionPdfSigner } from "@/lib/utils/fetch-vision-pdf-signer"
+import type { VisionArtifactContent } from "@/lib/types/vision"
+import { ensureImageDataUrl, getVisionImageSrc } from "@/lib/vision/persist-vision-image"
 
 interface ArtifactListProps {
     type?: ArtifactType | ArtifactType[]
@@ -43,6 +47,10 @@ interface ArtifactListProps {
     limit?: number
     hideSearch?: boolean
     variant?: "grid" | "dense"
+    /** Filtra laudos pelo ID interno do paciente. */
+    patientKeyFilter?: string | null
+    /** Agrupa lista densa por patientKey quando presente. */
+    groupByPatient?: boolean
 }
 
 const containerVariants = {
@@ -66,11 +74,14 @@ export function ArtifactList({
     limit = 100,
     hideSearch = false,
     variant = "grid",
+    patientKeyFilter = null,
+    groupByPatient = false,
 }: ArtifactListProps) {
     const isDense = variant === "dense"
     const [searchTerm, setSearchTerm] = React.useState("")
     const [debouncedSearch, setDebouncedSearch] = React.useState("")
     const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('desc')
+    const [signingId, setSigningId] = React.useState<string | null>(null)
 
     // Modal states
     const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
@@ -97,6 +108,23 @@ export function ArtifactList({
 
     const { deleteArtifact, isDeleting } = useDeleteArtifact()
 
+    const filteredData = React.useMemo(() => {
+        if (!patientKeyFilter) return data
+        return data.filter((item) => item.patientKey === patientKeyFilter)
+    }, [data, patientKeyFilter])
+
+    const groupedDense = React.useMemo(() => {
+        if (!groupByPatient || !isDense) return null
+        const groups = new Map<string, Artifact[]>()
+        for (const item of filteredData) {
+            const key = item.patientKey?.trim() || "Sem ID paciente"
+            const list = groups.get(key) ?? []
+            list.push(item)
+            groups.set(key, list)
+        }
+        return Array.from(groups.entries())
+    }, [filteredData, groupByPatient, isDense])
+
     const handleDelete = async () => {
         if (!artifactToDelete) return
 
@@ -119,6 +147,30 @@ export function ArtifactList({
     const requestDelete = (id: string) => {
         setArtifactToDelete(id)
         setDeleteDialogOpen(true)
+    }
+
+    const signSelected = async () => {
+        if (!selectedArtifact || selectedArtifact.signedAt) return
+        setSigningId(selectedArtifact.id)
+        try {
+            const res = await fetch(`/api/laudos/${selectedArtifact.id}/sign`, {
+                method: "POST",
+            })
+            const body = await res.json().catch(() => null)
+            if (!res.ok) {
+                throw new Error(body?.error || "Falha ao assinar")
+            }
+            toast.success("Laudo assinado")
+            setSelectedArtifact({
+                ...selectedArtifact,
+                signedAt: body?.signedAt ?? new Date().toISOString(),
+            })
+            mutate()
+        } catch (err) {
+            toast.error(err instanceof Error ? err.message : "Erro ao assinar laudo")
+        } finally {
+            setSigningId(null)
+        }
     }
 
     return (
@@ -225,6 +277,12 @@ export function ArtifactList({
                         </Button>
                     </div>
                 )
+            ) : filteredData.length === 0 ? (
+                <div className="flex flex-col items-start gap-4 rounded-xl border border-rule bg-surface-raised px-4 py-8 sm:flex-row sm:items-center sm:justify-between">
+                    <p className="text-sm text-ink-muted">
+                        Nenhum laudo para este paciente.
+                    </p>
+                </div>
             ) : isDense ? (
                 <div className="overflow-hidden rounded-xl border border-rule bg-surface-raised">
                     <div className="hidden border-b border-rule bg-surface px-4 py-2 text-[11px] font-medium uppercase tracking-wide text-ink-muted sm:grid sm:grid-cols-[6rem_7rem_6rem_1fr_2rem] sm:gap-4">
@@ -234,14 +292,30 @@ export function ArtifactList({
                         <span>Preview</span>
                         <span className="sr-only">Ações</span>
                     </div>
-                    {data.map((item) => (
-                        <ArtifactRow
-                            key={item.id}
-                            item={item}
-                            onPreview={openPreview}
-                            onDelete={requestDelete}
-                        />
-                    ))}
+                    {groupedDense
+                        ? groupedDense.map(([groupKey, items]) => (
+                            <div key={groupKey}>
+                                <div className="border-b border-rule bg-surface px-4 py-2 text-[11px] font-semibold uppercase tracking-wide text-ink-muted">
+                                    {groupKey}
+                                </div>
+                                {items.map((item) => (
+                                    <ArtifactRow
+                                        key={item.id}
+                                        item={item}
+                                        onPreview={openPreview}
+                                        onDelete={requestDelete}
+                                    />
+                                ))}
+                            </div>
+                        ))
+                        : filteredData.map((item) => (
+                            <ArtifactRow
+                                key={item.id}
+                                item={item}
+                                onPreview={openPreview}
+                                onDelete={requestDelete}
+                            />
+                        ))}
                 </div>
             ) : (
                 <motion.div
@@ -251,7 +325,7 @@ export function ArtifactList({
                     className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
                 >
                     <AnimatePresence mode="popLayout">
-                        {data.map(item => (
+                        {filteredData.map(item => (
                             <ArtifactCard
                                 key={item.id}
                                 item={item}
@@ -315,8 +389,66 @@ export function ArtifactList({
                                     <Button variant="outline" className="rounded-xl" onClick={() => setPreviewDialogOpen(false)}>
                                         Fechar
                                     </Button>
-                                    <Button className="rounded-xl shadow-lg shadow-primary/20 font-bold" onClick={() => toast.info("Funcionalidade de exportação em breve")}>
-                                        Exportar
+                                    {selectedArtifact.type === "vision" && !selectedArtifact.signedAt && (
+                                        <Button
+                                            variant="outline"
+                                            className="rounded-xl gap-1.5"
+                                            disabled={signingId === selectedArtifact.id}
+                                            onClick={() => { void signSelected() }}
+                                        >
+                                            {signingId === selectedArtifact.id ? (
+                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                            ) : (
+                                                <PenLine className="h-4 w-4" />
+                                            )}
+                                            Assinar laudo
+                                        </Button>
+                                    )}
+                                    {selectedArtifact.type === "vision" && selectedArtifact.signedAt && (
+                                        <Badge variant="outline" className="h-10 px-3 text-clinical-ok border-clinical-ok/30">
+                                            Assinado
+                                        </Badge>
+                                    )}
+                                    <Button
+                                        className="rounded-xl shadow-lg shadow-primary/20 font-bold"
+                                        onClick={() => {
+                                            if (!selectedArtifact) return
+                                            if (selectedArtifact.type !== "vision") {
+                                                toast.info("Exportação PDF disponível para laudos Med Vision")
+                                                return
+                                            }
+                                            const content = selectedArtifact.content as VisionArtifactContent | undefined
+                                            const imageSrc = content ? getVisionImageSrc(content) : undefined
+                                            if (!content?.analysis || !imageSrc) {
+                                                toast.error("Laudo sem dados suficientes para exportar")
+                                                return
+                                            }
+                                            toast.promise(
+                                                (async () => {
+                                                    const signer = await fetchVisionPdfSigner()
+                                                    const imageDataUrl = await ensureImageDataUrl(imageSrc)
+                                                    await generateVisionPDF({
+                                                        analysisResult: content.analysis,
+                                                        imageBase64: imageDataUrl,
+                                                        refinements: content.refinements || [],
+                                                        variant: "laudo",
+                                                        signer,
+                                                    })
+                                                    void fetch(`/api/laudos/${selectedArtifact.id}/audit`, {
+                                                        method: "POST",
+                                                        headers: { "Content-Type": "application/json" },
+                                                        body: JSON.stringify({ action: "exported" }),
+                                                    })
+                                                })(),
+                                                {
+                                                    loading: "Gerando PDF...",
+                                                    success: "PDF exportado",
+                                                    error: "Erro ao exportar PDF",
+                                                },
+                                            )
+                                        }}
+                                    >
+                                        Exportar PDF
                                     </Button>
                                 </div>
                             </div>

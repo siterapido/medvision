@@ -150,7 +150,10 @@ export interface ReportArtifact extends ArtifactBase {
 
 export interface VisionArtifact extends ArtifactBase {
   kind: 'vision'
-  imageBase64: string
+  /** Full image data URL — legacy / upload-fallback */
+  imageBase64?: string
+  /** Public URL of full image in storage */
+  imageUrl?: string
   thumbnailBase64?: string
   analyzedAt: string
   analysis: {

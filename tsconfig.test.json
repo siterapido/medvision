@@ -15,6 +15,7 @@
   "include": [
     "lib/ai/openrouter.ts",
     "lib/vision/model-fallback.ts",
+    "lib/vision/rate-limit.ts",
     "lib/course/helpers.ts",
     "lib/dashboard/overview.ts",
     "components/layout/**/*.tsx",
@@ -25,6 +26,9 @@
     "tests/vision-specialties.test.ts",
     "tests/vision-analysis-context.test.ts",
     "tests/vision-wizard-state.test.ts",
+    "tests/vision-rate-limit-plan.test.ts",
+    "tests/artifacts-vision-type.test.ts",
+    "lib/constants/artifact-types.ts",
     "components/vision/med-vision/vision-wizard-state.ts",
     "lib/constants/vision-analysis-options.ts",
     "lib/types/vision-analysis-request.ts",

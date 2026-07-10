@@ -19,6 +19,8 @@ const buttonVariants = cva(
         ghost:
           "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
         link: "text-primary underline-offset-4 hover:underline",
+        success:
+          "bg-success text-success-foreground hover:bg-success/90 focus-visible:ring-success/20 dark:focus-visible:ring-success/40",
         cta: "rounded-xl border border-[#0e7490]/40 bg-[linear-gradient(135deg,#0891b2_0%,#06b6d4_100%)] text-white font-semibold shadow-[0_10px_35px_rgba(6,182,212,0.45)] hover:shadow-[0_18px_45px_rgba(6,182,212,0.5)] hover:bg-[linear-gradient(135deg,#0e7490_0%,#0891b2_100%)] active:scale-95 focus-visible:ring-primary/40 focus-visible:ring-offset-0",
         blue: "rounded-xl border border-[#0e7490]/30 bg-[linear-gradient(135deg,#0891b2_0%,#06b6d4_100%)] text-white font-semibold shadow-[0_10px_30px_rgba(8,145,178,0.35)] hover:bg-[linear-gradient(135deg,#0e7490_0%,#0891b2_100%)] hover:shadow-[0_16px_40px_rgba(6,182,212,0.45)] active:scale-[0.98]",
       },
@@ -39,24 +41,65 @@ const buttonVariants = cva(
   }
 )
 
+/** Spinner inline usado durante loading state */
+function ButtonSpinner() {
+  return (
+    <svg
+      className="animate-spin size-4"
+      xmlns="http://www.w3.org/2000/svg"
+      fill="none"
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <circle
+        className="opacity-25"
+        cx="12"
+        cy="12"
+        r="10"
+        stroke="currentColor"
+        strokeWidth="4"
+      />
+      <path
+        className="opacity-75"
+        fill="currentColor"
+        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"
+      />
+    </svg>
+  )
+}
+
+interface ButtonProps
+  extends React.ComponentProps<"button">,
+    VariantProps<typeof buttonVariants> {
+  asChild?: boolean
+  /** Exibe spinner e desabilita o botão enquanto uma ação está em andamento */
+  isLoading?: boolean
+}
+
 function Button({
   className,
   variant,
   size,
   asChild = false,
+  isLoading = false,
+  children,
+  disabled,
   ...props
-}: React.ComponentProps<"button"> &
-  VariantProps<typeof buttonVariants> & {
-    asChild?: boolean
-  }) {
+}: ButtonProps) {
   const Comp = asChild ? Slot : "button"
 
   return (
     <Comp
       data-slot="button"
       className={cn(buttonVariants({ variant, size, className }))}
+      disabled={disabled || isLoading}
+      aria-busy={isLoading || undefined}
       {...props}
-    />
+    >
+      {isLoading && <ButtonSpinner />}
+      {/* children invisível mas ocupa espaço para não pular layout */}
+      <span className={isLoading ? "invisible" : undefined}>{children}</span>
+    </Comp>
   )
 }
 

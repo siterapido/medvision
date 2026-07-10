@@ -30,7 +30,7 @@ export type DashboardNavItem = {
 }
 
 export const dashboardNavigation: DashboardNavItem[] = [
-  { name: "Med Vision", href: "/dashboard/odonto-vision", icon: ImageIcon },
+  { name: "Med Vision", href: "/dashboard/med-vision", icon: ImageIcon },
 ]
 
 interface NewSidebarProps {
@@ -53,12 +53,12 @@ export function NewSidebar({ isCollapsed, toggleCollapse, onLogout }: NewSidebar
         {/* Header da Sidebar */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-border/50">
           {!isCollapsed && (
-             <Link href="/dashboard/odonto-vision" className="flex items-center gap-2 transition-opacity hover:opacity-80">
+             <Link href="/dashboard/med-vision" className="flex items-center gap-2 transition-opacity hover:opacity-80">
                <Logo width={100} height={24} className="text-ink" />
              </Link>
           )}
           {isCollapsed && (
-             <Link href="/dashboard/odonto-vision" className="mx-auto transition-opacity hover:opacity-80">
+             <Link href="/dashboard/med-vision" className="mx-auto transition-opacity hover:opacity-80">
                <Logo width={32} height={32} iconOnly />
              </Link>
           )}
@@ -66,7 +66,7 @@ export function NewSidebar({ isCollapsed, toggleCollapse, onLogout }: NewSidebar
 
         {/* Botão Novo Chat / Busca (Perplexity Style) */}
         <div className="p-3">
-          <Link href="/dashboard/odonto-vision">
+          <Link href="/dashboard/med-vision">
             <Button
               variant="outline"
               className={cn(

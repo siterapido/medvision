@@ -205,33 +205,33 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
 
       {/* Banner - Checkout ou Trial */}
       {isCheckoutFlow && selectedPlan ? (
-        <div className="bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 mb-6 backdrop-blur-sm">
+        <div className="rounded-xl border border-signal/30 bg-signal/5 p-4 mb-6">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-emerald-500/20 to-teal-500/20 p-2 rounded-full">
-              <Sparkles className="h-4 w-4 text-emerald-400" />
+            <div className="rounded-full bg-signal/10 p-2">
+              <Sparkles className="h-4 w-4 text-signal" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-emerald-400">
+              <p className="text-sm font-semibold text-signal">
                 {selectedPlan.name}
               </p>
-              <p className="text-xs text-emerald-400/70">
+              <p className="text-xs text-ink-muted">
                 Crie sua conta para finalizar a compra
               </p>
             </div>
           </div>
         </div>
       ) : (
-        <div className="bg-gradient-to-r from-[#34d399]/10 via-[#059669]/10 to-[#34d399]/10 border border-[#34d399]/30 rounded-xl p-4 mb-6 backdrop-blur-sm">
+        <div className="rounded-xl border border-signal/30 bg-signal/5 p-4 mb-6">
           <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-[#34d399]/20 to-[#059669]/20 p-2 rounded-full">
-              <Sparkles className="h-4 w-4 text-[#34d399]" />
+            <div className="rounded-full bg-signal/10 p-2">
+              <Sparkles className="h-4 w-4 text-signal" />
             </div>
             <div>
-              <p className="text-sm font-semibold text-[#34d399]">
+              <p className="text-sm font-semibold text-signal">
                 {trialLabel} de acesso gratuito
               </p>
-              <p className="text-xs text-[#34d399]/70">
-                Sem cartao de credito. Acesso completo imediato.
+              <p className="text-xs text-ink-muted">
+                Sem cartão de crédito. Acesso completo imediato.
               </p>
             </div>
           </div>
@@ -239,14 +239,17 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
       )}
 
       {error && (
-        <Alert variant="destructive" className="bg-red-500/10 border-red-500/30 text-red-400">
+        <Alert
+          variant="destructive"
+          className="border-red-200 bg-red-50 text-red-800 [&>svg]:text-red-600"
+        >
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
 
       {success && (
-        <Alert className="bg-emerald-500/10 border-emerald-500/30 text-emerald-400">
+        <Alert className="border-emerald-200 bg-emerald-50 text-emerald-800 [&>svg]:text-emerald-600">
           <CheckCircle2 className="h-4 w-4" />
           <AlertDescription>
             {isCheckoutFlow
@@ -258,23 +261,23 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="name" className="text-sm font-medium text-slate-300">
+        <Label htmlFor="name" className="text-sm font-medium text-ink">
           Nome Completo
         </Label>
         <Input
           id="name"
           type="text"
-          placeholder="Dr. Joao Silva"
+          placeholder="Dr. João Silva"
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
           disabled={isLoading || success}
-          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
+          className="h-12 rounded-xl border-border bg-surface px-4 text-foreground placeholder:text-muted-foreground focus:border-signal focus:ring-signal/20"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="email" className="text-sm font-medium text-slate-300">
+        <Label htmlFor="email" className="text-sm font-medium text-ink">
           Email
         </Label>
         <Input
@@ -285,12 +288,12 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
           onChange={(e) => setEmail(e.target.value)}
           required
           disabled={isLoading || success}
-          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
+          className="h-12 rounded-xl border-border bg-surface px-4 text-foreground placeholder:text-muted-foreground focus:border-signal focus:ring-signal/20"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="whatsapp" className="text-sm font-medium text-slate-300">
+        <Label htmlFor="whatsapp" className="text-sm font-medium text-ink">
           WhatsApp
         </Label>
         <Input
@@ -301,13 +304,13 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
           onChange={(e) => setWhatsapp(e.target.value)}
           required
           disabled={isLoading || success}
-          className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
+          className="h-12 rounded-xl border-border bg-surface px-4 text-foreground placeholder:text-muted-foreground focus:border-signal focus:ring-signal/20"
         />
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="occupation" className="text-sm font-medium text-slate-300">
-          Ocupacao
+        <Label htmlFor="occupation" className="text-sm font-medium text-ink">
+          Ocupação
         </Label>
         <Select
           value={occupation}
@@ -315,22 +318,23 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
           disabled={isLoading || success}
           required
         >
-          <SelectTrigger className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all [&>span]:text-slate-500 [&>span]:data-[placeholder]:text-slate-500">
-            <SelectValue placeholder="Selecione sua ocupacao" />
+          <SelectTrigger className="h-12 rounded-xl border-border bg-surface px-4 text-foreground focus:border-signal focus:ring-signal/20">
+            <SelectValue placeholder="Selecione sua ocupação" />
           </SelectTrigger>
-          <SelectContent className="bg-[#0F172A] border-slate-700">
-            <SelectItem value="Cirurgião-Dentista" className="text-white hover:bg-slate-800 focus:bg-slate-800">Cirurgiao-Dentista</SelectItem>
-            <SelectItem value="Estudante" className="text-white hover:bg-slate-800 focus:bg-slate-800">Estudante</SelectItem>
-            <SelectItem value="Empresário" className="text-white hover:bg-slate-800 focus:bg-slate-800">Empresario</SelectItem>
-            <SelectItem value="Outro" className="text-white hover:bg-slate-800 focus:bg-slate-800">Outro</SelectItem>
+          <SelectContent>
+            <SelectItem value="Cirurgião-Dentista">Cirurgião-Dentista</SelectItem>
+            <SelectItem value="Médico">Médico</SelectItem>
+            <SelectItem value="Estudante">Estudante</SelectItem>
+            <SelectItem value="Empresário">Empresário</SelectItem>
+            <SelectItem value="Outro">Outro</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {occupation === "Estudante" && (
         <div className="space-y-2">
-          <Label htmlFor="institution" className="text-sm font-medium text-slate-300">
-            Instituicao de Ensino
+          <Label htmlFor="institution" className="text-sm font-medium text-ink">
+            Instituição de Ensino
           </Label>
           <Input
             id="institution"
@@ -340,32 +344,32 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
             onChange={(e) => setInstitution(e.target.value)}
             required
             disabled={isLoading || success}
-            className="h-12 px-4 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
+            className="h-12 rounded-xl border-border bg-surface px-4 text-foreground placeholder:text-muted-foreground focus:border-signal focus:ring-signal/20"
           />
         </div>
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="password" className="text-sm font-medium text-slate-300">
+        <Label htmlFor="password" className="text-sm font-medium text-ink">
           Senha
         </Label>
         <div className="relative">
           <Input
             id="password"
             type={showPassword ? "text" : "password"}
-            placeholder="Minimo 8 caracteres"
+            placeholder="Mínimo 8 caracteres"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
             minLength={8}
             disabled={isLoading || success}
-            className="h-12 px-4 pr-12 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
+            className="h-12 rounded-xl border-border bg-surface px-4 pr-12 text-foreground placeholder:text-muted-foreground focus:border-signal focus:ring-signal/20"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             disabled={isLoading || success}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-50"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted transition-colors hover:text-ink disabled:opacity-50"
             aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
           >
             {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -374,7 +378,7 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="confirmPassword" className="text-sm font-medium text-slate-300">
+        <Label htmlFor="confirmPassword" className="text-sm font-medium text-ink">
           Confirmar Senha
         </Label>
         <div className="relative">
@@ -387,13 +391,13 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
             required
             minLength={8}
             disabled={isLoading || success}
-            className="h-12 px-4 pr-12 bg-[#0F172A]/80 border-slate-700 text-white placeholder:text-slate-500 focus:border-[#34d399] focus:ring-[#34d399]/20 rounded-xl transition-all"
+            className="h-12 rounded-xl border-border bg-surface px-4 pr-12 text-foreground placeholder:text-muted-foreground focus:border-signal focus:ring-signal/20"
           />
           <button
             type="button"
             onClick={() => setShowConfirmPassword(!showConfirmPassword)}
             disabled={isLoading || success}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors disabled:opacity-50"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted transition-colors hover:text-ink disabled:opacity-50"
             aria-label={showConfirmPassword ? "Ocultar senha" : "Mostrar senha"}
           >
             {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -404,14 +408,7 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
       <button
         type="submit"
         disabled={isLoading || success}
-        className="w-full h-12 font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] border-0 text-white disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        style={{
-          background: success
-            ? 'linear-gradient(135deg, #059669 0%, #0d9488 100%)'
-            : isCheckoutFlow
-              ? 'linear-gradient(135deg, #10B981 0%, #14B8A6 100%)'
-              : 'linear-gradient(135deg, #059669 0%, #10b981 100%)'
-        }}
+        className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-signal font-semibold text-surface-raised transition-colors hover:bg-signal/90 focus-visible:ring-2 focus-visible:ring-signal/30 disabled:cursor-not-allowed disabled:opacity-70"
       >
         {isLoading ? (
           <>
@@ -425,7 +422,7 @@ export function RegisterForm({ trialDays = DEFAULT_TRIAL_DAYS }: RegisterFormPro
           </>
         ) : (
           <>
-            {isCheckoutFlow ? "Criar conta e continuar" : `Comecar teste de ${trialLabel}`}
+            {isCheckoutFlow ? "Criar conta e continuar" : `Começar teste de ${trialLabel}`}
             <ArrowRight className="h-5 w-5" />
           </>
         )}

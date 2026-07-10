@@ -7,18 +7,22 @@ import { Upload, X, AlertCircle, FileImage, RotateCcw, CheckCircle2 } from 'luci
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
+import { extractDicomPreview, isDicomFile } from '@/lib/vision/dicom-preview'
 
-/** Tipos de imagem aceitos para upload clínico (RX, TC, foto). */
+/** Tipos de imagem aceitos para upload clínico (RX, TC, foto, DICOM). */
 const DEFAULT_ACCEPTED_TYPES = {
   'image/jpeg': ['.jpg', '.jpeg'],
   'image/png': ['.png'],
   'image/webp': ['.webp'],
+  'application/dicom': ['.dcm', '.dicom'],
+  'application/octet-stream': ['.dcm', '.dicom'],
 }
 
 const ACCEPTED_LABELS: Record<string, string> = {
   'image/jpeg': 'JPG',
   'image/png': 'PNG',
   'image/webp': 'WEBP',
+  'application/dicom': 'DICOM',
 }
 
 /** Tipos MIME comuns que devem ser rejeitados com mensagem amigável. */
@@ -108,6 +112,7 @@ export function MedVisionUploadStep({
   const [files, setFiles] = useState<UploadFile[]>([])
   const [rejection, setRejection] = useState<string | null>(null)
   const [showCheck, setShowCheck] = useState(false)
+  const [dicomNote, setDicomNote] = useState<string | null>(null)
   const rejectionTimer = useRef<ReturnType<typeof setTimeout>>(null)
 
   const maxSizeBytes = maxSizeMB * 1024 * 1024
@@ -150,8 +155,26 @@ export function MedVisionUploadStep({
       if (acceptedFiles.length === 0) return
 
       try {
+        setDicomNote(null)
         const newFiles: UploadFile[] = await Promise.all(
           acceptedFiles.map(async (file) => {
+            if (isDicomFile(file)) {
+              const preview = await extractDicomPreview(file)
+              if (!preview.ok) {
+                throw new Error(preview.message)
+              }
+              setDicomNote(
+                preview.message ||
+                  'DICOM detectado — preview do primeiro frame. Conversão server-side completa em breve.',
+              )
+              return {
+                id: uid(),
+                file,
+                base64: preview.previewDataUrl,
+                previewUrl: preview.previewDataUrl,
+              }
+            }
+
             const base64 = await readFileAsBase64(file)
             return {
               id: uid(),
@@ -171,8 +194,12 @@ export function MedVisionUploadStep({
         setTimeout(() => setShowCheck(false), 1500)
 
         onImagesAccepted(updated)
-      } catch {
-        setRejection('Erro ao processar imagem. Tente outro arquivo.')
+      } catch (err) {
+        setRejection(
+          err instanceof Error
+            ? err.message
+            : 'Erro ao processar imagem. Tente outro arquivo.',
+        )
       }
     },
     [acceptedTypes, files, maxFiles, maxSizeMB, onImagesAccepted],
@@ -183,6 +210,7 @@ export function MedVisionUploadStep({
       const updated = files.filter((f) => f.id !== id)
       setFiles(updated)
       if (updated.length === 0) {
+        setDicomNote(null)
         onReset?.()
       } else {
         onImagesAccepted(updated)
@@ -359,6 +387,25 @@ export function MedVisionUploadStep({
               <div className="flex items-center gap-2.5">
                 <AlertCircle className="h-4 w-4 shrink-0 text-destructive" aria-hidden />
                 <p className="text-xs font-medium text-destructive">{rejection}</p>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ─── Nota DICOM ─── */}
+      <AnimatePresence>
+        {dicomNote && hasFiles && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden"
+          >
+            <div className="rounded-lg border border-signal/25 bg-signal/5 px-4 py-3">
+              <div className="flex items-start gap-2.5">
+                <FileImage className="mt-0.5 h-4 w-4 shrink-0 text-signal" aria-hidden />
+                <p className="text-xs text-ink-muted">{dicomNote}</p>
               </div>
             </div>
           </motion.div>

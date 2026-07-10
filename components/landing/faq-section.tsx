@@ -32,15 +32,15 @@ export function FAQSection() {
                         {[
                             {
                                 q: "Qual a diferença para o ChatGPT comum?",
-                                a: "O MedVision não é apenas uma IA genérica. Ele foi treinado especificamente com literatura odontológica, protocolos clínicos brasileiros e artigos científicos de alto impacto. Diferente do ChatGPT comum, ele entende o contexto clínico real e fornece referências técnicas precisas."
+                                a: "O MedVision não é apenas uma IA genérica. Foi treinado para apoio clínico em laudos e análise de imagem, com literatura e protocolos. Diferente do ChatGPT comum, ele entende o contexto clínico real e fornece referências técnicas precisas."
                             },
                             {
                                 q: "Como funciona o acesso via WhatsApp?",
-                                a: "Após a confirmação da assinatura, você recebe acesso imediato ao número oficial. Você pode enviar mensagens de texto, áudio e até fotos para análise. É como ter um doutor especialista disponível no seu bolso 24h por dia, sem precisar instalar novos aplicativos."
+                                a: "Após a confirmação da assinatura, você recebe acesso imediato ao número oficial. Você pode enviar mensagens de texto, áudio e até fotos para análise. É como ter um especialista disponível no seu bolso 24h por dia, sem precisar instalar novos aplicativos."
                             },
                             {
                                 q: "As respostas são confiáveis?",
-                                a: "Sim. A base de conhecimento é curada por mestres e doutores em odontologia. No entanto, lembre-se que a IA é uma ferramenta de suporte e auxílio à decisão clínica; a responsabilidade final pelo tratamento é sempre do cirurgião-dentista."
+                                a: "Sim. A base de conhecimento é curada por mestres e doutores. No entanto, lembre-se que a IA é uma ferramenta de suporte e auxílio à decisão clínica; a responsabilidade final pelo diagnóstico e tratamento é sempre do profissional."
                             },
                             {
                                 q: "É para estudantes também?",

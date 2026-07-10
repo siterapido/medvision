@@ -22,7 +22,7 @@ export function HistoricoHeader({ total }: HistoricoHeaderProps) {
         </p>
       </div>
       <Button
-        onClick={() => router.push('/dashboard/odonto-vision')}
+        onClick={() => router.push('/dashboard/med-vision')}
         className="bg-[var(--brand)] hover:bg-[var(--brand-muted)] text-white"
       >
         <Plus className="w-4 h-4 mr-2" />

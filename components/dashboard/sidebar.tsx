@@ -72,7 +72,7 @@ export function Sidebar({ user }: SidebarProps) {
           "flex items-center justify-between px-6 py-10",
           isCollapsed ? "justify-center px-0" : ""
         )}>
-          <Link href="/dashboard/odonto-vision" className="flex items-center justify-center">
+          <Link href="/dashboard/med-vision" className="flex items-center justify-center">
             <Logo width={isCollapsed ? 40 : 120} height={isCollapsed ? 40 : 40} variant="auto" className="text-ink" />
           </Link>
 

@@ -33,9 +33,9 @@ export function SiteFrame({ children }: SiteFrameProps) {
   // Auth routes: full height, scrollable, no sidebar constraints
   if (isAuthRoute) {
     return (
-      <div className="app-frame flex flex-col bg-session-landing text-white min-h-screen overflow-y-auto">
-        {children}
-      </div>
+<div className="app-frame flex min-h-screen flex-col overflow-y-auto bg-paper text-ink">
+      {children}
+    </div>
     )
   }
 

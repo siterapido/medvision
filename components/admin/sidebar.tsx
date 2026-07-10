@@ -8,16 +8,10 @@ import { Logo } from "@/components/logo"
 import { resolveUserRole } from "@/lib/auth/roles"
 import { createClient } from "@/lib/supabase/client"
 import {
-  Award,
-  BookOpen,
   Bot,
-  FileText,
   LayoutDashboard,
   LayoutGrid,
   LogOut,
-  Calendar,
-  MessageSquare,
-  Sparkles,
   Users,
   Workflow,
   X,
@@ -48,16 +42,8 @@ type NavItem = {
 
 const allNavigationItems: NavItem[] = [
   { name: "Visão geral", href: "/admin", icon: LayoutDashboard },
-  { name: "Gerenciar Cursos", href: "/admin/cursos", icon: BookOpen },
-  { name: "Materiais", href: "/admin/materiais", icon: FileText },
-  { name: "Cadastrar Lives", href: "/admin/lives", icon: Calendar },
-  { name: "Notificações", href: "/admin/notifications", icon: MessageSquare },
-  { name: "Agentes IA", href: "/admin/agentes", icon: Bot },
-  { name: "Funis", href: "/admin/funnels", icon: LayoutGrid },
-  { name: "Pipeline", href: "/admin/pipeline", icon: Workflow },
-  { name: "Trials", href: "/admin/trials", icon: Sparkles },
-  { name: "Certificados", href: "/admin/certificados", icon: Award },
   { name: "Usuários", href: "/admin/usuarios", icon: Users },
+  { name: "Agentes IA", href: "/admin/agentes", icon: Bot },
 ]
 
 const vendedorNavigationItems: NavItem[] = [

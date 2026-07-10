@@ -8,9 +8,6 @@
  * substituir o Origin pelo endereço do próprio servidor Neon antes de encaminhar.
  */
 
-import { appendFileSync, mkdirSync } from "node:fs"
-import { join } from "node:path"
-
 export const runtime = "nodejs"
 
 const NEON_BASE =
@@ -52,20 +49,6 @@ function relaxSetCookieForInsecureLocalhost(cookie: string): string {
   return out
 }
 
-function debugAuthLog(data: Record<string, unknown>) {
-  const dir = join(process.cwd(), ".cursor")
-  const file = join(dir, "debug-9ee8f9.log")
-  try {
-    mkdirSync(dir, { recursive: true })
-    appendFileSync(
-      file,
-      `${JSON.stringify({ sessionId: "9ee8f9", timestamp: Date.now(), ...data })}\n`,
-    )
-  } catch (e) {
-    console.error("[api/auth proxy] debugAuthLog:", e)
-  }
-}
-
 function missing() {
   return new Response(
     JSON.stringify({
@@ -82,24 +65,6 @@ async function proxy(
 ): Promise<Response> {
   try {
   if (!NEON_BASE) {
-    // #region agent log
-    fetch("http://127.0.0.1:7488/ingest/88ff5270-51f7-4fd2-964b-ba8036bb3567", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "9ee8f9" },
-      body: JSON.stringify({
-        sessionId: "9ee8f9",
-        runId: "pre-fix",
-        hypothesisId: "H1",
-        location: "api/auth/[...path]:missing-NEON_BASE",
-        message: "NEON_AUTH_BASE_URL missing",
-        data: {},
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {})
-    // #endregion
-    // #region agent log
-    fetch('http://127.0.0.1:7488/ingest/88ff5270-51f7-4fd2-964b-ba8036bb3567',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'34a8c1'},body:JSON.stringify({sessionId:'34a8c1',runId:'pre-fix',hypothesisId:'P1',location:'app/api/auth/[...path]/route.ts:missing_neon_base',message:'neon_auth_proxy.missing_base',data:{nodeEnv:process.env.NODE_ENV??null,hasPublicFallback:Boolean(process.env.NEXT_PUBLIC_NEON_AUTH_BASE_URL?.trim())},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     return missing()
   }
 
@@ -145,48 +110,6 @@ async function proxy(
     body,
   })
 
-  // #region agent log
-  const reqUrl = new URL(request.url)
-  let upstreamPreview: string | null = null
-  if (upstream.status >= 400) {
-    try {
-      upstreamPreview = (await upstream.clone().text()).slice(0, 800)
-    } catch {
-      upstreamPreview = "(could not read body)"
-    }
-  }
-  const h3Payload = {
-    runId: "post-fix",
-    hypothesisId: "H3",
-    location: "api/auth/[...path]:upstream",
-    message: "auth proxy upstream response",
-    data: {
-      method: request.method,
-      pathJoined: path.join("/"),
-      upstreamStatus: upstream.status,
-      relaxCookies: shouldRelaxAuthCookieSecurity(request.url),
-      reqHost: reqUrl.hostname,
-      targetHost: target.hostname,
-      targetPath: `${target.pathname}${target.search}`,
-      upstreamPreview,
-    },
-  }
-  debugAuthLog(h3Payload)
-  fetch("http://127.0.0.1:7488/ingest/88ff5270-51f7-4fd2-964b-ba8036bb3567", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "9ee8f9" },
-    body: JSON.stringify({
-      sessionId: "9ee8f9",
-      ...h3Payload,
-      timestamp: Date.now(),
-    }),
-  }).catch(() => {})
-  // #endregion
-
-  // #region agent log
-  fetch('http://127.0.0.1:7488/ingest/88ff5270-51f7-4fd2-964b-ba8036bb3567',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'34a8c1'},body:JSON.stringify({sessionId:'34a8c1',runId:'pre-fix',hypothesisId:'P2',location:'app/api/auth/[...path]/route.ts:upstream',message:'neon_auth_proxy.upstream',data:{method:request.method,upstreamStatus:upstream.status,reqHost:reqUrl.hostname,targetHost:target.hostname,targetPath:`${target.pathname}${target.search}`},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
-
   // Encaminha a resposta ao browser preservando headers. Vários `Set-Cookie` exigem
   // append — usar set() descarta todos exceto o último e quebra a sessão.
   const resHeaders = new Headers()
@@ -208,13 +131,6 @@ async function proxy(
   })
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
-    debugAuthLog({
-      runId: "post-fix",
-      hypothesisId: "H7",
-      location: "api/auth/[...path]:catch",
-      message: "auth proxy threw",
-      data: { error: msg.slice(0, 500) },
-    })
     console.error("[api/auth proxy]", e)
     return new Response(JSON.stringify({ error: "auth_proxy_error", detail: msg }), {
       status: 502,

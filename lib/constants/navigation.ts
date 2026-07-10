@@ -17,8 +17,8 @@ export interface NavItem {
   hiddenForTrial?: boolean
 }
 
-/** Rota canônica da ferramenta Med Vision (alias: `/dashboard/med-vision`). */
-export const MED_VISION_HREF = "/dashboard/odonto-vision" as const
+/** Rota canônica da ferramenta Med Vision (alias legado: `/dashboard/odonto-vision`). */
+export const MED_VISION_HREF = "/dashboard/med-vision" as const
 
 /** Navegação do app: ferramenta principal Med Vision (imagens). */
 export const NAV_ITEMS: NavItem[] = [

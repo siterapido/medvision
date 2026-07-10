@@ -1,10 +1,11 @@
 import { APICallError } from 'ai'
+import type { SupabaseClient } from '@supabase/supabase-js'
 
+import { trackProductEvent } from '@/lib/ai/analytics'
 import { buildVisionModelChain, hasMedVisionOpenCodeGoKey } from '@/lib/ai/opencode-go'
-import { deductCredits } from '@/lib/credits/service'
+import { deductCredits, hasEnoughCredits } from '@/lib/credits/service'
 import { getSpecialtyConfig } from '@/lib/constants/vision-specialties'
 import { buildVisionUserContext } from '@/lib/vision/build-analysis-context'
-import { ImageInadequateError } from '@/lib/vision/pipeline'
 import { visionAnalysisRequestSchema } from '@/lib/types/vision-analysis-request'
 import { validateAndMergeDetections } from '@/lib/vision/detection-validation'
 import { validateImagePayload } from '@/lib/vision/json-utils'
@@ -26,12 +27,10 @@ import {
     visionWarn,
     logVisionCall,
     estimateCost,
-    extractTokenUsage,
-    type VisionCallLog,
 } from '@/lib/vision/vision-log'
 import { classifyVisionError } from '@/lib/vision/vision-errors'
 import { createClient } from '@/lib/supabase/server'
-import { buildCacheKey, getCachedResult, setCachedResult } from '@/lib/vision/cache'
+import { buildCacheKey, getCachedResultAsync, setCachedResultAsync } from '@/lib/vision/cache'
 import {
     checkUsageLimit,
     incrementUsageCounter,
@@ -40,6 +39,44 @@ import {
 } from '@/lib/vision/rate-limit'
 
 export const maxDuration = 300
+
+async function countVisionUsage(
+    supabase: SupabaseClient,
+    userId: string,
+    since: string,
+): Promise<number> {
+    const { count, error } = await supabase
+        .from('vision_usage_log')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId)
+        .gte('created_at', since)
+
+    if (error) throw error
+    return count ?? 0
+}
+
+async function insertVisionUsageLog(
+    supabase: SupabaseClient,
+    params: {
+        userId: string
+        model?: string
+        specialty?: string | null
+        cached?: boolean
+    },
+): Promise<void> {
+    try {
+        await supabase.from('vision_usage_log').insert({
+            user_id: params.userId,
+            model: params.model ?? null,
+            specialty: params.specialty ?? null,
+            cached: params.cached ?? false,
+        })
+    } catch (e) {
+        visionWarn('usage_log.insert_failed', {
+            message: e instanceof Error ? e.message : String(e),
+        })
+    }
+}
 
 export async function POST(req: Request) {
     const requestStart = performance.now()
@@ -61,6 +98,13 @@ export async function POST(req: Request) {
             })
         }
         userId = user.id
+
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('plan_type')
+            .eq('id', user.id)
+            .maybeSingle()
+        const userPlan = (profile?.plan_type as string | null | undefined) ?? 'free'
 
         const body = await req.json()
         const parsed = visionAnalysisRequestSchema.safeParse(body)
@@ -86,7 +130,11 @@ export async function POST(req: Request) {
         } = parsed.data
 
         // ── Rate Limit Check (entregável 7) ──
-        const usageCheck = await checkUsageLimit(userId)
+        const usageCheck = await checkUsageLimit(
+            userId,
+            (uid, since) => countVisionUsage(supabase, uid, since),
+            userPlan,
+        )
         if (!usageCheck.allowed) {
             visionWarn('request.rate_limited', {
                 requestId,
@@ -176,6 +224,36 @@ export async function POST(req: Request) {
         }
 
         modelsToUse = [...buildVisionModelChain()]
+
+        // ── Credits gate ──
+        const creditCheck = await hasEnoughCredits(user.id, modelsToUse[0])
+        if (!creditCheck.ok) {
+            visionWarn('request.insufficient_credits', {
+                requestId,
+                userId8: user.id.slice(0, 8),
+                balance: creditCheck.balance,
+                cost: creditCheck.cost,
+            })
+            return new Response(
+                JSON.stringify({
+                    error: {
+                        code: 'INSUFFICIENT_CREDITS',
+                        message: 'Créditos insuficientes para esta análise.',
+                        retryable: false,
+                        details: {
+                            balance: creditCheck.balance,
+                            cost: creditCheck.cost,
+                            monthly_limit: creditCheck.monthly_limit,
+                        },
+                    },
+                }),
+                {
+                    status: 402,
+                    headers: { 'Content-Type': 'application/json' },
+                },
+            )
+        }
+
         const payloadStats = imagePayloadStats(imageData)
         const hasContext = Boolean(userContext?.trim() || clinicalContext?.trim())
         const contextChars = userContext?.length ?? clinicalContext?.trim().length ?? 0
@@ -196,9 +274,9 @@ export async function POST(req: Request) {
             ...payloadStats,
         })
 
-        // ── Cache Check (entregável 4) ──
+        // ── Cache Check (entregável 4) — L1 memory + L2 DB ──
         const cacheKey = buildCacheKey(imageData, clinicalContext)
-        const cached = getCachedResult<VisionAnalysis>(cacheKey)
+        const cached = await getCachedResultAsync<VisionAnalysis>(cacheKey)
         if (cached) {
             visionInfo('request.cache_hit', {
                 requestId,
@@ -208,6 +286,13 @@ export async function POST(req: Request) {
             })
             const responseData = mapAnalysisToResponse(cached.result, { pipelineWarnings: [] })
             analysisSuccess = true
+            incrementUsageCounter(user.id)
+            await insertVisionUsageLog(supabase, {
+                userId: user.id,
+                model: cached.modelId,
+                specialty,
+                cached: true,
+            })
             const totalMs = elapseMs(requestStart)
             logVisionCall({
                 requestId,
@@ -289,8 +374,14 @@ export async function POST(req: Request) {
                 visionWarn('credits.deduct_failed', { requestId, mode: 'preview', message: e instanceof Error ? e.message : String(e) })
             }
 
-            // Increment usage counter
+            // Increment usage counter + persist usage log
             incrementUsageCounter(user.id)
+            await insertVisionUsageLog(supabase, {
+                userId: user.id,
+                model: modelsToUse[0],
+                specialty,
+                cached: false,
+            })
 
             // Alerta de uso (entregável 7)
             const pct = usagePercent(usageCheck.dailyUsed + 1, usageCheck.dailyLimit)
@@ -324,9 +415,9 @@ export async function POST(req: Request) {
         // ── Sucesso: persistir cache, debitar créditos, logging ──
         analysisSuccess = true
 
-        // Cache result
+        // Cache result (L1 + L2)
         const analysisMs = elapseMs(requestStart)
-        setCachedResult(cacheKey, analysis, modelsToUse[0], analysisMs)
+        await setCachedResultAsync(cacheKey, analysis, modelsToUse[0], analysisMs)
 
         // Debitar créditos (só em sucesso — fix P0-2)
         try {
@@ -335,8 +426,14 @@ export async function POST(req: Request) {
             visionWarn('credits.deduct_failed', { requestId, message: e instanceof Error ? e.message : String(e) })
         }
 
-        // Increment usage counter
+        // Increment usage counter + persist usage log
         incrementUsageCounter(user.id)
+        await insertVisionUsageLog(supabase, {
+            userId: user.id,
+            model: modelsToUse[0],
+            specialty,
+            cached: false,
+        })
 
         const responseData = mapAnalysisToResponse(analysis, { pipelineWarnings })
 
@@ -373,6 +470,14 @@ export async function POST(req: Request) {
             precision: responseData.precision,
             pipelineWarnings: pipelineWarnings.length,
             cached: false,
+        })
+
+        trackProductEvent('vision_analyze_success', {
+            requestId,
+            mode: mode ?? 'default',
+            modelId: modelsToUse[0],
+            detections: analysis.detections.length,
+            totalMs,
         })
 
         return Response.json({

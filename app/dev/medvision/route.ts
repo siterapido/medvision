@@ -11,11 +11,11 @@ export async function GET(request: Request) {
 
   if (!isDevEnvironment()) {
     return NextResponse.redirect(
-      new URL("/login?redirectTo=/dashboard/odonto-vision", origin),
+      new URL("/login?redirectTo=/dashboard/med-vision", origin),
     )
   }
 
-  const res = NextResponse.redirect(new URL("/dashboard/odonto-vision", origin))
+  const res = NextResponse.redirect(new URL("/dashboard/med-vision", origin))
   res.cookies.set(DEV_BYPASS_COOKIE_NAME, "1", {
     path: "/",
     httpOnly: true,

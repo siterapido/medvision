@@ -106,6 +106,7 @@ export const TAB_AGENT_MAP: Record<string, string> = {
     "/dashboard/questionarios": "med-practice",
     "/dashboard/mindmaps": "med-summary",
     "/dashboard/odonto-vision": "med-vision",
+    "/dashboard/med-vision": "med-vision",
     "/dashboard/escritor": "odonto-write",
     "/dashboard/imagens": "med-vision"
 }

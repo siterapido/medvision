@@ -1,14 +1,25 @@
 import { jsPDF } from 'jspdf'
 import { MEDVISION_AI_LABEL, VISION_CLINICAL_DISCLAIMER_PLAIN } from '@/lib/constants/vision'
 import { VisionAnalysisResult, VisionRefinement } from '@/lib/types/vision'
+import { ensureImageDataUrl } from '@/lib/vision/persist-vision-image'
 
 export type VisionPDFVariant = 'laudo' | 'conduta'
 
+export interface VisionPdfSigner {
+  name?: string | null
+  crm?: string | null
+}
+
 interface GeneratePDFOptions {
   analysisResult: VisionAnalysisResult
+  /** Data URL or remote URL of the analyzed image */
   imageBase64: string
   refinements?: VisionRefinement[]
   variant?: VisionPDFVariant
+  /** Identificação profissional do médico (perfil). */
+  signer?: VisionPdfSigner
+  /** Identificação opcional do paciente/exame. */
+  patientLabel?: string | null
 }
 
 /** Med Vision primary #0891b2, hover #0e7490 (design system) */
@@ -59,6 +70,8 @@ export async function generateVisionPDF({
   imageBase64,
   refinements = [],
   variant = 'laudo',
+  signer,
+  patientLabel,
 }: GeneratePDFOptions): Promise<void> {
   const isConduta = variant === 'conduta'
   const doc = new jsPDF({
@@ -144,6 +157,15 @@ export async function generateVisionPDF({
   yPosition += 8
   doc.setFont('helvetica', 'normal')
 
+  if (patientLabel?.trim()) {
+    doc.setTextColor(textColor[0], textColor[1], textColor[2])
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`Paciente / exame: ${patientLabel.trim()}`, margin, yPosition)
+    yPosition += 8
+    doc.setFont('helvetica', 'normal')
+  }
+
   // Image type badge
   if (analysisResult.meta?.imageType) {
     doc.setFillColor(240, 242, 245)
@@ -160,14 +182,15 @@ export async function generateVisionPDF({
   // Main image (proportional, no stretch) — apenas no PDF de laudo
   if (!isConduta && imageBase64) {
     try {
-      const imgFmt = getJsPdfImageFormat(imageBase64)
+      const imageDataUrl = await ensureImageDataUrl(imageBase64)
+      const imgFmt = getJsPdfImageFormat(imageDataUrl)
       const maxW = contentWidth
       const maxH = 112
 
       let naturalW = 4
       let naturalH = 3
       try {
-        const d = await loadImageDimensions(imageBase64)
+        const d = await loadImageDimensions(imageDataUrl)
         naturalW = d.w
         naturalH = d.h
       } catch {
@@ -192,7 +215,7 @@ export async function generateVisionPDF({
       doc.setLineWidth(0.45)
       doc.setFillColor(250, 251, 252)
       doc.roundedRect(margin, yPosition, imgW, imgH, 1, 1, 'FD')
-      doc.addImage(imageBase64, imgFmt, margin + pad, yPosition + pad, imgW - pad * 2, imgH - pad * 2)
+      doc.addImage(imageDataUrl, imgFmt, margin + pad, yPosition + pad, imgW - pad * 2, imgH - pad * 2)
       yPosition += imgH + 12
     } catch (error) {
       console.error('Error adding image to PDF:', error)
@@ -585,7 +608,14 @@ export async function generateVisionPDF({
 
   doc.setFont('helvetica', 'bold')
   doc.setTextColor(primaryColor[0], primaryColor[1], primaryColor[2])
-  const footerRight = 'Med Vision • CRM virtual 0001-AI'
+  const signerName = signer?.name?.trim()
+  const signerCrm = signer?.crm?.trim()
+  const signerLine = [signerName, signerCrm ? `CRM ${signerCrm}` : null]
+    .filter(Boolean)
+    .join(' · ')
+  const footerRight = signerLine
+    ? `Med Vision · ${signerLine}`
+    : 'Med Vision · Assinatura: complete o CRM no perfil'
   const fw = doc.getTextWidth(footerRight)
   doc.text(footerRight, pageWidth - margin - fw, footerY + 10.5)
 

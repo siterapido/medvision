@@ -269,6 +269,25 @@ export function MedVisionConfigForm({ config, onChange, qualityWarnings }: MedVi
                                 </Select>
                             </div>
                         </div>
+                        <div>
+                            <Label className="text-xs text-ink-muted">ID paciente (interno)</Label>
+                            <Input
+                                value={config.patientKey ?? ''}
+                                onChange={(e) =>
+                                    onChange({
+                                        patientKey: e.target.value.trim()
+                                            ? e.target.value.trim()
+                                            : undefined,
+                                    })
+                                }
+                                placeholder="Ex: PAC-001 (opcional)"
+                                className="h-9 mt-1 border-rule bg-surface"
+                                maxLength={64}
+                            />
+                            <p className="mt-1 text-[10px] text-ink-muted">
+                                Agrupa laudos no histórico. Não use nome ou documento.
+                            </p>
+                        </div>
                     </div>
 
                     <div className={cn(PANEL, 'p-4 space-y-3')}>

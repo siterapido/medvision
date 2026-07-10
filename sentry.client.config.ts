@@ -7,7 +7,7 @@ if (dsn) {
     dsn,
     environment:
       process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.NODE_ENV,
-    sendDefaultPii: true,
+    sendDefaultPii: false,
     tracesSampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1,
     replaysSessionSampleRate: 0.05,
     replaysOnErrorSampleRate: 1,

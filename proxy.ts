@@ -9,21 +9,6 @@ async function fetchNeonSessionUser(request: NextRequest): Promise<NeonLikeUser 
     const base = process.env.NEON_AUTH_BASE_URL?.trim()
     if (!base) {
       console.error("[proxy] NEON_AUTH_BASE_URL ausente")
-      // #region agent log
-      fetch("http://127.0.0.1:7488/ingest/88ff5270-51f7-4fd2-964b-ba8036bb3567", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "9ee8f9" },
-        body: JSON.stringify({
-          sessionId: "9ee8f9",
-          runId: "pre-fix",
-          hypothesisId: "H1",
-          location: "proxy.ts:fetchNeonSessionUser",
-          message: "NEON_AUTH_BASE_URL missing in proxy",
-          data: {},
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {})
-      // #endregion
       return null
     }
     const url = new URL("get-session", base.endsWith("/") ? base : `${base}/`)
@@ -37,27 +22,6 @@ async function fetchNeonSessionUser(request: NextRequest): Promise<NeonLikeUser 
     } | null
     if (!body) return null
     const user = body.user ?? body.session?.user ?? null
-    // #region agent log
-    const hasCookieHeader = (request.headers.get("cookie") ?? "").length > 0
-    fetch("http://127.0.0.1:7488/ingest/88ff5270-51f7-4fd2-964b-ba8036bb3567", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-Debug-Session-Id": "9ee8f9" },
-      body: JSON.stringify({
-        sessionId: "9ee8f9",
-        runId: "pre-fix",
-        hypothesisId: "H5",
-        location: "proxy.ts:get-session",
-        message: "Neon get-session result",
-        data: {
-          status: res.status,
-          hasUser: !!user,
-          hasCookieHeader,
-          path: request.nextUrl.pathname,
-        },
-        timestamp: Date.now(),
-      }),
-    }).catch(() => {})
-    // #endregion
     return user
   } catch (e) {
     console.error("[proxy] fetchNeonSessionUser falhou:", e)
@@ -103,7 +67,7 @@ export async function proxy(request: NextRequest) {
   if (isAuthPath && user) {
     const redirectUrl = request.nextUrl.clone()
     const staff = userRole === "admin" || userRole === "vendedor"
-    redirectUrl.pathname = staff ? "/admin" : "/dashboard/odonto-vision"
+    redirectUrl.pathname = staff ? "/admin" : "/dashboard/med-vision"
     return NextResponse.redirect(redirectUrl)
   }
 
@@ -112,6 +76,6 @@ export async function proxy(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|\\.well-known/workflow/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 }

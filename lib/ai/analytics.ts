@@ -5,6 +5,26 @@
  */
 
 /**
+ * Product event stub: structured console log + PostHog when available in the browser.
+ */
+export function trackProductEvent(
+  name: string,
+  props?: Record<string, unknown>,
+): void {
+  const payload = {
+    event: name,
+    props: props ?? {},
+    timestamp: new Date().toISOString(),
+  }
+  console.log('[Product Event]', payload)
+
+  if (typeof window !== 'undefined') {
+    const posthog = (window as unknown as { posthog?: { capture?: (n: string, p?: Record<string, unknown>) => void } }).posthog
+    posthog?.capture?.(name, props)
+  }
+}
+
+/**
  * Track AI completion metrics
  *
  * Logs completion details for observability. In production, this could

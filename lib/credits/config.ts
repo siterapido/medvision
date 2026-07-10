@@ -5,14 +5,14 @@
  * reseta automaticamente no início de cada período.
  */
 
-// ─── Limites mensais por plano (DESABILITADO — créditos ilimitados) ────────────
+// ─── Limites mensais por plano ────────────────────────────────────────────────
 
 export const PLAN_CREDITS: Record<string, number> = {
-  trial:       999999,
-  free:        999999,
-  basic:       999999,
-  pro:         999999,
-  certificate: 999999,
+  trial:       100,
+  free:        40,
+  basic:       200,
+  pro:         1000,
+  certificate: 200,
   admin:       999999,
 }
 

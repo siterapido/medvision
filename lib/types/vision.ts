@@ -97,8 +97,11 @@ export interface VisionAnnotation {
 
 // Artifact content structure for saving to biblioteca
 export interface VisionArtifactContent {
-    thumbnailBase64: string;              // 200x200 preview
-    imageBase64: string;                  // Full image
+    thumbnailBase64: string;              // ~200px preview (stays in JSONB)
+    /** Public URL of full image in storage (preferred) */
+    imageUrl?: string;
+    /** Full image — legacy / upload-fallback only; prefer imageUrl */
+    imageBase64?: string;
     analysis: VisionAnalysisResult;
     annotations?: VisionAnnotation[];
     analyzedAt: string;

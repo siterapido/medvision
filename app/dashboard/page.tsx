@@ -1,8 +1,6 @@
 import { redirect } from "next/navigation"
 
-/**
- * Início do dashboard: produto focado em Med Vision (radiografias e tomografias) — redireciona para a ferramenta.
- */
+/** Home do dashboard: laudo-first → Med Vision. */
 export default function DashboardPage() {
-  redirect("/dashboard/odonto-vision")
+  redirect("/dashboard/med-vision")
 }

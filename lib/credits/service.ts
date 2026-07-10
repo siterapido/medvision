@@ -138,9 +138,14 @@ export async function hasEnoughCredits(
 
   const cost = getModelCost(modelId)
   const balance = credits?.balance ?? 0
+  const monthly_limit = credits?.monthly_limit ?? getPlanLimit(resolvePlanType(profile), isAdmin)
 
-  // Créditos desabilitados — sempre permite uso
-  return { ok: true, balance, cost, monthly_limit: 999999 }
+  return {
+    ok: balance >= cost,
+    balance,
+    cost,
+    monthly_limit,
+  }
 }
 
 // ─── Débito ───────────────────────────────────────────────────────────────────

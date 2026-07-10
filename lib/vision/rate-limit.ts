@@ -76,8 +76,9 @@ export interface UsageCheck {
 export async function checkUsageLimit(
     userId: string,
     supabaseQuerier?: (userId: string, since: string) => Promise<number>,
+    userPlan?: string | null,
 ): Promise<UsageCheck> {
-    const config = getRateLimitForUser()
+    const config = getRateLimitForUser(userPlan)
     const now = Date.now()
     const dayReset = getDayReset()
     const weekReset = getWeekReset()

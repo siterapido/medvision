@@ -99,6 +99,10 @@ export interface Artifact {
     aiContext: AIContext
     createdAt: string
     updatedAt: string
+    /** ID interno do paciente (não PHI-heavy). */
+    patientKey?: string | null
+    orgId?: string | null
+    signedAt?: string | null
 }
 
 export interface CreateArtifactInput {
@@ -108,6 +112,9 @@ export interface CreateArtifactInput {
     content: any
     metadata?: Record<string, any>
     aiContext: AIContext
+    /** Persistidos em colunas dedicadas quando presentes. */
+    orgId?: string
+    patientKey?: string
 }
 
 export interface UpdateArtifactInput {

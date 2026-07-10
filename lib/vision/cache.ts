@@ -4,9 +4,14 @@
  *
  * Chave: SHA-256 da imagem (primeiros 4KB + últimos 4KB) + hash do clinicalContext
  * TTL: configurável via MEDVISION_CACHE_TTL_MINUTES (default: 30 min)
+ *
+ * L1: in-memory (por instância)
+ * L2: Postgres `vision_cache` (compartilhado) via db-cache.ts
  */
 
 import { createHash } from 'node:crypto'
+
+import { getDbCachedResult, setDbCachedResult } from '@/lib/vision/db-cache'
 
 function envCacheTTL(): number {
     const raw = process.env.MEDVISION_CACHE_TTL_MINUTES
@@ -59,6 +64,7 @@ export function buildCacheKey(imageData: string, clinicalContext?: string | null
     return `medvision:${imgHash}:${ctxHash}`
 }
 
+/** L1 sync — mantido para compatibilidade / testes. */
 export function getCachedResult<T>(key: string): CacheEntry<T> | null {
     purgeStale()
     const entry = cache.get(key)
@@ -72,6 +78,7 @@ export function getCachedResult<T>(key: string): CacheEntry<T> | null {
     return entry as CacheEntry<T>
 }
 
+/** L1 sync — mantido para compatibilidade / testes. */
 export function setCachedResult<T>(
     key: string,
     result: T,
@@ -87,6 +94,43 @@ export function setCachedResult<T>(
         tokenUsage,
         createdAt: Date.now(),
     })
+}
+
+/**
+ * L1 → L2: tenta memória, depois Postgres.
+ */
+export async function getCachedResultAsync<T>(key: string): Promise<CacheEntry<T> | null> {
+    const l1 = getCachedResult<T>(key)
+    if (l1) return l1
+
+    const l2 = await getDbCachedResult<T>(key)
+    if (!l2) return null
+
+    // Promove para L1
+    cache.set(key, l2 as CacheEntry)
+    return l2
+}
+
+/**
+ * Grava L1 e tenta L2 (fail-open).
+ */
+export async function setCachedResultAsync<T>(
+    key: string,
+    result: T,
+    modelId: string,
+    analysisMs: number,
+    tokenUsage?: { input: number; output: number },
+): Promise<void> {
+    const entry: CacheEntry<T> = {
+        key,
+        result,
+        modelId,
+        analysisMs,
+        tokenUsage,
+        createdAt: Date.now(),
+    }
+    cache.set(key, entry as CacheEntry)
+    await setDbCachedResult(key, entry, envCacheTTL())
 }
 
 /** Para logging/métricas */

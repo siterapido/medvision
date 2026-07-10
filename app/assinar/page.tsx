@@ -445,7 +445,7 @@ export default function PaidLandingPage() {
                       <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-400">Acabou.</span>
                     </h2>
                     <p className="text-lg text-slate-400 leading-relaxed max-w-xl">
-                      Quem estuda sozinho e substituido pela proxima turma. Quem domina <span className="text-white font-semibold">IA aplicada a Odontologia</span> constroi carreiras que evoluem junto com a tecnologia.
+                      Quem estuda sozinho e substituido pela proxima turma. Quem domina <span className="text-white font-semibold">IA aplicada a laudos e imagem clinica</span> constroi carreiras que evoluem junto com a tecnologia.
                     </p>
                     <p className="text-base text-slate-300">
                       Criamos o <span className="font-bold text-emerald-400">ESTUDANTE INTELIGENTE</span>: o profissional que usa IA como aliada, responde com confianca e entrega resultados em minutos.
@@ -499,7 +499,7 @@ export default function PaidLandingPage() {
                         </span>
                       </div>
                       <p className="text-slate-400 text-sm leading-relaxed mb-4">
-                        7 agentes treinados especificamente para odontologia. Cada um domina uma area: pesquisa cientifica, diagnostico, prescricao, redacao academica e mais.
+                        Agentes treinados para apoio clinico em imagem e laudos. Cada um domina uma area: analise de exames, contexto clinico, conduta e documentacao.
                       </p>
                       <div className="flex flex-wrap gap-2">
                         {["Pesquisador", "Diagnostico", "Prescricao", "Resumos", "+3"].map((tag, i) => (
@@ -656,7 +656,7 @@ export default function PaidLandingPage() {
                   <p className="text-lg font-medium text-slate-200 leading-relaxed relative">
                     <span className="text-6xl absolute -top-6 -left-4 text-emerald-500/20 font-serif">&quot;</span>
                     Cada resposta que voce recebe passa pela minha curadoria tecnica, garantindo que
-                    esteja sempre alinhada com as melhores praticas da odontologia moderna.
+                    esteja sempre alinhada com as melhores praticas da medicina e do diagnostico por imagem.
                   </p>
                 </div>
 
@@ -667,7 +667,7 @@ export default function PaidLandingPage() {
                   </div>
                   <div className="flex items-center gap-2 text-slate-300">
                     <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                    <span>Me. e Dr. em Odontologia</span>
+                    <span>Me. e Dr. em Odontologia / imagem clinica</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-300">
                     <CheckCircle2 className="h-4 w-4 text-emerald-400" />
@@ -858,7 +858,7 @@ export default function PaidLandingPage() {
             <h2 className="text-3xl md:text-5xl font-bold text-white tracking-tight">
               Pronto para Transformar sua <br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
-                Jornada na Odontologia?
+                Jornada Clinica com MedVision?
               </span>
             </h2>
             <p className="text-lg md:text-xl text-slate-300 max-w-2xl mx-auto">

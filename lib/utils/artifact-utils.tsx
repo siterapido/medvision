@@ -89,6 +89,7 @@ export const convertToRenderArtifact = (artifact: Artifact): any => {
             kind: 'vision',
             thumbnailBase64: content?.thumbnailBase64 || '',
             imageBase64: content?.imageBase64 || '',
+            imageUrl: content?.imageUrl || undefined,
             analysis: content?.analysis || { detections: [], findings: [] },
             annotations: content?.annotations || [],
             analyzedAt: content?.analyzedAt || artifact.createdAt,

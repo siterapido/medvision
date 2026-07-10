@@ -40,7 +40,8 @@ export function VisionArtifact({ artifact, className }: VisionArtifactProps) {
   const [isImageExpanded, setIsImageExpanded] = useState(false)
   const [expandedRefinement, setExpandedRefinement] = useState<number | null>(null)
 
-  const { analysis, imageBase64, thumbnailBase64, analyzedAt, refinements = [] } = artifact
+  const { analysis, imageBase64, imageUrl, thumbnailBase64, analyzedAt, refinements = [] } = artifact
+  const fullImageSrc = imageUrl || imageBase64 || thumbnailBase64 || ''
 
   const reportId = artifact.id?.slice(0, 8).toUpperCase() || Math.random().toString(36).slice(2, 8).toUpperCase()
   const formattedDate = new Date(analyzedAt).toLocaleDateString('pt-BR', {
@@ -141,8 +142,9 @@ export function VisionArtifact({ artifact, className }: VisionArtifactProps) {
   }
 
   const downloadImage = () => {
+    if (!fullImageSrc) return
     const a = document.createElement('a')
-    a.href = imageBase64
+    a.href = fullImageSrc
     a.download = `radiografia-${reportId}.jpg`
     document.body.appendChild(a)
     a.click()
@@ -242,7 +244,7 @@ export function VisionArtifact({ artifact, className }: VisionArtifactProps) {
             onClick={() => setIsImageExpanded(true)}
           >
             <img
-              src={imageBase64 || thumbnailBase64}
+              src={fullImageSrc}
               alt="Imagem radiográfica"
               className="w-full h-full object-contain"
             />
@@ -540,7 +542,7 @@ export function VisionArtifact({ artifact, className }: VisionArtifactProps) {
           </VisuallyHidden>
           <div className="relative w-full h-full flex items-center justify-center p-6 pt-12">
             <img
-              src={imageBase64}
+              src={fullImageSrc}
               alt="Imagem radiográfica em tela cheia"
               className="max-w-full max-h-[85vh] object-contain"
             />

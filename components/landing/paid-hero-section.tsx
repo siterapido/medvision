@@ -36,7 +36,7 @@ export function PaidHeroSection() {
               <h1 className="text-3xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-white leading-[1.05]">
                 Sua IA especializada<br />
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-300">
-                  em Odontologia
+                  em Medicina e Imagem
                 </span>
               </h1>
             </FadeIn>
@@ -44,7 +44,7 @@ export function PaidHeroSection() {
             <FadeIn delay={0.2} direction="up">
               <div className="space-y-3">
                 <p className="text-base sm:text-lg text-slate-300 leading-relaxed max-w-xl mx-auto lg:mx-0 font-medium">
-                  Inteligencia artificial especifica para odontologia com base em livros e artigos cientificos.
+                  Inteligencia artificial para laudos e analise de imagem clinica, com base em literatura e protocolos.
                 </p>
                 <p className="text-base text-slate-400 leading-relaxed max-w-xl mx-auto lg:mx-0">
                   <span className="text-emerald-400 font-semibold">+2.000 profissionais</span> ja transformaram seus estudos e atendimentos com a MedVision.

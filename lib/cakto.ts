@@ -4,9 +4,11 @@
 export const CAKTO_BASIC_ANNUAL_PLAN_ID = "pdjvzs7_751299"
 export const CAKTO_PRO_ANNUAL_PLAN_ID = "76x6iou_751311"
 
-// Planos de assinatura mensal
-export const CAKTO_BASIC_MONTHLY_PLAN_ID = "pdjvzs7_751299" // TODO: substituir pelo ID do plano mensal no Cakto
-export const CAKTO_PRO_MONTHLY_PLAN_ID = "76x6iou_751311" // TODO: substituir pelo ID do plano mensal no Cakto
+// Planos de assinatura mensal (env override quando IDs reais existirem no Cakto)
+export const CAKTO_BASIC_MONTHLY_PLAN_ID =
+  process.env.NEXT_PUBLIC_CAKTO_BASIC_MONTHLY_PLAN_ID || "pdjvzs7_751299"
+export const CAKTO_PRO_MONTHLY_PLAN_ID =
+  process.env.NEXT_PUBLIC_CAKTO_PRO_MONTHLY_PLAN_ID || "76x6iou_751311"
 
 // Produto vitalício (one-time)
 export const CAKTO_CERTIFICATE_ID = "pi6xasc_754503"

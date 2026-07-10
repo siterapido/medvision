@@ -10,9 +10,35 @@ import type {
     UpdateArtifactInput,
     ArtifactListParams,
     PaginatedArtifacts,
+    AIContext,
 } from '@/lib/types/artifacts'
+import { ARTIFACT_VALID_TYPES, isValidArtifactType } from '@/lib/constants/artifact-types'
+
+/** Normaliza linha snake_case do Postgres para o tipo Artifact. */
+function mapArtifactRow(row: Record<string, any>): Artifact {
+    return {
+        id: row.id,
+        userId: row.user_id ?? row.userId,
+        title: row.title,
+        description: row.description ?? '',
+        type: row.type,
+        content: row.content,
+        metadata: row.metadata ?? {},
+        aiContext: (row.ai_context ?? row.aiContext ?? {
+            model: 'gpt-4o',
+            agent: 'MedVision AI',
+        }) as AIContext,
+        createdAt: row.created_at ?? row.createdAt,
+        updatedAt: row.updated_at ?? row.updatedAt,
+        patientKey: row.patient_key ?? row.patientKey ?? null,
+        orgId: row.org_id ?? row.orgId ?? null,
+        signedAt: row.signed_at ?? row.signedAt ?? null,
+    }
+}
 
 export class ArtifactsService {
+    static readonly VALID_TYPES = ARTIFACT_VALID_TYPES
+
     /**
      * List artifacts with pagination and filters
      */
@@ -48,8 +74,16 @@ export class ArtifactsService {
             query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`)
         }
 
-        // Apply sorting
-        query = query.order(sortBy, { ascending: sortOrder === 'asc' })
+        // Apply sorting (DB columns are snake_case)
+        const sortColumn =
+            sortBy === 'createdAt'
+                ? 'created_at'
+                : sortBy === 'updatedAt'
+                  ? 'updated_at'
+                  : sortBy === 'title'
+                    ? 'title'
+                    : 'created_at'
+        query = query.order(sortColumn, { ascending: sortOrder === 'asc' })
 
         // Apply pagination
         query = query.range(from, to)
@@ -61,7 +95,7 @@ export class ArtifactsService {
         }
 
         return {
-            data: (data || []) as Artifact[],
+            data: (data || []).map(mapArtifactRow),
             total: count || 0,
             page,
             limit,
@@ -89,7 +123,7 @@ export class ArtifactsService {
             throw new Error(`Failed to get artifact: ${error.message}`)
         }
 
-        return data as Artifact
+        return data ? mapArtifactRow(data) : null
     }
 
     /**
@@ -100,24 +134,40 @@ export class ArtifactsService {
         userId: string
     ): Promise<Artifact> {
         // Validar tipo antes de inserir
-        const validTypes = ['chat', 'document', 'code', 'image', 'research', 'exam', 'summary', 'flashcards', 'mindmap', 'other'] as const
-        if (!validTypes.includes(input.type as any)) {
-            throw new Error(`Invalid artifact type: ${input.type}. Must be one of: ${validTypes.join(', ')}`)
+        if (!isValidArtifactType(input.type)) {
+            throw new Error(`Invalid artifact type: ${input.type}. Must be one of: ${ARTIFACT_VALID_TYPES.join(', ')}`)
         }
 
         const supabase = await createClient()
 
+        const metadata = input.metadata || {}
+        const patientKey =
+            input.patientKey ??
+            (typeof metadata.patientKey === 'string' ? metadata.patientKey : undefined)
+        const orgId =
+            input.orgId ??
+            (typeof metadata.orgId === 'string' ? metadata.orgId : undefined)
+
+        const insertRow: Record<string, unknown> = {
+            user_id: userId,
+            title: input.title,
+            description: input.description,
+            type: input.type,
+            content: input.content,
+            metadata,
+            ai_context: input.aiContext,
+        }
+
+        if (patientKey?.trim()) {
+            insertRow.patient_key = patientKey.trim()
+        }
+        if (orgId?.trim()) {
+            insertRow.org_id = orgId.trim()
+        }
+
         const { data, error } = await supabase
             .from('artifacts')
-            .insert({
-                user_id: userId,
-                title: input.title,
-                description: input.description,
-                type: input.type,
-                content: input.content,
-                metadata: input.metadata || {},
-                ai_context: input.aiContext,
-            })
+            .insert(insertRow)
             .select()
             .single()
 
@@ -125,7 +175,7 @@ export class ArtifactsService {
             throw new Error(`Failed to create artifact: ${error.message}`)
         }
 
-        return data as Artifact
+        return mapArtifactRow(data)
     }
 
     /**
@@ -159,7 +209,7 @@ export class ArtifactsService {
             throw new Error(`Failed to update artifact: ${error.message}`)
         }
 
-        return data as Artifact
+        return mapArtifactRow(data)
     }
 
     /**
