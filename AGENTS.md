@@ -26,9 +26,10 @@ Todas as respostas automatizadas e comunicações nos PRs devem ser redigidas em
 
 ## Design (MedVision produto autenticado)
 - Spec vigente: `docs/superpowers/specs/2026-07-10-medvision-ui-simplify-laudo-first-design.md` (supersede 2026-07-09). Plano: `docs/superpowers/plans/2026-07-10-medvision-ui-simplify-laudo-first.md`.
+- Landing + login: composição compartilhada `components/marketing/auth-shell.tsx` — spec `docs/superpowers/specs/2026-07-10-medvision-landing-login-auth-shell-design.md`. `/` = hero mínimo + Entrar; `/login` = mesmo shell + form.
 - Direção: **laudo-first clínico**, light-first, tokens `--paper`/`--signal`/`--ink` em `app/globals.css`. IA nos bastidores.
 - Escopo user: login, shell, Med Vision, Laudos, perfil/config. Legado fora do nav → 404 limpo (não deletar rotas).
-- Admin: nav sem Cursos/Materiais (código pode ficar). Landing/assinar/dark mode fora desta fase.
+- Admin: nav sem Cursos/Materiais (código pode ficar). `/assinar` e dark mode ainda fora.
 - Impeccable: `PRODUCT.md`. `DESIGN.md` ausente — `/impeccable document` quando UI estabilizar.
 
 ## AI Context References
