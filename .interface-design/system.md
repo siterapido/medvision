@@ -1,107 +1,70 @@
-# Odonto GPT Design System
+# MedVision Design System
 
 ## Direction
 
-**Feel:** Dark, tech-forward, premium — like Vercel or Linear. A sophisticated AI-powered dental learning platform. The interface should feel like a high-end developer tool, not a clinical application.
+**Feel:** Light, clinical, premium — like a high-end diagnostic workstation. A restrained medical instrument for reviewing findings and exporting reports. The interface should feel like a folha de laudo, not an AI SaaS demo.
 
-**Who:** Brazilian dentists learning and researching. They open this at night after clinic hours, on weekends for study, between patients for quick consultations. They're professionals who appreciate precision and efficiency.
+**Who:** Physicians and radiologists (~45) working in bright consultório environments, morning and afternoon. They need legibility for 5+ minutes without fatigue.
 
-**What they do:** Chat with an AI tutor, watch courses, access materials, track progress. The primary action is conversation — asking questions, getting answers, learning.
+**What they do:** Upload diagnostic images, review AI-assisted findings, edit the report, export PDF. The primary action is laudo — image → achados → export.
 
-**Signature:** Dark surfaces with subtle cyan glow. Cards that feel like they're floating in space. The AI chat as the hero — not buried in a dashboard, but front and center as the primary experience.
+**Signature:** Laudo paper surface — report typography beside the image. AI stays backstage as discrete status, never hero badges or glow effects.
 
 ---
 
 ## Palette
 
-### Dark Mode (Primary)
+### Light Mode (Primary)
 
 ```css
-/* Canvas — the deepest layer */
---canvas: #020617;           /* slate-950, near black */
+/* Canvas — folha de laudo */
+--paper: oklch(0.985 0.004 250);
 
-/* Surfaces — cards, panels, containers */
---surface-100: #0a0f1f;      /* 3% lighter than canvas */
---surface-200: #0f172a;      /* slate-900, for cards */
---surface-300: #131d37;      /* for elevated elements, dropdowns */
+/* Surfaces — panels, cards */
+--surface: oklch(0.97 0.006 250);
+--surface-raised: oklch(1 0.003 250);
 
-/* Borders — whisper-light separation */
---border-default: rgba(148, 163, 184, 0.08);   /* barely there */
---border-subtle: rgba(148, 163, 184, 0.05);    /* even softer */
---border-strong: rgba(148, 163, 184, 0.12);    /* hover, focus */
---border-overlay: rgba(148, 163, 184, 0.15);   /* dropdowns, modals */
+/* Ink — text hierarchy */
+--ink: oklch(0.22 0.02 255);
+--ink-muted: oklch(0.45 0.015 255);
 
-/* Text hierarchy */
---text-primary: #f8fafc;     /* slate-50, high contrast */
---text-secondary: #cbd5e1;   /* slate-300 */
---text-tertiary: #94a3b8;    /* slate-400 */
---text-muted: #64748b;       /* slate-500, disabled */
+/* Structure */
+--rule: oklch(0.88 0.01 250);
 
-/* Brand — Cyan as the signature */
---brand: #06b6d4;            /* cyan-500 */
---brand-muted: #0891b2;      /* cyan-600, less vibrant */
---brand-glow: rgba(6, 182, 212, 0.15);  /* subtle glow effect */
+/* Accent — cold signal (≤10% of UI) */
+--signal: oklch(0.42 0.06 255);
 
-/* Semantic */
---success: #34d399;          /* emerald-400 */
---warning: #fbbf24;          /* amber-400 */
---destructive: #f87171;      /* red-400 */
+/* Clinical semantics */
+--clinical-ok: oklch(0.55 0.08 145);
+--clinical-warn: oklch(0.65 0.12 75);
+--clinical-alert: oklch(0.55 0.14 25);
 ```
 
-### Light Mode (Secondary)
+### Dark Mode
 
-```css
---canvas: #f8fafc;           /* slate-50 */
---surface-100: #ffffff;      /* pure white cards */
---surface-200: #f1f5f9;      /* slate-100, inset areas */
-
---border-default: rgba(15, 23, 42, 0.06);
---border-subtle: rgba(15, 23, 42, 0.04);
---border-strong: rgba(15, 23, 42, 0.10);
-
---text-primary: #0f172a;     /* slate-900 */
---text-secondary: #334155;   /* slate-700 */
---text-tertiary: #64748b;    /* slate-500 */
-
---brand: #0891b2;            /* cyan-600, slightly darker for light bg */
-```
+Out of scope for current phase. `.dark` tokens remain for compatibility but are not invested.
 
 ---
 
 ## Depth Strategy
 
-**Approach:** Borders-first with subtle glow for brand elements.
+**Approach:** Borders-only. No glass, no decorative blur, no gradient text.
 
-Shadows are minimal in dark mode — they don't lift well against dark backgrounds. Instead:
-
-- **Cards:** 1px border at `--border-default`, no shadow
-- **Elevated elements (dropdowns, modals):** Slightly stronger border + subtle background shift
-- **Brand emphasis:** Cyan glow (`box-shadow: 0 0 20px var(--brand-glow)`) for active/focused states
-- **Hover states:** Border transitions from `--border-default` to `--border-strong`
+- **Cards:** 1px `--rule` border, `--surface-raised` background, no shadow
+- **Elevated elements:** Slightly stronger border or `--surface-raised`
+- **Active/focused:** `--signal` border + subtle ring (no emerald/cyan glow)
+- **Hover states:** Border darkens within rule family
 
 ```css
-/* Card base */
 .card {
-  background: var(--surface-200);
-  border: 1px solid var(--border-default);
+  background: var(--surface-raised);
+  border: 1px solid var(--rule);
   border-radius: 12px;
 }
 
-/* Card hover */
-.card:hover {
-  border-color: var(--border-strong);
-}
-
-/* Active/focused with brand glow */
 .card-active {
-  border-color: var(--brand);
-  box-shadow: 0 0 0 1px var(--brand), 0 0 20px var(--brand-glow);
-}
-
-/* Dropdown/overlay */
-.dropdown {
-  background: var(--surface-300);
-  border: 1px solid var(--border-overlay);
+  border-color: var(--signal);
+  box-shadow: 0 0 0 3px color-mix(in oklch, var(--signal) 10%, transparent);
 }
 ```
 
@@ -120,13 +83,13 @@ Shadows are minimal in dark mode — they don't lift well against dark backgroun
 - `--space-8`: 32px (major separation)
 - `--space-10`: 40px (page-level spacing)
 
-**Padding rule:** Symmetrical. Cards use `16px` or `20px` all around. Asymmetry only when content dictates (e.g., more horizontal room for wide text).
+**Padding rule:** Symmetrical. Cards use `16px` or `20px` all around.
 
 ---
 
 ## Typography
 
-**Font:** Geist (sans) for UI, Geist Mono for data/code
+**Font:** Plus Jakarta Sans (body), Outfit (headings) — or Geist if migrated
 
 **Scale:**
 - `--text-xs`: 12px — metadata, badges
@@ -141,10 +104,12 @@ Shadows are minimal in dark mode — they don't lift well against dark backgroun
 - Medium (500) — labels, nav items
 - Semibold (600) — headings, emphasis
 
+**Color:** Headings use `--ink`, never orange or gradient. Muted text uses `--ink-muted`.
+
 **Letter-spacing:**
-- Headlines: `-0.02em` (tighter)
-- Body: `0` (default)
-- Uppercase labels: `0.05em` (looser)
+- Headlines: `-0.02em`
+- Body: `0`
+- Uppercase labels: `0.05em`
 
 ---
 
@@ -156,72 +121,59 @@ Shadows are minimal in dark mode — they don't lift well against dark backgroun
 - `--radius-lg`: 12px — cards, panels
 - `--radius-xl`: 16px — modals, large containers
 
-**Rule:** Sharper on small elements, rounder on containers. Consistent within component families.
-
 ---
 
 ## Component Patterns
 
 ### Navigation (Sidebar)
 
-- Same background as canvas (not contrasting)
-- Items: subtle hover state, no background by default
-- Active item: cyan left border or background tint
-- Separation via subtle border, not color contrast
+- Same background as canvas (`--paper`) — not contrasting dark
+- Items: subtle hover, no background by default
+- Active item: signal tint background + `--ink` text (no side-stripe >1px, no glow)
+- Separation via `--rule` border
 
 ```css
 .sidebar {
-  background: var(--canvas);
-  border-right: 1px solid var(--border-default);
-}
-
-.nav-item {
-  color: var(--text-tertiary);
-  padding: 8px 12px;
-  border-radius: 6px;
-}
-
-.nav-item:hover {
-  color: var(--text-secondary);
-  background: var(--surface-100);
+  background: var(--paper);
+  border-right: 1px solid var(--rule);
 }
 
 .nav-item-active {
-  color: var(--text-primary);
-  background: var(--brand-glow);
-  border-left: 2px solid var(--brand);
+  color: var(--ink);
+  background: color-mix(in oklch, var(--signal) 8%, var(--surface));
 }
 ```
 
 ### Cards
 
-- Background: `--surface-200`
-- Border: 1px `--border-default`
+- Background: `--surface-raised`
+- Border: 1px `--rule`
 - Radius: 12px
 - Padding: 16px or 20px
-- No shadow in dark mode
+- No shadow, no blur
 
 ### Inputs
 
-- Background: `--surface-100` (inset feel)
-- Border: 1px `--border-default`
-- Focus: border-color transitions to `--brand`
-- Padding: 10px 12px
+- Background: `--surface-raised`
+- Border: 1px `--rule`
+- Focus: `--signal` border + subtle ring
+- No emerald glow, no glass blur
 
 ### Buttons
 
-- Primary: `--brand` background, `--text-primary` (dark) text
-- Secondary: `--surface-200` background, `--text-secondary` text
-- Ghost: transparent, `--text-tertiary`, hover shows subtle background
+- Primary: `--signal` background, `--surface-raised` text
+- Secondary: `--surface` background, `--ink` text
+- Ghost: transparent, `--ink-muted`, hover shows subtle surface
 
-### Chat Interface
+### Laudo Review (Med Vision)
 
-The chat is the hero. It should feel expansive and focused:
+The laudo is the hero:
 
-- Messages have minimal chrome
-- User messages: right-aligned, cyan-tinted background
-- AI messages: left-aligned, subtle surface background
-- Input area: prominent, always visible, inviting
+- Split layout: image | report text
+- Report reads like a clinical document
+- Advanced tools collapsed by default
+- Export PDF as primary action
+- AI status: typographic, discrete
 
 ---
 
@@ -229,28 +181,27 @@ The chat is the hero. It should feel expansive and focused:
 
 - Duration: 150ms for micro-interactions, 200ms for transitions
 - Easing: `ease-out` or `cubic-bezier(0.4, 0, 0.2, 1)`
-- No spring/bounce effects
+- No spring/bounce, no pulse-glow as brand signature
 - Border/color transitions for hover states
-- Subtle opacity transitions for appearing elements
 
 ---
 
 ## Anti-Patterns
 
 Avoid:
-- Dramatic shadows on dark backgrounds
-- Multiple accent colors (cyan only)
-- Harsh white text on pure black (use slate scale)
-- Sidebar with contrasting background
-- Gradients for decoration
-- Thick borders
-- Bouncy animations
-- Generic card grids with identical layouts
+- Dark sidebar with emerald glow
+- Glassmorphism and backdrop blur on product surfaces
+- Gradient text (`bg-clip-text`)
+- Orange headings in authenticated product
+- Side-stripe >1px for active nav
+- Sparkles / "IA" badges as hero elements
+- SaaS metric card grids
+- Pure `#fff` / `#000` (use paper/ink OKLCH family)
 
 ---
 
 ## Reference
 
-Inspired by: Vercel, Linear, Raycast — dark, technical, premium.
+Inspired by: clinical workstations, DICOM viewers, premium medical instruments.
 
-Unique to Odonto GPT: Cyan as signature (evokes clinical precision), chat-first experience, Brazilian Portuguese UI copy.
+Unique to MedVision: Laudo-first layout, light consultório palette, cold signal accent, Brazilian Portuguese UI copy.
