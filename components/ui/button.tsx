@@ -88,6 +88,19 @@ function Button({
 }: ButtonProps) {
   const Comp = asChild ? Slot : "button"
 
+  // Slot (asChild) exige exatamente 1 elemento filho — spinner/span quebram Children.only
+  if (asChild) {
+    return (
+      <Comp
+        data-slot="button"
+        className={cn(buttonVariants({ variant, size, className }))}
+        {...props}
+      >
+        {children}
+      </Comp>
+    )
+  }
+
   return (
     <Comp
       data-slot="button"
