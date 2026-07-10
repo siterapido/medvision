@@ -8,14 +8,6 @@ import { toast } from "sonner"
 import { Loader2, Save } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { updateProfile, type UpdateProfileData } from "@/app/actions/profile"
@@ -57,7 +49,6 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
   async function onSubmit(data: ProfileFormValues) {
     setIsPending(true)
     try {
-      // Don't send email as we're not updating it
       const payload: UpdateProfileData = {
         name: data.name,
         telefone: data.telefone || null,
@@ -72,7 +63,7 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
       } else {
         toast.error(result.error || "Erro ao atualizar perfil")
       }
-    } catch (error) {
+    } catch {
       toast.error("Ocorreu um erro inesperado")
     } finally {
       setIsPending(false)
@@ -80,85 +71,79 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
   }
 
   return (
-    <Card className="bg-slate-900 border-slate-800 shadow-none">
-      <CardHeader>
-        <CardTitle className="text-slate-50">Dados Pessoais</CardTitle>
-        <CardDescription className="text-slate-400">
-          Atualize suas informações pessoais e profissionais.
-        </CardDescription>
-      </CardHeader>
+    <section className="rounded-xl border border-rule bg-surface-raised">
+      <div className="border-b border-rule px-5 py-4 md:px-6">
+        <h2 className="font-heading text-base font-semibold text-ink">Dados pessoais</h2>
+        <p className="mt-0.5 text-sm text-ink-muted">
+          Informações profissionais usadas nos laudos.
+        </p>
+      </div>
+
       <form onSubmit={form.handleSubmit(onSubmit)}>
-        <CardContent className="space-y-4">
+        <div className="space-y-4 px-5 py-5 md:px-6">
           <div className="space-y-2">
-            <Label htmlFor="name" className="text-slate-200">Nome Completo</Label>
+            <Label htmlFor="name">Nome completo</Label>
             <Input
               id="name"
               placeholder="Seu nome"
               {...form.register("name")}
               disabled={isPending}
-              className="bg-slate-950 border-slate-800 text-slate-50 placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20"
             />
             {form.formState.errors.name && (
-              <p className="text-sm text-red-500">
+              <p className="text-sm text-destructive">
                 {form.formState.errors.name.message}
               </p>
             )}
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-slate-200">Email</Label>
+            <Label htmlFor="email">Email</Label>
             <Input
               id="email"
               {...form.register("email")}
-              disabled={true}
-              className="bg-slate-950/50 border-slate-800 text-slate-400"
+              disabled
+              className="bg-surface text-ink-muted"
             />
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-ink-muted">
               O email não pode ser alterado por aqui.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="space-y-2">
-              <Label htmlFor="telefone" className="text-slate-200">Telefone / WhatsApp</Label>
+              <Label htmlFor="telefone">Telefone / WhatsApp</Label>
               <Input
                 id="telefone"
                 placeholder="(00) 00000-0000"
                 {...form.register("telefone")}
                 disabled={isPending}
-                className="bg-slate-950 border-slate-800 text-slate-50 placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20"
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cro" className="text-slate-200">CRO</Label>
+              <Label htmlFor="cro">CRO</Label>
               <Input
                 id="cro"
                 placeholder="Seu CRO"
                 {...form.register("cro")}
                 disabled={isPending}
-                className="bg-slate-950 border-slate-800 text-slate-50 placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20"
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="especialidade" className="text-slate-200">Especialidade</Label>
+            <Label htmlFor="especialidade">Especialidade</Label>
             <Input
               id="especialidade"
               placeholder="Ex: Radiologia, Tomografia, RX..."
               {...form.register("especialidade")}
               disabled={isPending}
-              className="bg-slate-950 border-slate-800 text-slate-50 placeholder:text-slate-500 focus:border-cyan-500 focus:ring-cyan-500/20"
             />
           </div>
-        </CardContent>
-        <CardFooter className="flex justify-end border-t border-slate-800 px-6 py-4">
-          <Button
-            type="submit"
-            disabled={isPending}
-            className="bg-cyan-600 hover:bg-cyan-500 text-white font-medium shadow-[0_0_15px_rgba(8,145,178,0.4)] transition-all duration-300"
-          >
+        </div>
+
+        <div className="flex justify-end border-t border-rule px-5 py-4 md:px-6">
+          <Button type="submit" disabled={isPending}>
             {isPending ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -167,12 +152,12 @@ export function ProfileForm({ initialData }: ProfileFormProps) {
             ) : (
               <>
                 <Save className="mr-2 h-4 w-4" />
-                Salvar Alterações
+                Salvar alterações
               </>
             )}
           </Button>
-        </CardFooter>
+        </div>
       </form>
-    </Card>
+    </section>
   )
 }

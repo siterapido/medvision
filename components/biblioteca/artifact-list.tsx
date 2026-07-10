@@ -26,8 +26,10 @@ import {
 import { useArtifacts, useDeleteArtifact } from "@/lib/hooks/use-artifacts"
 import { ArtifactType, Artifact } from "@/lib/types/artifacts"
 import { ArtifactCard } from "@/components/biblioteca/artifact-card"
+import { ArtifactRow } from "@/components/biblioteca/artifact-row"
 import { ArtifactRenderer } from "@/components/artifacts/artifact-renderer"
 import { convertToRenderArtifact, getIconForType, getLabelForType } from "@/lib/utils/artifact-utils"
+import { cn } from "@/lib/utils"
 import { toast } from "sonner"
 
 interface ArtifactListProps {
@@ -40,6 +42,7 @@ interface ArtifactListProps {
     headerContent?: React.ReactNode
     limit?: number
     hideSearch?: boolean
+    variant?: "grid" | "dense"
 }
 
 const containerVariants = {
@@ -61,8 +64,10 @@ export function ArtifactList({
     onEmptyAction,
     headerContent,
     limit = 100,
-    hideSearch = false
+    hideSearch = false,
+    variant = "grid",
 }: ArtifactListProps) {
+    const isDense = variant === "dense"
     const [searchTerm, setSearchTerm] = React.useState("")
     const [debouncedSearch, setDebouncedSearch] = React.useState("")
     const [sortOrder, setSortOrder] = React.useState<'asc' | 'desc'>('desc')
@@ -129,7 +134,12 @@ export function ArtifactList({
                         <Input
                             type="search"
                             placeholder="Buscar nesta lista..."
-                            className="pl-9 h-11 bg-muted/50 backdrop-blur-md border border-white/10 rounded-xl focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-all text-sm text-foreground"
+                            className={cn(
+                                "pl-9 h-10 text-sm text-ink transition-colors",
+                                isDense
+                                    ? "rounded-lg border-rule bg-surface focus-visible:border-signal/40 focus-visible:ring-signal/15"
+                                    : "h-11 bg-muted/50 backdrop-blur-md border border-white/10 rounded-xl focus-visible:ring-primary/20 focus-visible:border-primary/50 text-foreground"
+                            )}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -138,35 +148,100 @@ export function ArtifactList({
             </div>
 
             {isLoading ? (
-                <div className="flex flex-col items-center justify-center gap-4 py-20">
-                    <Loader2 className="h-10 w-10 animate-spin text-primary motion-reduce:animate-none" />
-                    <p className="text-sm font-medium text-muted-foreground">Sincronizando laudos...</p>
-                </div>
-            ) : error ? (
-                <div className="mx-auto flex max-w-md flex-col items-center justify-center rounded-2xl border border-border bg-card p-10 py-20 text-center shadow-sm">
-                    <AlertCircle className="h-12 w-12 text-red-500/80 mb-4" />
-                    <h3 className="text-lg font-bold">Erro na conexão</h3>
-                    <p className="text-sm text-muted-foreground mt-2 mb-6">Não conseguimos recuperar seus artefatos no momento.</p>
-                    <Button onClick={() => mutate()} variant="default" className="rounded-xl px-8">
-                        Tentar Novamente
-                    </Button>
-                </div>
-            ) : data.length === 0 ? (
-                <div className="mx-auto flex max-w-xl flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-12 py-24 text-center">
-                    <div className="mb-6 shrink-0 rounded-full border border-border bg-muted p-5">
-                        {searchTerm ? <SearchX className="h-10 w-10 text-muted-foreground" /> : <Scan className="h-10 w-10 text-primary/70" />}
+                isDense ? (
+                    <div className="space-y-0 rounded-xl border border-rule bg-surface-raised">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                            <div
+                                key={i}
+                                className="flex items-center gap-4 border-b border-rule px-4 py-3 last:border-b-0"
+                            >
+                                <div className="h-3 w-16 animate-pulse rounded bg-surface" />
+                                <div className="hidden h-3 w-20 animate-pulse rounded bg-surface sm:block" />
+                                <div className="h-3 w-16 animate-pulse rounded bg-surface" />
+                                <div className="h-3 flex-1 animate-pulse rounded bg-surface" />
+                            </div>
+                        ))}
                     </div>
-                    <h3 className="text-xl font-bold">
-                        {searchTerm ? "Nenhuma correspondência" : (title ? `Nenhum ${title} encontrado` : emptyMessage)}
-                    </h3>
-                    <p className="text-sm text-muted-foreground mt-2 mb-8 max-w-sm">
-                        {searchTerm
-                            ? "Não encontramos itens com esse termo. Tente usar palavras-chave mais genéricas."
-                            : (description || "Seus artefatos aparecerão aqui.")}
-                    </p>
-                    <Button onClick={() => searchTerm ? setSearchTerm("") : onEmptyAction?.()} className="h-11 gap-2 rounded-xl px-10">
-                        {searchTerm ? "Limpar Busca" : emptyActionLabel} {searchTerm ? null : <ArrowUpRight className="h-4 w-4" />}
-                    </Button>
+                ) : (
+                    <div className="flex flex-col items-center justify-center gap-4 py-20">
+                        <Loader2 className="h-10 w-10 animate-spin text-primary motion-reduce:animate-none" />
+                        <p className="text-sm font-medium text-muted-foreground">Sincronizando laudos...</p>
+                    </div>
+                )
+            ) : error ? (
+                isDense ? (
+                    <div className="flex flex-col items-start gap-3 rounded-xl border border-rule bg-surface-raised px-4 py-6 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-start gap-3">
+                            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-clinical-alert" />
+                            <p className="text-sm text-ink-muted">
+                                Não foi possível carregar os laudos. Verifique a conexão e tente novamente.
+                            </p>
+                        </div>
+                        <Button onClick={() => mutate()} variant="outline" size="sm" className="shrink-0">
+                            Tentar novamente
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="mx-auto flex max-w-md flex-col items-center justify-center rounded-2xl border border-border bg-card p-10 py-20 text-center shadow-sm">
+                        <AlertCircle className="h-12 w-12 text-red-500/80 mb-4" />
+                        <h3 className="text-lg font-bold">Erro na conexão</h3>
+                        <p className="text-sm text-muted-foreground mt-2 mb-6">Não conseguimos recuperar seus artefatos no momento.</p>
+                        <Button onClick={() => mutate()} variant="default" className="rounded-xl px-8">
+                            Tentar Novamente
+                        </Button>
+                    </div>
+                )
+            ) : data.length === 0 ? (
+                isDense ? (
+                    <div className="flex flex-col items-start gap-4 rounded-xl border border-rule bg-surface-raised px-4 py-8 sm:flex-row sm:items-center sm:justify-between">
+                        <p className="text-sm text-ink-muted">
+                            {searchTerm
+                                ? "Nenhum laudo corresponde à busca."
+                                : emptyMessage}
+                        </p>
+                        <Button
+                            onClick={() => (searchTerm ? setSearchTerm("") : onEmptyAction?.())}
+                            size="sm"
+                            className="shrink-0"
+                        >
+                            {searchTerm ? "Limpar busca" : emptyActionLabel}
+                        </Button>
+                    </div>
+                ) : (
+                    <div className="mx-auto flex max-w-xl flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-card p-12 py-24 text-center">
+                        <div className="mb-6 shrink-0 rounded-full border border-border bg-muted p-5">
+                            {searchTerm ? <SearchX className="h-10 w-10 text-muted-foreground" /> : <Scan className="h-10 w-10 text-primary/70" />}
+                        </div>
+                        <h3 className="text-xl font-bold">
+                            {searchTerm ? "Nenhuma correspondência" : (title ? `Nenhum ${title} encontrado` : emptyMessage)}
+                        </h3>
+                        <p className="text-sm text-muted-foreground mt-2 mb-8 max-w-sm">
+                            {searchTerm
+                                ? "Não encontramos itens com esse termo. Tente usar palavras-chave mais genéricas."
+                                : (description || "Seus artefatos aparecerão aqui.")}
+                        </p>
+                        <Button onClick={() => searchTerm ? setSearchTerm("") : onEmptyAction?.()} className="h-11 gap-2 rounded-xl px-10">
+                            {searchTerm ? "Limpar Busca" : emptyActionLabel} {searchTerm ? null : <ArrowUpRight className="h-4 w-4" />}
+                        </Button>
+                    </div>
+                )
+            ) : isDense ? (
+                <div className="overflow-hidden rounded-xl border border-rule bg-surface-raised">
+                    <div className="hidden border-b border-rule bg-surface px-4 py-2 text-[11px] font-medium uppercase tracking-wide text-ink-muted sm:grid sm:grid-cols-[6rem_7rem_6rem_1fr_2rem] sm:gap-4">
+                        <span>Data</span>
+                        <span>Tipo</span>
+                        <span>Status</span>
+                        <span>Preview</span>
+                        <span className="sr-only">Ações</span>
+                    </div>
+                    {data.map((item) => (
+                        <ArtifactRow
+                            key={item.id}
+                            item={item}
+                            onPreview={openPreview}
+                            onDelete={requestDelete}
+                        />
+                    ))}
                 </div>
             ) : (
                 <motion.div
@@ -190,7 +265,12 @@ export function ArtifactList({
 
             {/* Preview Dialog */}
             <Dialog open={previewDialogOpen} onOpenChange={setPreviewDialogOpen}>
-                <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto glass-card border-white/10 p-0 rounded-[2rem] overflow-hidden custom-scrollbar bg-background/95 backdrop-blur-3xl shadow-2xl">
+                <DialogContent className={cn(
+                    "max-w-5xl max-h-[90vh] overflow-y-auto p-0 overflow-hidden custom-scrollbar",
+                    isDense
+                        ? "rounded-xl border border-rule bg-surface-raised shadow-none"
+                        : "glass-card border-white/10 rounded-[2rem] bg-background/95 backdrop-blur-3xl shadow-2xl"
+                )}>
                     {selectedArtifact && (
                         <div className="flex flex-col h-full">
                             <div className="p-8 border-b border-border/20 bg-muted/10 backdrop-blur-md">
@@ -247,7 +327,12 @@ export function ArtifactList({
 
             {/* Delete Confirmation Dialog */}
             <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent className="glass-card border-border/80 rounded-3xl bg-background/80 backdrop-blur-2xl">
+                <AlertDialogContent className={cn(
+                    "rounded-xl",
+                    isDense
+                        ? "border border-rule bg-surface-raised shadow-none"
+                        : "glass-card border-border/80 rounded-3xl bg-background/80 backdrop-blur-2xl"
+                )}>
                     <AlertDialogHeader>
                         <AlertDialogTitle className="text-xl font-bold">Expurgar Conhecimento?</AlertDialogTitle>
                         <AlertDialogDescription className="text-base">
