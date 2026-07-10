@@ -1,19 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { Lock, Eye } from "lucide-react"
+import { Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MED_VISION_HREF } from "@/lib/constants/navigation"
 
-interface UnavailablePageProps {
-    title: string
-    description?: string
-}
-
-export function UnavailablePage({
-    title,
-    description = "Esta funcionalidade está em manutenção ou será liberada em breve. Use o Med Vision para análise de radiografias e tomografias.",
-}: UnavailablePageProps) {
+export function UnavailablePage() {
     return (
         <section
             data-surface="product"
@@ -21,18 +13,14 @@ export function UnavailablePage({
             aria-labelledby="unavailable-title"
         >
             <div className="max-w-md w-full rounded-2xl border border-border bg-card p-8 text-center shadow-sm">
-                <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-xl border border-border bg-muted">
-                    <Lock className="h-7 w-7 text-muted-foreground" aria-hidden />
-                </div>
-
                 <h2
                     id="unavailable-title"
                     className="text-2xl font-semibold tracking-tight text-foreground"
                 >
-                    {title}
+                    Página não encontrada
                 </h2>
                 <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                    {description}
+                    Este endereço não faz parte do fluxo clínico atual. Continue pelo Med Vision para análise de imagens e laudos.
                 </p>
 
                 <Button asChild className="mt-8 h-11 w-full rounded-xl gap-2">

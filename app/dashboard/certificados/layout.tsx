@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation"
-
-export default function CertificadosLayout() {
-    redirect("/dashboard/odonto-vision")
+export default function CertificadosLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
 }

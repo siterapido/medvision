@@ -1,5 +1,5 @@
-import { redirect } from "next/navigation"
+import { UnavailablePage } from "@/components/unavailable-page"
 
 export default function BibliotecaFlashcardsPage() {
-    redirect("/dashboard/odonto-vision")
+  return <UnavailablePage />
 }

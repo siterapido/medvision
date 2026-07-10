@@ -2,9 +2,7 @@ import {
   Eye,
   LayoutDashboard,
   Bot,
-  FileText,
   Users,
-  Award,
   ScanText,
 } from "lucide-react"
 
@@ -33,7 +31,5 @@ export const BOTTOM_NAV_ITEMS: NavItem[] = []
 export const ADMIN_NAV_ITEMS: NavItem[] = [
   { href: "/admin", label: "Visão Geral", icon: LayoutDashboard },
   { href: "/admin/usuarios", label: "Usuários", icon: Users },
-  { href: "/admin/cursos", label: "Cursos", icon: Award },
-  { href: "/admin/materiais", label: "Materiais", icon: FileText },
   { href: "/admin/agentes", label: "Agentes IA", icon: Bot },
 ]

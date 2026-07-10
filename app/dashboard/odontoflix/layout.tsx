@@ -1,5 +1,3 @@
-import { redirect } from "next/navigation"
-
-export default function OdontoflixLayout() {
-    redirect("/dashboard/odonto-vision")
+export default function OdontoflixLayout({ children }: { children: React.ReactNode }) {
+  return <>{children}</>
 }
